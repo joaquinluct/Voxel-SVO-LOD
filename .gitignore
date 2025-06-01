@@ -30,3 +30,56 @@
 *.exe
 *.out
 *.app
+
+debug/*
+DirectX-Voxelado/*
+# Visual Studio Code settings
+.vscode/*
+# Visual Studio Code workspace storage
+.vscode-workspace-storage/*
+# Visual Studio Code extensions
+.vscode/extensions/*
+# Visual Studio Code user data
+.vscode/user-data/*
+# Visual Studio Code cache
+.vscode/cache/*
+# Visual Studio Code logs
+.vscode/logs/*
+# Visual Studio Code backups
+.vscode/backups/*
+# Visual Studio Code snippets
+.vscode/snippets/*
+# Visual Studio Code tasks
+	
+vscode/tasks.json
+# Visual Studio Code launch configurations
+vscode/launch.json
+	
+# Visual Studio Code settings for C/C++
+	
+_cpp_properties.json
+	
+# Visual Studio Code settings for debugging
+	
+launch.json
+# Visual Studio Code settings for tasks
+	
+	
+asks.json
+	
+# Visual Studio Code settings for workspace
+workspace.json
+	
+vVisual Studio Code settings for extensions
+extensions.json
+# Visual Studio Code settings for user data
+	
+ser_data.json
+	
+# Visual Studio Code settings for cache
+	
+	
+cache.json
+	
+	
+	
