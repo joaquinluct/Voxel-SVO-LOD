@@ -32,7 +32,11 @@
 *.app
 
 debug/*
+Debug/*
 DirectX-Voxelado/*
+.vs/*
+x64/*
+
 # Visual Studio Code settings
 .vscode/*
 # Visual Studio Code workspace storage
