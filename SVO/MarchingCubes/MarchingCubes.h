@@ -101,9 +101,13 @@ private:
     int GetTransitionEdgeCornerA(int face, int edge);
     int GetTransitionEdgeCornerB(int face, int edge);
 
+    // --- NUEVO: normales suaves por gradiente de densidad ---
+    XMFLOAT3 CalculateDensityNormal(const XMFLOAT3& pos, const SVO_Node* node, const VoxelData* voxelData, const XMFLOAT3& origin, float nodeSize, World* world);
+    void GenerateTriangles(int cubeIndex, float posX, float posY, float posZ, float size, float density[8], MarchingCubesMesh& mesh, const SVO_Node* node, const VoxelData* voxelData, const XMFLOAT3& origin, float nodeSize, World* world);
+
     // Métodos auxiliares
     XMFLOAT3 InterpolateVerts(XMFLOAT3 p1, XMFLOAT3 p2, float valp1, float valp2);
     XMFLOAT3 InterpolateVerts2(XMFLOAT3 p1, XMFLOAT3 p2, float valp1, float valp2);
     XMFLOAT3 CalculateNormal(XMFLOAT3 p1, XMFLOAT3 p2, XMFLOAT3 p3);
-    void GenerateTriangles(int cubeIndex, int x, int y, int z, float size, float density[8], MarchingCubesMesh& mesh);
+    void GenerateTriangles(int cubeIndex, float x, float, float z, float size, float density[8], MarchingCubesMesh& mesh);
 };

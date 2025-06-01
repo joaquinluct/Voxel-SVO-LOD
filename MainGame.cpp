@@ -1,8 +1,9 @@
 #include "MainWindow.h"
 #include "MainGame.h"
 #include "Resources/resource.h"
+#include <atomic>
 
-MainGame::MainGame() : g_device(nullptr), g_renderTarget(nullptr), g_camera(nullptr), g_shaderManager(nullptr), g_material(nullptr), g_triangulo(nullptr), g_matrixBuffer(nullptr), g_axis(nullptr), g_hwnd(nullptr), g_octreeDebug(nullptr) {
+MainGame::MainGame() : g_device(nullptr), g_renderTarget(nullptr), g_camera(nullptr), g_shaderManager(nullptr), g_material(nullptr), g_triangulo(nullptr), g_matrixBuffer(nullptr), g_axis(nullptr), g_hwnd(nullptr), g_octreeDebug(nullptr), worldUpdateInProgress(false) {
 	g_device = new DeviceManager();
 	g_renderTarget = new RenderTargetManager();
 	g_camera = new Camera();
@@ -70,12 +71,13 @@ HRESULT MainGame::Init(HWND hwnd) {
 	if (FAILED(result)) return result;
 
 	result = g_worldMatrixManager->Init(g_device);
-	if (FAILED(result)) return result;
+	if (FAILED(result)) return result;			
 
-	// C�mara
-	g_camera->SetPosition(-20.0f, 2.0f, -20.0f); // Eleva la c�mara y retrocede
-	g_camera->SetRotation(XMConvertToRadians(45.0f), 0.0f, 0.0f); // Inclina la c�mara hacia abajo
-	g_camera->SetProjectionParams(XM_PIDIV4, aspectRatio, 0.1f, 1000.0f); // Establecer los par�metros de proyecci�n
+	// Cámara
+	g_camera->SetPosition(500.0f, 300.0f, 500.0f); // Eleva la c�mara y retrocede
+	// g_camera->SetRotation(XMConvertToRadians(45.0f), 0.0f, 0.0f); // Inclina la c�mara hacia abajo
+	g_camera->SetLookAt(0.0f, 0.0f, 0.0f); // Mira hacia el centro del mundo
+	g_camera->SetProjectionParams(XM_PIDIV4, aspectRatio, 0.1f, 2000.0f); // Establecer los par�metros de proyecci�n
 
 	// Material
 	Material* materialBase = new Material(g_shaderManager, SHADER_BASE);
@@ -118,22 +120,18 @@ HRESULT MainGame::Init(HWND hwnd) {
 }
 
 void MainGame::Update(float deltaTime) {
-	// Actualizar mundo
-	g_world->Update(deltaTime);
-	UIText* uiText = dynamic_cast<UIText*>(g_ui->uiElements[0]); // Aseg�rate de que el primer elemento sea UIText
-	//int numVisibleChunks = g_world->GetNumVisibleChunks();
-	//int numChunks = g_world->GetNumChunks();
-	//uiText->SetText("FRUSTRUM CHUNKS: (" + std::to_string(numVisibleChunks) + ") TOTAL CHUNKS: (" + std::to_string(numChunks) + ")");
-	
-	//XMFLOAT3 uiBoxPos = g_chunkDebug->GetBox0Origin();
-	//uiText->SetText("`UIBOX: (x:" + std::to_string(uiBoxPos.x) + ", y:" + std::to_string(uiBoxPos.y) + ", z:"
-	//+ std::to_string(uiBoxPos.z) + ")"); // Camera position
-	//XMFLOAT3 cameraLookAt = g_camera->GetLookAtPosition();
-	//uiText->SetText("`CameraPost: (x:" + std::to_string(cameraLookAt.x) + ", y:" + std::to_string(cameraLookAt.y) + ", z:" + std::to_string(cameraLookAt.z) + ")"); // Camera position
-	XMFLOAT3 cameraPosition = g_camera->GetPosition();
-	uiText->SetText("`CameraPost: (x:" + std::to_string(cameraPosition.x) + ", y:" + std::to_string(cameraPosition.y) + ", z:" + std::to_string(cameraPosition.z) + ")"); // Camera position
-	//XMFLOAT3 pos = g_world->GetCameraChunkPosition(g_camera);
-	//uiText->SetText("`Chunk: (x:" + std::to_string(pos.x) + ", y:" + std::to_string(pos.y) + ", z:" + std::to_string(pos.z) + ")"); // Actualizar texto con FPS
+    // Lanza el update solo si no está en progreso
+    bool expected = false;
+    if (worldUpdateInProgress.compare_exchange_strong(expected, true)) {
+        worldUpdateFuture = std::async(std::launch::async, [this, deltaTime]() {
+            g_world->Update(deltaTime);
+            worldUpdateInProgress.store(false);
+        });
+    }
+    // Actualiza la UI aunque el mundo esté actualizándose
+    UIText* uiText = dynamic_cast<UIText*>(g_ui->uiElements[0]);
+    XMFLOAT3 cameraPosition = g_camera->GetPosition();
+    uiText->SetText("`CameraPost: (x:" + std::to_string(cameraPosition.x) + ", y:" + std::to_string(cameraPosition.y) + ", z:" + std::to_string(cameraPosition.z) + ")");
 }
 
 void MainGame::Render() {
@@ -150,7 +148,7 @@ void MainGame::Render() {
 	
 	//worldMatrix = g_suelo->GetWorldMatrix();	
 	g_worldMatrixManager->Render(g_device, g_renderTarget, g_camera, worldMatrix); // Actualizar matrices
-	//g_suelo->Render(g_device->GetContext()); // Dibujar suelo	
+	//g_suelo->Render(g_device->GetContext()); // Dibujar suelo		
 	g_world->Render(g_device->GetContext()); // Renderizar el mundo
 	//g_octreeDebug->Render(g_camera, g_device, g_worldMatrixManager, g_world);
 	//g_chunkRenderer->Render(g_device->GetContext(), g_camera->GetViewMatrix() * worldMatrix);

@@ -6,6 +6,7 @@
 #include <DirectXMath.h>
 #include "../Managers/DeviceManager.h"
 #include "../Voxel/Chunks/OctreeRenderer.h"
+#include <mutex>
 
 class World {
 public:
@@ -27,6 +28,7 @@ public:
     Octree* m_octree; // Nueva instancia del Octree
 
 private:
+    std::mutex worldMutex; // Mutex para sincronizar el acceso a los datos del mundo
     ChunkRenderer* m_chunkRenderer;
 	Camera* m_camera;
 	OctreeRenderer* m_octreeRenderer; // Nueva instancia del OctreeRendered

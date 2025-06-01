@@ -2,17 +2,19 @@
 // Definición de la clase World y utilidades relacionadas.
 #include "../SVOBase/SVO_Node.h"
 #include "../LOD/LODProcessor.h"
+#include "../MarchingCubes/MarchingCubes.h"
 #include <DirectXMath.h>
 #include <unordered_map>
 #include <memory>
 #include <vector>
+#include <mutex>
 #include "../../Managers/DeviceManager.h"
 #include "../../Camera/Camera.h"
 #include "../../Material/Material.h"
 
 // Cada área cubre 1024x1024x1024 unidades
 constexpr int AREA_SIZE = 1024;
-
+constexpr float AREA_SIZE_F = static_cast<float>(AREA_SIZE);
 struct AreaKey {
     int x, y, z;
     bool operator==(const AreaKey& other) const { return x == other.x && y == other.y && z == other.z; }
@@ -36,7 +38,7 @@ public:
     void Render(ID3D11DeviceContext* context);
 
     // Acceso a nodos visibles para renderizado
-    const std::vector<VisibleNodeInfo>& GetVisibleNodes() const { return m_visibleNodes; };
+    const std::vector<VisibleNodeInfo>& GetVisibleNodes() const { return m_visibleNodesRender; };
     //std::unordered_map<AreaKey, std::unique_ptr<SVO_Node>> GetAreas() const { return m_areas; };
 
     AreaKey GetAreaKeyFromPosition(const DirectX::XMFLOAT3& pos) const;
@@ -48,8 +50,17 @@ private:
 	Material* m_material;
     Camera* m_camera;
     std::unordered_map<AreaKey, std::unique_ptr<SVO_Node>> m_areas;
-    std::vector<VisibleNodeInfo> m_visibleNodes;
+    std::vector<VisibleNodeInfo> m_visibleNodesRender;
+    std::vector<VisibleNodeInfo> m_visibleNodesUpdate;
+    bool hasNewVisibleNodes = false;
+    std::mutex worldMutex;
     LODSettings m_lodSettings;
+
+    // --- Miembros para double buffering del mesh ---
+    MarchingCubesMesh m_mainMeshUpdate;
+    MarchingCubesMesh m_mainMeshRender;
+    DirectX::XMFLOAT3 m_mainOriginUpdate;
+    DirectX::XMFLOAT3 m_mainOriginRender;
 
     void UpdateVisibleNodes();
 };

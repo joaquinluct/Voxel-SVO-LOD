@@ -1,6 +1,6 @@
 #include "Keyboard.h"
 
-Keyboard::Keyboard(Camera* camera) : m_camera(camera), m_cameraSpeed(.4f)
+Keyboard::Keyboard(Camera* camera) : m_camera(camera), m_cameraSpeed(.7f)
 {
     for (int i = 0; i < 256; ++i)
     {

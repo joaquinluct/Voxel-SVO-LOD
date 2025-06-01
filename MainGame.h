@@ -1,6 +1,8 @@
 #pragma once
 #include <d3d11.h>
 #include <windows.h>
+#include <future>
+#include <atomic>
 #include "Managers/RenderTargetManager.h"
 #include "Camera/Camera.h"
 #include "Managers/DeviceManager.h"
@@ -54,6 +56,7 @@ private:
     /*VoxelDebug*             g_voxelDebug;
 	ChunkDebug*             g_chunkDebug;*/
     OctreeDebug*            g_octreeDebug;
-
+	std::future<void>        worldUpdateFuture;
+	std::atomic<bool>        worldUpdateInProgress;
     HRESULT InitUI();
 };
