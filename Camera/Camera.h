@@ -11,13 +11,13 @@ public:
     XMMATRIX GetProjectionMatrix() const;
     XMFLOAT3 GetPosition() const override { return position; };
 
-    // Nuevos métodos para el movimiento
+    // Nuevos mï¿½todos para el movimiento
     void Move(float x, float y, float z);
 
-    // Nuevos métodos para la rotación
+    // Nuevos mï¿½todos para la rotaciï¿½n
     void Rotate(float pitchOffset, float yawOffset, float rollOffset);
 
-    // Parámetros de la proyección
+    // Parï¿½metros de la proyecciï¿½n
     void SetProjectionParams(float fieldOfView, float aspectRatio, float nearPlane, float farPlane);
 
     // Getters para Pitch, Yaw y Roll (necesarios para Mouse y Keyboard)
@@ -29,6 +29,9 @@ public:
     XMVECTOR GetLookAt(XMVECTOR eyePos, XMMATRIX rotationMatrix) const;
     XMFLOAT3 GetLookAtPosition();
     void ExtractFrustumPlanes(XMFLOAT4 planes[6]) const;
+    void SetLookAt(float x, float y, float z);
+    void SetLookAt(const XMFLOAT3& target);
+
     XMFLOAT3 position;
     XMFLOAT3 rotation;
 

@@ -102,20 +102,20 @@ void MarchingCubes::GenerateTransitionMesh(int face, const SVO_Node* node, const
 
 MarchingCubes::MarchingCubes() {}
 
-void MarchingCubes::GenerateTriangles(int cubeIndex, int posX, int posY, int posZ, float size, float density[8], MarchingCubesMesh& mesh) {
+void MarchingCubes::GenerateTriangles(int cubeIndex, float posX, float posY, float posZ, float size, float density[8], MarchingCubesMesh& mesh, const SVO_Node* node, const VoxelData* voxelData, const XMFLOAT3& origin, float nodeSize, World* world) {
     using namespace MarchingCubesTables;
     unsigned int nextIndex = 0;
     std::unordered_map<XMFLOAT3Key, unsigned int> uniqueVerticesMap;
     XMFLOAT3 p_local[8]{};
-	int x = posX, y = posY, z = posZ;
-    p_local[0] = XMFLOAT3(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)); //
-    p_local[1] = XMFLOAT3(static_cast<float>(x + 1), static_cast<float>(y), static_cast<float>(z)); //
-    p_local[2] = XMFLOAT3(static_cast<float>(x + 1), static_cast<float>(y + 1), static_cast<float>(z)); //
-    p_local[3] = XMFLOAT3(static_cast<float>(x), static_cast<float>(y + 1), static_cast<float>(z)); //
-    p_local[4] = XMFLOAT3(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z + 1)); //
-    p_local[5] = XMFLOAT3(static_cast<float>(x + 1), static_cast<float>(y), static_cast<float>(z + 1)); //
-    p_local[6] = XMFLOAT3(static_cast<float>(x + 1), static_cast<float>(y + 1), static_cast<float>(z + 1)); //
-    p_local[7] = XMFLOAT3(static_cast<float>(x), static_cast<float>(y + 1), static_cast<float>(z + 1)); //
+    float x = posX, y = posY, z = posZ;
+    p_local[0] = XMFLOAT3(x, y, z);
+    p_local[1] = XMFLOAT3(x + 1, y, z);
+    p_local[2] = XMFLOAT3(x + 1, y + 1, z);
+    p_local[3] = XMFLOAT3(x, y + 1, z);
+    p_local[4] = XMFLOAT3(x, y, z + 1);
+    p_local[5] = XMFLOAT3(x + 1, y, z + 1);
+    p_local[6] = XMFLOAT3(x + 1, y + 1, z + 1);
+    p_local[7] = XMFLOAT3(x, y + 1, z + 1);
 
     // Calcula los corners en coordenadas de mundo usando origin y size
     static const int cornerOffsets[8][3] = {
@@ -124,9 +124,9 @@ void MarchingCubes::GenerateTriangles(int cubeIndex, int posX, int posY, int pos
     };
     for (int i = 0; i < 8; ++i) {
         p_local[i] = XMFLOAT3(
-            static_cast<float>(posX) + cornerOffsets[i][0] * size,
-            static_cast<float>(posY) + cornerOffsets[i][1] * size,
-            static_cast<float>(posZ) + cornerOffsets[i][2] * size
+            x + cornerOffsets[i][0] * size,
+            y + cornerOffsets[i][1] * size,
+            z + cornerOffsets[i][2] * size
         );
     }
 
@@ -153,27 +153,29 @@ void MarchingCubes::GenerateTriangles(int cubeIndex, int posX, int posY, int pos
     //     vertlist[i].z *= size;
     // }
 
+    // LOG: Triángulos generados
+    char triLog[256];
+    sprintf_s(triLog, sizeof(triLog), "[MarchingCubes::GenerateTriangles] cubeIndex=%d pos=(%d,%d,%d) numTris=%d\n", cubeIndex, posX, posY, posZ, (int)(sizeof(triTable[cubeIndex])/sizeof(int)));
+    OutputDebugStringA(triLog);
     // Crear los triángulos usando triTable
     for (int i = 0; triTable[cubeIndex][i] != -1; i += 3) { //
         MarchingCubesVertex marchingVertex[3]{}; //
         // INVERSIÓN DEL ORDEN DE LOS VÉRTICES PARA CORREGIR NORMALES
-        marchingVertex[0].Position = vertlist[triTable[cubeIndex][i]]; //
-        marchingVertex[1].Position = vertlist[triTable[cubeIndex][i + 2]]; //
-        marchingVertex[2].Position = vertlist[triTable[cubeIndex][i + 1]]; //
+        for (int v = 0; v < 3; ++v) {
+            int idx = (v == 0) ? triTable[cubeIndex][i] : (v == 1) ? triTable[cubeIndex][i + 2] : triTable[cubeIndex][i + 1];
+            marchingVertex[v].Position = vertlist[idx];
+            // Calcular normal suave por gradiente de densidad
+            marchingVertex[v].Normal = CalculateDensityNormal(vertlist[idx], node, voxelData, origin, nodeSize, world);
+            marchingVertex[v].Color = XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f);
+        }
 
-        // Calcular las normales para el triángulo
-        XMFLOAT3 normal = CalculateNormal(marchingVertex[0].Position, marchingVertex[1].Position, marchingVertex[2].Position); //
-
-        // Asignar la normal y color a los vértices
-        marchingVertex[0].Normal = normal; marchingVertex[0].Color = XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f); //
-        marchingVertex[1].Normal = normal; marchingVertex[1].Color = XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f); //
-        marchingVertex[2].Normal = normal; marchingVertex[2].Color = XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f); //
-
-        // Depuración: Imprimir los vértices del triángulo
-        /* std::cout << "Triangle vertices:\n";
-        std::cout << "  v0: (" << v[0].Position.x << ", " << v[0].Position.y << ", " << v[0].Position.z << ")\n";
-        std::cout << "  v1: (" << v[1].Position.x << ", " << v[1].Position.y << ", " << v[1].Position.z << ")\n";
-        std::cout << "  v2: (" << v[2].Position.x << ", " << v[2].Position.y << ", " << v[2].Position.z << ")\n";*/
+        // LOG: Vértices del triángulo
+        char vtxLog[256];
+        sprintf_s(vtxLog, sizeof(vtxLog), "[MarchingCubes::GenerateTriangles] v0=(%.2f,%.2f,%.2f) v1=(%.2f,%.2f,%.2f) v2=(%.2f,%.2f,%.2f)\n",
+            marchingVertex[0].Position.x, marchingVertex[0].Position.y, marchingVertex[0].Position.z,
+            marchingVertex[1].Position.x, marchingVertex[1].Position.y, marchingVertex[1].Position.z,
+            marchingVertex[2].Position.x, marchingVertex[2].Position.y, marchingVertex[2].Position.z);
+        OutputDebugStringA(vtxLog);
 
         // Añadir vértices e índices, manejando duplicados
         for (int j = 0; j < 3; ++j) {
@@ -199,26 +201,11 @@ MarchingCubesMesh MarchingCubes::GenerateMesh(const SVO_Node* node, const XMFLOA
 	//if (!node || !node->IsLeaf() || !node->IsOccupied()) return mesh;
     if (!node || !node->IsOccupied()) return mesh;
     // Para cada vértice del cubo, consulta la densidad usando el SVO
-	float cube[8]{};
+    float cube[8]{};
     static const int cornerOffsets[8][3] = {
         {0,0,0},{1,0,0},{1,1,0},{0,1,0},
         {0,0,1},{1,0,1},{1,1,1},{0,1,1}
     };
-
-    // static const int cornerOffsets[8][3] = {
-    //     {0,0,0},{1,0,0},{1,0,1},{0,0,1},
-    //     {0,1,0},{1,1,0},{1,1,1},{0,1,1}
-    // };
-    // Orden de cornerOffsets para Marching Cubes:
-    // 0: (0,0,0) - esquina mínima
-    // 1: (1,0,0)
-    // 2: (1,1,0)
-    // 3: (0,1,0)
-    // 4: (0,0,1)
-    // 5: (1,0,1)
-    // 6: (1,1,1)
-    // 7: (0,1,1)
-    // Este orden coincide con la convención estándar de Marching Cubes (ver: Lorensen & Cline 1987, y Transvoxel Appendix A)
     for (int i = 0; i < 8; ++i) {
         XMFLOAT3 cornerPos = {
             origin.x + cornerOffsets[i][0] * size,
@@ -226,14 +213,20 @@ MarchingCubesMesh MarchingCubes::GenerateMesh(const SVO_Node* node, const XMFLOA
             origin.z + cornerOffsets[i][2] * size
         };
         cube[i] = GetDensityAtWorldPos(cornerPos, node, voxelData, origin, size, world);
-        //cube[i] = node->IsOccupied() ? 1.0f : .0f;
+        // LOG: Densidad de cada corner
+        // char logMsg[256];
+        // sprintf_s(logMsg, sizeof(logMsg), "[MarchingCubes::GenerateMesh] Node@(%f,%f,%f) size=%f corner[%d] pos=(%f,%f,%f) density=%f\n", origin.x, origin.y, origin.z, size, i, cornerPos.x, cornerPos.y, cornerPos.z, cube[i]);
+        // OutputDebugStringA(logMsg);
     }
-    // Cambia las llamadas en GenerateMesh y helpers para pasar el puntero a World
     // Calcula el índice de la tabla
     int cubeIndex = 0;
     for (int i = 0; i < 8; ++i) {
         if (cube[i] >= ISO_LEVEL) cubeIndex |= (1 << i);
     }
+    // LOG: cubeIndex
+    // char logMsg[128];
+    // sprintf_s(logMsg, sizeof(logMsg), "[MarchingCubes::GenerateMesh] Node@(%f,%f,%f) size=%f cubeIndex=%d\n", origin.x, origin.y, origin.z, size, cubeIndex);
+    // OutputDebugStringA(logMsg);
 
 	// Si la densidad es >= 0.5f, significa que hay material (s�lido) en ese v�rtice
 	// if (cube[0] >= ISO_LEVEL) cubeIndex |= 1;
@@ -249,15 +242,33 @@ MarchingCubesMesh MarchingCubes::GenerateMesh(const SVO_Node* node, const XMFLOA
     if (edges == 0) return mesh;
     // Interpola vértices y genera triángulos (lógica estándar de Marching Cubes)
     // ... (tu lógica de interpolación y generación de triángulos aquí) ...
-    GenerateTriangles(cubeIndex, origin.x, origin.y, origin.z, size, cube, mesh);
+    GenerateTriangles(cubeIndex, origin.x, origin.y, origin.z, size, cube, mesh, node, voxelData, origin, size, world);
     // --- INICIO: Lógica de transición LOD ---
-    /*for (int face = 0; face < 6; ++face) {
+    for (int face = 0; face < 6; ++face) {
         if (lodTransitions[face]) {
             GenerateTransitionMesh(face, node, origin, size, voxelData, mesh, world);
         }
-    }*/
+    }
     // --- FIN: Lógica de transición LOD ---
     return mesh;
+}
+
+// --- NUEVO: Cálculo de gradiente para normales suaves por vértice ---
+XMFLOAT3 MarchingCubes::CalculateDensityNormal(const XMFLOAT3& pos, const SVO_Node* node, const VoxelData* voxelData, const XMFLOAT3& origin, float nodeSize, World* world) {
+    const float h = 0.5f; // Paso pequeño para diferencias centrales
+    float dx = GetDensityAtWorldPos({pos.x + h, pos.y, pos.z}, node, voxelData, origin, nodeSize, world)
+             - GetDensityAtWorldPos({pos.x - h, pos.y, pos.z}, node, voxelData, origin, nodeSize, world);
+    float dy = GetDensityAtWorldPos({pos.x, pos.y + h, pos.z}, node, voxelData, origin, nodeSize, world)
+             - GetDensityAtWorldPos({pos.x, pos.y - h, pos.z}, node, voxelData, origin, nodeSize, world);
+    float dz = GetDensityAtWorldPos({pos.x, pos.y, pos.z + h}, node, voxelData, origin, nodeSize, world)
+             - GetDensityAtWorldPos({pos.x, pos.y, pos.z - h}, node, voxelData, origin, nodeSize, world);
+    XMVECTOR grad = XMVectorSet(dx, dy, dz, 0.0f);
+    grad = XMVector3Normalize(grad);
+    XMFLOAT3 normal;
+    XMStoreFloat3(&normal, grad);
+    // Invertir el gradiente para que apunte hacia fuera de la superficie (iso-superficie)
+    normal.x = -normal.x; normal.y = -normal.y; normal.z = -normal.z;
+    return normal;
 }
 
 XMFLOAT3 MarchingCubes::InterpolateVerts(XMFLOAT3 p1, XMFLOAT3 p2, float valp1, float valp2) {
@@ -412,8 +423,10 @@ XMFLOAT3 MarchingCubes::ComputeTransitionCornerPosition(int face, int corner, co
 // Ahora requiere origin y size del nodo raíz (área) para SVO traversal
 float MarchingCubes::GetDensityAtWorldPos(const XMFLOAT3& pos, const SVO_Node* node, const VoxelData* voxelData, const XMFLOAT3& origin, float nodeSize, World* world)
 {
-    // Usar el tamaño global del área para evitar recursión infinita
-    constexpr float AREA_SIZE_F = 1024.0f; // O usa tu constante global si está disponible
+    // Log detallado de consulta de densidad
+    char logBuf[256];
+    sprintf_s(logBuf, sizeof(logBuf), "[GetDensityAtWorldPos] pos=(%.3f,%.3f,%.3f) origin=(%.3f,%.3f,%.3f) nodeSize=%.3f\n", pos.x, pos.y, pos.z, origin.x, origin.y, origin.z, nodeSize);
+    OutputDebugStringA(logBuf);
     if (pos.x >= origin.x && pos.x < origin.x + nodeSize &&
         pos.y >= origin.y && pos.y < origin.y + nodeSize &&
         pos.z >= origin.z && pos.z < origin.z + nodeSize) {
@@ -435,16 +448,24 @@ float MarchingCubes::GetDensityAtWorldPos(const XMFLOAT3& pos, const SVO_Node* n
             currentSize = half;
             current = current->GetChild(childIndex);
         }
-        return (current && current->IsOccupied()) ? 1.0f : 0.0f;
+        float result = (current && current->IsOccupied()) ? 1.0f : 0.0f;
+        // Log resultado local
+        char resBuf[256];
+        sprintf_s(resBuf, sizeof(resBuf), "[GetDensityAtWorldPos]   -> LOCAL result=%.1f (leaf=%d, occ=%d)\n", result, current ? current->IsLeaf() : -1, current ? current->IsOccupied() : -1);
+        OutputDebugStringA(resBuf);
+        return result;
     } else if (world) {
-        // Buscar el área vecina correspondiente y su SVO
         AreaKey key = world->GetAreaKeyFromPosition(pos);
         SVO_Node* neighborRoot = world->GetOrCreateArea(key);
         XMFLOAT3 neighborOrigin = { static_cast<float>(key.x) * AREA_SIZE_F, static_cast<float>(key.y) * AREA_SIZE_F, static_cast<float>(key.z) * AREA_SIZE_F };
-        // ¡IMPORTANTE! Aquí el tamaño debe ser el del área global, no el del nodo hoja
+        // Log salto a área vecina
+        char areaBuf[256];
+        sprintf_s(areaBuf, sizeof(areaBuf), "[GetDensityAtWorldPos]   -> NEIGHBOR areaKey=(%d,%d,%d) neighborOrigin=(%.3f,%.3f,%.3f)\n", key.x, key.y, key.z, neighborOrigin.x, neighborOrigin.y, neighborOrigin.z);
+        OutputDebugStringA(areaBuf);
         return GetDensityAtWorldPos(pos, neighborRoot, voxelData, neighborOrigin, AREA_SIZE_F, world);
     } else {
-        // Si no hay acceso a World, asumimos vacío
+        // Log vacío
+        OutputDebugStringA("[GetDensityAtWorldPos]   -> OUT OF BOUNDS, returns 0.0\n");
         return 0.0f;
     }
 }

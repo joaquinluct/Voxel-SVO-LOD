@@ -6,7 +6,7 @@
 World::World(DeviceManager* deviceManager, Camera* camera)
 	: m_chunkRenderer( new ChunkRenderer(deviceManager, nullptr, nullptr)), m_camera(camera), m_cameraLastPosition(0, 0, 0),
 	m_octreeRenderer(new OctreeRenderer(deviceManager, nullptr)),
-    m_octree(new Octree(XMFLOAT3(0, 0, 0), 1024.0f, 5)) { // Inicializa el Octree con un tamaño y profundidad
+    m_octree(new Octree(XMFLOAT3(0, 0, 0), 1024.0f, 5)) { // Inicializa el Octree con un tamaï¿½o y profundidad
 }
 
 World::~World() {
@@ -24,6 +24,8 @@ HRESULT World::Init(ID3D11Device* device, Material* chunkMaterial) {
 }
 
 void World::Update(float deltaTime, Camera* camera) {
+    std::lock_guard<std::mutex> lock(worldMutex);
+
     XMFLOAT3 cameraChunkPos = GetCameraChunkPosition(camera);
 
     if (!isOnSameChunk(cameraChunkPos, m_cameraLastPosition)) {
@@ -34,6 +36,8 @@ void World::Update(float deltaTime, Camera* camera) {
 }
 
 void World::Render(ID3D11DeviceContext* context, Camera* camera) {
+    std::lock_guard<std::mutex> lock(worldMutex);
+
     // Extraer los planos del frustum
     /*XMFLOAT4 frustumPlanes[6];
     m_camera->ExtractFrustumPlanes(frustumPlanes);*/
@@ -78,6 +82,7 @@ int World::GetNumVisibleChunks()
 //                    pow((x - cameraChunkPos.x), 2) +
 //                    pow((y - cameraChunkPos.y), 2) +
 //                    pow((z - cameraChunkPos.z), 2)
+//
 //                );
 //
 //                if (distance <= m_chunkLoadRadius) {
@@ -144,18 +149,18 @@ bool World::IsChunkInFrustum(const ChunkKey& key, const XMFLOAT4 planes[6]) cons
             planes[i].w;
 
         if (distance < -halfSize) {
-            return false; // El chunk está completamente fuera del frustum
+            return false; // El chunk estï¿½ completamente fuera del frustum
         }
     }
 
-    return true; // El chunk está parcial o completamente dentro del frustum
+    return true; // El chunk estï¿½ parcial o completamente dentro del frustum
 }
 
-#include <algorithm> // Asegúrate de incluir esta cabecera para usar std::min
+#include <algorithm> // Asegï¿½rate de incluir esta cabecera para usar std::min
 
 void World::LoadVisibleChunks(XMFLOAT3 cameraChunkPos) {
     float farPlane = m_camera->GetFarPlane();
-    float loadRadius = std::min(farPlane / static_cast<float>(Chunk::CHUNK_SIZE_X), 12.0f); // Límite máximo de 32 chunks
+    float loadRadius = std::min(farPlane / static_cast<float>(Chunk::CHUNK_SIZE_X), 12.0f); // Lï¿½mite mï¿½ximo de 32 chunks
 
     int minX = static_cast<int>(floor(cameraChunkPos.x - loadRadius));
     int maxX = static_cast<int>(ceil(cameraChunkPos.x + loadRadius));
@@ -192,7 +197,7 @@ void World::LoadVisibleChunks(XMFLOAT3 cameraChunkPos) {
     }
 
     static int chunksLoadedThisFrame = 0;
-    const int MAX_CHUNKS_PER_FRAME = 12000; // Límite de chunks por fotograma
+    const int MAX_CHUNKS_PER_FRAME = 12000; // Lï¿½mite de chunks por fotograma
 
     for (int x = minX; x <= maxX && chunksLoadedThisFrame < MAX_CHUNKS_PER_FRAME; ++x) {
         for (int y = minY; y <= maxY && chunksLoadedThisFrame < MAX_CHUNKS_PER_FRAME; ++y) {
@@ -218,7 +223,7 @@ void World::UnloadFarChunks(XMFLOAT3 cameraChunkPos) {
     for (const auto& pair : chunksToRemove) {
         Chunk* chunk = pair.second;
 
-        // Si el chunk es virtual, simplemente elimínalo
+        // Si el chunk es virtual, simplemente elimï¿½nalo
         if (chunk->isVirtualChunk()) {
             m_octree->Remove(chunk);
             delete chunk;

@@ -21,7 +21,7 @@ Material::~Material()
 HRESULT Material::Init(ID3D11Device* device) {
     HRESULT hr = S_OK;
 
-    // --- Descripción del Sampler State ---
+    // --- Descripciï¿½n del Sampler State ---
     D3D11_SAMPLER_DESC samplerDesc;
     ZeroMemory(&samplerDesc, sizeof(samplerDesc));
 
@@ -70,7 +70,7 @@ void Material::SetTexture(ID3D11ShaderResourceView* texture) {
     m_texture = texture;
 }
 
-// Implementación actualizada para enviar World, View, Projection por separado
+// Implementaciï¿½n actualizada para enviar World, View, Projection por separado
 void Material::SetShaderParameters(ID3D11DeviceContext* context, const DirectX::XMMATRIX& worldMatrix, const DirectX::XMMATRIX& viewMatrix, const DirectX::XMMATRIX& projectionMatrix) {
     D3D11_MAPPED_SUBRESOURCE mappedResource;
     MatrixBufferType* dataPtr;
@@ -80,7 +80,7 @@ void Material::SetShaderParameters(ID3D11DeviceContext* context, const DirectX::
     DirectX::XMMATRIX transposedView = DirectX::XMMatrixTranspose(viewMatrix);
     DirectX::XMMATRIX transposedProjection = DirectX::XMMatrixTranspose(projectionMatrix);
 
-    // Bloquear el buffer de constantes para escribir en él.
+    // Bloquear el buffer de constantes para escribir en ï¿½l.
     HRESULT hr = context->Map(m_matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
     if (FAILED(hr)) {
         OutputDebugStringA("Error al mapear el Matrix Buffer.\n");
@@ -96,7 +96,7 @@ void Material::SetShaderParameters(ID3D11DeviceContext* context, const DirectX::
     // Desbloquear el buffer.
     context->Unmap(m_matrixBuffer, 0);
 
-    // Establecer el buffer de constantes en el pipeline del vértice shader.
+    // Establecer el buffer de constantes en el pipeline del vï¿½rtice shader.
     context->VSSetConstantBuffers(0, 1, &m_matrixBuffer); // Slot 0 (b0)
 }
 
@@ -117,16 +117,22 @@ void Material::Apply(ID3D11DeviceContext* context) {
         OutputDebugStringA("Error: Input Layout no inicializado.\n");
     }
 
+    // Log: Aplicando material, textura y sampler
+    // char logMsg[128];
+    // sprintf_s(logMsg, sizeof(logMsg), "[Material::Apply] m_texture=%p, m_samplerState=%p\n", m_texture, m_samplerState);
+    // OutputDebugStringA(logMsg);
+
     // Establecer textura (si hay)
     if (m_texture) {
         context->PSSetShaderResources(0, 1, &m_texture); // Slot 0 para la textura
-        context->PSSetSamplers(0, 1, &m_samplerState);
     }
+    // Siempre bindea el sampler, aunque no haya textura
+    context->PSSetSamplers(0, 1, &m_samplerState);
 }
 
 void Material::Release() {
     SafeRelease(m_texture);
     SafeRelease(m_samplerState);
     SafeRelease(m_matrixBuffer); // Liberar el buffer de matrices
-    // Los shaders y el inputLayout no se liberan aquí si son gestionados por ShaderManager
+    // Los shaders y el inputLayout no se liberan aquï¿½ si son gestionados por ShaderManager
 }

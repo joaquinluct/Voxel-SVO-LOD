@@ -121,3 +121,24 @@ void Camera::ExtractFrustumPlanes(XMFLOAT4 planes[6]) const {
         planes[i].w /= length;
     }
 }
+
+void Camera::SetLookAt(float x, float y, float z) {
+    SetLookAt(XMFLOAT3(x, y, z));
+}
+
+void Camera::SetLookAt(const XMFLOAT3& target) {
+    // Calcula la dirección desde la posición actual al objetivo
+    XMFLOAT3 dir = {
+        target.x - position.x,
+        target.y - position.y,
+        target.z - position.z
+    };
+    // Normaliza la dirección
+    XMVECTOR dirVec = XMVector3Normalize(XMLoadFloat3(&dir));
+    // Calcula los ángulos yaw y pitch
+    float yaw = atan2f(dir.x, dir.z);
+    float length = sqrtf(dir.x * dir.x + dir.z * dir.z);
+    float pitch = atan2f(dir.y, length);
+    // Roll normalmente es 0 para cámaras FPS
+    SetRotation(pitch, yaw, 0.0f);
+}

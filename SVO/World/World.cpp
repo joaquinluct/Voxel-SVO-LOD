@@ -10,9 +10,9 @@
 World::World(DeviceManager* deviceManager, Camera* camera)
     : m_deviceManager(deviceManager), m_camera(camera), m_material(nullptr) {
     // Configuración básica de LOD
-    m_lodSettings.nearDistance = 128.0f;
-    m_lodSettings.midDistance = 256.0f;
-    m_lodSettings.farDistance = 512.0f;
+    m_lodSettings.nearDistance = 1128.0f;
+    m_lodSettings.midDistance = 1256.0f;
+    m_lodSettings.farDistance = 1512.0f;
 }
 
 World::~World() {
@@ -25,48 +25,118 @@ HRESULT World::Init(Material* material) {
     return S_OK;
 }
 
-void World::Update(float deltaTime) {
-    UpdateVisibleNodes();
-}
+// --- Miembros para double buffering del mesh ---
+MarchingCubesMesh m_mainMeshUpdate;
+MarchingCubesMesh m_mainMeshRender;
+DirectX::XMFLOAT3 m_mainOriginUpdate;
+DirectX::XMFLOAT3 m_mainOriginRender;
 
-void World::Render(ID3D11DeviceContext* context) {
-    VoxelData voxelData; // Instancia temporal, reemplaza por tu sistema real
+void World::Update(float deltaTime) {
+    std::lock_guard<std::mutex> lock(worldMutex);
+    m_visibleNodesUpdate.clear();
+    m_mainMeshUpdate = MarchingCubesMesh(); // Limpiar el mesh de update
+    m_mainOriginUpdate = {0,0,0};
+    DirectX::XMFLOAT3 camPos = m_camera->GetPosition();
+    AreaKey areaKey = GetAreaKeyFromPosition(camPos);
+    float farPlane = m_camera->GetFarPlane();
+    constexpr int MAX_AREA_RADIUS = 1;
+    int radio = static_cast<int>(std::ceil(farPlane / AREA_SIZE));
+    radio = std::clamp(radio, 1, MAX_AREA_RADIUS);
+    VoxelData voxelData;
     MarchingCubes marchingCubes;
-    MarchingCubesMesh mainMesh; // Aquí se almacenará el mesh principal
-    DirectX::XMFLOAT3 mainOrigin;
-	bool isMainOriginSet = false;
-    for (const auto& info : m_visibleNodes) {
+    bool isMainOriginSet = false;
+    for (int dx = -radio; dx <= radio; ++dx) {
+        for (int dy = -radio; dy <= radio; ++dy) {
+            for (int dz = -radio; dz <= radio; ++dz) {
+                AreaKey key{areaKey.x + dx, areaKey.y + dy, areaKey.z + dz};
+                SVO_Node* root = GetOrCreateArea(key);
+                if (root && root->IsOccupied()) {
+                    DirectX::XMFLOAT3 areaOrigin = { static_cast<float>(key.x) * AREA_SIZE, static_cast<float>(key.y) * AREA_SIZE, static_cast<float>(key.z) * AREA_SIZE };
+                    LODProcessor::ProcessLOD(root, areaOrigin, camPos, AREA_SIZE, m_lodSettings, m_visibleNodesUpdate);
+                }
+            }
+        }
+    }
+    // --- Detección de bordes LOD y marcado de transiciones + generación de mesh ---
+    for (auto& info : m_visibleNodesUpdate) {
         SVO_Node* node = info.node;
+        char buf[128];
+        sprintf_s(buf, "VISIBLE: origin=%.1f %.1f %.1f size=%.1f\n", info.origin.x, info.origin.y, info.origin.z, info.size);
+        OutputDebugStringA(buf);
+        node->ClearLODTransitions();
+        for (int face = 0; face < 6; ++face) {
+            DirectX::XMFLOAT3 neighborOffset = {0,0,0};
+            switch(face) {
+                case 0: neighborOffset.x = -1; break;
+                case 1: neighborOffset.x =  1; break;
+                case 2: neighborOffset.y = -1; break;
+                case 3: neighborOffset.y =  1; break;
+                case 4: neighborOffset.z = -1; break;
+                case 5: neighborOffset.z =  1; break;
+            }
+            DirectX::XMFLOAT3 neighborOrigin = info.origin;
+            neighborOrigin.x += neighborOffset.x * info.size;
+            neighborOrigin.y += neighborOffset.y * info.size;
+            neighborOrigin.z += neighborOffset.z * info.size;
+            AreaKey neighborKey = GetAreaKeyFromPosition(neighborOrigin);
+            SVO_Node* neighborRoot = GetArea(neighborKey);
+            if (!neighborRoot || !neighborRoot->IsOccupied()) {
+                node->SetLODTransition(face, false);
+                continue;
+            }
+            float neighborSize = AREA_SIZE;
+            DirectX::XMFLOAT3 nOrigin = { static_cast<float>(neighborKey.x) * AREA_SIZE, static_cast<float>(neighborKey.y) * AREA_SIZE, static_cast<float>(neighborKey.z) * AREA_SIZE };
+            while (!neighborRoot->IsLeaf() && neighborSize > info.size) {
+                float childSize = neighborSize / 2.0f;
+                int childIdx = 0;
+                if (neighborOrigin.x >= nOrigin.x + childSize) childIdx |= 1;
+                if (neighborOrigin.y >= nOrigin.y + childSize) childIdx |= 2;
+                if (neighborOrigin.z >= nOrigin.z + childSize) childIdx |= 4;
+                if (!neighborRoot->HasChild(childIdx)) break;
+                neighborRoot = neighborRoot->GetChild(childIdx);
+                nOrigin.x += (childIdx & 1) ? childSize : 0;
+                nOrigin.y += (childIdx & 2) ? childSize : 0;
+                nOrigin.z += (childIdx & 4) ? childSize : 0;
+                neighborSize = childSize;
+            }
+            bool transition = (std::abs(neighborSize - info.size) > 1e-3f);
+            node->SetLODTransition(face, transition);
+        }
+        // --- Generar mesh para cada nodo visible ---
         const DirectX::XMFLOAT3& origin = info.origin;
         if (!isMainOriginSet) {
-		    mainOrigin = origin; // Asignar el origen del primer nodo visible
-		    isMainOriginSet = true; // Marcar que se ha establecido el origen principal
-		}
+            m_mainOriginUpdate = origin;
+            isMainOriginSet = true;
+        }
         float size = info.size;
         std::array<bool, 6> lodTransitions{};
         for (int face = 0; face < 6; ++face) lodTransitions[face] = node->GetLODTransition(face);
         MarchingCubesMesh mesh = marchingCubes.GenerateMesh(node, origin, size, &voxelData, lodTransitions, this);
-        // drawMesh(context, mesh, ...);
-        // Replace the line causing the error with the following:
-        /*if (!node->IsLeaf()) {
-            int a = 0;
+        if (!mesh.vertices.empty() && !mesh.indices.empty()) {
+            m_mainMeshUpdate.addMesh(mesh);
         }
-        else {
-            int b = 0;
-        }*/
-        if (mesh.vertices.empty() || mesh.indices.empty()) continue; // No hay datos para renderizar        
-		mainMesh.addMesh(mesh); // Acumular el mesh principal
     }
+    hasNewVisibleNodes = true;
+}
 
-    // Eliminar vértices duplicados en el mesh principal
-    //mainMesh.removeDuplicateVertices();
-
-    // Renderizar el mesh principal
+void World::Render(ID3D11DeviceContext* context) {
+    // Usar try_lock para no bloquear el render si el update está en progreso
+    if (hasNewVisibleNodes) {
+        if (worldMutex.try_lock()) {
+            m_visibleNodesRender.swap(m_visibleNodesUpdate);
+            m_mainMeshRender = std::move(m_mainMeshUpdate);
+            m_mainOriginRender = m_mainOriginUpdate;
+            hasNewVisibleNodes = false;
+            worldMutex.unlock();
+        }
+        // Si no se puede hacer swap, sigue renderizando el último buffer válido
+    }
+    if (m_mainMeshRender.vertices.empty() || m_mainMeshRender.indices.empty()) {
+        return;
+    }
     std::unique_ptr<VoxelMesh> voxelMesh = std::make_unique<VoxelMesh>(m_deviceManager, m_material);
-    voxelMesh->Init(m_deviceManager->GetDevice(), mainMesh);
-    // Calcular la WorldMatrix para este nodo    
-    XMMATRIX worldMatrix = XMMatrixTranslation(mainOrigin.x, mainOrigin.y, mainOrigin.z);
-    // XMMATRIX worldMatrix = XMMatrixIdentity();
+    voxelMesh->Init(m_deviceManager->GetDevice(), m_mainMeshRender);
+    XMMATRIX worldMatrix = XMMatrixTranslation(m_mainOriginRender.x, m_mainOriginRender.y, m_mainOriginRender.z);
     voxelMesh->Render(context, worldMatrix, m_camera->GetViewMatrix(), m_camera->GetProjectionMatrix());
 }
 
@@ -97,13 +167,25 @@ SVO_Node* World::GetOrCreateArea(const AreaKey& key) {
     std::function<void(SVO_Node*, float, float, float, float, int)> fillNode;
     fillNode = [&](SVO_Node* n, float ox, float oy, float oz, float size, int depth) {
         if (size <= 1.0f || depth > 6) { // Hoja
-            // Marca como ocupada si la hoja intersecta el cubo [5,10]^3
-            if (ox < 10.0f && ox + size > 5.0f &&
-                oy < 10.0f && oy + size > 5.0f &&
-                oz < 10.0f && oz + size > 5.0f) {
-                n->SetOccupied(true);
-                n->SetIsLeaf(true);
-                return;
+            // Marca como ocupada si la hoja INTERSECTA el cubo [10,100]^3 (incluyendo bordes)
+            // NUEVO: Marca como ocupada si INTERSECTA, pero además marca como NO ocupada si está completamente fuera o completamente dentro
+            bool intersects = (ox + size > 10 && oy + size > 10 && oz + size > 10 &&
+                               ox < 100 && oy < 100 && oz < 100);
+            bool fullyInside = (ox >= 10 && oy >= 10 && oz >= 10 &&
+                                ox + size <= 100 && oy + size <= 100 && oz + size <= 100);
+            if (intersects) {
+                // Si está completamente dentro, NO la marcamos como ocupada (solo frontera)
+                if (!fullyInside) {
+                    n->SetOccupied(true);
+                    // char buf[128];
+                    // sprintf_s(buf, "OCCUPIED: ox=%.1f oy=%.1f oz=%.1f size=%.1f (FRONTERA)\n", ox, oy, oz, size);
+                    // OutputDebugStringA(buf);
+                } else {
+                    n->SetOccupied(false);
+                }
+            }
+            else {
+                n->SetOccupied(false);
             }
             n->SetIsLeaf(true);
             return;
@@ -119,7 +201,7 @@ SVO_Node* World::GetOrCreateArea(const AreaKey& key) {
             fillNode(child, cx, cy, cz, childSize, depth + 1);
             if (child->IsOccupied()) anyChildOccupied = true;
         }
-        n->SetAreAllChildrenOccupied(n->AreAllChildrenOccupied());
+        //n->SetAreAllChildrenOccupied(n->AreAllChildrenOccupied());
         n->SetOccupied(anyChildOccupied);
     };
     fillNode(node.get(), key.x * AREA_SIZE, key.y * AREA_SIZE, key.z * AREA_SIZE, AREA_SIZE, 0);
@@ -129,11 +211,11 @@ SVO_Node* World::GetOrCreateArea(const AreaKey& key) {
 }
 
 void World::UpdateVisibleNodes() {
-    m_visibleNodes.clear();
+    m_visibleNodesUpdate.clear();
     DirectX::XMFLOAT3 camPos = m_camera->GetPosition();
     AreaKey areaKey = GetAreaKeyFromPosition(camPos);
     float farPlane = m_camera->GetFarPlane();
-    constexpr int MAX_AREA_RADIUS = 3;
+    constexpr int MAX_AREA_RADIUS = 1;
     int radio = static_cast<int>(std::ceil(farPlane / AREA_SIZE));
     radio = std::clamp(radio, 1, MAX_AREA_RADIUS);
     for (int dx = -radio; dx <= radio; ++dx) {
@@ -143,56 +225,56 @@ void World::UpdateVisibleNodes() {
                 SVO_Node* root = GetOrCreateArea(key);
                 if (root && root->IsOccupied()) {
                     DirectX::XMFLOAT3 areaOrigin = { static_cast<float>(key.x) * AREA_SIZE, static_cast<float>(key.y) * AREA_SIZE, static_cast<float>(key.z) * AREA_SIZE };
-                    LODProcessor::ProcessLOD(root, areaOrigin, camPos, AREA_SIZE, m_lodSettings, m_visibleNodes);
+                    LODProcessor::ProcessLOD(root, areaOrigin, camPos, AREA_SIZE, m_lodSettings, m_visibleNodesUpdate);
                 }
             }
         }
     }
     // --- Detección de bordes LOD y marcado de transiciones ---
-    //for (auto& info : m_visibleNodes) {
-    //    SVO_Node* node = info.node;
-    //    node->ClearLODTransitions();
-    //    for (int face = 0; face < 6; ++face) {
-    //        DirectX::XMFLOAT3 neighborOffset = {0,0,0};
-    //        switch(face) {
-    //            case 0: neighborOffset.x = -1; break;
-    //            case 1: neighborOffset.x =  1; break;
-    //            case 2: neighborOffset.y = -1; break;
-    //            case 3: neighborOffset.y =  1; break;
-    //            case 4: neighborOffset.z = -1; break;
-    //            case 5: neighborOffset.z =  1; break;
-    //        }
-    //        // Calcular el área y origen del vecino
-    //        DirectX::XMFLOAT3 neighborOrigin = info.origin;
-    //        neighborOrigin.x += neighborOffset.x * info.size;
-    //        neighborOrigin.y += neighborOffset.y * info.size;
-    //        neighborOrigin.z += neighborOffset.z * info.size;
-    //        AreaKey neighborKey = GetAreaKeyFromPosition(neighborOrigin);
-    //        SVO_Node* neighborRoot = GetArea(neighborKey);
-    //        if (!neighborRoot || !neighborRoot->IsOccupied()) {
-    //            node->SetLODTransition(face, false);
-    //            continue;
-    //        }
-    //        // Buscar el nodo vecino de igual o mayor tamaño que contenga neighborOrigin            
-    //        float neighborSize = AREA_SIZE;
-    //        DirectX::XMFLOAT3 nOrigin = { static_cast<float>(neighborKey.x) * AREA_SIZE, static_cast<float>(neighborKey.y) * AREA_SIZE, static_cast<float>(neighborKey.z) * AREA_SIZE };
-    //        while (!neighborRoot->IsLeaf() && neighborSize > info.size) {
-    //            float childSize = neighborSize / 2.0f;
-    //            int childIdx = 0;
-    //            if (neighborOrigin.x >= nOrigin.x + childSize) childIdx |= 1;
-    //            if (neighborOrigin.y >= nOrigin.y + childSize) childIdx |= 2;
-    //            if (neighborOrigin.z >= nOrigin.z + childSize) childIdx |= 4;
-    //            if (!neighborRoot->HasChild(childIdx)) break;
-    //            neighborRoot = neighborRoot->GetChild(childIdx);
-    //            nOrigin.x += (childIdx & 1) ? childSize : 0;
-    //            nOrigin.y += (childIdx & 2) ? childSize : 0;
-    //            nOrigin.z += (childIdx & 4) ? childSize : 0;
-    //            neighborSize = childSize;
-    //        }
-    //        // Si el tamaño del vecino es diferente, marcar transición
-    //        bool transition = (std::abs(neighborSize - info.size) > 1e-3f);
-    //        node->SetLODTransition(face, transition);
-    //    }
-
-    //}
+    for (auto& info : m_visibleNodesUpdate) {
+        SVO_Node* node = info.node;
+        node->ClearLODTransitions();
+        for (int face = 0; face < 6; ++face) {
+            DirectX::XMFLOAT3 neighborOffset = {0,0,0};
+            switch(face) {
+                case 0: neighborOffset.x = -1; break;
+                case 1: neighborOffset.x =  1; break;
+                case 2: neighborOffset.y = -1; break;
+                case 3: neighborOffset.y =  1; break;
+                case 4: neighborOffset.z = -1; break;
+                case 5: neighborOffset.z =  1; break;
+            }
+            // Calcular el área y origen del vecino
+            DirectX::XMFLOAT3 neighborOrigin = info.origin;
+            neighborOrigin.x += neighborOffset.x * info.size;
+            neighborOrigin.y += neighborOffset.y * info.size;
+            neighborOrigin.z += neighborOffset.z * info.size;
+            AreaKey neighborKey = GetAreaKeyFromPosition(neighborOrigin);
+            SVO_Node* neighborRoot = GetArea(neighborKey);
+            if (!neighborRoot || !neighborRoot->IsOccupied()) {
+                node->SetLODTransition(face, false);
+                continue;
+            }
+            // Buscar el nodo vecino de igual o mayor tamaño que contenga neighborOrigin            
+            float neighborSize = AREA_SIZE;
+            DirectX::XMFLOAT3 nOrigin = { static_cast<float>(neighborKey.x) * AREA_SIZE, static_cast<float>(neighborKey.y) * AREA_SIZE, static_cast<float>(neighborKey.z) * AREA_SIZE };
+            while (!neighborRoot->IsLeaf() && neighborSize > info.size) {
+                float childSize = neighborSize / 2.0f;
+                int childIdx = 0;
+                if (neighborOrigin.x >= nOrigin.x + childSize) childIdx |= 1;
+                if (neighborOrigin.y >= nOrigin.y + childSize) childIdx |= 2;
+                if (neighborOrigin.z >= nOrigin.z + childSize) childIdx |= 4;
+                if (!neighborRoot->HasChild(childIdx)) break;
+                neighborRoot = neighborRoot->GetChild(childIdx);
+                nOrigin.x += (childIdx & 1) ? childSize : 0;
+                nOrigin.y += (childIdx & 2) ? childSize : 0;
+                nOrigin.z += (childIdx & 4) ? childSize : 0;
+                neighborSize = childSize;
+            }
+            // Si el tamaño del vecino es diferente, marcar transición
+            bool transition = (std::abs(neighborSize - info.size) > 1e-3f);
+            node->SetLODTransition(face, transition);
+        }
+    }
+    hasNewVisibleNodes = true;
 }
