@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{faec81fd-f200-4444-8620-f894b927fc8c}</ProjectGuid>
+    <RootNamespace>DirectXVoxelado</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp23</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxguid.lib;dxgi.lib;dwrite.lib;d2d1.lib;winmm.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
+    </Link>
+    <FxCompile>
+      <ShaderModel>5.0</ShaderModel>
+      <ShaderType>
+      </ShaderType>
+      <EntryPointName>VSMain</EntryPointName>
+    </FxCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="Camera\Camera.cpp" />
+    <ClCompile Include="Devices\Keyboard.cpp" />
+    <ClCompile Include="Devices\Mouse.cpp" />
+    <ClCompile Include="Interfaces\iController.cpp" />
+    <ClCompile Include="Interfaces\iDirectXManager.cpp" />
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="MainWindow.cpp" />
+    <ClCompile Include="Managers\DeviceManager.cpp" />
+    <ClCompile Include="Managers\RenderTargetManager.cpp" />
+    <ClCompile Include="Managers\ViewportMananger.cpp" />
+    <ClCompile Include="Managers\WorldMatrixManager.cpp" />
+    <ClCompile Include="Material\Material.cpp" />
+    <ClCompile Include="RenderObjects\Axis\Axis.cpp" />
+    <ClCompile Include="MainGame.cpp" />
+    <ClCompile Include="RenderObjects\Line\Line.cpp" />
+    <ClCompile Include="RenderObjects\Suelo\Suelo.cpp" />
+    <ClCompile Include="RenderObjects\Triangulo.cpp" />
+    <ClCompile Include="Managers\ShaderManager.cpp" />
+    <ClCompile Include="RenderObjects\UIBox\UIBox.cpp" />
+    <ClCompile Include="SVO\Debug\OctreeDebug.cpp" />
+    <ClCompile Include="SVO\LOD\LODProcessor.cpp" />
+    <ClCompile Include="SVO\MarchingCubes\MarchingCubes.cpp" />
+    <ClCompile Include="SVO\MarchingCubes\MarchingCubesTables.cpp" />
+    <ClCompile Include="SVO\MarchingCubes\TransvoxelTables.cpp" />
+    <ClCompile Include="SVO\SVOBase\SVO_Node.cpp" />
+    <ClCompile Include="SVO\SVOFile\SVO_FileManager.cpp" />
+    <ClCompile Include="SVO\Voxel\VoxelData.cpp" />
+    <ClCompile Include="SVO\Voxel\VoxelMesh.cpp" />
+    <ClCompile Include="SVO\World\World.cpp" />
+    <ClCompile Include="UI\UI.cpp" />
+    <ClCompile Include="UI\UIButton.cpp" />
+    <ClCompile Include="UI\UIElement.cpp" />
+    <ClCompile Include="UI\UIRectangle.cpp" />
+    <ClCompile Include="UI\UIText.cpp" />
+    <ClCompile Include="Util\LOD.cpp" />
+    <ClCompile Include="Util\TextureLoader\TextureLoader.cpp" />
+    <ClCompile Include="Util\XMFLOAT3Util.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Camera\Camera.h" />
+    <ClInclude Include="Devices\Keyboard.h" />
+    <ClInclude Include="Devices\Mouse.h" />
+    <ClInclude Include="Interfaces\iCamera.h" />
+    <ClInclude Include="Interfaces\iDirectXManager.h" />
+    <ClInclude Include="Interfaces\iDrawable.h" />
+    <ClInclude Include="Interfaces\iMaterial.h" />
+    <ClInclude Include="Interfaces\iRenderizable.h" />
+    <ClInclude Include="MainWindow.h" />
+    <ClInclude Include="Interfaces\iController.h" />
+    <ClInclude Include="Managers\DeviceManager.h" />
+    <ClInclude Include="Managers\RenderTargetManager.h" />
+    <ClInclude Include="Managers\WorldMatrixManager.h" />
+    <ClInclude Include="Material\Material.h" />
+    <ClInclude Include="RenderObjects\Axis\Axis.h" />
+    <ClInclude Include="MainGame.h" />
+    <ClInclude Include="RenderObjects\Suelo\Suelo.h" />
+    <ClInclude Include="RenderObjects\Triangulo.h" />
+    <ClInclude Include="RenderObjects\UIBox\UIBox.h" />
+    <ClInclude Include="Resources\resource.h" />
+    <ClInclude Include="Managers\ShaderManager.h" />
+    <ClInclude Include="SVO\Debug\OctreeDebug.h" />
+    <ClInclude Include="SVO\LOD\LODProcessor.h" />
+    <ClInclude Include="SVO\MarchingCubes\MarchingCubes.h" />
+    <ClInclude Include="SVO\MarchingCubes\MarchingCubesTables.h" />
+    <ClInclude Include="SVO\MarchingCubes\TransvoxelTables.h" />
+    <ClInclude Include="SVO\SVOBase\SVO_Node.h" />
+    <ClInclude Include="SVO\SVOFile\SVO_FileManager.h" />
+    <ClInclude Include="SVO\Voxel\VoxelData.h" />
+    <ClInclude Include="SVO\Voxel\VoxelMesh.h" />
+    <ClInclude Include="SVO\World\World.h" />
+    <ClInclude Include="UI\UI.h" />
+    <ClInclude Include="UI\UIButton.h" />
+    <ClInclude Include="UI\UIElement.h" />
+    <ClInclude Include="UI\UIRectangle.h" />
+    <ClInclude Include="UI\UIText.h" />
+    <ClInclude Include="Util\TextureLoader\stb_image.h" />
+    <ClInclude Include="Util\TextureLoader\TextureLoader.h" />
+    <ClInclude Include="Util\Utils.h" />
+    <ClInclude Include="RenderObjects\Line\Line.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Resources\Shaders\BasicShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\TextShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\VoxelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resources\DejaVuSansMono.bmp" />
+    <Image Include="Resources\DejaVuSansMono.jpg" />
+    <Image Include="Resources\DejaVuSansMono.png" />
+    <Image Include="Resources\font1.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="READ.md" />
+    <None Include="VOXEL-CHUNKS.md">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
+    </None>
+    <None Include="SVO con LOD.md" />
+    <None Include="SVO Generar Octree.md" />
+    <None Include="SVO-BASE.md" />
+    <None Include="SVO.md" />
+    <None Include="SVO_TRIÁNGULOS.md" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
