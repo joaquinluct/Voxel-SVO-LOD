@@ -117,16 +117,25 @@
     <ClCompile Include="Util\LOD.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="SVO\MarchingCubes\TransvoxelTables.cpp">
+    <ClCompile Include="SVO\MarchingCubes\TransVoxel\TransvoxelTables.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="SVO\Voxel\VoxelMesh.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="Util\XMFLOAT3Util.cpp">
+    <ClCompile Include="Util\DirectXUtils.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="SVO\MarchingCubes\MarchingCubesTables.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="Managers\KeyboardManager.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="SVO\MarchingCubes\MarchingCubesUtil.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="SVO\MarchingCubes\TransVoxel\Transvoxel.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
   </ItemGroup>
@@ -242,13 +251,34 @@
     <ClInclude Include="SVO\Debug\OctreeDebug.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="SVO\MarchingCubes\TransvoxelTables.h">
+    <ClInclude Include="SVO\MarchingCubes\TransVoxel\TransvoxelTables.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="SVO\Voxel\VoxelMesh.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="SVO\MarchingCubes\MarchingCubesTables.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="Managers\KeyboardManager.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="Interfaces\iControllable.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="Interfaces\iUpdatable.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="SVO\MarchingCubes\MarchingCubesUtil.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="SVO\MarchingCubes\TransVoxel\Transvoxel.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="SVO\MarchingCubes\MarchingCubesMesh.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\DirectXUtils.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
   </ItemGroup>

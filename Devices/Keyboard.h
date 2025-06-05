@@ -2,7 +2,6 @@
 
 #include <windows.h>
 #include "../Interfaces/iRenderizable.h"
-#include "../Camera/Camera.h" // Necesario para mover la cámara
 #include <vector>
 
 //-----------------------------------------------------------------------------
@@ -11,7 +10,7 @@
 class Keyboard : public iRenderizable
 {
 public:
-    Keyboard(Camera* camera);
+    Keyboard();
     ~Keyboard();
 
     HRESULT Init() override;
@@ -20,10 +19,13 @@ public:
 
     void Update();
     bool IsKeyDown(unsigned char key) const;
+    bool IsKeyUp(unsigned char key) const;
+    bool IsKeyPressed(unsigned char key) const;
 	bool IsCtrlPressed() const;
+    bool IsKeyReleased(unsigned char key) const;
 
 private:
-    Camera* m_camera;
     unsigned char m_keys[256];
-    float m_cameraSpeed;
+    unsigned char m_previousKeys[256];
 };
+

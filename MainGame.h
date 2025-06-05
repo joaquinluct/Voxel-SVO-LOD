@@ -23,6 +23,7 @@
 #include "RenderObjects/UIBox/UIBox.h"
 #include "SVO/World/World.h"
 #include "SVO/Debug/OctreeDebug.h"
+#include "Managers/KeyboardManager.h"
 //#include "Voxel/VoxelMesh/VoxelDebug.h"
 
 using namespace DirectX;
@@ -31,7 +32,7 @@ class MainGame{
 public:
     MainGame();
 	~MainGame();
-    HRESULT Init(HWND hwnd);
+    HRESULT Init(HWND hwnd, Keyboard* keyboard);
     void Release();
     void Update(float deltaTime);
     void Render();
@@ -41,6 +42,7 @@ private:
     HWND                    g_hwnd;
     DeviceManager*          g_device;
     RenderTargetManager*    g_renderTarget;
+	KeyboardManager*        g_keyboard;
     Camera*                 g_camera;
 	WorldMatrixManager*     g_worldMatrixManager;
     ShaderManager*          g_shaderManager;

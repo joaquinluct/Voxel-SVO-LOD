@@ -15,12 +15,16 @@ public:
 	HRESULT Init( HINSTANCE hInstance, int nCmdShow, int width, int height);
 	int Create(int width, int height);
 	void ToggleFullscreen();
-	Mouse			mouse;
-	Keyboard		keyboard;
+
+	Mouse* GetMouse() const { return mouse; }
+	Keyboard* GetKeyboard() const { return keyboard; }
+
 	MainGame*		g_controller;
 	HWND			g_hWnd;
 
 private:
+	Mouse*			mouse;
+	Keyboard*		keyboard;
 	HINSTANCE		g_hInstance;
 	HINSTANCE		g_hPrevInstance;
 	LPWSTR			g_lpCmdLine;

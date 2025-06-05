@@ -13,6 +13,9 @@ World::World(DeviceManager* deviceManager, Camera* camera)
     m_lodSettings.nearDistance = 1128.0f;
     m_lodSettings.midDistance = 1256.0f;
     m_lodSettings.farDistance = 1512.0f;
+	m_mainOriginRender = { 0, 0, 0 };
+    m_mainOriginUpdate = { 0, 0, 0 };
+	m_depth = 6; // Profundidad inicial
 }
 
 World::~World() {
@@ -57,12 +60,20 @@ void World::Update(float deltaTime) {
             }
         }
     }
+
+    /*for (int x = 80; x < 120; x++) {
+        for (int y = 80; y < 120; y++) {
+            for (int z = 80; z < 120; z++) {
+            }
+        }
+    }*/
+
     // --- Detección de bordes LOD y marcado de transiciones + generación de mesh ---
     for (auto& info : m_visibleNodesUpdate) {
         SVO_Node* node = info.node;
-        char buf[128];
-        sprintf_s(buf, "VISIBLE: origin=%.1f %.1f %.1f size=%.1f\n", info.origin.x, info.origin.y, info.origin.z, info.size);
-        OutputDebugStringA(buf);
+        // char buf[128];
+        // sprintf_s(buf, "VISIBLE: origin=%.1f %.1f %.1f size=%.1f\n", info.origin.x, info.origin.y, info.origin.z, info.size);
+        // OutputDebugStringA(buf);
         node->ClearLODTransitions();
         for (int face = 0; face < 6; ++face) {
             DirectX::XMFLOAT3 neighborOffset = {0,0,0};
@@ -108,7 +119,7 @@ void World::Update(float deltaTime) {
             m_mainOriginUpdate = origin;
             isMainOriginSet = true;
         }
-        float size = info.size;
+        const float size = info.size;
         std::array<bool, 6> lodTransitions{};
         for (int face = 0; face < 6; ++face) lodTransitions[face] = node->GetLODTransition(face);
         MarchingCubesMesh mesh = marchingCubes.GenerateMesh(node, origin, size, &voxelData, lodTransitions, this);
@@ -116,6 +127,10 @@ void World::Update(float deltaTime) {
             m_mainMeshUpdate.addMesh(mesh);
         }
     }
+    // --- Comparar nodos visibles ---
+    //if (m_visibleNodesUpdate != m_visibleNodesRender) {
+    //    hasNewVisibleNodes = true; // Solo marcar si hay cambios
+    //}
     hasNewVisibleNodes = true;
 }
 
@@ -136,7 +151,8 @@ void World::Render(ID3D11DeviceContext* context) {
     }
     std::unique_ptr<VoxelMesh> voxelMesh = std::make_unique<VoxelMesh>(m_deviceManager, m_material);
     voxelMesh->Init(m_deviceManager->GetDevice(), m_mainMeshRender);
-    XMMATRIX worldMatrix = XMMatrixTranslation(m_mainOriginRender.x, m_mainOriginRender.y, m_mainOriginRender.z);
+    // Cambiar a matriz de mundo identidad para evitar doble translación
+    XMMATRIX worldMatrix = XMMatrixIdentity();
     voxelMesh->Render(context, worldMatrix, m_camera->GetViewMatrix(), m_camera->GetProjectionMatrix());
 }
 
@@ -166,27 +182,34 @@ SVO_Node* World::GetOrCreateArea(const AreaKey& key) {
     // Recursivo: subdivide hasta hoja, marca ocupación según Y
     std::function<void(SVO_Node*, float, float, float, float, int)> fillNode;
     fillNode = [&](SVO_Node* n, float ox, float oy, float oz, float size, int depth) {
-        if (size <= 1.0f || depth > 6) { // Hoja
-            // Marca como ocupada si la hoja INTERSECTA el cubo [10,100]^3 (incluyendo bordes)
-            // NUEVO: Marca como ocupada si INTERSECTA, pero además marca como NO ocupada si está completamente fuera o completamente dentro
-            bool intersects = (ox + size > 10 && oy + size > 10 && oz + size > 10 &&
-                               ox < 100 && oy < 100 && oz < 100);
-            bool fullyInside = (ox >= 10 && oy >= 10 && oz >= 10 &&
-                                ox + size <= 100 && oy + size <= 100 && oz + size <= 100);
-            if (intersects) {
-                // Si está completamente dentro, NO la marcamos como ocupada (solo frontera)
-                if (!fullyInside) {
-                    n->SetOccupied(true);
-                    // char buf[128];
-                    // sprintf_s(buf, "OCCUPIED: ox=%.1f oy=%.1f oz=%.1f size=%.1f (FRONTERA)\n", ox, oy, oz, size);
-                    // OutputDebugStringA(buf);
-                } else {
-                    n->SetOccupied(false);
-                }
-            }
-            else {
-                n->SetOccupied(false);
-            }
+        if (size <= 1.0f || depth > m_depth) { // Hoja          
+            XMFLOAT3 pos{ ox,oy,oz };
+            /*float boxInit = 10.0f;
+            float boxEnd = 100.0f;*/
+            
+            // Un nodo se considera 'ocupado' si su volumen [ox, ox+size) (y_y, z_z):
+            // 1. Intersecta el volumen del material [boxInit, boxEnd).
+            // O
+            // 2. Está adyacente al volumen del material, en un rango que una celda de Marching Cubes
+            //    (cuyo origen sea este nodo) podría generar la superficie.
+            //    Esto lo logramos "expandiendo" ligeramente el bounding box del material.
+            /*bool node_volume_inside_material =
+                (ox >= boxInit && ox <= boxEnd &&
+                    oy >= boxInit && oy <= boxEnd &&
+                    oz >= boxInit && oz <= boxEnd);
+
+            bool node_volume_intersects_material =
+                (ox-size >= boxInit && ox+size <= boxInit &&
+                    oy >= boxInit && oy <= boxEnd &&
+                    oz >= boxInit && oz <= boxEnd);
+
+            n->SetOccupied(node_volume_intersects_material);*/
+
+            // const float density = CubeSDF(pos, XMFLOAT3{ 20.0f,20.0f,20.0f }, XMFLOAT3{ 100.0f,100.0f,100.0f });
+            const float density = SphereSDF(pos, XMFLOAT3{ 120.0f,120.0f,120.0f }, 80.0f);
+
+            n->SetOccupied(density < 0.99999f);
+            n->SetDensity(density > 1.0f ? 1.0f : density);
             n->SetIsLeaf(true);
             return;
         }
@@ -203,11 +226,18 @@ SVO_Node* World::GetOrCreateArea(const AreaKey& key) {
         }
         //n->SetAreAllChildrenOccupied(n->AreAllChildrenOccupied());
         n->SetOccupied(anyChildOccupied);
-    };
+        };
     fillNode(node.get(), key.x * AREA_SIZE, key.y * AREA_SIZE, key.z * AREA_SIZE, AREA_SIZE, 0);
     SVO_Node* ptr = node.get();
     m_areas[key] = std::move(node);
     return ptr;
+}
+
+
+void World::SetDepth(int depth) { 
+    m_depth = depth;
+	UpdateVisibleNodes(); // Actualizar nodos visibles al cambiar profundidad
+	Update(0.0f); // Forzar actualización del mesh
 }
 
 void World::UpdateVisibleNodes() {
@@ -221,7 +251,7 @@ void World::UpdateVisibleNodes() {
     for (int dx = -radio; dx <= radio; ++dx) {
         for (int dy = -radio; dy <= radio; ++dy) {
             for (int dz = -radio; dz <= radio; ++dz) {
-                AreaKey key{areaKey.x + dx, areaKey.y + dy, areaKey.z + dz};
+                AreaKey key{ areaKey.x + dx, areaKey.y + dy, areaKey.z + dz };
                 SVO_Node* root = GetOrCreateArea(key);
                 if (root && root->IsOccupied()) {
                     DirectX::XMFLOAT3 areaOrigin = { static_cast<float>(key.x) * AREA_SIZE, static_cast<float>(key.y) * AREA_SIZE, static_cast<float>(key.z) * AREA_SIZE };
@@ -235,14 +265,14 @@ void World::UpdateVisibleNodes() {
         SVO_Node* node = info.node;
         node->ClearLODTransitions();
         for (int face = 0; face < 6; ++face) {
-            DirectX::XMFLOAT3 neighborOffset = {0,0,0};
-            switch(face) {
-                case 0: neighborOffset.x = -1; break;
-                case 1: neighborOffset.x =  1; break;
-                case 2: neighborOffset.y = -1; break;
-                case 3: neighborOffset.y =  1; break;
-                case 4: neighborOffset.z = -1; break;
-                case 5: neighborOffset.z =  1; break;
+            DirectX::XMFLOAT3 neighborOffset = { 0,0,0 };
+            switch (face) {
+            case 0: neighborOffset.x = -1; break;
+            case 1: neighborOffset.x = 1; break;
+            case 2: neighborOffset.y = -1; break;
+            case 3: neighborOffset.y = 1; break;
+            case 4: neighborOffset.z = -1; break;
+            case 5: neighborOffset.z = 1; break;
             }
             // Calcular el área y origen del vecino
             DirectX::XMFLOAT3 neighborOrigin = info.origin;
@@ -256,6 +286,7 @@ void World::UpdateVisibleNodes() {
                 continue;
             }
             // Buscar el nodo vecino de igual o mayor tamaño que contenga neighborOrigin            
+            //float neighborSize = AREA_SIZE;
             float neighborSize = AREA_SIZE;
             DirectX::XMFLOAT3 nOrigin = { static_cast<float>(neighborKey.x) * AREA_SIZE, static_cast<float>(neighborKey.y) * AREA_SIZE, static_cast<float>(neighborKey.z) * AREA_SIZE };
             while (!neighborRoot->IsLeaf() && neighborSize > info.size) {
@@ -277,4 +308,114 @@ void World::UpdateVisibleNodes() {
         }
     }
     hasNewVisibleNodes = true;
+}
+
+float World::GetVoxelDensity(const DirectX::XMFLOAT3& worldPos, const SVO_Node* nodeRef, const float nodeSize) {
+    // 1. Obtener la clave del área (chunk) y el nodo raíz SVO para esa área.
+    AreaKey areaKey = GetAreaKeyFromPosition(worldPos);
+    SVO_Node* currentSVO_Node = GetOrCreateArea(areaKey); // Llama al helper que carga/crea
+
+    // Si el nodo raíz del SVO del chunk es nulo o no está ocupado, el chunk está vacío.
+    if (!currentSVO_Node || !currentSVO_Node->IsOccupied()) {
+        return 1.0f; // Vacío
+    }
+
+    DirectX::XMFLOAT3 currentSVO_Origin = worldPos;
+    float currentSVO_Size = AREA_SIZE_F;
+
+    // 2. Recorrer el SVO para encontrar el nodo más específico para 'worldPos'.
+    //    El recorrido se detendrá si:
+    //    - Se llega a una hoja del SVO.
+    //    - El tamaño del nodo actual es menor o igual al `targetNodeSize` solicitado.
+    //    - El punto cae en una región sin hijo o el hijo no está ocupado (poda).
+
+    while (currentSVO_Node && !currentSVO_Node->IsLeaf() && currentSVO_Size > 1.0f) {
+        // Calcular el índice del hijo donde debe estar worldPos
+        float half = currentSVO_Size / 2.0f;
+        int childIndex = 0;
+        if (worldPos.x >= currentSVO_Origin.x + half) childIndex |= 1;
+        if (worldPos.y >= currentSVO_Origin.y + half) childIndex |= 2;
+        if (worldPos.z >= currentSVO_Origin.z + half) childIndex |= 4;
+
+        // Condición de parada para el recorrido del SVO:
+        // A) Si el nodo actual no tiene el hijo que buscamos.
+        // B) Si el hijo existe pero no está ocupado (poda del SVO).
+        // C) Si el tamaño del siguiente nivel de subdivisión (half) ya es más pequeño
+        //    que el 'targetNodeSize' solicitado por Marching Cubes.
+        //    Usamos una pequeña tolerancia para comparaciones de floats.
+        if (!currentSVO_Node->HasChild(childIndex) ||
+            !currentSVO_Node->GetChild(childIndex)->IsOccupied() ||
+            half < nodeSize - 0.001f) // Condición para detenerse en el LOD solicitado
+        {
+            break;
+        }
+
+        // Moverse al hijo
+        currentSVO_Origin.x += (childIndex & 1) ? half : 0.0f;
+        currentSVO_Origin.y += (childIndex & 2) ? half : 0.0f;
+        currentSVO_Origin.z += (childIndex & 4) ? half : 0.0f;
+        currentSVO_Node = currentSVO_Node->GetChild(childIndex);
+        currentSVO_Size = half;
+    }
+
+    // A este punto, 'currentSVO_Node' es el nodo SVO más específico encontrado para 'worldPos',
+    // teniendo en cuenta el 'targetNodeSize' y la poda del SVO.
+
+    // 3. Devolver la densidad basada en el estado de 'IsOccupied()' del nodo encontrado.
+    //    Esto es la implementación "pura" que solicitaste, asumiendo que Marching Cubes
+    //    funcionará con valores binarios 0.0f (sólido) y 1.0f (vacío) directamente.
+
+    currentSVO_Node->GetDensity();
+    //if (currentSVO_Node->IsOccupied()) {
+    //    return 0.0f; // Ocupado (sólido)
+    //}
+    //else {
+    //    return 1.0f; // No ocupado (vacío)
+    //}
+}
+
+float World::CubeSDF(const DirectX::XMFLOAT3& point, const DirectX::XMFLOAT3& boxMin, const DirectX::XMFLOAT3& boxMax) {
+    // Calcular el centro y el half-size del cubo
+    DirectX::XMFLOAT3 center = { (boxMin.x + boxMax.x) / 2.0f, (boxMin.y + boxMax.y) / 2.0f, (boxMin.z + boxMax.z) / 2.0f };
+    DirectX::XMFLOAT3 halfSize = { (boxMax.x - boxMin.x) / 2.0f, (boxMax.y - boxMin.y) / 2.0f, (boxMax.z - boxMin.z) / 2.0f };
+
+    // Vector del punto al centro del cubo
+    DirectX::XMFLOAT3 p_relative_to_center = { point.x - center.x, point.y - center.y, point.z - center.z };
+
+    // Calcula la distancia desde el punto al bounding box en cada eje
+    // Esto es el "q" en la fórmula de SDF de cubo de Inigo Quilez (min(0, dist) para el interior, max(0, dist) para el exterior)
+    DirectX::XMFLOAT3 q = { std::abs(p_relative_to_center.x) - halfSize.x,
+                            std::abs(p_relative_to_center.y) - halfSize.y,
+                            std::abs(p_relative_to_center.z) - halfSize.z };
+
+    // La distancia al exterior del cubo (si el punto está fuera)
+    float outer_dist = std::sqrt((std::max)(0.0f, q.x) * (std::max)(0.0f, q.x) +
+        (std::max)(0.0f, q.y) * (std::max)(0.0f, q.y) +
+        (std::max)(0.0f, q.z) * (std::max)(0.0f, q.z));
+
+    // La distancia al interior del cubo (si el punto está dentro, esta será negativa)
+    float inner_dist = (std::min)(0.0f, (std::max)({ q.x, q.y, q.z })); // std::max con un initializer list
+
+    // El SDF final es la suma de estas distancias
+    //return outer_dist + inner_dist;
+
+    const float sdf = outer_dist + inner_dist;
+    const float smoothnessRadius = 2.0f;
+
+    const float density = std::clamp(0.5f + (sdf / smoothnessRadius), 0.0f, 1.0f);    
+    return density;
+}
+
+float World::SphereSDF(const DirectX::XMFLOAT3& point, const DirectX::XMFLOAT3& center, const float radio) {
+    float dx = point.x - center.x;
+    float dy = point.y - center.y;
+    float dz = point.z - center.z;
+    float distance = std::sqrt(dx * dx + dy * dy + dz * dz);
+    const float sdf = distance - radio;
+    // El SDF final es la suma de estas distancias
+    //return outer_dist + inner_dist;
+    const float smoothnessRadius = 2.0f;
+
+    const float density = std::clamp(0.5f + (sdf / smoothnessRadius), 0.0f, 1.0f);
+    return density;
 }

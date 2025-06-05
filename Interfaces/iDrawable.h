@@ -4,9 +4,10 @@
 #include <directxmath.h>
 #include "../Material/Material.h"
 #include "../Util/Utils.h"
+#include "iControllable.h"
 using namespace DirectX;
 
-class iDrawable {
+class iDrawable { //: public iControllable {
 public:
     virtual HRESULT Init(ID3D11Device* device) = 0;         // Inicialización con acceso a DirectX
     virtual void Render(ID3D11DeviceContext* context) = 0;  // Dibujar el objeto    

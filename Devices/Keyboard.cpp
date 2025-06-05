@@ -1,6 +1,6 @@
 #include "Keyboard.h"
 
-Keyboard::Keyboard(Camera* camera) : m_camera(camera), m_cameraSpeed(.7f)
+Keyboard::Keyboard()
 {
     for (int i = 0; i < 256; ++i)
     {
@@ -22,56 +22,6 @@ HRESULT Keyboard::Init()
 void Keyboard::Render()
 {
     Update(); // Actualizar el estado del teclado
-
-    if (m_camera)
-    {
-        // Determinar la velocidad de la cámara
-        float cameraSpeed = IsCtrlPressed() ? m_cameraSpeed * 2.5f : m_cameraSpeed;
-
-        // Movimiento hacia adelante (W o Flecha Arriba)
-        if (IsKeyDown('W') || IsKeyDown(VK_UP))
-        {
-            XMVECTOR forward = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
-            XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(m_camera->GetPitch(), m_camera->GetYaw(), m_camera->GetRoll());
-            forward = XMVector3TransformCoord(forward, rotationMatrix);
-            XMFLOAT3 fwd;
-            XMStoreFloat3(&fwd, forward);
-            m_camera->Move(fwd.x * cameraSpeed, fwd.y * cameraSpeed, fwd.z * cameraSpeed);
-        }
-
-        // Movimiento hacia atrás (S o Flecha Abajo)
-        if (IsKeyDown('S') || IsKeyDown(VK_DOWN))
-        {
-            XMVECTOR forward = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
-            XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(m_camera->GetPitch(), m_camera->GetYaw(), m_camera->GetRoll());
-            forward = XMVector3TransformCoord(forward, rotationMatrix);
-            XMFLOAT3 fwd;
-            XMStoreFloat3(&fwd, forward);
-            m_camera->Move(-fwd.x * cameraSpeed, -fwd.y * cameraSpeed, -fwd.z * cameraSpeed);
-        }
-
-        // Movimiento hacia la izquierda (A o Flecha Izquierda)
-        if (IsKeyDown('A') || IsKeyDown(VK_LEFT))
-        {
-            XMVECTOR strafe = XMVectorSet(-1.0f, 0.0f, 0.0f, 0.0f);
-            XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(m_camera->GetPitch(), m_camera->GetYaw(), m_camera->GetRoll());
-            strafe = XMVector3TransformCoord(strafe, rotationMatrix);
-            XMFLOAT3 s;
-            XMStoreFloat3(&s, strafe);
-            m_camera->Move(s.x * cameraSpeed, s.y * cameraSpeed, s.z * cameraSpeed);
-        }
-
-        // Movimiento hacia la derecha (D o Flecha Derecha)
-        if (IsKeyDown('D') || IsKeyDown(VK_RIGHT))
-        {
-            XMVECTOR strafe = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
-            XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(m_camera->GetPitch(), m_camera->GetYaw(), m_camera->GetRoll());
-            strafe = XMVector3TransformCoord(strafe, rotationMatrix);
-            XMFLOAT3 s;
-            XMStoreFloat3(&s, strafe);
-            m_camera->Move(s.x * cameraSpeed, s.y * cameraSpeed, s.z * cameraSpeed);
-        }
-    }
 }
 void Keyboard::Release()
 {
@@ -80,6 +30,10 @@ void Keyboard::Release()
 
 void Keyboard::Update()
 {
+    // Copia el estado actual al estado anterior
+    memcpy(m_previousKeys, m_keys, sizeof(m_keys));
+
+    // Obtener el estado actual
     BOOL resul = GetKeyboardState(m_keys);
 }
 
@@ -87,6 +41,19 @@ bool Keyboard::IsKeyDown(unsigned char key) const
 {
     return (m_keys[key] & 0x80) != 0;
 }
+bool Keyboard::IsKeyUp(unsigned char key) const
+{
+    return (m_keys[key] & 0x80) == 0;
+}
+bool Keyboard::IsKeyPressed(unsigned char key) const
+{
+    return (m_keys[key] & 0x80) != 0 && (m_keys[key] & 0x01) != 0;
+}
+bool Keyboard::IsKeyReleased(unsigned char key) const
+{
+    return (m_previousKeys[key] & 0x80) != 0 && (m_keys[key] & 0x80) == 0;
+}
+
 bool Keyboard::IsCtrlPressed() const
 {
 	return (GetKeyState(VK_CONTROL) & 0x8000) != 0;
