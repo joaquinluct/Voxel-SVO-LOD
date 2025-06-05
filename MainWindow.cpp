@@ -8,7 +8,7 @@
 #include "MainGame.h"
 
 MainWindow::MainWindow(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
-	: g_hInstance(hInstance), g_hPrevInstance(hPrevInstance), g_lpCmdLine(lpCmdLine), g_nCmdShow(nCmdShow), g_hWnd(nullptr), g_controller(nullptr), mouse(nullptr, nullptr, 0, 0), keyboard(nullptr) 
+	: g_hInstance(hInstance), g_hPrevInstance(hPrevInstance), g_lpCmdLine(lpCmdLine), g_nCmdShow(nCmdShow), g_hWnd(nullptr), g_controller(nullptr), mouse(nullptr), keyboard(nullptr) 
 {
     g_controller = new MainGame();
 }
@@ -26,24 +26,24 @@ int MainWindow::Create(int width, int height)
     if (FAILED(Init(g_hInstance, g_nCmdShow, width, height)))
         return 0;
 
-    if (FAILED(g_controller->Init(g_hWnd)))
+    keyboard = new Keyboard(); // Cambiar la inicialización para usar un puntero dinámico
+
+    if (FAILED(g_controller->Init(g_hWnd, keyboard))) // Pasar el puntero correctamente
     {
         SafeRelease(g_controller);
         return 0;
     }
 
-    mouse = Mouse(g_controller->GetCamera(), g_hWnd, width, height);
-    keyboard = Keyboard(g_controller->GetCamera());
-
+    mouse = new Mouse(g_controller->GetCamera(), g_hWnd, width, height);
 
         // Inicializar Mouse
-    if (FAILED(mouse.Init()))
+    if (FAILED(mouse->Init()))
     {
         SafeRelease(g_controller);
         return 0;
     }
 
-    keyboard.Init(); // Inicializar Keyboard
+    keyboard->Init(); // Inicializar Keyboard
 
     SetTimer(g_hWnd, 1, 16, nullptr); // Configura el temporizador (16ms ~ 60 FPS)
 
@@ -69,15 +69,15 @@ int MainWindow::Create(int width, int height)
 
             g_controller->Update(deltaTime); // Llama a Update
             g_controller->Render();
-            mouse.Render();   // Actualizar y usar la entrada del ratón
-            keyboard.Render(); // Actualizar y usar la entrada del teclado
+            mouse->Render();   // Actualizar y usar la entrada del ratón
+            keyboard->Render(); // Actualizar y usar la entrada del teclado
             //InvalidateRect(g_hWnd, NULL, TRUE); // Fuerza a repintar toda la ventana
             //UpdateWindow(g_hWnd); // Sincroniza el repintado
         }
     }
 
-    mouse.Release();   // Liberar Mouse
-    keyboard.Release(); // Liberar Keyboard
+    mouse->Release();   // Liberar Mouse
+    keyboard->Release(); // Liberar Keyboard
 
     SafeRelease(g_controller);
 
@@ -123,7 +123,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_KEYDOWN:
         if (pMainWindow) {
-            pMainWindow->keyboard.Update();
+            pMainWindow->GetKeyboard()->Update();
             if (wParam == VK_ESCAPE) {
                 PostQuitMessage(0);
             }
@@ -132,7 +132,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			}
         }
         break;
-
+    case WM_KEYUP:
+        if (pMainWindow) {
+            pMainWindow->GetKeyboard()->Update();
+        }
+		break;
     case WM_MOUSEMOVE:
         /*if (pMainWindow) {
             pMainWindow->mouse.Update(hWnd);

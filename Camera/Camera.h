@@ -1,5 +1,7 @@
 #pragma once
 #include "..\Interfaces\iCamera.h"
+#include "..\Interfaces\iDirectXManager.h"
+#include "..\Managers\KeyboardManager.h"
 #include <array>
 
 class Camera : public iCamera {
@@ -9,7 +11,9 @@ public:
     void SetRotation(float pitch, float yaw, float roll) override;
     XMMATRIX GetViewMatrix() const;
     XMMATRIX GetProjectionMatrix() const;
-    XMFLOAT3 GetPosition() const override { return position; };
+    XMFLOAT3 GetPosition() const override { return position; };	
+    void SetKeyboardManager(KeyboardManager* keyboardManager) override;
+	void Update(float deltaTime) override;
 
     // Nuevos m�todos para el movimiento
     void Move(float x, float y, float z);
@@ -31,14 +35,17 @@ public:
     void ExtractFrustumPlanes(XMFLOAT4 planes[6]) const;
     void SetLookAt(float x, float y, float z);
     void SetLookAt(const XMFLOAT3& target);
-
+  
     XMFLOAT3 position;
     XMFLOAT3 rotation;
 
-
 private:
+    const float CAMERA_SEEP = 1.0f;
+    const float CAMERA_SEEPDY = 2.5f;
+	KeyboardManager* m_keyboardManager;
     float m_fieldOfView;
     float m_aspectRatio;
     float m_nearPlane;
     float m_farPlane;
+    float m_cameraSpeed = CAMERA_SEEP;    
 };

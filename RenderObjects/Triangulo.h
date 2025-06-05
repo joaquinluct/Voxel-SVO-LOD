@@ -14,6 +14,7 @@ public:
     void Render(ID3D11DeviceContext* context) override;
     void Release() override;
 	ID3D11Buffer* GetVertexBuffer() override { return m_vertexBuffer; } // Obtener el buffer de vértices
+    //void SetKeyboardManager(KeyboardManager* keyboardManager) override {}
 
 private:
     std::vector<XMFLOAT3> vertices;

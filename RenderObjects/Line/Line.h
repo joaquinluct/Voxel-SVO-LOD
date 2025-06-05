@@ -15,6 +15,7 @@ public:
     void Render(ID3D11DeviceContext* context) override;
     void Release() override;
     ID3D11Buffer* GetVertexBuffer() override { return m_vertexBuffer; }
+    //void SetKeyboardManager(KeyboardManager* keyboardManager) override {}
 private:
     struct Vertex {
         XMFLOAT3 Position;

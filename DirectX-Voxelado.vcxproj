@@ -153,6 +153,7 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="Managers\DeviceManager.cpp" />
+    <ClCompile Include="Managers\KeyboardManager.cpp" />
     <ClCompile Include="Managers\RenderTargetManager.cpp" />
     <ClCompile Include="Managers\ViewportMananger.cpp" />
     <ClCompile Include="Managers\WorldMatrixManager.cpp" />
@@ -168,7 +169,9 @@
     <ClCompile Include="SVO\LOD\LODProcessor.cpp" />
     <ClCompile Include="SVO\MarchingCubes\MarchingCubes.cpp" />
     <ClCompile Include="SVO\MarchingCubes\MarchingCubesTables.cpp" />
-    <ClCompile Include="SVO\MarchingCubes\TransvoxelTables.cpp" />
+    <ClCompile Include="SVO\MarchingCubes\MarchingCubesUtil.cpp" />
+    <ClCompile Include="SVO\MarchingCubes\TransVoxel\Transvoxel.cpp" />
+    <ClCompile Include="SVO\MarchingCubes\TransVoxel\TransvoxelTables.cpp" />
     <ClCompile Include="SVO\SVOBase\SVO_Node.cpp" />
     <ClCompile Include="SVO\SVOFile\SVO_FileManager.cpp" />
     <ClCompile Include="SVO\Voxel\VoxelData.cpp" />
@@ -181,7 +184,7 @@
     <ClCompile Include="UI\UIText.cpp" />
     <ClCompile Include="Util\LOD.cpp" />
     <ClCompile Include="Util\TextureLoader\TextureLoader.cpp" />
-    <ClCompile Include="Util\XMFLOAT3Util.cpp" />
+    <ClCompile Include="Util\DirectXUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera\Camera.h" />
@@ -191,10 +194,13 @@
     <ClInclude Include="Interfaces\iDirectXManager.h" />
     <ClInclude Include="Interfaces\iDrawable.h" />
     <ClInclude Include="Interfaces\iMaterial.h" />
+    <ClInclude Include="Interfaces\iControllable.h" />
     <ClInclude Include="Interfaces\iRenderizable.h" />
+    <ClInclude Include="Interfaces\iUpdatable.h" />
     <ClInclude Include="MainWindow.h" />
     <ClInclude Include="Interfaces\iController.h" />
     <ClInclude Include="Managers\DeviceManager.h" />
+    <ClInclude Include="Managers\KeyboardManager.h" />
     <ClInclude Include="Managers\RenderTargetManager.h" />
     <ClInclude Include="Managers\WorldMatrixManager.h" />
     <ClInclude Include="Material\Material.h" />
@@ -207,9 +213,13 @@
     <ClInclude Include="Managers\ShaderManager.h" />
     <ClInclude Include="SVO\Debug\OctreeDebug.h" />
     <ClInclude Include="SVO\LOD\LODProcessor.h" />
+    <ClInclude Include="Util\DirectXUtils.h" />
     <ClInclude Include="SVO\MarchingCubes\MarchingCubes.h" />
+    <ClInclude Include="SVO\MarchingCubes\MarchingCubesMesh.h" />
     <ClInclude Include="SVO\MarchingCubes\MarchingCubesTables.h" />
-    <ClInclude Include="SVO\MarchingCubes\TransvoxelTables.h" />
+    <ClInclude Include="SVO\MarchingCubes\MarchingCubesUtil.h" />
+    <ClInclude Include="SVO\MarchingCubes\TransVoxel\Transvoxel.h" />
+    <ClInclude Include="SVO\MarchingCubes\TransVoxel\TransvoxelTables.h" />
     <ClInclude Include="SVO\SVOBase\SVO_Node.h" />
     <ClInclude Include="SVO\SVOFile\SVO_FileManager.h" />
     <ClInclude Include="SVO\Voxel\VoxelData.h" />

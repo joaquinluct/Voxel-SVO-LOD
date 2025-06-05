@@ -103,6 +103,9 @@ void VoxelMesh::Render(ID3D11DeviceContext* context, const XMMATRIX& worldMatrix
         return;
     }
 
+    // Asegura el estado de rasterizado correcto antes de dibujar
+    m_deviceManager->SetRasterizerState();
+
     // 1. Establecer los par�metros del shader (matrices) a trav�s del material
     m_material->SetShaderParameters(context, worldMatrix, viewMatrix, projectionMatrix);
 

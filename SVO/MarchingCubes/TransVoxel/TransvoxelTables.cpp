@@ -1,9 +1,31 @@
 #include "TransvoxelTables.h"
 
-namespace Transvoxel {
+namespace TransvoxelTables {
 
 // --- Tablas oficiales Transvoxel ---
-// (Fragmento de ejemplo, debes pegar aquí las tablas completas que tienes)
+// Tabla estándar de mapeo de corners de celda de transición para cada cara (Transvoxel)
+// [face][corner] = {dx, dy, dz} en espacio local (0 o 1)
+const int transitionCornerOffsets[6][8][3] = {
+    // +X
+    { {1,0,0},{1,0,1},{1,1,1},{1,1,0},{0,0,0},{0,0,1},{0,1,1},{0,1,0} },
+    // -X
+    { {0,0,0},{0,0,1},{0,1,1},{0,1,0},{1,0,0},{1,0,1},{1,1,1},{1,1,0} },
+    // +Y
+    { {0,1,0},{0,1,1},{1,1,1},{1,1,0},{0,0,0},{0,0,1},{1,0,1},{1,0,0} },
+    // -Y
+    { {0,0,0},{0,0,1},{1,0,1},{1,0,0},{0,1,0},{0,1,1},{1,1,1},{1,1,0} },
+    // +Z
+    { {0,0,1},{1,0,1},{1,1,1},{0,1,1},{0,0,0},{1,0,0},{1,1,0},{0,1,0} },
+    // -Z
+    { {0,0,0},{1,0,0},{1,1,0},{0,1,0},{0,0,1},{1,0,1},{1,1,1},{0,1,1} }
+};
+
+const int transitionEdgeCorners[13][2] = {
+    {0,1},{1,2},{2,3},{3,0}, // base
+    {4,5},{5,6},{6,7},{7,4}, // top
+    {0,4},{1,5},{2,6},{3,7}, // verticals
+    {0,2} // diagonal (solo para Transvoxel)
+};
 
 // Ejemplo de declaración (rellena con los datos oficiales):
 const uint8_t regularCellClass[256] = {
@@ -918,4 +940,4 @@ const uint16_t transitionVertexData[512][12] = {
 
 // --- Fin de tablas ---
 
-} // namespace Transvoxel
+}; // namespace Transvoxel

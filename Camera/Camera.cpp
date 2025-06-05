@@ -1,7 +1,7 @@
 #include "Camera.h"
 
 Camera::Camera() : position(2.0f, 2.0f, 2.0f), rotation(0.0f, 0.0f, 0.0f),
-m_fieldOfView(XM_PIDIV4), m_aspectRatio(1.0f), m_nearPlane(0.1f), m_farPlane(1000.0f) {}
+m_fieldOfView(XM_PIDIV4), m_aspectRatio(1.0f), m_nearPlane(0.1f), m_farPlane(1000.0f), m_cameraSpeed(CAMERA_SEEP), m_keyboardManager(nullptr) {}
 
 void Camera::SetPosition(float x, float y, float z) {
     position = XMFLOAT3(x, y, z);
@@ -64,6 +64,11 @@ XMFLOAT3 Camera::GetLookAtPosition() {
 
 XMMATRIX Camera::GetProjectionMatrix() const {
     return XMMatrixPerspectiveFovLH(m_fieldOfView, m_aspectRatio, m_nearPlane, m_farPlane);
+}
+
+void Camera::SetKeyboardManager(KeyboardManager* keyboardManager)
+{
+	m_keyboardManager = keyboardManager;
 }
 
 void Camera::SetProjectionParams(float fieldOfView, float aspectRatio, float nearPlane, float farPlane) {
@@ -141,4 +146,53 @@ void Camera::SetLookAt(const XMFLOAT3& target) {
     float pitch = atan2f(dir.y, length);
     // Roll normalmente es 0 para cámaras FPS
     SetRotation(pitch, yaw, 0.0f);
+}
+
+void Camera::Update(float deltaTime) {
+    if (m_keyboardManager) {
+        // Movimiento de la c�mara
+        if (m_keyboardManager->IsKeyDown('W') || m_keyboardManager->IsKeyDown(VK_UP)) {
+            XMVECTOR forward = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+            XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(GetPitch(), GetYaw(), GetRoll());
+            forward = XMVector3TransformCoord(forward, rotationMatrix);
+            XMFLOAT3 fwd;
+            XMStoreFloat3(&fwd, forward);
+            Move(fwd.x * m_cameraSpeed, fwd.y * m_cameraSpeed, fwd.z * m_cameraSpeed);
+        }
+        if (m_keyboardManager->IsKeyDown('S') || m_keyboardManager->IsKeyDown(VK_DOWN)) {
+            XMVECTOR forward = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+            XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(GetPitch(), GetYaw(), GetRoll());
+            forward = XMVector3TransformCoord(forward, rotationMatrix);
+            XMFLOAT3 fwd;
+            XMStoreFloat3(&fwd, forward);
+            Move(-fwd.x * m_cameraSpeed, -fwd.y * m_cameraSpeed, -fwd.z * m_cameraSpeed);
+        }
+        if (m_keyboardManager->IsKeyDown('A') || m_keyboardManager->IsKeyDown(VK_LEFT)) {
+            XMVECTOR strafe = XMVectorSet(-1.0f, 0.0f, 0.0f, 0.0f);
+            XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(GetPitch(), GetYaw(), GetRoll());
+            strafe = XMVector3TransformCoord(strafe, rotationMatrix);
+            XMFLOAT3 s;
+            XMStoreFloat3(&s, strafe);
+            Move(s.x * m_cameraSpeed, s.y * m_cameraSpeed, s.z * m_cameraSpeed);
+        }
+        if (m_keyboardManager->IsKeyDown('D') || m_keyboardManager->IsKeyDown(VK_RIGHT)) {
+            XMVECTOR strafe = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
+            XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(GetPitch(), GetYaw(), GetRoll());
+            strafe = XMVector3TransformCoord(strafe, rotationMatrix);
+            XMFLOAT3 s;
+            XMStoreFloat3(&s, strafe);
+            Move(s.x * m_cameraSpeed, s.y * m_cameraSpeed, s.z * m_cameraSpeed);
+        }
+        if (m_keyboardManager->IsKeyDown(VK_CONTROL)) {
+            m_cameraSpeed = CAMERA_SEEPDY;
+        }
+        if (m_keyboardManager->IsKeyReleased(VK_CONTROL)) {
+            m_cameraSpeed = CAMERA_SEEP;
+        }
+        
+        // Rotaci�n de la c�mara
+        //float pitchOffset = m_keyboardManager->GetMouseDeltaY() * 0.001f; // Ajusta la sensibilidad si es necesario
+        //float yawOffset = m_keyboardManager->GetMouseDeltaX() * 0.001f;   // Ajusta la sensibilidad si es necesario
+        //Rotate(pitchOffset, yawOffset, 0.0f);
+    }
 }

@@ -32,7 +32,7 @@ PixelInputType VSMain(VertexInputType input)
     output.position = mul(output.position, projectionMatrix);
 
     // Pasa la normal y el color al pixel shader
-    output.normal = mul((float3x3) worldMatrix, input.normal);
+    output.normal = normalize(mul((float3x3) worldMatrix, input.normal));
     output.color = input.color;
 
     return output;
@@ -43,6 +43,7 @@ float4 PSMain(PixelInputType input) : SV_TARGET
     // return input.color; // Devuelve el color del v�rtice directamente
     // Normalizar la normal para asegurarte de que est� en el rango correcto
     float3 normal = normalize(input.normal);
+    // return float4(normal * 0.5f + 0.5f, 1.0f);
 
     // Verde si la normal apunta hacia arriba
     if (normal.y > 0.9f)

@@ -3,7 +3,7 @@
 #include "Resources/resource.h"
 #include <atomic>
 
-MainGame::MainGame() : g_device(nullptr), g_renderTarget(nullptr), g_camera(nullptr), g_shaderManager(nullptr), g_material(nullptr), g_triangulo(nullptr), g_matrixBuffer(nullptr), g_axis(nullptr), g_hwnd(nullptr), g_octreeDebug(nullptr), worldUpdateInProgress(false) {
+MainGame::MainGame() : g_device(nullptr), g_renderTarget(nullptr), g_camera(nullptr), g_shaderManager(nullptr), g_material(nullptr), g_triangulo(nullptr), g_matrixBuffer(nullptr), g_axis(nullptr), g_hwnd(nullptr), g_octreeDebug(nullptr), worldUpdateInProgress(false), g_keyboard(nullptr) {
 	g_device = new DeviceManager();
 	g_renderTarget = new RenderTargetManager();
 	g_camera = new Camera();
@@ -50,8 +50,17 @@ HRESULT MainGame::InitUI() {
 	return S_OK;
 }
 
-HRESULT MainGame::Init(HWND hwnd) {
+HRESULT MainGame::Init(HWND hwnd, Keyboard* keyboard) {
 	g_hwnd = hwnd;
+
+	// Inicializar del teclado
+	if (keyboard) {
+		g_keyboard = new KeyboardManager(keyboard);
+	} else {
+		OutputDebugStringA("Error: El teclado no se ha inicializado.\n");
+		return E_FAIL;
+	}
+
 
 	// Obtener las dimensiones de la ventana
 	RECT clientRect;
@@ -74,6 +83,7 @@ HRESULT MainGame::Init(HWND hwnd) {
 	if (FAILED(result)) return result;			
 
 	// Cámara
+	g_camera->SetKeyboardManager(g_keyboard);
 	g_camera->SetPosition(500.0f, 300.0f, 500.0f); // Eleva la c�mara y retrocede
 	// g_camera->SetRotation(XMConvertToRadians(45.0f), 0.0f, 0.0f); // Inclina la c�mara hacia abajo
 	g_camera->SetLookAt(0.0f, 0.0f, 0.0f); // Mira hacia el centro del mundo
@@ -97,7 +107,7 @@ HRESULT MainGame::Init(HWND hwnd) {
 	//if (FAILED(result)) return result;
 
 	// Octree Debug
-	g_octreeDebug = new OctreeDebug(materialBase);
+	g_octreeDebug = new OctreeDebug(materialBase, g_keyboard);
 	result = g_octreeDebug->Init(g_device->GetDevice());
 	if (FAILED(result)) return result;
 
@@ -121,6 +131,10 @@ HRESULT MainGame::Init(HWND hwnd) {
 
 void MainGame::Update(float deltaTime) {
     // Lanza el update solo si no está en progreso
+	g_camera->Update(deltaTime);
+	if (g_octreeDebug) {
+		g_octreeDebug->Update(deltaTime, g_world);
+	}
     bool expected = false;
     if (worldUpdateInProgress.compare_exchange_strong(expected, true)) {
         worldUpdateFuture = std::async(std::launch::async, [this, deltaTime]() {
@@ -150,7 +164,7 @@ void MainGame::Render() {
 	g_worldMatrixManager->Render(g_device, g_renderTarget, g_camera, worldMatrix); // Actualizar matrices
 	//g_suelo->Render(g_device->GetContext()); // Dibujar suelo		
 	g_world->Render(g_device->GetContext()); // Renderizar el mundo
-	//g_octreeDebug->Render(g_camera, g_device, g_worldMatrixManager, g_world);
+	g_octreeDebug->Render(g_camera, g_device, g_worldMatrixManager, g_world);
 	//g_chunkRenderer->Render(g_device->GetContext(), g_camera->GetViewMatrix() * worldMatrix);
 	//g_voxelDebug->Render(g_device->GetContext(), g_device, g_worldMatrixManager, g_world);
 

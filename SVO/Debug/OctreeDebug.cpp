@@ -1,7 +1,10 @@
 #include "OctreeDebug.h"
 #include <algorithm>
 
-OctreeDebug::OctreeDebug(Material* material) : m_material(material) {}
+OctreeDebug::OctreeDebug(Material* material, KeyboardManager* keyboardManager) : m_material(material){
+    m_isEnabled = true;
+	m_keyboardManager = keyboardManager;	
+}
 
 OctreeDebug::~OctreeDebug() {
     Release();
@@ -9,6 +12,10 @@ OctreeDebug::~OctreeDebug() {
 
 HRESULT OctreeDebug::Init(ID3D11Device* device) {
     return S_OK;
+}
+
+void OctreeDebug::SetKeyboardManager(KeyboardManager* keyboardManager) {
+    m_keyboardManager = keyboardManager;
 }
 
 void OctreeDebug::Release() {
@@ -20,6 +27,47 @@ void OctreeDebug::Release() {
 
 static bool XMFLOAT3Equal(const XMFLOAT3& a, const XMFLOAT3& b) {
     return a.x == b.x && a.y == b.y && a.z == b.z;
+}
+
+void OctreeDebug::Update(float deltaTime) {
+
+}
+
+void OctreeDebug::Update(float deltaTime, World* world) {
+    // Aquí podrías actualizar el estado de los boxes si es necesario
+    if (m_keyboardManager) {
+        // Movimiento de la c�mara
+        if (m_keyboardManager->IsKeyReleased(VK_F1)) {
+			m_isEnabled = !m_isEnabled; // Toggle debug mode
+        } else if (m_keyboardManager->IsKeyReleased(VK_F2)) {
+            world->SetDepth(1);
+            world->Update(deltaTime);
+        }
+        else if (m_keyboardManager->IsKeyReleased(VK_F3)) {
+            world->SetDepth(2);
+            world->Update(deltaTime);
+        }
+        else if (m_keyboardManager->IsKeyReleased(VK_F4)) {
+            world->SetDepth(3);
+            world->Update(deltaTime);
+        }
+        else if (m_keyboardManager->IsKeyReleased(VK_F5)) {
+            world->SetDepth(4);
+            world->Update(deltaTime);
+        }
+        else if (m_keyboardManager->IsKeyReleased(VK_F6)) {
+            world->SetDepth(5);
+            world->Update(deltaTime);
+        }
+        else if (m_keyboardManager->IsKeyReleased(VK_F7)) {
+            world->SetDepth(6);
+            world->Update(deltaTime);
+        }
+        else if (m_keyboardManager->IsKeyReleased(VK_F8)) {
+            world->SetDepth(7);
+            world->Update(deltaTime);
+        }
+    }
 }
 
 UIBox* OctreeDebug::GetOrCreateDebugBox(const XMFLOAT3& origin, float size, const XMFLOAT4& color, ID3D11Device* device) {
@@ -38,6 +86,7 @@ UIBox* OctreeDebug::GetOrCreateDebugBox(const XMFLOAT3& origin, float size, cons
 
 void OctreeDebug::Render(Camera* camera, DeviceManager* deviceManager, WorldMatrixManager* worldMatrixManager, World* world) {
     Release();
+	if (!m_isEnabled || !world) return; // Si no está habilitado o no hay mundo, no hacemos nada
     const auto& visibleNodes = world->GetVisibleNodes();
     // Para cada nodo visible, calcular su posición y tamaño real
 
@@ -45,8 +94,8 @@ void OctreeDebug::Render(Camera* camera, DeviceManager* deviceManager, WorldMatr
         SVO_Node* node = visibleNodeInfo.node; // Assuming VisibleNodeInfo has a member `node` of type SVO_Node*
         if (node) {
             // Suponemos que cada nodo tiene asociado su origen y tamaño
-            XMFLOAT3 origin = {0, 0, 0};
-            float size = 1024.0f;
+            XMFLOAT3 origin = visibleNodeInfo.origin;
+            float size = visibleNodeInfo.size;
             int lodLevel = 0; // Si tienes info de LOD, úsala aquí
             XMFLOAT4 color = {1.0f, 1.0f, 0.0f, 1.0f};
             color.x *= (1.0f - 0.2f * lodLevel); // Más oscuro según LOD

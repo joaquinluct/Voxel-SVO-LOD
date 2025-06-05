@@ -1,6 +1,6 @@
 #include "SVO_Node.h"
 
-SVO_Node::SVO_Node(bool isLeaf) : m_isLeaf(isLeaf), m_isOccupied(false), m_children{}, m_lodTransitions{} {}
+SVO_Node::SVO_Node(bool isLeaf) : m_isLeaf(isLeaf), m_isOccupied(false), m_children{}, m_lodTransitions{}, m_isChecked(false), m_density(0.0f) {}
 SVO_Node::~SVO_Node() {}
 
 void SVO_Node::Subdivide() {
@@ -43,11 +43,7 @@ void SVO_Node::ClearLODTransitions() {
     m_lodTransitions.fill(false);
 }
 
-bool SVO_Node::AreAllChildrenOccupied() const {
-    for (const auto& child : m_children) {
-        if (child && !child->IsOccupied()) {
-            return false;
-        }
-    }
-    return true;
+void SVO_Node::SetDensity(float density) {
+    m_density = density;
 }
+    

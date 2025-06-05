@@ -114,6 +114,20 @@ struct VisibleNodeInfo {
     SVO_Node* node;
     DirectX::XMFLOAT3 origin;
     float size;
+
+    // Operador de igualdad
+    bool operator==(const VisibleNodeInfo& other) const {
+        return node == other.node &&
+            origin.x == other.origin.x &&
+            origin.y == other.origin.y &&
+            origin.z == other.origin.z &&
+            size == other.size;
+    }
+
+    // Operador de desigualdad
+    bool operator!=(const VisibleNodeInfo& other) const {
+        return !(*this == other); // Reutiliza el operador ==
+    }
 };
 
 

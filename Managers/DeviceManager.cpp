@@ -26,10 +26,13 @@ HRESULT DeviceManager::Init()
 
 HRESULT DeviceManager::InitRasterizedState() {
     D3D11_RASTERIZER_DESC rasterDesc = {};
-    rasterDesc.FillMode = D3D11_FILL_SOLID;  // Cambiar a SOLID para garantizar que todo se dibuje
-    rasterDesc.CullMode = D3D11_CULL_NONE;   // Evitar descartar caras traseras
-    rasterDesc.FrontCounterClockwise = false;
+    rasterDesc.FillMode = D3D11_FILL_SOLID;  // Dibujar caras sÃ³lidas
+    //rasterDesc.CullMode = D3D11_CULL_NONE;   // Culling deseactivado
+    rasterDesc.CullMode = D3D11_CULL_BACK;   // Culling de caras traseras
+    //rasterDesc.CullMode = D3D11_CULL_FRONT;   // Culling de caras traseras
+    //rasterDesc.FrontCounterClockwise = TRUE; // Antihorario es el frente (DirectX)
     rasterDesc.DepthClipEnable = true;
+    rasterDesc.AntialiasedLineEnable = true;
         
     HRESULT hr = m_device->CreateRasterizerState(&rasterDesc, &m_rasterizerState);
     if (FAILED(hr)) {
@@ -46,7 +49,7 @@ void DeviceManager::SetRasterizerState()
     if (m_context && m_rasterizerState) {
         m_context->RSSetState(m_rasterizerState);
     } else {
-        OutputDebugString(L"Error: Contexto o Rasterizer State no están inicializados.\n");
+        OutputDebugString(L"Error: Contexto o Rasterizer State no estï¿½n inicializados.\n");
     }
 }
 
@@ -56,7 +59,7 @@ void DeviceManager::ResetContextState()
         m_context->RSSetState(nullptr);
     }
     else {
-        OutputDebugString(L"Error: Contexto no está inicializado.\n");
+        OutputDebugString(L"Error: Contexto no estï¿½ inicializado.\n");
     }
 }
 
@@ -124,7 +127,7 @@ HRESULT DeviceManager::Init(HWND hwnd)
 
 HRESULT DeviceManager::GetBackBuffer(ID3D11Texture2D** ppBackBuffer) {
     if (!m_swapChain) {
-        OutputDebugStringA("Error: SwapChain no está inicializado.\n");
+        OutputDebugStringA("Error: SwapChain no estï¿½ inicializado.\n");
         return E_FAIL;
     }
 
@@ -165,7 +168,7 @@ HRESULT DeviceManager::InitBlending()
     blendDesc.AlphaToCoverageEnable = FALSE;
     blendDesc.IndependentBlendEnable = FALSE; // Solo un render target
     
-    // --- Configuración para Alpha Blending (para UI con transparencia) ---
+    // --- Configuraciï¿½n para Alpha Blending (para UI con transparencia) ---
     blendDesc.RenderTarget[0].BlendEnable = TRUE;
     blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
     blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
@@ -182,10 +185,10 @@ HRESULT DeviceManager::InitBlending()
         return hr;
     }
 
-    // --- Configuración para Blending por defecto (Opaco) ---
+    // --- Configuraciï¿½n para Blending por defecto (Opaco) ---
     // Generalmente es el estado sin blending o con una mezcla simple.
     // D3D11_BLEND_DESC por defecto tiene BlendEnable = FALSE para todos los render targets.
-    // Así que puedes usar un blendDesc con todo en FALSE o simplemente crear uno nuevo.
+    // Asï¿½ que puedes usar un blendDesc con todo en FALSE o simplemente crear uno nuevo.
     D3D11_BLEND_DESC defaultBlendDesc = {}; // Todos los valores por defecto son FALSE
     defaultBlendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
@@ -201,8 +204,8 @@ HRESULT DeviceManager::InitBlending()
 
 void DeviceManager::EnableAlphaBlending()
 {
-    // El segundo parámetro (blendFactor) es para casos avanzados, generalmente nullptr o {0,0,0,0}.
-    // El tercer parámetro (sampleMask) es generalmente 0xFFFFFFFF.
+    // El segundo parï¿½metro (blendFactor) es para casos avanzados, generalmente nullptr o {0,0,0,0}.
+    // El tercer parï¿½metro (sampleMask) es generalmente 0xFFFFFFFF.
     if (m_context && m_alphaBlendState)
     {
         m_context->OMSetBlendState(m_alphaBlendState, nullptr, 0xFFFFFFFF);
@@ -220,16 +223,16 @@ void DeviceManager::DisableBlending()
 
 HRESULT DeviceManager::Release()
 {
-    // Antes de liberar, si estás en modo de depuración y hay objetos pendientes
+    // Antes de liberar, si estï¿½s en modo de depuraciï¿½n y hay objetos pendientes
     if (m_context) m_context->ClearState();
 	SafeRelease(m_alphaBlendState);
     SafeRelease(m_defaultBlendState);
     SafeRelease(m_swapChain);
 
-    // Asegúrate de liberar el ID3D11Device al final, opcionalmente con un reporte de objetos vivos
+    // Asegï¿½rate de liberar el ID3D11Device al final, opcionalmente con un reporte de objetos vivos
     if (m_device)
     {
-        // Esto es útil para depurar fugas de memoria de D3D
+        // Esto es ï¿½til para depurar fugas de memoria de D3D
         // Comenta para builds de release si no quieres la dependencia de D3D11SDKLayers.dll
         // ID3D11Debug* debugDev;
         // HRESULT hr = m_device->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&debugDev));

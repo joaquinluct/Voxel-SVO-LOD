@@ -1,9 +1,11 @@
 #pragma once
 #include <directxmath.h>
+#include "iControllable.h"
+#include "iUpdatable.h"
 
 using namespace DirectX;
 
-class iCamera {
+class iCamera: public iControllable, iUpdatable {
 public:
     virtual void SetPosition(float x, float y, float z) = 0;
     virtual void SetRotation(float pitch, float yaw, float roll) = 0;

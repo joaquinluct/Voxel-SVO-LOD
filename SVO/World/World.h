@@ -1,16 +1,17 @@
 #pragma once
 // Definición de la clase World y utilidades relacionadas.
-#include "../SVOBase/SVO_Node.h"
-#include "../LOD/LODProcessor.h"
-#include "../MarchingCubes/MarchingCubes.h"
 #include <DirectXMath.h>
 #include <unordered_map>
+#include <algorithm>
 #include <memory>
 #include <vector>
 #include <mutex>
+#include "../SVOBase/SVO_Node.h"
+#include "../LOD/LODProcessor.h"
 #include "../../Managers/DeviceManager.h"
 #include "../../Camera/Camera.h"
 #include "../../Material/Material.h"
+#include "../MarchingCubes/MarchingCubes.h"
 
 // Cada área cubre 1024x1024x1024 unidades
 constexpr int AREA_SIZE = 1024;
@@ -44,8 +45,16 @@ public:
     AreaKey GetAreaKeyFromPosition(const DirectX::XMFLOAT3& pos) const;
     SVO_Node* GetOrCreateArea(const AreaKey& key);
     SVO_Node* GetArea(const AreaKey& key);
+    float GetVoxelDensity(const DirectX::XMFLOAT3& worldPos, const SVO_Node* nodeRef, const float nodeSize);
+
+    void SetDepth(int newDepth);
+
+
+    float CubeSDF(const DirectX::XMFLOAT3& point, const DirectX::XMFLOAT3& boxMin, const DirectX::XMFLOAT3& boxMax);
+    float SphereSDF(const DirectX::XMFLOAT3& point, const DirectX::XMFLOAT3& center, const float radio);
 
 private:
+	int m_depth = 0;
     DeviceManager* m_deviceManager;
 	Material* m_material;
     Camera* m_camera;
