@@ -1,9 +1,14 @@
 #include "OctreeDebug.h"
 #include <algorithm>
+#include "VisibleNodeInfo.h"
 
-OctreeDebug::OctreeDebug(Material* material, KeyboardManager* keyboardManager) : m_material(material){
+OctreeDebug::OctreeDebug(Material* material): m_material(material){
     m_isEnabled = true;
-	m_keyboardManager = keyboardManager;	
+	m_keyboardManager = ManagerLocator::GetManager<KeyboardManager>();
+    if (!m_keyboardManager) {
+        // Manejo de error si no se pudo obtener el KeyboardManager
+        throw std::runtime_error("Failed to get KeyboardManager service");
+	}
 }
 
 OctreeDebug::~OctreeDebug() {
@@ -12,10 +17,6 @@ OctreeDebug::~OctreeDebug() {
 
 HRESULT OctreeDebug::Init(ID3D11Device* device) {
     return S_OK;
-}
-
-void OctreeDebug::SetKeyboardManager(KeyboardManager* keyboardManager) {
-    m_keyboardManager = keyboardManager;
 }
 
 void OctreeDebug::Release() {
@@ -84,7 +85,7 @@ UIBox* OctreeDebug::GetOrCreateDebugBox(const XMFLOAT3& origin, float size, cons
     return box;
 }
 
-void OctreeDebug::Render(Camera* camera, DeviceManager* deviceManager, WorldMatrixManager* worldMatrixManager, World* world) {
+void OctreeDebug::Render(FirstPersonCamera* camera, DeviceManager* deviceManager, WorldMatrixManager* worldMatrixManager, World* world) {
     Release();
 	if (!m_isEnabled || !world) return; // Si no está habilitado o no hay mundo, no hacemos nada
     const auto& visibleNodes = world->GetVisibleNodes();

@@ -1,6 +1,6 @@
 #include "SVO_Node.h"
 
-SVO_Node::SVO_Node(bool isLeaf) : m_isLeaf(isLeaf), m_isOccupied(false), m_children{}, m_lodTransitions{}, m_isChecked(false), m_density(0.0f) {}
+SVO_Node::SVO_Node(bool isLeaf) : m_isLeaf(isLeaf), m_isOccupied(false), m_children{}, m_lodTransitions{}, m_isChecked(false), m_density(0.0f), m_cube{}, m_hasCubeDensity(false), m_normal(){}
 SVO_Node::~SVO_Node() {}
 
 void SVO_Node::Subdivide() {
@@ -9,6 +9,13 @@ void SVO_Node::Subdivide() {
             m_children[i] = std::make_unique<SVO_Node>();
         }
     }
+}
+
+void SVO_Node::SetCubeDensity(float cube[8]) {
+    for (int i = 0; i < 8; ++i) {
+        m_cube[i] = cube[i];
+    }
+    m_hasCubeDensity = true;
 }
 
 bool SVO_Node::HasChild(int index) const {

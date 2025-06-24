@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -23,7 +23,7 @@
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{faec81fd-f200-4444-8620-f894b927fc8c}</ProjectGuid>
     <RootNamespace>DirectXVoxelado</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.26100.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -102,15 +102,20 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;YAML_CPP_STATIC_DEFINE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp23</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <AdditionalIncludeDirectories>C:\Users\joaqu\source\repos oficiales\DirectXTK-main\Inc;C:\Users\joaqu\Downloads\yaml-cpp-master-original\yaml-cpp-master\include;$(ProjectDir)Libs;$(ProjectDir)src;$(ProjectDir)Assets;$(ProjectDir)Interfaces;$(ProjectDir)Interfaces/Assets;$(ProjectDir)src/Engine;$(ProjectDir)src/Engine/Managers;$(ProjectDir)src/Engine/Core;$(ProjectDir)src/Engine/Util;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxguid.lib;dxgi.lib;dwrite.lib;d2d1.lib;winmm.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>DirectXTK.lib;yaml-cppd.lib;d3d11.lib;d3dcompiler.lib;dxguid.lib;dxgi.lib;dwrite.lib;d2d1.lib;winmm.lib;comctl32.lib;windowscodecs.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
+      <AdditionalLibraryDirectories>C:\Users\joaqu\source\repos oficiales\DirectXTK-main\Bin\Desktop_2022_Win10\x64\Debug;C:\Users\joaqu\Downloads\yaml-cpp-master-original\yaml-cpp-master\build\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <FxCompile>
       <ShaderModel>5.0</ShaderModel>
@@ -118,6 +123,10 @@
       </ShaderType>
       <EntryPointName>VSMain</EntryPointName>
     </FxCompile>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -128,12 +137,16 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
+      <AdditionalIncludeDirectories>C:\Users\joaqu\Downloads\yaml-cpp-master-original\yaml-cpp-master\include;$(ProjectDir)Libs/DirectX/WICTextureLoader;$(ProjectDir)Libs/DirectX/DirectXTex;$(ProjectDir)Interfaces;$(ProjectDir)Core/Engine;$(ProjectDir)Core/ServiceCreator;$(ProjectDir)Core/ServiceLocator;$(ProjectDir)Managers;$(ProjectDir)Camera;$(ProjectDir)Devices;$(ProjectDir)UI;$(ProjectDir)Util/RayTracing;$(ProjectDir)Util;$(ProjectDir)Material;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\Users\joaqu\Downloads\yaml-cpp-master-original\yaml-cpp-master\build\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>yaml-cpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <FxCompile>
       <EntryPointName>VSMain</EntryPointName>
@@ -143,28 +156,70 @@
       <DisableOptimizations>true</DisableOptimizations>
       <EnableDebuggingInformation>true</EnableDebuggingInformation>
     </FxCompile>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Camera\Camera.cpp" />
-    <ClCompile Include="Devices\Keyboard.cpp" />
-    <ClCompile Include="Devices\Mouse.cpp" />
+    <ClCompile Include="src\Engine\Assets\Base\ShaderAsset.cpp" />
+    <ClCompile Include="src\Engine\Assets\Base\SkyboxAsset.cpp" />
+    <ClCompile Include="src\Engine\Assets\Skybox\DefaultSkybox.cpp" />
+    <ClCompile Include="src\Engine\Core\AssetLocator\AssetLocator.cpp" />
+    <ClCompile Include="src\Engine\Core\ManagerLocator\ManagerLocator.cpp" />
+    <ClCompile Include="src\Engine\Managers\AssetManager.cpp" />
+    <ClCompile Include="src\Engine\Assets\Base\MeshAsset.cpp" />
+    <ClCompile Include="src\Engine\Assets\Base\TextureAsset.cpp" />
+    <ClCompile Include="src\Engine\Camera\FirstPersonCamera.cpp" />
+    <ClCompile Include="src\Engine\Core\ServiceLocator\ServiceLocator.cpp" />
+    <ClCompile Include="src\Engine\Core\Devices\Mouse.cpp" />
     <ClCompile Include="Interfaces\iController.cpp" />
-    <ClCompile Include="Interfaces\iDirectXManager.cpp" />
+    <ClCompile Include="Libs\DirectX\DirectXTex\BC.cpp" />
+    <ClCompile Include="Libs\DirectX\DirectXTex\BC4BC5.cpp" />
+    <ClCompile Include="Libs\DirectX\DirectXTex\BC6HBC7.cpp" />
+    <ClCompile Include="Libs\DirectX\DirectXTex\BCDirectCompute.cpp" />
+    <ClCompile Include="Libs\DirectX\DirectXTex\DirectXTexCompress.cpp" />
+    <ClCompile Include="Libs\DirectX\DirectXTex\DirectXTexCompressGPU.cpp" />
+    <ClCompile Include="Libs\DirectX\DirectXTex\DirectXTexConvert.cpp" />
+    <ClCompile Include="Libs\DirectX\DirectXTex\DirectXTexD3D11.cpp" />
+    <ClCompile Include="Libs\DirectX\DirectXTex\DirectXTexDDS.cpp" />
+    <ClCompile Include="Libs\DirectX\DirectXTex\DirectXTexFlipRotate.cpp" />
+    <ClCompile Include="Libs\DirectX\DirectXTex\DirectXTexHDR.cpp" />
+    <ClCompile Include="Libs\DirectX\DirectXTex\DirectXTexImage.cpp" />
+    <ClCompile Include="Libs\DirectX\DirectXTex\DirectXTexMipmaps.cpp" />
+    <ClCompile Include="Libs\DirectX\DirectXTex\DirectXTexMisc.cpp" />
+    <ClCompile Include="Libs\DirectX\DirectXTex\DirectXTexNormalMaps.cpp" />
+    <ClCompile Include="Libs\DirectX\DirectXTex\DirectXTexPMAlpha.cpp" />
+    <ClCompile Include="Libs\DirectX\DirectXTex\DirectXTexResize.cpp" />
+    <ClCompile Include="Libs\DirectX\DirectXTex\DirectXTexTGA.cpp" />
+    <ClCompile Include="Libs\DirectX\DirectXTex\DirectXTexUtil.cpp" />
+    <ClCompile Include="Libs\DirectX\DirectXTex\DirectXTexWIC.cpp" />
+    <ClCompile Include="Libs\DirectX\WICTextureLoader\WICTextureLoader11.cpp" />
+    <ClCompile Include="Libs\DirectX\WICTextureLoader\WICTextureLoader9.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="MainController.cpp" />
     <ClCompile Include="MainWindow.cpp" />
-    <ClCompile Include="Managers\DeviceManager.cpp" />
-    <ClCompile Include="Managers\KeyboardManager.cpp" />
-    <ClCompile Include="Managers\RenderTargetManager.cpp" />
-    <ClCompile Include="Managers\ViewportMananger.cpp" />
-    <ClCompile Include="Managers\WorldMatrixManager.cpp" />
-    <ClCompile Include="Material\Material.cpp" />
+    <ClCompile Include="src\Engine\Managers\CameraManager.cpp" />
+    <ClCompile Include="src\Engine\Managers\DeviceManager.cpp" />
+    <ClCompile Include="src\Engine\Managers\KeyboardManager.cpp" />
+    <ClCompile Include="src\Engine\Managers\RenderTargetManager.cpp" />
+    <ClCompile Include="src\Engine\Services\AxisXYZ.cpp" />
+    <ClCompile Include="src\Engine\Services\Keyboard.cpp" />
+    <ClCompile Include="src\Engine\Services\Skybox.cpp" />
+    <ClCompile Include="src\Engine\Managers\WorldMatrixManager.cpp" />
+    <ClCompile Include="src\Engine\Core\Material\Material.cpp" />
+    <ClCompile Include="src\Engine\Core\Material\TextureInitializers\VoxelBasicTextureConfig.cpp" />
     <ClCompile Include="RenderObjects\Axis\Axis.cpp" />
-    <ClCompile Include="MainGame.cpp" />
+    <ClCompile Include="src\Engine\Managers\GameManager.cpp" />
     <ClCompile Include="RenderObjects\Line\Line.cpp" />
     <ClCompile Include="RenderObjects\Suelo\Suelo.cpp" />
     <ClCompile Include="RenderObjects\Triangulo.cpp" />
-    <ClCompile Include="Managers\ShaderManager.cpp" />
+    <ClCompile Include="src\Engine\Managers\ShaderManager.cpp" />
     <ClCompile Include="RenderObjects\UIBox\UIBox.cpp" />
+    <ClCompile Include="src\Engine\Services\TestingBasic.cpp" />
+    <ClCompile Include="src\Engine\Services\TestingBasic2.cpp" />
+    <ClCompile Include="src\Engine\Services\UIDebug.cpp" />
+    <ClCompile Include="src\Engine\Util\IGPUCreateCommand.cpp" />
     <ClCompile Include="SVO\Debug\OctreeDebug.cpp" />
     <ClCompile Include="SVO\LOD\LODProcessor.cpp" />
     <ClCompile Include="SVO\MarchingCubes\MarchingCubes.cpp" />
@@ -177,43 +232,241 @@
     <ClCompile Include="SVO\Voxel\VoxelData.cpp" />
     <ClCompile Include="SVO\Voxel\VoxelMesh.cpp" />
     <ClCompile Include="SVO\World\World.cpp" />
-    <ClCompile Include="UI\UI.cpp" />
-    <ClCompile Include="UI\UIButton.cpp" />
-    <ClCompile Include="UI\UIElement.cpp" />
-    <ClCompile Include="UI\UIRectangle.cpp" />
-    <ClCompile Include="UI\UIText.cpp" />
-    <ClCompile Include="Util\LOD.cpp" />
-    <ClCompile Include="Util\TextureLoader\TextureLoader.cpp" />
-    <ClCompile Include="Util\DirectXUtils.cpp" />
+    <ClCompile Include="Terrain\Generators\TerrainGeneratorPerling1.cpp" />
+    <ClCompile Include="src\Engine\Managers\UIManager.cpp" />
+    <ClCompile Include="src\Engine\Core\Material\TextureConfigFactory.cpp" />
+    <ClCompile Include="TestManagerName.cpp" />
+    <ClCompile Include="src\Engine\UI\UIButton.cpp" />
+    <ClCompile Include="src\Engine\UI\UIElement.cpp" />
+    <ClCompile Include="src\Engine\UI\UIRectangle.cpp" />
+    <ClCompile Include="src\Engine\UI\UIText.cpp" />
+    <ClCompile Include="src\Engine\Util\LOD.cpp" />
+    <ClCompile Include="src\Engine\Util\RayTracing\RayTracing.cpp" />
+    <ClCompile Include="src\Engine\Util\TextureLoader\TextureLoader.cpp" />
+    <ClCompile Include="src\Engine\Util\DirectXUtils.cpp" />
+    <ClCompile Include="SVO\World\WorldPerling.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Camera\Camera.h" />
-    <ClInclude Include="Devices\Keyboard.h" />
-    <ClInclude Include="Devices\Mouse.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\anchor.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\binary.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\contrib\anchordict.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\contrib\graphbuilder.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\depthguard.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\dll.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\emitfromevents.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\emitter.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\emitterdef.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\emittermanip.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\emitterstyle.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\eventhandler.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\exceptions.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\fptostring.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\mark.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\node\convert.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\node\detail\impl.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\node\detail\iterator.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\node\detail\iterator_fwd.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\node\detail\memory.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\node\detail\node.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\node\detail\node_data.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\node\detail\node_iterator.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\node\detail\node_ref.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\node\emit.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\node\impl.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\node\iterator.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\node\node.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\node\parse.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\node\ptr.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\node\type.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\noexcept.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\null.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\ostream_wrapper.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\parser.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\stlemitter.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\traits.h" />
+    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\yaml.h" />
+    <ClInclude Include="Assets\Mesh\SkyboxCube.h" />
+    <ClInclude Include="Interfaces\Assets\IAssetMesh.h" />
+    <ClInclude Include="Interfaces\Assets\IAssetMeshConfig.h" />
+    <ClInclude Include="Interfaces\Assets\IAssetMeshConfigBase.h" />
+    <ClInclude Include="Interfaces\Assets\IAssetShaderConfig.h" />
+    <ClInclude Include="Interfaces\Assets\IAssetSkybox.h" />
+    <ClInclude Include="Interfaces\Assets\IAssetSkyboxConfig.h" />
+    <ClInclude Include="Interfaces\Assets\IAssetSkyboxConfigBase.h" />
+    <ClInclude Include="Interfaces\IService.h" />
+    <ClInclude Include="src\Engine\Assets\Base\Commands\CreateMeshGPUCommand.h" />
+    <ClInclude Include="src\Engine\Assets\Base\Commands\CreateTextureGPUCommand.h" />
+    <ClInclude Include="src\Engine\Assets\Base\Macros\REGISTER_SKYBOX_MACRO.h" />
+    <ClInclude Include="src\Engine\Assets\Base\ShaderAsset.h" />
+    <ClInclude Include="src\Engine\Assets\Base\SkyboxAsset.h" />
+    <ClInclude Include="src\Engine\Assets\Skybox\DefaultSkybox.h" />
+    <ClInclude Include="src\Engine\Core\AssetLocator\AssetLocator.h" />
+    <ClInclude Include="src\Engine\Core\Config\AssetConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\AssetManagerConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Asset\BaseIndexConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Asset\DefaultShaderConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Asset\DefaultSkyboxConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Asset\IndexConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Asset\ShaderTextUIConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Asset\SkyboxCubeConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Asset\TextureGrassDiffuseConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Asset\TextureTextUIConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\AssetManagerConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\CameraManagerConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\DeviceManagerConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\EngineConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\GameManagerConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\KeyboardConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\KeyboardManagerConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\MouseConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderTargetManagerConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\ServiceConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\ShaderManagerConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\UIManagerConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\WorldMatrixManagerConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\BiomeConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\CameraManagerConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Camera\debugCamConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Camera\MainCamConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\CycleConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\DeviceManagerConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\EngineConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\GameManagerConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Game\AxisXYZConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Game\BiomeConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Game\CycleConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Game\GameEngineConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Game\LightingConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Game\PhysicsConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Game\SkyboxConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Game\TerrainConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Game\TestingBasic2Config.h" />
+    <ClInclude Include="src\Engine\Core\Config\Game\WheatherConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Game\WorldConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\KeyboardConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\KeyboardManagerConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\LightingConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\MouseConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\PhysicsConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\RenderTargetManagerConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Services\UIDebugConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\SkyboxConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\TerrainConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\UIManagerConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\WheatherConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\WorldConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\WorldMatrixManagerConfig.h" />
+    <ClInclude Include="src\Engine\Core\Export\Obj\ExportToObj.h" />
+    <ClInclude Include="src\Engine\Core\ManagerLocator\ManagerLocator.h" />
+    <ClInclude Include="src\Engine\Core\Material\includes\VertexDefinition.h" />
+    <ClInclude Include="src\Engine\Helpers\Assets.h" />
+    <ClInclude Include="src\Engine\Managers\AssetLoadContext.h" />
+    <ClInclude Include="src\Engine\Managers\AssetManager.h" />
+    <ClInclude Include="src\Engine\Assets\Base\MeshAsset.h" />
+    <ClInclude Include="src\Engine\Assets\Base\TextureAsset.h" />
+    <ClInclude Include="src\Engine\Camera\FirstPersonCamera.h" />
+    <ClInclude Include="src\Engine\Core\ServiceCreator\ServiceCreator.h" />
+    <ClInclude Include="src\Engine\Core\ServiceLocator\ServiceLocator.h" />
+    <ClInclude Include="src\Engine\Core\Devices\Mouse.h" />
+    <ClInclude Include="Interfaces\Assets\IAsset.h" />
+    <ClInclude Include="Interfaces\ILifeCycleWindowDepent.h" />
     <ClInclude Include="Interfaces\iCamera.h" />
-    <ClInclude Include="Interfaces\iDirectXManager.h" />
+    <ClInclude Include="Interfaces\IInitializable.h" />
+    <ClInclude Include="Interfaces\ILifeCycle.h" />
+    <ClInclude Include="Interfaces\IManager.h" />
     <ClInclude Include="Interfaces\iDrawable.h" />
-    <ClInclude Include="Interfaces\iMaterial.h" />
-    <ClInclude Include="Interfaces\iControllable.h" />
+    <ClInclude Include="Interfaces\IMaterial.h" />
+    <ClInclude Include="Interfaces\IRenderable.h" />
     <ClInclude Include="Interfaces\iRenderizable.h" />
-    <ClInclude Include="Interfaces\iUpdatable.h" />
+    <ClInclude Include="Interfaces\IShutdownable.h" />
+    <ClInclude Include="Interfaces\ISubsystem.h" />
+    <ClInclude Include="Interfaces\ITextureConfig.h" />
+    <ClInclude Include="Interfaces\ITextureInitializer.h" />
+    <ClInclude Include="Interfaces\IUpdatable.h" />
+    <ClInclude Include="Interfaces\IWindowDependentInitializable.h" />
+    <ClInclude Include="Interfaces\LifeCycle.h" />
+    <ClInclude Include="Libs\DirectX\DirectXTex\BC.h" />
+    <ClInclude Include="Libs\DirectX\DirectXTex\BCDirectCompute.h" />
+    <ClInclude Include="Libs\DirectX\DirectXTex\DDS.h" />
+    <ClInclude Include="Libs\DirectX\DirectXTex\DirectXTex.h" />
+    <ClInclude Include="Libs\DirectX\DirectXTex\DirectXTexP.h" />
+    <ClInclude Include="Libs\DirectX\DirectXTex\filters.h" />
+    <ClInclude Include="Libs\DirectX\DirectXTex\scoped.h" />
+    <ClInclude Include="Libs\DirectX\WICTextureLoader\WICTextureLoader11.h" />
+    <ClInclude Include="Libs\DirectX\WICTextureLoader\WICTextureLoader9.h" />
+    <ClInclude Include="Libs\FastNoiseLite\FastNoiseLite.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\anchor.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\binary.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\contrib\anchordict.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\contrib\graphbuilder.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\depthguard.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\dll.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\emitfromevents.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\emitter.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\emitterdef.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\emittermanip.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\emitterstyle.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\eventhandler.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\exceptions.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\fptostring.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\mark.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\node\convert.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\node\detail\impl.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\node\detail\iterator.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\node\detail\iterator_fwd.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\node\detail\memory.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\node\detail\node.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\node\detail\node_data.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\node\detail\node_iterator.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\node\detail\node_ref.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\node\emit.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\node\impl.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\node\iterator.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\node\node.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\node\parse.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\node\ptr.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\node\type.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\noexcept.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\null.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\ostream_wrapper.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\parser.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\stlemitter.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\traits.h" />
+    <ClInclude Include="Libs\Yaml-cpp\includes\yaml.h" />
+    <ClInclude Include="MainController.h" />
     <ClInclude Include="MainWindow.h" />
     <ClInclude Include="Interfaces\iController.h" />
-    <ClInclude Include="Managers\DeviceManager.h" />
-    <ClInclude Include="Managers\KeyboardManager.h" />
-    <ClInclude Include="Managers\RenderTargetManager.h" />
-    <ClInclude Include="Managers\WorldMatrixManager.h" />
-    <ClInclude Include="Material\Material.h" />
+    <ClInclude Include="src\Engine\Managers\CameraManager.h" />
+    <ClInclude Include="src\Engine\Managers\DeviceManager.h" />
+    <ClInclude Include="src\Engine\Managers\KeyboardManager.h" />
+    <ClInclude Include="src\Engine\Managers\REGISTER_ASSET_MACRO.h" />
+    <ClInclude Include="src\Engine\Managers\REGISTER_MANAGER_MACRO.h" />
+    <ClInclude Include="src\Engine\Managers\REGISTER_SERVICE_MACRO.h" />
+    <ClInclude Include="src\Engine\Managers\RenderTargetManager.h" />
+    <ClInclude Include="src\Engine\Services\AxisXYZ.h" />
+    <ClInclude Include="src\Engine\Services\Keyboard.h" />
+    <ClInclude Include="src\Engine\Services\Skybox.h" />
+    <ClInclude Include="src\Engine\Managers\WorldMatrixManager.h" />
+    <ClInclude Include="src\Engine\Core\Material\Material.h" />
+    <ClInclude Include="src\Engine\Core\Material\TextureConfigFactory.h" />
+    <ClInclude Include="src\Engine\Core\Material\TextureInitializers\VoxelBasicTextureConfig.h" />
     <ClInclude Include="RenderObjects\Axis\Axis.h" />
-    <ClInclude Include="MainGame.h" />
+    <ClInclude Include="src\Engine\Managers\GameManager.h" />
     <ClInclude Include="RenderObjects\Suelo\Suelo.h" />
     <ClInclude Include="RenderObjects\Triangulo.h" />
     <ClInclude Include="RenderObjects\UIBox\UIBox.h" />
     <ClInclude Include="Resources\resource.h" />
-    <ClInclude Include="Managers\ShaderManager.h" />
+    <ClInclude Include="src\Engine\Managers\ShaderManager.h" />
+    <ClInclude Include="src\Engine\Services\TestingBasic.h" />
+    <ClInclude Include="src\Engine\Services\TestingBasic2.h" />
+    <ClInclude Include="src\Engine\Services\UIDebug.h" />
+    <ClInclude Include="src\Engine\Util\AssetType.h" />
+    <ClInclude Include="src\Engine\Util\IGPUCreateCommand.h" />
+    <ClInclude Include="src\Engine\Util\Text\Text.h" />
     <ClInclude Include="SVO\Debug\OctreeDebug.h" />
     <ClInclude Include="SVO\LOD\LODProcessor.h" />
-    <ClInclude Include="Util\DirectXUtils.h" />
+    <ClInclude Include="Terrain\Generators\TerrainGeneratorPerling1.h" />
+    <ClInclude Include="src\Engine\Util\DirectXUtils.h" />
     <ClInclude Include="SVO\MarchingCubes\MarchingCubes.h" />
     <ClInclude Include="SVO\MarchingCubes\MarchingCubesMesh.h" />
     <ClInclude Include="SVO\MarchingCubes\MarchingCubesTables.h" />
@@ -225,17 +478,35 @@
     <ClInclude Include="SVO\Voxel\VoxelData.h" />
     <ClInclude Include="SVO\Voxel\VoxelMesh.h" />
     <ClInclude Include="SVO\World\World.h" />
-    <ClInclude Include="UI\UI.h" />
-    <ClInclude Include="UI\UIButton.h" />
-    <ClInclude Include="UI\UIElement.h" />
-    <ClInclude Include="UI\UIRectangle.h" />
-    <ClInclude Include="UI\UIText.h" />
-    <ClInclude Include="Util\TextureLoader\stb_image.h" />
-    <ClInclude Include="Util\TextureLoader\TextureLoader.h" />
-    <ClInclude Include="Util\Utils.h" />
+    <ClInclude Include="src\Engine\Managers\UIManager.h" />
+    <ClInclude Include="src\Engine\UI\UIButton.h" />
+    <ClInclude Include="src\Engine\UI\UIElement.h" />
+    <ClInclude Include="src\Engine\UI\UIRectangle.h" />
+    <ClInclude Include="src\Engine\UI\UIText.h" />
+    <ClInclude Include="src\Engine\Util\RayTracing\RayTracing.h" />
+    <ClInclude Include="src\Engine\Util\Texture.h" />
+    <ClInclude Include="src\Engine\Util\TextureLoader\stb_image.h" />
+    <ClInclude Include="src\Engine\Util\TextureLoader\TextureLoader.h" />
+    <ClInclude Include="src\Engine\Util\Utils.h" />
     <ClInclude Include="RenderObjects\Line\Line.h" />
+    <ClInclude Include="SVO\World\WorldPerling.h" />
+    <ClInclude Include="src\Engine\Util\VisibleNodeInfo.h" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="Assets\Shader\TextShader.hlsl" />
+    <FxCompile Include="Assets\Shader\TextureBase.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Geometry</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Geometry</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Geometry</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
+      <DeploymentContent>true</DeploymentContent>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Assets;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </FxCompile>
     <FxCompile Include="Resources\Shaders\BasicShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       </ShaderType>
@@ -256,13 +527,49 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <Image Include="Assets\Textures\UI\DejaVuSansMono.jpg" />
     <Image Include="Resources\DejaVuSansMono.bmp" />
     <Image Include="Resources\DejaVuSansMono.jpg" />
     <Image Include="Resources\DejaVuSansMono.png" />
     <Image Include="Resources\font1.jpg" />
+    <Image Include="Resources\Textures\Rock\Coast sand rock\coast_sand_rocks_02_ao_4k.jpg" />
+    <Image Include="Resources\Textures\Rock\Coast sand rock\coast_sand_rocks_02_arm_4k.jpg" />
+    <Image Include="Resources\Textures\Rock\Coast sand rock\coast_sand_rocks_02_diff_4k.jpg" />
+    <Image Include="Resources\Textures\Rock\Coast sand rock\coast_sand_rocks_02_disp_4k.png" />
+    <Image Include="Resources\Textures\Rock\Coast sand rock\coast_sand_rocks_02_nor_dx_4k.jpg" />
+    <Image Include="Resources\Textures\Rock\Coast sand rock\coast_sand_rocks_02_nor_gl_4k.jpg" />
+    <Image Include="Resources\Textures\Rock\Coast sand rock\coast_sand_rocks_02_rough_4k.jpg" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Assets\Textures\DefaultSkybox\build_dds.bat" />
+    <None Include="cpp.hint" />
+    <None Include="Libs\DirectX\DirectXTex\DirectXTex.inl" />
+    <None Include="Libs\DirectX\DirectXTex\Shaders\Compiled\BC6HEncode_EncodeBlockCS.inc" />
+    <None Include="Libs\DirectX\DirectXTex\Shaders\Compiled\BC6HEncode_EncodeBlockCS_cs40.inc" />
+    <None Include="Libs\DirectX\DirectXTex\Shaders\Compiled\BC6HEncode_TryModeG10CS.inc" />
+    <None Include="Libs\DirectX\DirectXTex\Shaders\Compiled\BC6HEncode_TryModeG10CS_cs40.inc" />
+    <None Include="Libs\DirectX\DirectXTex\Shaders\Compiled\BC6HEncode_TryModeLE10CS.inc" />
+    <None Include="Libs\DirectX\DirectXTex\Shaders\Compiled\BC6HEncode_TryModeLE10CS_cs40.inc" />
+    <None Include="Libs\DirectX\DirectXTex\Shaders\Compiled\BC7Encode_EncodeBlockCS.inc" />
+    <None Include="Libs\DirectX\DirectXTex\Shaders\Compiled\BC7Encode_EncodeBlockCS_cs40.inc" />
+    <None Include="Libs\DirectX\DirectXTex\Shaders\Compiled\BC7Encode_TryMode02CS.inc" />
+    <None Include="Libs\DirectX\DirectXTex\Shaders\Compiled\BC7Encode_TryMode02CS_cs40.inc" />
+    <None Include="Libs\DirectX\DirectXTex\Shaders\Compiled\BC7Encode_TryMode137CS.inc" />
+    <None Include="Libs\DirectX\DirectXTex\Shaders\Compiled\BC7Encode_TryMode137CS_cs40.inc" />
+    <None Include="Libs\DirectX\DirectXTex\Shaders\Compiled\BC7Encode_TryMode456CS.inc" />
+    <None Include="Libs\DirectX\DirectXTex\Shaders\Compiled\BC7Encode_TryMode456CS_cs40.inc" />
+    <None Include="Libs\DirectX\DirectXTex\Shaders\CompileShaders.cmd" />
+    <Resource Include="Resources\engine_config.yaml">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
+      <FileType>Document</FileType>
+    </Resource>
     <None Include="READ.md" />
+    <None Include="Resources\assets_config.yaml" />
+    <None Include="EstructuraProyecto.md" />
+    <None Include="Resources\camera_config.yaml" />
+    <None Include="Resources\services_config.yaml" />
+    <None Include="SHADER_REGISTROS.md" />
     <None Include="VOXEL-CHUNKS.md">
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
     </None>
@@ -272,7 +579,12 @@
     <None Include="SVO.md" />
     <None Include="SVO_TRIÁNGULOS.md" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="SAVE_FBX.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="C:\Users\joaqu\Downloads\yaml-cpp-master-original\yaml-cpp-master\build\Debug\yaml-cppd.lib" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-  </ImportGroup>
+  <ImportGroup Label="ExtensionTargets" />
 </Project>

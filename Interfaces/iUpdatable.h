@@ -1,7 +1,8 @@
 #pragma once
 
-class iUpdatable
+class IUpdatable
 {
 public:
+	virtual ~IUpdatable() = default;
 	virtual void Update(float deltaTime) = 0;
 };

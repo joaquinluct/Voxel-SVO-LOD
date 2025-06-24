@@ -1,12 +1,16 @@
 //--------------------------------------------------------------------------------------
 // File: Main.cpp
 //--------------------------------------------------------------------------------------
+// ¡IMPORTANTE! Define NOMINMAX antes de cualquier include de Windows o DirectX.
+#define NOMINMAX
+
 #include <windows.h>
 #include <d3d11_1.h>
 #include <d3dcompiler.h>
 #include <directxmath.h>
 #include <directxcolors.h>
 #include "MainWindow.h"
+#include "AssetManager.h"
 //#include "MarchingCubes.h"
 //#include "Camera.h"
 //#include "Common.h"

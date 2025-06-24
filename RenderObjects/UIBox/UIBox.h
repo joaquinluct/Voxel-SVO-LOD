@@ -5,7 +5,7 @@
 #include <DirectXMath.h> // Para XMFLOAT3, XMFLOAT4
 #include <vector>        // Para std::vector
 
-#include "../../Material/Material.h" // Necesitas tu clase Material
+#include "Material/Material.h" // Necesitas tu clase Material
 #include "../Line/Line.h"     // Necesitas tu clase Line
 
 class UIBox {

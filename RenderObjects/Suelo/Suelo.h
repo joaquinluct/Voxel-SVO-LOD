@@ -2,8 +2,8 @@
 #include <d3d11.h>
 #include <vector>
 #include <directxmath.h>
-#include "../../Interfaces/iDrawable.h"
-#include "../../Util/Utils.h"
+#include "iDrawable.h"
+#include "Utils.h"
 
 using namespace DirectX;
 

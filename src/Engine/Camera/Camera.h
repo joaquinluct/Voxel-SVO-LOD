@@ -1,0 +1,62 @@
+#pragma once
+#include <array>
+#include <memory>
+#include "ServiceLocator.h"
+#include "..\Interfaces\ICamera.h"
+#include "..\Interfaces\IManager.h"
+#include "..\Managers\KeyboardManager.h"
+#include "..\Util\RayTracing\RayTracing.h"
+
+class Camera : public ICamera {
+public:
+    Camera();
+    void SetPosition(float x, float y, float z);
+    void SetRotation(float pitch, float yaw, float roll);
+    XMMATRIX GetViewMatrix() const;
+    XMMATRIX GetProjectionMatrix() const;
+    XMFLOAT3 GetPosition() const override { return position; };
+	void Update(float deltaTime) override;
+
+    // Nuevos m�todos para el movimiento
+    void Move(float x, float y, float z);
+
+    // Nuevos m�todos para la rotaci�n
+    void Rotate(float pitchOffset, float yawOffset, float rollOffset);
+
+    // Par�metros de la proyecci�n
+    void SetProjectionParams(float fieldOfView, float aspectRatio, float nearPlane, float farPlane);
+
+    // Getters para Pitch, Yaw y Roll (necesarios para Mouse y Keyboard)
+    float GetPitch() const { return rotation.x; }
+    float GetYaw() const { return rotation.y; }
+    float GetRoll() const { return rotation.z; }
+    float GetFarPlane() const { return m_farPlane;  }
+    XMMATRIX GetRotationMatrix() const;
+    XMVECTOR GetLookAt(XMVECTOR eyePos, XMMATRIX rotationMatrix) const;
+    XMFLOAT3 GetLookAtPosition();
+    void ExtractFrustumPlanes(XMFLOAT4 planes[6]) const;
+    void SetLookAt(float x, float y, float z);
+    void SetLookAt(const XMFLOAT3& target);
+
+    void ToggleGravity() { m_gravityEnabled = !m_gravityEnabled; }
+
+    Util::Triangle* GetTriangleLookingAt(const std::vector<Util::Triangle>& triangles) const;
+  
+    XMFLOAT3 position;
+    XMFLOAT3 rotation;
+
+private:
+    const float CAMERA_SEEP = 3.0f;
+    const float CAMERA_SEEPDY = 5.5f;
+    std::shared_ptr <KeyboardManager> m_keyboardManager;
+    float m_fieldOfView;
+    float m_aspectRatio;
+    float m_nearPlane;
+    float m_farPlane;
+    float m_cameraSpeed = CAMERA_SEEP;    
+
+    bool m_gravityEnabled = false; // Inicialmente, la gravedad está desactivada
+    float m_verticalVelocity = 0.0f; // Velocidad vertical actual
+    const float GRAVITY = -9.81f; // Aceleración debida a la gravedad
+    const float JUMP_SPEED = 5.0f; // Velocidad inicial del salto
+};

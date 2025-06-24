@@ -1,0 +1,7 @@
+Config:
+  Services:
+    UIDebug:
+      Enabled: true
+      texture: "TextureTextUI"
+      shader: "ShaderTextUI"
+      text: "Debug Information"

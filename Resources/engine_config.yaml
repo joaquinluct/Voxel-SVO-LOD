@@ -1,0 +1,103 @@
+# engine_config.yaml
+
+# Orden de inicialización de los servicios del motor
+Config:
+  Base:    
+    Service:
+      services_pre_init_order:
+          - Keyboard
+      services_post_init_order:
+          - UIDebug
+      services_render_order:
+          - Keyboard
+      services_update_order:
+          - Keyboard
+    Engine:
+      managers_init_order:
+          - DeviceManager
+          - KeyboardManager
+          - CameraManager
+          - RenderTargetManager
+          - ShaderManager
+          - WorldMatrixManager
+          - AssetManager
+          - GameManager
+          - UIManager
+      managers_render_order:
+          - RenderTargetManager
+          - WorldMatrixManager
+          - ShaderManager
+          - GameManager
+          - UIManager
+          - DeviceManager
+      managers_update_order:
+          - KeyboardManager
+          - WorldMatrixManager
+          - CameraManager
+          - GameManager
+          - UIManager
+    AssetManager:
+      manifest_path: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Resources\\assets_manifest.yaml"
+      asset_cache_size: 1000 # Número máximo de activos en caché
+      asset_load_timeout: 5.0 # Tiempo máximo para cargar un activo (en segundos)
+
+    # --- Configuraciones de Managers ---
+    DeviceManager:
+      vsync: true
+      fullscreen: false
+      debug_device: true # Usar D3D11_CREATE_DEVICE_DEBUG
+      swap_chain_buffer_count: 2
+      # Puedes añadir más configuraciones específicas del dispositivo aquí
+
+    RenderTargetManager:
+      # RenderTargetManager a menudo no necesita mucha configuración directa
+      # Sus propiedades suelen derivar del DeviceManager o del swap chain.
+      clear_color: [0.0, 0.2, 0.4, 1.0] # RGBA
+
+    ShaderManager:
+      shader_cache_enabled: true
+      shader_paths:
+        - Shaders/Core/
+        - Shaders/Materials/
+        # Lista de directorios donde buscar shaders
+
+    Keyboard:
+      # El manager de teclado crudo podría no necesitar configuración específica.
+      # El KeyboardManager lo utilizará.
+
+    Mouse:
+      # Lo mismo que Keyboard, Mouse es el raw input.
+      # MouseManager o MainGame podrían tener configuración.
+
+    KeyboardManager:
+      # Podrías definir key bindings aquí, aunque es mejor en un archivo de input separado.
+      default_move_forward_key: "W"
+      default_move_backward_key: "S"
+
+    CameraManager:
+      initialCamera: "MainCam"
+      cameras:
+          - MainCam
+          - DebugCam
+      camerasTypes:
+          - FirstPersonCamera
+          - FirstPersonCamera
+    WorldMatrixManager:
+      # Podrías definir el tamaño máximo de objetos, tamaño de lotes para instancing, etc.
+      max_instances_per_batch: 1024
+
+    # --- Configuraciones de Subsistemas de Juego ---
+    GameManager:
+      manifestPath: "Resources\\game_manifest.yaml"
+      playerEntitConfig: "Data/Entities/player_character_default.yaml"
+      initialPlayerPosition: [0.0, 100.0, 0.0]
+      gameSpeedMultiplier: 1.0
+      debugMode: true
+      subsystems:
+        - SkyboxManager
+        # Puedes añadir más subsistemas aquí
+
+    UIManager:
+      initial_screen: "main_menu.yaml"
+      font_path: "Assets/Fonts/Roboto-Regular.ttf"
+      font_size: 24

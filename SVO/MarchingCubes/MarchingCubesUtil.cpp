@@ -8,7 +8,21 @@ namespace MarchingCubesUtil {
 
 float MarchingCubesUtil::GetDensityAtWorldPos(const DirectX::XMFLOAT3& pos, const SVO_Node* node, const VoxelData* voxelData, const DirectX::XMFLOAT3& origin, float nodeSize, World* world)
 {
-     const float CHUNK_SIZE = 1024.0f; 
+    if (world) {
+        if (DirectXUtils::AreEqual(origin, pos)) {
+            return node->GetDensity();
+        }        
+        else {
+            float density = world->GetVoxelDensity(pos, node, nodeSize);
+            /*if (density > 0.00001f && density < 0.99999f) {
+                density = density;
+            }*/
+            return density;
+        }
+    }
+	return 1.0f; // Si no hay mundo, retornamos densidad por defecto (vacío)
+
+    /*const float CHUNK_SIZE = 1024.0f; 
 
     DirectX::XMFLOAT3 localPos = {
         std::fmod(pos.x, CHUNK_SIZE),
@@ -19,7 +33,50 @@ float MarchingCubesUtil::GetDensityAtWorldPos(const DirectX::XMFLOAT3& pos, cons
     if (localPos.y < 0) localPos.y += CHUNK_SIZE;
     if (localPos.z < 0) localPos.z += CHUNK_SIZE;
 
-    return world->SphereSDF(localPos, XMFLOAT3{ 120.0f,120.0f,120.0f }, 60.0f);
+    return world->SphereSDF(localPos, nodeSize, DirectX::XMFLOAT3{ 120.0f,120.0f,120.0f }, 60.0f);*/
+
+    // Verifica si el punto est� dentro del nodo actual.
+// Esto es especialmente importante si 'node' no es la ra�z del chunk.
+    //if (pos.x >= origin.x && pos.x < origin.x + nodeSize &&
+    //    pos.y >= origin.y && pos.y < origin.y + nodeSize &&
+    //    pos.z >= origin.z && pos.z < origin.z + nodeSize) {
+
+    //    const float NODE_MIN_SIZE = 1.0f; // Aseg�rate que esto coincide con tu NODE_MIN_SIZE real
+    //    const SVO_Node* current = node;
+    //    DirectX::XMFLOAT3 currentOrigin = origin;
+    //    float currentSize = nodeSize;
+
+    //    // Recorrer el SVO hasta encontrar un nodo hoja o el nivel m�ximo de detalle
+    //    while (current && !current->IsLeaf() && currentSize > NODE_MIN_SIZE) {
+    //        float half = currentSize / 2.0f;
+    //        int childIndex = 0;
+    //        if (pos.x >= currentOrigin.x + half) childIndex |= 1;
+    //        if (pos.y >= currentOrigin.y + half) childIndex |= 2;
+    //        if (pos.z >= currentOrigin.z + half) childIndex |= 4;
+
+    //        if (!current->HasChild(childIndex)) {
+    //            // Si la rama no existe, se considera que el espacio est� "vac�o"
+    //            // seg�n la funci�n de densidad global.
+    //            return world->GetVoxelDensity(pos, node, nodeSize);
+    //        }
+    //        currentOrigin.x += (childIndex & 1) ? half : 0.0f;
+    //        currentOrigin.y += (childIndex & 2) ? half : 0.0f;
+    //        currentOrigin.z += (childIndex & 4) ? half : 0.0f;
+    //        currentSize = half;
+    //        current = current->GetChild(childIndex);
+    //    }
+
+    //    // Si llegamos a un nodo hoja o al m�ximo detalle, retornamos su densidad almacenada
+    //    if (current) {
+    //        return current->GetDensity();
+    //    }
+    //}
+
+    // Si el punto est� fuera del nodo SVO proporcionado (o si el SVO es nulo),
+    // o si la b�squeda falla, usamos la funci�n de densidad global del mundo.        
+    //return world->GetVoxelDensity(pos, node, nodeSize);
+
+
 
     //const float boxMin = 30.0f; 
     //const float boxMax = 80.0f;
@@ -47,7 +104,7 @@ float MarchingCubesUtil::GetDensityAtWorldPos(const DirectX::XMFLOAT3& pos, cons
     // 2. Obtener la densidad precisa del mundo.
     //    Aquí delegamos a la clase 'World' para que defina la densidad.
     //    Pasamos la posición global 'pos' y el 'currentSVO_Size' (el tamaño del vóxel en este LOD).
-    float density = 1.0f;
+    /*float density = 1.0f;
     if (world) {
         if (DirectXUtils::AreEqual(origin, pos)) {
             density = node->GetDensity();
@@ -61,7 +118,7 @@ float MarchingCubesUtil::GetDensityAtWorldPos(const DirectX::XMFLOAT3& pos, cons
     if (density < 0.0000001f) {
         density = density;
     }
-    return density;
+    return density;*/
 }
     
 
@@ -149,55 +206,122 @@ XMFLOAT3 InterpolateVerts(XMFLOAT3 p1, XMFLOAT3 p2, float valp1, float valp2, in
 //    return result;
 //}
 
-XMFLOAT3 CalculateDensityNormal(const XMFLOAT3& pos, const SVO_Node* node, const VoxelData* voxelData, const XMFLOAT3& origin, float nodeSize, World* world) {
-    const float h = 0.5f;
-    //const float h = nodeSize / 2;
-    float dx = MarchingCubesUtil::GetDensityAtWorldPos({ pos.x + h, pos.y, pos.z }, node, voxelData, origin, nodeSize, world)
-        - MarchingCubesUtil::GetDensityAtWorldPos({ pos.x - h, pos.y, pos.z }, node, voxelData, origin, nodeSize, world);
-    float dy = MarchingCubesUtil::GetDensityAtWorldPos({ pos.x, pos.y + h, pos.z }, node, voxelData, origin, nodeSize, world)
-        - MarchingCubesUtil::GetDensityAtWorldPos({ pos.x, pos.y - h, pos.z }, node, voxelData, origin, nodeSize, world);
-    float dz = MarchingCubesUtil::GetDensityAtWorldPos({ pos.x, pos.y, pos.z + h }, node, voxelData, origin, nodeSize, world)
-        - MarchingCubesUtil::GetDensityAtWorldPos({ pos.x, pos.y, pos.z - h }, node, voxelData, origin, nodeSize, world);
+XMFLOAT3 CalculateDensityNormal(const XMFLOAT3& worldPos, const SVO_Node* node, const VoxelData* voxelData, const XMFLOAT3& origin, float nodeSize, World* world) {
+    // Tamaño del paso para calcular la diferencia finita
+    constexpr float stepSize = 0.5f; // Ajusta este valor segn sea necesario
 
-    XMVECTOR grad = XMVectorSet(dx, dy, dz, 0.0f);
-    return DirectXUtils::Normalize(XMFLOAT3(dx, dy, dz));
-    float len = XMVectorGetX(XMVector3Length(grad));
+    // Calcular los puntos vecinos
+    XMFLOAT3 worldPos_xPlus = { worldPos.x + stepSize, worldPos.y, worldPos.z };
+    XMFLOAT3 worldPos_xMinus = { worldPos.x - stepSize, worldPos.y, worldPos.z };
+    XMFLOAT3 worldPos_yPlus = { worldPos.x, worldPos.y + stepSize, worldPos.z };
+    XMFLOAT3 worldPos_yMinus = { worldPos.x, worldPos.y - stepSize, worldPos.z };
+    XMFLOAT3 worldPos_zPlus = { worldPos.x, worldPos.y, worldPos.z + stepSize };
+    XMFLOAT3 worldPos_zMinus = { worldPos.x, worldPos.y, worldPos.z - stepSize };
+
+    // Calcular la densidad en los puntos vecinos
+    float density_xPlus = world->GetVoxelDensity(worldPos_xPlus, node, nodeSize);
+    float density_xMinus = world->GetVoxelDensity(worldPos_xMinus, node, nodeSize);
+    float density_yPlus = world->GetVoxelDensity(worldPos_yPlus, node, nodeSize);
+    float density_yMinus = world->GetVoxelDensity(worldPos_yMinus, node, nodeSize);
+    float density_zPlus = world->GetVoxelDensity(worldPos_zPlus, node, nodeSize);
+    float density_zMinus = world->GetVoxelDensity(worldPos_zMinus, node, nodeSize);
+
+    // Calcular el gradiente (la dirección en la que la densidad aumenta más rápidamente)
     XMFLOAT3 normal;
-    //if (len < 1e-4f) {
-    //    // Normal nula: forzar normal hacia fuera según la frontera del cubo [10,100]^3
-    //    float dist_x_min = std::abs(pos.x - 10.0f);
-    //    float dist_x_max = std::abs(pos.x - 100.0f);
-    //    float dist_y_min = std::abs(pos.y - 10.0f);
-    //    float dist_y_max = std::abs(pos.y - 100.0f);
-    //    float dist_z_min = std::abs(pos.z - 10.0f);
-    //    float dist_z_max = std::abs(pos.z - 100.0f);
-    //    float min_dist = dist_x_min;
-    //    normal = {-1,0,0};
-    //    if (dist_x_max < min_dist) { min_dist = dist_x_max; normal = {1,0,0}; }
-    //    if (dist_y_min < min_dist) { min_dist = dist_y_min; normal = {0,-1,0}; }
-    //    if (dist_y_max < min_dist) { min_dist = dist_y_max; normal = {0,1,0}; }
-    //    if (dist_z_min < min_dist) { min_dist = dist_z_min; normal = {0,0,-1}; }
-    //    if (dist_z_max < min_dist) { min_dist = dist_z_max; normal = {0,0,1}; }
-    //} else {
-    grad = XMVector3Normalize(grad);
-    XMStoreFloat3(&normal, grad);
-    //}
+    normal.x = density_xPlus - density_xMinus;
+    normal.y = density_yPlus - density_yMinus;
+    normal.z = density_zPlus - density_zMinus;
+
+    if (normal.y > 0.0f) {
+        normal = normal;
+    }
+
+    // Normalizar el vector
+    XMVECTOR xmNormal = XMVector3Normalize(XMLoadFloat3(&normal));
+    XMStoreFloat3(&normal, xmNormal);
+
     return normal;
+    //const float epsilon = 0.5f;
+    //// dx
+    //DirectX::XMFLOAT3 p_x_plus = { worldPos.x + epsilon, worldPos.y, worldPos.z };
+    //DirectX::XMFLOAT3 p_x_minus = { worldPos.x - epsilon, worldPos.y, worldPos.z };
+    //float dx = MarchingCubesUtil::GetDensityAtWorldPos(p_x_plus, nullptr, nullptr, { 0,0,0 }, 0, world) - // Se pasan nullptr/0 para node/origin/size
+    //    MarchingCubesUtil::GetDensityAtWorldPos(p_x_minus, nullptr, nullptr, { 0,0,0 }, 0, world);
+
+    //// dy
+    //DirectX::XMFLOAT3 p_y_plus = { worldPos.x, worldPos.y + epsilon, worldPos.z };
+    //DirectX::XMFLOAT3 p_y_minus = { worldPos.x, worldPos.y - epsilon, worldPos.z };
+    //float dy = MarchingCubesUtil::GetDensityAtWorldPos(p_y_plus, nullptr, nullptr, { 0,0,0 }, 0, world) -
+    //    MarchingCubesUtil::GetDensityAtWorldPos(p_y_minus, nullptr, nullptr, { 0,0,0 }, 0, world);
+
+    //// dz
+    //DirectX::XMFLOAT3 p_z_plus = { worldPos.x, worldPos.y, worldPos.z + epsilon };
+    //DirectX::XMFLOAT3 p_z_minus = { worldPos.x, worldPos.y, worldPos.z - epsilon };
+    //float dz = MarchingCubesUtil::GetDensityAtWorldPos(p_z_plus, nullptr, nullptr, { 0,0,0 }, 0, world) -
+    //    MarchingCubesUtil::GetDensityAtWorldPos(p_z_minus, nullptr, nullptr, { 0,0,0 }, 0, world);
+
+    //DirectX::XMFLOAT3 normal = { dx, dy, dz };
+
+    //// Normalizar el vector
+    //DirectX::XMVECTOR vec = DirectX::XMLoadFloat3(&normal);
+    //vec = DirectX::XMVector3Normalize(vec);
+    //DirectX::XMStoreFloat3(&normal, vec);
+
+    return normal;
+
+    //const float h = 0.5f;
+    ////const float h = nodeSize / 2;
+    //float dx = MarchingCubesUtil::GetDensityAtWorldPos({ pos.x + h, pos.y, pos.z }, node, voxelData, origin, nodeSize, world)
+    //    - MarchingCubesUtil::GetDensityAtWorldPos({ pos.x - h, pos.y, pos.z }, node, voxelData, origin, nodeSize, world);
+    //float dy = MarchingCubesUtil::GetDensityAtWorldPos({ pos.x, pos.y + h, pos.z }, node, voxelData, origin, nodeSize, world)
+    //    - MarchingCubesUtil::GetDensityAtWorldPos({ pos.x, pos.y - h, pos.z }, node, voxelData, origin, nodeSize, world);
+    //float dz = MarchingCubesUtil::GetDensityAtWorldPos({ pos.x, pos.y, pos.z + h }, node, voxelData, origin, nodeSize, world)
+    //    - MarchingCubesUtil::GetDensityAtWorldPos({ pos.x, pos.y, pos.z - h }, node, voxelData, origin, nodeSize, world);
+
+    //XMVECTOR grad = XMVectorSet(dx, dy, dz, 0.0f);
+    //return DirectXUtils::Normalize(XMFLOAT3(dx, dy, dz));
+    //float len = XMVectorGetX(XMVector3Length(grad));
+    //XMFLOAT3 normal;
+    ////if (len < 1e-4f) {
+    ////    // Normal nula: forzar normal hacia fuera según la frontera del cubo [10,100]^3
+    ////    float dist_x_min = std::abs(pos.x - 10.0f);
+    ////    float dist_x_max = std::abs(pos.x - 100.0f);
+    ////    float dist_y_min = std::abs(pos.y - 10.0f);
+    ////    float dist_y_max = std::abs(pos.y - 100.0f);
+    ////    float dist_z_min = std::abs(pos.z - 10.0f);
+    ////    float dist_z_max = std::abs(pos.z - 100.0f);
+    ////    float min_dist = dist_x_min;
+    ////    normal = {-1,0,0};
+    ////    if (dist_x_max < min_dist) { min_dist = dist_x_max; normal = {1,0,0}; }
+    ////    if (dist_y_min < min_dist) { min_dist = dist_y_min; normal = {0,-1,0}; }
+    ////    if (dist_y_max < min_dist) { min_dist = dist_y_max; normal = {0,1,0}; }
+    ////    if (dist_z_min < min_dist) { min_dist = dist_z_min; normal = {0,0,-1}; }
+    ////    if (dist_z_max < min_dist) { min_dist = dist_z_max; normal = {0,0,1}; }
+    ////} else {
+    //grad = XMVector3Normalize(grad);
+    //XMStoreFloat3(&normal, grad);
+    ////}
+    //return normal;
 }
 
 int GetCubeIndex(float(&cube)[8], XMFLOAT3 origin, float size, const SVO_Node* node, const VoxelData* voxelData, World* world, float ISO_LEVEL)
 {    
-    for (int i = 0; i < 8; ++i) {
+    /*for (int i = 0; i < 8; ++i) {
         XMFLOAT3 cornerPos = DirectXUtils::Add(origin, DirectXUtils::Multiply(MarchingCubesTables::cornerOffsetsX[i], size));
-        cube[i] = MarchingCubesUtil::GetDensityAtWorldPos(cornerPos, node, voxelData, origin, size, world);
-        // cube[i] = world->GetVoxelDensity(origin);
-    }    
-    // Calcula el índice de la tabla
+        cube[i] = MarchingCubesUtil::GetDensityAtWorldPos(cornerPos, node, voxelData, origin, size, world);        
+    }    */
+    // Calcula el índice de la tabla    
     int cubeIndex = 0;
     for (int i = 0; i < 8; ++i) {
         if (cube[i] >= ISO_LEVEL) cubeIndex |= (1 << i);
         // if (cube[i] < ISO_LEVEL) cubeIndex |= (1 << i);
-    }    
+    }   
+    /*if (cubeIndex > 0 && cubeIndex < 254) {
+        cubeIndex = cubeIndex;
+    }
+    else if (cubeIndex == 0) {
+        cubeIndex = 143;
+    }*/
     return cubeIndex;
 }
 
@@ -233,4 +357,31 @@ void InterpolateEdgeVerts(int cubeIndex, const XMFLOAT3 p_local[8], const float 
     if (edgeTable[cubeIndex] & 0x800) vertlist[11] = InterpolateVerts(p_local[3], p_local[7], density[3], density[7], ISO_LEVEL);*/
 }
 
+float TrilinearInterpolate(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& nodeOrigin, float nodeSize, const float cornerDensities[8]) {
+    // Calcular coordenadas normalizadas (0 a 1) dentro del cubo del nodo
+    float localX = (pos.x - nodeOrigin.x) / nodeSize;
+    float localY = (pos.y - nodeOrigin.y) / nodeSize;
+    float localZ = (pos.z - nodeOrigin.z) / nodeSize;
+
+    // Asegurarse de que est�n en el rango [0, 1]
+    localX = std::clamp(localX, 0.0f, 1.0f);
+    localY = std::clamp(localY, 0.0f, 1.0f);
+    localZ = std::clamp(localZ, 0.0f, 1.0f);
+
+    // Interpolaci�n lineal a lo largo del eje X
+    float c00 = cornerDensities[0] * (1 - localX) + cornerDensities[1] * localX; // (0,0,0) y (1,0,0)
+    float c10 = cornerDensities[3] * (1 - localX) + cornerDensities[2] * localX; // (0,1,0) y (1,1,0)
+    float c01 = cornerDensities[4] * (1 - localX) + cornerDensities[5] * localX; // (0,0,1) y (1,0,1)
+    float c11 = cornerDensities[7] * (1 - localX) + cornerDensities[6] * localX; // (0,1,1) y (1,1,1) (NOTA: Revisar si tus �ndices 6 y 7 son correctos aqu�)
+
+    // Interpolaci�n lineal a lo largo del eje Y
+    float c0 = c00 * (1 - localY) + c10 * localY;
+    float c1 = c01 * (1 - localY) + c11 * localY;
+
+    // Interpolaci�n lineal a lo largo del eje Z
+    return c0 * (1 - localZ) + c1 * localZ;
+}
+
 } // namespace MarchingCubesUtil
+
+

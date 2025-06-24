@@ -1,8 +1,8 @@
 #pragma once
 #include <d3d11.h>
 #include <DirectXMath.h>
-#include "../../Material/Material.h"
-#include "../../Interfaces/iDrawable.h"
+#include "Material/Material.h"
+#include "iDrawable.h"
 
 using namespace DirectX;
 

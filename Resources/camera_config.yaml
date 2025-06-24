@@ -1,0 +1,22 @@
+Config:
+  Camera:
+    MainCam:
+      type: "FirstPersonCamera"
+      active: true
+      move_speed: 150.0
+      rotation_speed: 120.0 # Grados por segundo
+      fov_y: 60.0 # Grados
+      near_clip: 0.1
+      far_clip: 6000.0
+      position: [0.0, 100.0, 0.0]
+      initial_pitch: 0.0
+      initial_yaw: 0.0
+    debugCam:
+      type: "FirstPersonCamera" # Reutiliza el mismo tipo, con diferentes parámetros
+      active: false
+      move_speed: 500.0
+      rotation_speed: 180.0
+      fov_y: 75.0
+      near_clip: 0.1
+      far_clip: 10000.0
+      position: [500.0, 1500.0, 500.0]

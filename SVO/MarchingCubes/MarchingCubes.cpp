@@ -37,11 +37,13 @@ MarchingCubes::~MarchingCubes() {
     delete transvoxel; // Ensure proper cleanup  
 }
 
+const float MarchingCubes::ISO_LEVEL = 0.0f;
+
 const void MarchingCubes::GenerateTriangles(int cubeIndex, const float size, const XMFLOAT3& origin, float density[8], MarchingCubesMesh& mesh, const SVO_Node* node, const VoxelData* voxelData, World* world) {
     using namespace MarchingCubesTables;
     unsigned int nextIndex = 0;
     std::unordered_map<XMFLOAT3Key, unsigned int> uniqueVerticesMap;
-    XMFLOAT3 p_local[8]{};    
+    XMFLOAT3 p_local[8]{};
         
     for (int i = 0; i < 8; ++i) {
         p_local[i] = DirectXUtils::Add(DirectXUtils::Multiply(cornerOffsetsX[i], size), origin);
@@ -60,24 +62,10 @@ const void MarchingCubes::GenerateTriangles(int cubeIndex, const float size, con
         for (int v = 0; v < 3; ++v) {
             int idx = triTable[cubeIndex][i + v];
             marchingVertex[v].Position = vertlist[idx];
-            //marchingVertex[v].Normal = MarchingCubesUtil::CalculateDensityNormal(vertlist[idx], node, voxelData, origin, size, world);
-            marchingVertex[v].Normal = MarchingCubesUtil::CalculateNormal(vertlist[0], vertlist[1],vertlist[2]);
+            /*marchingVertex[v].Normal = MarchingCubesUtil::CalculateDensityNormal(vertlist[idx], node, voxelData, origin, size, world);*/
+            marchingVertex[v].Normal = node->GetNormal();
             marchingVertex[v].Color = XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f);
         }
-
-        //XMFLOAT3 edge1 = DirectXUtils::Subtract(marchingVertex[1].Position, marchingVertex[0].Position);
-        //XMFLOAT3 edge2 = DirectXUtils::Subtract(marchingVertex[2].Position, marchingVertex[0].Position);
-
-        //XMFLOAT3 normal_unnormalized = DirectXUtils::Cross(edge1, edge2);
-        //XMFLOAT3 faceNormal = DirectXUtils::Normalize(normal_unnormalized);
-
-        //if (DirectXUtils::IsNormalPointing(faceNormal, DirectXUtils::DOWN_DIR)) {
-        //    std::swap(marchingVertex[1], marchingVertex[2]);
-        //    for (int v = 0; v < 3; ++v) {
-        //        marchingVertex[v].Normal = DirectXUtils::Multiply(faceNormal, -1);
-        //        marchingVertex[v].Color = XMFLOAT4(1.0f, 1.0f, .0f, 1.0f);
-        //    }
-        //}
 
         // --- FIX: Forzar winding antihorario para todos los triángulos ---
         // std::swap(marchingVertex[1], marchingVertex[2]);
@@ -103,8 +91,12 @@ MarchingCubesMesh MarchingCubes::GenerateMesh(const SVO_Node* node, const XMFLOA
     MarchingCubesMesh mesh;
 	//if (!node || !node->IsLeaf() || !node->IsOccupied()) return mesh;
     if (!node || !node->IsOccupied()) return mesh;
+    // if (!node) return mesh;
     // Para cada vértice del cubo, consulta la densidad usando el SVO
-    float cube[8]{};
+    // float cube[8]{};
+    const float* cubePtr = node->GetCube();
+    float cube[8];  
+    std::copy(cubePtr, cubePtr + 8, cube);
 	int cubeIndex = MarchingCubesUtil::GetCubeIndex(cube, origin, size, node, voxelData, world, ISO_LEVEL);
     /*float cube[8]{0.001f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f};
     int cubeIndex = 1;*/
