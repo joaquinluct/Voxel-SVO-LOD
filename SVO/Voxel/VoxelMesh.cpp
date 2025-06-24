@@ -129,6 +129,55 @@ void VoxelMesh::Render(ID3D11DeviceContext* context, const XMMATRIX& worldMatrix
     //m_deviceManager->ResetContextState();
 }
 
+std::vector<Util::Triangle> VoxelMesh::GetTriangles(std::vector<unsigned int> indices)  {
+    std::vector<Util::Triangle> triangles;
+
+    // Verificar que la malla sea válida
+    if (!isValidMesh()) {
+        return triangles; // Devolver un vector vacío si la malla no es válida
+    }
+
+    // Obtener un puntero a los vértices
+    MarchingCubesVertex* vertices = nullptr;
+    D3D11_MAPPED_SUBRESOURCE mappedResource;
+    HRESULT hr = m_deviceManager->GetContext()->Map(m_vertexBuffer, 0, D3D11_MAP_READ, 0, &mappedResource);
+    if (FAILED(hr)) {
+        std::cerr << "Error al mapear el vertex buffer para lectura.\n";
+        return triangles;
+    }
+    vertices = static_cast<MarchingCubesVertex*>(mappedResource.pData);
+
+    // Iterar a través de los índices, de tres en tres (cada tres índices forman un triángulo)
+    for (size_t i = 0; i < m_indexCount; i += 3) {
+        // Asegurarse de no exceder el tamaño del vector de índices
+        if (i + 2 >= m_indexCount) {
+            break; // Salir del bucle si no hay suficientes índices para formar un triángulo
+        }
+
+        // Obtener los índices de los vértices del triángulo
+        unsigned int index0 = indices[i];
+        unsigned int index1 = indices[i + 1];
+        unsigned int index2 = indices[i + 2];
+
+        // Asegurarse de que los índices son válidos
+        if (index0 >= m_vertexCount || index1 >= m_vertexCount || index2 >= m_vertexCount) {
+            std::cerr << "Índice fuera de rango: " << index0 << ", " << index1 << ", " << index2 << std::endl;
+            continue; // Saltar este triángulo si algún índice está fuera de rango
+        }
+
+        // Crear el triángulo usando los vértices correspondientes
+        Util::Triangle* triangle = new Util::Triangle(vertices[index0].Position, vertices[index1].Position, vertices[index2].Position);
+
+        // Añadir el triángulo al vector
+        triangles.push_back(*triangle);
+    }
+
+    // Desmapear el vertex buffer
+    m_deviceManager->GetContext()->Unmap(m_vertexBuffer, 0);
+
+    return triangles;
+}
+
 void VoxelMesh::Release() {
     if (m_vertexBuffer) {
         m_vertexBuffer->Release();

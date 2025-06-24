@@ -44,7 +44,7 @@ float4 PSMain(PSINPUT input) : SV_TARGET0
     // Si ves un degradado de color en cada "cuadrado de carácter", las TexCoords están llegando.
 
     // Si tienes un problema con el Sampler o la Textura
-    // return fontTexture.Sample(fontSampler, input.TexCoord); // Ver si la textura se muestra directamente
+    return fontTexture.Sample(fontSampler, input.TexCoord); // Ver si la textura se muestra directamente
     
     // Muestra la textura de la fuente en las coordenadas de textura interpoladas
     // Dado que DejaVuSansMono.jpg es un atlas en blanco y negro, el canal 'r' (rojo)

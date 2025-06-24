@@ -1,5 +1,7 @@
 //{{NO_DEPENDENCIES}}
 //
+#define CAMERA_MAIN				L"MainCam"
+#define SHADER_TEXTURE_BASE		L"DefaultShader"
 #define SHADER_BASE				L"SimpleLineShader"
 #define SHADER_TEXT				L"TextShader"
 #define SHADER_VOXEL			L"VoxelShader"

@@ -1,16 +1,9 @@
-#include <windows.h>
-#include <d3d11_1.h>
-#include <d3dcompiler.h>
-#include <directxmath.h>
-#include <directxcolors.h>
 #include "MainWindow.h"
-#include "Resources/resource.h"
-#include "MainGame.h"
+#include <winerror.h>
 
 MainWindow::MainWindow(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
-	: g_hInstance(hInstance), g_hPrevInstance(hPrevInstance), g_lpCmdLine(lpCmdLine), g_nCmdShow(nCmdShow), g_hWnd(nullptr), g_controller(nullptr), mouse(nullptr), keyboard(nullptr) 
-{
-    g_controller = new MainGame();
+	: g_hInstance(hInstance), g_hPrevInstance(hPrevInstance), g_lpCmdLine(lpCmdLine), g_nCmdShow(nCmdShow), g_hWnd(nullptr), g_controller(nullptr), mouse(nullptr), g_keyboard(nullptr) 
+{   
 }
 
 MainWindow::~MainWindow() {
@@ -26,25 +19,25 @@ int MainWindow::Create(int width, int height)
     if (FAILED(Init(g_hInstance, g_nCmdShow, width, height)))
         return 0;
 
-    keyboard = new Keyboard(); // Cambiar la inicialización para usar un puntero dinámico
+    g_controller = new MainController(g_hWnd, width, height);
+    g_controller->Initialize(g_hWnd, width, height);
 
-    if (FAILED(g_controller->Init(g_hWnd, keyboard))) // Pasar el puntero correctamente
-    {
-        SafeRelease(g_controller);
-        return 0;
-    }
+	g_keyboard = g_controller->GetKeyboard(); // Obtener el teclado del controlador
 
-    mouse = new Mouse(g_controller->GetCamera(), g_hWnd, width, height);
+    //if (FAILED(g_controller->Init(g_hWnd, keyboard))) // Pasar el puntero correctamente
+    //{
+    //    SafeRelease(g_controller);
+    //    return 0;
+    //}
+
+    //mouse = new Mouse(g_controller->GetCamera(), g_hWnd, width, height);
 
         // Inicializar Mouse
-    if (FAILED(mouse->Init()))
+    /*if (FAILED(mouse->Init()))
     {
         SafeRelease(g_controller);
         return 0;
-    }
-
-    keyboard->Init(); // Inicializar Keyboard
-
+    }*/
     SetTimer(g_hWnd, 1, 16, nullptr); // Configura el temporizador (16ms ~ 60 FPS)
 
     LARGE_INTEGER frequency;
@@ -69,15 +62,15 @@ int MainWindow::Create(int width, int height)
 
             g_controller->Update(deltaTime); // Llama a Update
             g_controller->Render();
-            mouse->Render();   // Actualizar y usar la entrada del ratón
-            keyboard->Render(); // Actualizar y usar la entrada del teclado
+            //mouse->Render();   // Actualizar y usar la entrada del ratón
+            //keyboard->Render(); // Actualizar y usar la entrada del teclado
             //InvalidateRect(g_hWnd, NULL, TRUE); // Fuerza a repintar toda la ventana
             //UpdateWindow(g_hWnd); // Sincroniza el repintado
         }
     }
 
-    mouse->Release();   // Liberar Mouse
-    keyboard->Release(); // Liberar Keyboard
+    //mouse->Release();   // Liberar Mouse
+    //keyboard->Release(); // Liberar Keyboard
 
     SafeRelease(g_controller);
 
@@ -122,19 +115,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
 
     case WM_KEYDOWN:
+        if (wParam == VK_ESCAPE) {
+            PostQuitMessage(0);
+            return 0;
+        }
         if (pMainWindow) {
-            pMainWindow->GetKeyboard()->Update();
-            if (wParam == VK_ESCAPE) {
-                PostQuitMessage(0);
-            }
+            pMainWindow->GetKeyboard()->Update(0);
 			if (wParam == VK_F11) {
 				pMainWindow->ToggleFullscreen();
 			}
-        }
+        }        
         break;
     case WM_KEYUP:
         if (pMainWindow) {
-            pMainWindow->GetKeyboard()->Update();
+            pMainWindow->GetKeyboard()->Update(0);
         }
 		break;
     case WM_MOUSEMOVE:

@@ -1,0 +1,70 @@
+// AssetManager.h
+#pragma once
+#include "IManager.h"
+#include "IWindowDependentInitializable.h"
+#include "IRenderable.h"
+#include "IUpdatable.h"
+#include "IShutdownable.h"
+#include "AssetType.h"
+#include <Assets/IAsset.h>
+#include "AssetLoadContext.h"
+#include <Assets/Base/TextureAsset.h>
+#include <yaml-cpp/yaml.h>
+#include <string>
+#include <vector>
+#include <map>
+#include <memory>
+#include <future>
+#include <mutex>
+#include <functional> // Para std::function
+#include <queue>      // Para la cola de comandos GPU
+#include "IGPUCreateCommand.h" // Interfaz para comandos de creación de recursos GPU
+#include "Assets/Base/MeshAsset.h" // Incluir el nuevo Mesh
+#include <Config/Asset/BaseIndexConfig.h>
+#include <Config/Asset/IndexConfig.h>
+
+// ====================================================================
+// AssetManager
+// ====================================================================
+
+class AssetManager : public IManager, public IWindowDependentInitializable, public IRenderable, public IUpdatable, public IShutdownable {
+public:
+    AssetManager();
+    ~AssetManager() override;
+
+    HRESULT Init(HWND hwnd, int width, int height) override;
+    void Render() override;
+    void Update(float deltaTime) override; // CRÍTICO: procesa cargas asíncronas y comandos GPU
+    void Shutdown() override;
+
+    ID3D11ShaderResourceView* LoadTexture(ID3D11Device* device, const std::string& filePath);
+    ID3D11ShaderResourceView* LoadTexture(std::string assetName);
+
+    const std::string& GetManagerName() const override {
+        static const std::string name = "AssetManager";
+        return name;
+    }
+    static const std::string& GetStaticManagerName()
+    {
+        static const std::string name = "AssetManager";
+        return name;
+    }
+    const std::vector<std::string>& GetAssetList() const {
+        if (m_config) {
+            return m_config->index;
+		}
+	}
+
+    // ====================================================================
+    // API para comandos GPU (para que los hilos de carga los pongan en cola)
+    // ====================================================================
+    // void AddGPUCreateCommand(std::unique_ptr<IGPUCreateCommand> command);
+
+private:
+    IndexConfig::Values* m_config{};
+    BaseIndexConfig::Values* m_configBase{};
+};
+
+// ====================================================================
+// Implementación de funciones template y helpers (en el .h o incluidos)
+// ====================================================================

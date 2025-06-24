@@ -1,6 +1,6 @@
 #pragma once
-#include "..\Interfaces\iDrawable.h"
-#include "..\Material\Material.h"
+#include "iDrawable.h"
+#include "Material\Material.h"
 #include <d3d11.h>
 #include <vector>
 #include <directxmath.h>

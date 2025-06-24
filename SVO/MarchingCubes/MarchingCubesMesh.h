@@ -1,7 +1,8 @@
 ﻿#pragma once
 #include <vector>
 #include <unordered_map>
-#include "../../Util/Utils.h"
+#include "Utils.h"
+#include "RayTracing/RayTracing.h"
 
 // Estructura para contener la malla generada (v�rtices �nicos + �ndices)
 struct MarchingCubesMesh {
@@ -13,7 +14,7 @@ struct MarchingCubesMesh {
         for (unsigned int originalOtherIndex : other.indices) {
             indices.push_back(originalOtherIndex + static_cast<unsigned int>(vertexOffset));
         }
-    }
+    }    
     void removeDuplicateVertices() {
         std::vector<MarchingCubesVertex> newVertices;
         std::vector<unsigned int> newIndices;

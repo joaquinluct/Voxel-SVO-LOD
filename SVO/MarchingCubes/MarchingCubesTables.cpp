@@ -2,6 +2,12 @@
 
 // https://github.com/Scrawk/Marching-Cubes/blob/master/Assets/MarchingCubes/Marching/MarchingCubes.cs#L102
 
+// Ojo:
+// 1) Pasar estas tablas a un .h 
+// 2) Definirlas como constexpr para que se puedan usar en tiempo de compilación
+// 3) Añadir inline al inicio de cada tabla para evitar problemas de linkage al incluir este archivo en varios .cpp
+// 
+
 namespace MarchingCubesTables
 {
 	const int edgeTable[256] = {
@@ -336,7 +342,7 @@ namespace MarchingCubesTables
 		{0,1,0}, // 3
 		{0,0,1}, // 4
 		{1,0,1}, // 5
-		{1,1,1}, // 7
-		{0,1,1}, // 6
+		{1,1,1}, // 6
+		{0,1,1}, // 7
 	};
 }

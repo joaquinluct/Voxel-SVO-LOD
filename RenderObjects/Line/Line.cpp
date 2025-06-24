@@ -20,6 +20,8 @@ HRESULT Line::Init(ID3D11Device* device) {
     bufferDesc.MiscFlags = 0;
     bufferDesc.StructureByteStride = 0;
 
+    assert(bufferDesc.ByteWidth >= sizeof(Vertex) * m_numVertices);
+
     // Definir datos de inicialización
     D3D11_SUBRESOURCE_DATA initData = {};
     initData.pSysMem = m_vertices;

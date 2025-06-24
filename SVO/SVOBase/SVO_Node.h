@@ -2,6 +2,7 @@
 #pragma once
 #include <array>
 #include <memory>
+#include "Utils.h"
 
 class SVO_Node {
 public:
@@ -31,12 +32,22 @@ public:
     void SetDensity(float density);
     inline float GetDensity() const { return m_density; };
 
-
     void SetIsChecked(bool isChecked) { m_isChecked = isChecked; };
     bool GetIsChecked() const { return m_isChecked; };
 
+    void SetCubeDensity(float cube[8]);
+    float GetCubeDensity(int index) const { return m_cube[index]; };
+    const float* GetCube() const { return m_cube; }
+    const bool HasPrecalculatedCornerDensities() const { return m_hasCubeDensity; };
+
+	void SetNormal(const DirectX::XMFLOAT3& normal) { m_normal = normal; }
+    const DirectX::XMFLOAT3& GetNormal() const { return m_normal; };
+
 private:
+    float m_hasCubeDensity;
+    float m_cube[8]{};
     float m_density;
+    DirectX::XMFLOAT3 m_normal;
     bool m_isChecked;
     bool m_isLeaf;
     bool m_isOccupied;

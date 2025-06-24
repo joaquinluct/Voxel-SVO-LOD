@@ -2,7 +2,8 @@
 #include "../SVOBase/SVO_Node.h"
 #include <vector>
 #include <DirectXMath.h>
-#include "../../Util/Utils.h"
+#include "Utils.h"
+#include "VisibleNodeInfo.h"
 
 struct LODSettings {
     float nearDistance;
@@ -12,5 +13,5 @@ struct LODSettings {
 
 class LODProcessor {
 public:
-    static void ProcessLOD(SVO_Node* node, const DirectX::XMFLOAT3& nodeOrigin, const DirectX::XMFLOAT3& cameraPosition, float nodeSize, const LODSettings& lodSettings, std::vector<VisibleNodeInfo>& visibleNodes);
+    static void ProcessLOD(SVO_Node* node, const DirectX::XMFLOAT3& nodeOrigin, const DirectX::XMFLOAT3& cameraPosition, float nodeSize, const LODSettings& lodSettings, std::vector<VisibleNodeInfo>& visibleNodes, int& level);
 };
