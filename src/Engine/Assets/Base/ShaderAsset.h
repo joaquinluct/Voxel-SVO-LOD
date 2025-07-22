@@ -1,12 +1,17 @@
 #pragma once
+#include <Assets/Base/AssetBase.h>
+#include <Assets/IAssetShaderConfig.h>
+#include <ConfigBase.h>
 
-#include <Assets/IAsset.h>
-#include <Assets/Base/MeshAsset.h>
-
-class ShaderAsset : public IAsset
+class ShaderAsset : public AssetBase
 {
 public:
 	ShaderAsset();
+	std::unique_ptr<ShaderAsset> Clone() const {
+		// Usa std::make_unique para crear una nueva instancia de VertexShader
+		// y el constructor de copia para copiar el contenido.
+		return std::make_unique<ShaderAsset>(*this);
+	}
 	~ShaderAsset() override;
 	void Load() override {};
 	void Unload() override {};
@@ -15,8 +20,7 @@ public:
 	void Update(float deltaTime) override {};
 	void Shutdown() override;
 	const std::string& GetAssetName() override {
-		static const std::string name = "ShaderAsset";
-		return name;
+		return m_name;
 	}
 	static const std::string& GetStaticAssetName()
 	{
@@ -24,7 +28,11 @@ public:
 		return name;
 	}
 
+	void SetConfig(std::shared_ptr<ConfigBase> config) override;
+	std::shared_ptr<IAssetShaderConfig> GetConfig() const;
+	void SetName(const std::string& name);
+
 private:
+	std::shared_ptr<IAssetShaderConfig> m_shaderConfig = nullptr; // Configuración del shader
 	std::string m_name = "ShaderAsset";
-	//std::shared_ptr<MeshAsset> m_mesh;
 };

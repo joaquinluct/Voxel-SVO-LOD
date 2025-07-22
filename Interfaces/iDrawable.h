@@ -1,15 +1,16 @@
 #pragma once
 #include <d3d11.h>
 #include <vector>
+#include <memory>
 #include <directxmath.h>
-#include "Material/Material.h"
+#include "Services/Material.h"
 #include "Utils.h"
 using namespace DirectX;
 
 class iDrawable {
 public:
 	virtual ~iDrawable() = default; // Destructor virtual para permitir la limpieza de recursos derivados
-    virtual HRESULT Init(ID3D11Device* device) = 0;         // Inicialización con acceso a DirectX
+    virtual HRESULT Init(std::shared_ptr<ID3D11Device> device) = 0;
     virtual void Render(ID3D11DeviceContext* context) = 0;  // Dibujar el objeto    
     virtual ID3D11Buffer* GetVertexBuffer() = 0;            // Obtener el buffer de vértices
     void SetPosition(const XMFLOAT3& position) {

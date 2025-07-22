@@ -10,6 +10,14 @@
 #include "IShutdownable.h"
 #include <string>
 
+struct IUnknownReleaser {
+	void operator()(IUnknown* ptr) const {
+		if (ptr) {
+			ptr->Release();
+		}
+	}
+};
+
 class DeviceManager : public IManager, public IWindowDependentInitializable, public IUpdatable, public IRenderable, public IShutdownable
 {
 public:
@@ -35,7 +43,7 @@ public:
 	HRESULT					InitRasterizedState();
 	
 	HRESULT					GetBackBuffer(ID3D11Texture2D** ppBackBuffer);
-	ID3D11Device*			GetDevice();
+	std::shared_ptr<ID3D11Device> GetDevice();
 	ID3D11DeviceContext*	GetContext();
 	IDXGISwapChain*			GetSwapChain();
 	//HRESULT					SetAlphaBlending(float alpha);
@@ -46,7 +54,7 @@ public:
 	HWND*					GetHwnd() const { return m_hwnd; };
 private:
 	HWND*					m_hwnd = nullptr;
-	ID3D11Device*			m_device = nullptr;
+	std::shared_ptr<ID3D11Device> m_device = nullptr;
 	ID3D11DeviceContext*	m_context = nullptr;
 	IDXGISwapChain*			m_swapChain = nullptr;
 	D3D_FEATURE_LEVEL       m_featureLevel = D3D_FEATURE_LEVEL_11_0;

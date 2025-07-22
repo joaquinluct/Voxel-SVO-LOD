@@ -1,34 +1,53 @@
 // MeshAsset.h
 #pragma once
-#include <Config/Asset/SkyboxCubeConfig.h>
-#include <Material/includes/VertexDefinition.h>
-#include "Assets/IAssetMesh.h"
-#include "Assets/IAssetMeshConfigBase.h"
-#include "Assets/IAssetMeshConfig.h"
 #include <d3d11.h>
 #include <DirectXMath.h>
-#include <vector>
 #include <string>
-#include <wrl/client.h> // Para Microsoft::WRL::ComPtr
-#include <variant>
-#include <Mesh/SkyboxCube.h>
+#include <vector>
+#include <memory>
+#include <IDefine/IVertex.h>
+#include <Assets/Base/AssetBase.h>
+#include <ConfigBase.h>
+#include <Config/MeshAssetConfigBase.h>
+#include <Defines/VertexDefinition.h>
 #include <DeviceManager.h>
 #include <CameraManager.h>
-#include <WorldMatrixManager.h>
-#include <KeyboardManager.h>
 #include <ShaderManager.h>
-#include <Material/Material.h>
-#include <../RenderObjects/Axis/Axis.h>
-#include <../Camera/FirstPersonCamera.h>
+#include <Services/Material.h>
 
-class MeshAsset : public IAssetMesh {
+class TextureAsset;
+
+class MeshAsset : public AssetBase {
+private:
+    UINT m_vertexCount = 0;
+    UINT m_indexCount = 0;
+
+    UINT m_vertexTypeSize = 0;
+
+    std::shared_ptr<MeshAssetConfigBase> m_meshConfig;
+    std::shared_ptr<DeviceManager> m_deviceManager;
+    std::shared_ptr<CameraManager> m_cameraManager;
+    std::shared_ptr <ShaderManager> m_shaderManager;
+    std::shared_ptr<TextureAsset> m_textureAsset;
+
+    ID3D11Buffer* m_vertexBuffer;
+    ID3D11Buffer* m_indexBuffer;
+
+    Material* m_material;
+
+    // Evitar copias
+    /*MeshAsset(const MeshAsset&) = delete;
+    MeshAsset& operator=(const MeshAsset&) = delete;*/
 public:
     MeshAsset();
-    ~MeshAsset() override;
+    ~MeshAsset();
     // IAsset overrides
     void Load() override {};
     void Unload() override {};
     HRESULT Init() override;
+    HRESULT InitManagers();
+    HRESULT InitTexture();
+    HRESULT InitMesh();
     void Render() override;
     void Update(float deltaTime) override {};
     void Shutdown() override;
@@ -41,54 +60,48 @@ public:
         static const std::string name = "MeshAsset";
         return name;
     }
+        
+    HRESULT CreateVertexBuffer(std::shared_ptr<ID3D11Device> pDevice, const std::vector<std::shared_ptr<VertexDefinition::VertexVariant>> vertex);
 
-    void SetType(const std::string& type);
-    // Métodos específicos de MeshAsset
-	template <typename T>
-    HRESULT InitD3D11Resources(ID3D11Device* pDevice,
-        const std::vector<T>& vertices,
-        const std::vector<WORD>& indices);
+    HRESULT CreateIndexBuffer(std::shared_ptr<ID3D11Device> pDevice, const std::vector<uint16_t>& indexes) {
+        // Crear Vertex Buffer
+        D3D11_BUFFER_DESC ibDesc = {};
+        ibDesc.Usage = D3D11_USAGE_DEFAULT;
+        ibDesc.ByteWidth = sizeof(WORD) * static_cast<uint16_t>(indexes.size());
+        ibDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+        ibDesc.CPUAccessFlags = 0;
+        ibDesc.MiscFlags = 0;
 
-    // Getters para los buffers
-    ID3D11Buffer* GetVertexBuffer() const { return m_vertexBuffer.Get(); }
-    ID3D11Buffer* GetIndexBuffer() const { return m_indexBuffer.Get(); }
-    UINT GetIndexCount() const { return m_indexCount; }
-    UINT GetVertexCount() const { return m_vertexCount; }
+        D3D11_SUBRESOURCE_DATA ibInitData = {};
+        ibInitData.pSysMem = indexes.data();
+        HRESULT hr = pDevice->CreateBuffer(&ibDesc, &ibInitData, &m_indexBuffer);
+        if (FAILED(hr)) {
+            OutputDebugStringA(("ERROR: Failed to create index buffer for mesh '" + m_meshConfig->name + "'. HRESULT: " + std::to_string(hr) + "\n").c_str());
+            // Liberar vertex buffer si el index buffer falla
+            //m_vertexBuffer.Reset();
+            m_vertexBuffer->Release();
+            return hr;
+        }
+        m_indexCount = static_cast<UINT>(indexes.size());
+        return hr;
+    }
 
-	void SetTexture(const std::string& textureName);
-    void SetShaderName(const std::string& shaderName) { m_shaderName = shaderName; };
-    void PrepareViewMatrix(ID3D11DeviceContext* context);
+    
+    HRESULT InitD3D11ResourcesVertex(std::shared_ptr <ID3D11Device> pDevice, std::vector<std::shared_ptr<VertexDefinition::VertexVariant>> vertex, std::vector<uint16_t> indexes)  {
 
-private:
-    //Axis* m_axis;
-    std::shared_ptr<KeyboardManager> m_keyboardrManager;
-    std::shared_ptr<ShaderManager> m_shaderManager;
-    std::shared_ptr<WorldMatrixManager> m_wMatrixManager;
-    std::shared_ptr<CameraManager> m_cameraManager;
-	std::shared_ptr<DeviceManager> m_deviceManager;
+		HRESULT hr = CreateVertexBuffer(pDevice, vertex);
 
-    std::shared_ptr<ICamera> m_camera;
-    Material* m_material;
+        if (FAILED(hr)) {
+            OutputDebugStringA(("ERROR: Failed to create vertex buffer for mesh '" + m_meshConfig->name + "'. HRESULT: " + std::to_string(hr) + "\n").c_str());
+            return hr;
+		}
 
-    std::string m_vertextType = "";
-    IAssetMeshConfigBase* m_config;
+		hr = CreateIndexBuffer(pDevice, indexes);
 
-	std::string m_shaderName;
+        return hr;
+    }
 
-    ID3D11VertexShader* m_vertexShader = nullptr;
-    ID3D11PixelShader* m_pixelShader = nullptr;
-    ID3D11InputLayout* m_inputLayout;
-
-    template <typename T>
-    using ComPtr = Microsoft::WRL::ComPtr<T>;
-
-    std::string m_name;
-    ComPtr<ID3D11Buffer> m_vertexBuffer;
-    ComPtr<ID3D11Buffer> m_indexBuffer;
-    UINT m_vertexCount;
-    UINT m_indexCount;
-
-    // Evitar copias
-    MeshAsset(const MeshAsset&) = delete;
-    MeshAsset& operator=(const MeshAsset&) = delete;
+    void SetConfig(std::shared_ptr<ConfigBase> config) {
+        m_meshConfig = std::dynamic_pointer_cast<MeshAssetConfigBase>(config);
+    }
 };

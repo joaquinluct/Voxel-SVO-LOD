@@ -32,7 +32,7 @@ void Keyboard::Update(float deltaTime)
     BOOL resul = GetKeyboardState(m_keys);
 }
 
-void Keyboard::Render() {}
+void Keyboard::Render() {};
 void Keyboard::Shutdown()
 {
     // No hay nada específico que liberar para el teclado

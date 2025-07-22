@@ -1,20 +1,19 @@
-// Configuración de CameraManager
 #pragma once
 
 #include <string>
 #include <vector>
+#include <map>
+#include <ConfigBase.h>
 
-namespace CameraManagerConfig{
-
-	struct Values {
-		std::string initialCamera = "MainCam";
-		std::vector<std::string> cameras {
-			"MainCam",
-			"DebugCam",
-		};
-		std::vector<std::string> camerasTypes {
-			"FirstPersonCamera",
-			"FirstPersonCamera",
-		};
-	};
+class CameraManagerConfig : public ConfigBase {
+public:
+	CameraManagerConfig();
+	static const std::string& GetStaticConfigName()
+	{
+		static const std::string className = "CameraManagerConfig";
+		return className;
+	}
+	std::string initialCamera;
+	std::vector<std::string> cameras;
+	std::vector<std::string> camerasTypes;
 };

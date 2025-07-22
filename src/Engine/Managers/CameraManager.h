@@ -19,7 +19,7 @@ namespace Util {
     struct Triangle; // For ray picking
 }
 
-class CameraManager : public IManager, public IWindowDependentInitializable, public IUpdatable, public IRenderable, public IShutdownable {
+class CameraManager  : public IManager, public IWindowDependentInitializable, public IUpdatable, public IRenderable, public IShutdownable {
 public:
     CameraManager();
     ~CameraManager();
@@ -61,7 +61,7 @@ public:
     // Por ejemplo: std::static_pointer_cast<FirstPersonCamera>(GetCurrentCamera())->m_moveSpeed = newSpeed;
 
 protected:
-	CameraManagerConfig::Values* m_config; // Configuración del administrador de cámaras
+	CameraManagerConfig* m_config; // Configuración del administrador de cámaras
     std::map<std::string, std::shared_ptr<ICamera>> m_cameras;
     std::shared_ptr<ICamera> m_currentCamera;
 

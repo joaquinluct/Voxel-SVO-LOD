@@ -1,0 +1,82 @@
+Config:
+  Game:
+    System:
+        World:
+            name: "WorldMananger"
+            enabled: true
+            version: "1.0.0"
+            description: "Un juego de aventura en un mundo voxelizado."
+            type: "VoxelWorld"
+            respawnTime: 5
+        Terrain:
+            name: "TerrainManager"
+            enabled: true
+            version: "1.0.0"
+            type: "ProceduralTerrain"
+            seed: 1234567890
+        Skybox:
+            name: "Skybox"
+            enabled: true
+            version: "1.0.0"
+            type: "DefaultSkybox"
+            mesh: "SkyboxMesh"
+            dependencies:
+              - SkyboxMesh
+        Physics:
+            name: "PhysicManager"
+            enabled: true
+            version: "1.0.0"
+            type: "BasicPhysics"
+            properties:
+            gravity: [0.0, -9.81, 0.0] 
+        Biome:
+            name: "BiomwManager"
+            enabled: true
+            version: "1.0.0"
+            type: "ForestBiome"
+            properties:
+            vegetation_density: 0.8
+            wildlife_density: 0.5
+        Lighting:
+            name: "LightManager"
+            enabled: true
+            version: "1.0.0"
+            type: "DynamicLighting"
+            properties:
+            ambient_light: [0.2, 0.2, 0.2]
+            directional_light: [1.0, 1.0, 1.0]
+            shadows: true
+        Cycle:
+            name: "CycleManager"
+            enabled: true
+            version: "1.0.0"
+            type: "DayNightCycle"
+            day_night_cycle: true
+            day_night_cycle_speed: 0.1
+        Wheather:
+            name: "WheatherManager"
+            enabled: true
+            version: "1.0.0"
+            type: "DynamicWeather"
+            properties:
+            rain_intensity: 0.3
+            snow_intensity: 0.1
+            fog_density: 0.2
+Definition:
+  Default:
+    language: 1 # C++
+    type: "Class"
+    needs_register: true
+    file_level: 3
+    register_include: "REGISTER_CONFIG_TYPE"
+    register_macro: "REGISTER_CONFIG_MACRO"
+    interface_name: "ConfigService"
+    class_suffix: "Config"
+    class_prefix: ""
+    inherits_properties:
+        - type
+        - enabled
+        - mesh
+        - dependencies 
+    #output_path: 'C:\Users\joaqu\source\repos\DirectX-Voxelado\TestConfig\Game\'
+    output_path: 'c:\Users\joaqu\source\repos\DirectX-Voxelado\src\Engine\Core\Config\Game\'

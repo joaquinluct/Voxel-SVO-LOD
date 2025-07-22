@@ -1,27 +1,31 @@
 #pragma once
-#include <d3d11.h>
+
+#include <Windows.h>
 #include <DirectXMath.h>
-#include "Material/Material.h"
-#include "iDrawable.h"
+#include <d3d11.h>
+#include <memory>
+#include <DeviceManager.h>
+#include <CameraManager.h>
+#include <ManagerLocator/ManagerLocator.h>
+#include <Services/Material.h>
 
-using namespace DirectX;
-
-class Line : public iDrawable {
+class Line {
 public:
     Line(Material* material, const XMFLOAT3& start, const XMFLOAT3& end, const XMFLOAT4& color);
     ~Line();
 
-    HRESULT Init(ID3D11Device* device) override;
-    void Render(ID3D11DeviceContext* context) override;
-    void Release() override;
-    ID3D11Buffer* GetVertexBuffer() override { return m_vertexBuffer; }
+    HRESULT Init(std::shared_ptr<ID3D11Device> device);
+    void Render(ID3D11DeviceContext* context);
+    void Release();
+    ID3D11Buffer* GetVertexBuffer() { return m_vertexBuffer; }
     //void SetKeyboardManager(KeyboardManager* keyboardManager) override {}
 private:
     struct Vertex {
         XMFLOAT3 Position;
         XMFLOAT4 Color;
     };
-
+	std::shared_ptr<DeviceManager> m_deviceManager;
+    std::shared_ptr<CameraManager> m_cameraManager;
     Material* m_material;
     ID3D11Buffer* m_vertexBuffer;
     UINT m_numVertices;

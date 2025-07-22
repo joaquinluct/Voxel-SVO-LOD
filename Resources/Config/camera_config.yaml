@@ -1,0 +1,37 @@
+Config:
+  Camera:
+    MainCam:
+      type: "FirstPersonCamera"
+      active: true
+      move_speed: 150.0
+      rotation_speed: 120.0 # Grados por segundo
+      fov_y: 60.0 # Grados
+      near_clip: 0.1
+      far_clip: 6000.0
+      position: [0.0, 100.0, 0.0]
+      initial_pitch: 0.0
+      initial_yaw: 0.0
+    DebugCam:
+      type: "FirstPersonCamera" # Reutiliza el mismo tipo, con diferentes parámetros
+      active: false
+      move_speed: 500.0
+      rotation_speed: 180.0
+      fov_y: 75.0
+      near_clip: 0.1
+      far_clip: 10000.0
+      position: [500.0, 1500.0, 500.0]
+Definition:
+  Default:
+    language: 1 # C++
+    type: "Class"
+    needs_register: true
+    file_level: 2
+    register_include: "REGISTER_CONFIG_TYPE"
+    register_macro: "REGISTER_CONFIG_MACRO"
+    interface_name: "ConfigBase"
+    class_suffix: "Config"
+    class_prefix: ""
+    inherits_properties:
+        - "type"
+    #output_path: 'C:\Users\joaqu\source\repos\DirectX-Voxelado\TestConfig\Cameras\'
+    output_path: 'c:\Users\joaqu\source\repos\DirectX-Voxelado\src\Engine\Core\Config\Camera\'

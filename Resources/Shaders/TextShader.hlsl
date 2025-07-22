@@ -44,14 +44,14 @@ float4 PSMain(PSINPUT input) : SV_TARGET0
     // Si ves un degradado de color en cada "cuadrado de carácter", las TexCoords están llegando.
 
     // Si tienes un problema con el Sampler o la Textura
-    return fontTexture.Sample(fontSampler, input.TexCoord); // Ver si la textura se muestra directamente
+    // return fontTexture.Sample(fontSampler, input.TexCoord); // Ver si la textura se muestra directamente
     
     // Muestra la textura de la fuente en las coordenadas de textura interpoladas
     // Dado que DejaVuSansMono.jpg es un atlas en blanco y negro, el canal 'r' (rojo)
     // suele contener la información de luminancia/opacidad de los caracteres.
     
     float alpha = fontTexture.Sample(fontSampler, input.TexCoord).r; //
-
+        
     // Multiplica el color del texto por el valor alfa obtenido de la textura.
     // Esto hará que las partes negras de la textura (donde no hay carácter) sean transparentes
     // y las partes blancas (el carácter en sí) tengan la opacidad total del color del texto.

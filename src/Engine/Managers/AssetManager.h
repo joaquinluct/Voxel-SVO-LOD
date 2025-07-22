@@ -20,8 +20,10 @@
 #include <queue>      // Para la cola de comandos GPU
 #include "IGPUCreateCommand.h" // Interfaz para comandos de creación de recursos GPU
 #include "Assets/Base/MeshAsset.h" // Incluir el nuevo Mesh
-#include <Config/Asset/BaseIndexConfig.h>
-#include <Config/Asset/IndexConfig.h>
+#include <Config/Assets/Base/BaseIndexConfig.h>
+#include <Config/Assets/Base/MainIndexConfig.h>
+#include <AssetLocator/AssetLocator.h>
+#include <ManagerLocator/ManagerLocator.h>
 
 // ====================================================================
 // AssetManager
@@ -33,11 +35,13 @@ public:
     ~AssetManager() override;
 
     HRESULT Init(HWND hwnd, int width, int height) override;
+    HRESULT InitShaders(HWND hwnd, int width, int height);
+
     void Render() override;
     void Update(float deltaTime) override; // CRÍTICO: procesa cargas asíncronas y comandos GPU
     void Shutdown() override;
 
-    ID3D11ShaderResourceView* LoadTexture(ID3D11Device* device, const std::string& filePath);
+    //ID3D11ShaderResourceView* LoadTexture(std::shared_ptr<ID3D11Device> device, const std::string& filePath);
     ID3D11ShaderResourceView* LoadTexture(std::string assetName);
 
     const std::string& GetManagerName() const override {
@@ -51,9 +55,15 @@ public:
     }
     const std::vector<std::string>& GetAssetList() const {
         if (m_config) {
-            return m_config->index;
+            return m_config->mainIndex;
 		}
 	}
+
+    const std::vector<std::string>& GetBaseAssetList() const {
+        if (m_configBase) {
+            return m_configBase->index;
+        }
+    }
 
     // ====================================================================
     // API para comandos GPU (para que los hilos de carga los pongan en cola)
@@ -61,8 +71,8 @@ public:
     // void AddGPUCreateCommand(std::unique_ptr<IGPUCreateCommand> command);
 
 private:
-    IndexConfig::Values* m_config{};
-    BaseIndexConfig::Values* m_configBase{};
+    MainIndexConfig* m_config{};
+    BaseIndexConfig* m_configBase{};
 };
 
 // ====================================================================

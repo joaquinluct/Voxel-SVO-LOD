@@ -1,15 +1,16 @@
-// Configuración de UIDebug
 #pragma once
 
 #include <string>
 #include <vector>
+#include <map>
+#include <ConfigService.h>
 
-namespace UIDebugConfig{
-
-	struct Values {
-		bool Enabled = true;
-		std::string texture = "TextureTextUI";
-		std::string shader = "ShaderTextUI";
-		std::string text = "Debug Information";
-	};
+class UIDebugConfig : public ConfigService {
+public:
+	UIDebugConfig();
+	static const std::string& GetStaticConfigName()
+	{
+		static const std::string className = "UIDebugConfig";
+		return className;
+	}
 };

@@ -9,7 +9,15 @@ using namespace DirectX;
 template <typename T>
 void SafeRelease(T*& ptr) {
     if (ptr) {
-        //ptr->Release();  // Llama a Release si el puntero no es nulo
+        ptr->Release();  // Llama a Release si el puntero no es nulo
+        ptr = nullptr;   // Establece el puntero a nullptr
+    }
+};
+
+template <typename T>
+void SafeShutDown(T*& ptr) {
+    if (ptr) {
+        ptr->Shutdown();  // Llama a Release si el puntero no es nulo
         ptr = nullptr;   // Establece el puntero a nullptr
     }
 
@@ -21,12 +29,6 @@ void SafeDelete(T*& ptr) {
         delete ptr;      // Libera la memoria del objeto
         ptr = nullptr;   // Establece el puntero a nullptr
     }
-};
-
-struct MatrixBufferType {
-    XMMATRIX worldMatrix;
-    XMMATRIX viewMatrix;
-    XMMATRIX projectionMatrix;
 };
 
 struct Vertex {

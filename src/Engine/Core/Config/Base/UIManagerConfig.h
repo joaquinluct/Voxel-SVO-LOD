@@ -1,14 +1,19 @@
-// Configuración de UIManager
 #pragma once
 
 #include <string>
 #include <vector>
+#include <map>
+#include <ConfigBase.h>
 
-namespace UIManagerConfig{
-
-	struct Values {
-		std::string initial_screen = "main_menu.yaml";
-		std::string font_path = "Assets/Fonts/Roboto-Regular.ttf";
-		int font_size = 24;
-	};
+class UIManagerConfig : public ConfigBase {
+public:
+	UIManagerConfig();
+	static const std::string& GetStaticConfigName()
+	{
+		static const std::string className = "UIManagerConfig";
+		return className;
+	}
+	std::string initial_screen;
+	std::string font_path;
+	int font_size;
 };

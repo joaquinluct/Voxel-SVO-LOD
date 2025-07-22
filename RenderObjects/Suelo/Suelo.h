@@ -12,7 +12,7 @@ public:
     Suelo(Material* material);
 	~Suelo();
 
-    HRESULT Init(ID3D11Device* device) override;
+    HRESULT Init(std::shared_ptr<ID3D11Device> device) override;
     void Render(ID3D11DeviceContext* context) override;
     void Release() override;
 	ID3D11Buffer* GetVertexBuffer() override { return m_vertexBuffer; }

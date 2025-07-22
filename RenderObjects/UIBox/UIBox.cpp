@@ -1,5 +1,6 @@
 // UIBox.cpp
 #include "UIBox.h"
+//#include "../Line/Line.h"
 
 // Constructor
 UIBox::UIBox(Material* material, const DirectX::XMFLOAT3& origin, float sizeX, float sizeY, float sizeZ, const DirectX::XMFLOAT4& color)
@@ -56,7 +57,7 @@ void UIBox::CreateLines() {
 }
 
 // Inicializaci�n: Llama a Init para cada l�nea
-HRESULT UIBox::Init(ID3D11Device* device) {
+HRESULT UIBox::Init(std::shared_ptr<ID3D11Device> device) {
     CreateLines(); // Primero, crea las instancias de Line
     for (Line* line : m_lines) {
         if (FAILED(line->Init(device))) {

@@ -9,8 +9,8 @@
 REGISTER_MANAGER_TYPE(DeviceManager, "DeviceManager")
 
 DeviceManager::DeviceManager()
+	: m_device(nullptr, IUnknownReleaser())
 {
-	m_device = nullptr;
 	m_context = nullptr;
 	m_swapChain = nullptr;
 	m_featureLevel = D3D_FEATURE_LEVEL_11_0;
@@ -25,6 +25,7 @@ DeviceManager::~DeviceManager()
 
 HRESULT DeviceManager::Init(HWND hwnd, int width, int height)
 {   
+    OutputDebugStringA("Incializando DeviceManager...\n");
     m_hwnd = &hwnd;
     HRESULT hr = CreateDeviceAndSwapChain(hwnd, width, height);
     if (FAILED(hr)) {
@@ -47,6 +48,7 @@ HRESULT DeviceManager::Init(HWND hwnd, int width, int height)
         return hr;
     }
 
+    OutputDebugStringA(("Resultado Init " + std::to_string(hr) + " en DeviceManager\n").c_str());
     return hr;
 }
 
@@ -70,7 +72,7 @@ HRESULT DeviceManager::CreateDeviceAndSwapChain(HWND hwnd, int width, int height
 #ifdef _DEBUG
     createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
-
+    ID3D11Device* pTempDevice = nullptr;
     HRESULT hr = D3D11CreateDeviceAndSwapChain(
         nullptr,
         D3D_DRIVER_TYPE_HARDWARE,
@@ -81,22 +83,27 @@ HRESULT DeviceManager::CreateDeviceAndSwapChain(HWND hwnd, int width, int height
         D3D11_SDK_VERSION,
         &sd,
         &m_swapChain,
-        &m_device,
+        &pTempDevice,
         &m_featureLevel,
         &m_context
     );
+
+    if (SUCCEEDED(hr)) {
+        m_device = std::shared_ptr<ID3D11Device>(pTempDevice, IUnknownReleaser());
+    }
+
     return hr;
 }
 
 HRESULT DeviceManager::InitRasterizedState() {
     D3D11_RASTERIZER_DESC rasterDesc = {};
     rasterDesc.FillMode = D3D11_FILL_SOLID;  // Dibujar caras sólidas
-    rasterDesc.CullMode = D3D11_CULL_NONE;   // Culling deseactivado
-    //rasterDesc.CullMode = D3D11_CULL_BACK;   // Culling de caras traseras
+    //rasterDesc.CullMode = D3D11_CULL_NONE;   // Culling deseactivado
+    rasterDesc.CullMode = D3D11_CULL_BACK;   // Culling de caras traseras
     //rasterDesc.CullMode = D3D11_CULL_FRONT;   // Culling de caras fontales
     rasterDesc.FrontCounterClockwise = FALSE; // Orientaci�n de las caras frontales
     //rasterDesc.FrontCounterClockwise = TRUE; // Orientaci�n de las caras frontales
-    rasterDesc.DepthClipEnable = true;
+	rasterDesc.DepthClipEnable = true;
     rasterDesc.AntialiasedLineEnable = true;
 
     HRESULT hr = m_device->CreateRasterizerState(&rasterDesc, &m_rasterizerState);
@@ -165,7 +172,7 @@ HRESULT DeviceManager::GetBackBuffer(ID3D11Texture2D** ppBackBuffer) {
     return hr;
 }
 
-ID3D11Device* DeviceManager::GetDevice() {
+std::shared_ptr<ID3D11Device> DeviceManager::GetDevice() {
     return m_device;
 }
 
@@ -181,7 +188,7 @@ void DeviceManager::Render()
 {    
 	// Presentar el swap chain
     m_swapChain->Present(1, 0);
-    //m_context->OMSetRenderTargets(1, &n_pRenderTargetView, m_pDepthStencilView);    
+    //m_context->OMSetRenderTargets(1, &n_pRenderTargetView, m_pDepthStencilView);
 }
 
 void DeviceManager::EnableAlphaBlending()
@@ -248,6 +255,6 @@ void DeviceManager::Shutdown()
     }
     // Liberar el contexto inmediato
 	SafeRelease(m_swapChain);
-	SafeRelease(m_device);
+	m_device->Release();
 	//Saf(m_context);
 }

@@ -1,12 +1,17 @@
-// Configuración de WorldMatrixManager
 #pragma once
 
 #include <string>
 #include <vector>
+#include <map>
+#include <ConfigBase.h>
 
-namespace WorldMatrixManagerConfig{
-
-	struct Values {
-		int max_instances_per_batch = 1024;
-	};
+class WorldMatrixManagerConfig : public ConfigBase {
+public:
+	WorldMatrixManagerConfig();
+	static const std::string& GetStaticConfigName()
+	{
+		static const std::string className = "WorldMatrixManagerConfig";
+		return className;
+	}
+	int max_instances_per_batch;
 };

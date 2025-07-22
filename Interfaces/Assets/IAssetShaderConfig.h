@@ -1,8 +1,12 @@
 #pragma once
 #include <string>
+#include <ConfigBase.h>
 
-struct IAssetShaderConfig
+class IAssetShaderConfig: public ConfigBase
 {
-	std::string type;
+public:
 	std::string shader_path;
+	std::string vertex_def;
+	std::vector<std::string> matrix_slots;
+	std::string name;
 };

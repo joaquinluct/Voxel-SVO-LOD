@@ -1,8 +1,11 @@
 #include "FirstPersonCamera.h"
+#include <Services/Mouse.h>
 #include <limits>           // Para std::numeric_limits
 #include <windows.h>        // Para OutputDebugStringA (solo para mensajes de depuración)
 #include <REGISTER_SERVICE_MACRO.h>
 #include <ManagerLocator/ManagerLocator.h>
+#include <ServiceLocator/ServiceLocator.h>
+#include <algorithm>        // Para std::clamp
 
 REGISTER_SERVICE_TYPE(FirstPersonCamera, "FirstPersonCamera")
 
@@ -21,19 +24,17 @@ REGISTER_SERVICE_TYPE(FirstPersonCamera, "FirstPersonCamera")
 #define XM_2PI 6.283185307f    // 2 * Pi
 #endif
 
-// Asegurarse de que CAMERA_SEEP y CAMERA_SEEPDY estén definidos
+// Asegurarse de que CAMERA_SPEED y CAMERA_SPEEDY estén definidos
 // Podrían estar en un archivo de constantes compartidas, o definidos aquí si son específicos de FPC.
 // Por el momento, los mantengo aquí para que compile, pero considera su ubicación.
-#ifndef CAMERA_SEEP
-#define CAMERA_SEEP 50.0f
+#ifndef CAMERA_SPEED
+#define CAMERA_SPEED 50.0f
 #endif
-#ifndef CAMERA_SEEPDY
-#define CAMERA_SEEPDY 150.0f
+#ifndef CAMERA_SPEEDY
+#define CAMERA_SPEEDY 150.0f
 #endif
 
 using namespace DirectX;
-
-
 
 FirstPersonCamera::FirstPersonCamera() :
     m_position(2.0f, 2.0f, 2.0f),
@@ -41,19 +42,25 @@ FirstPersonCamera::FirstPersonCamera() :
     m_fieldOfView(XM_PIDIV4),
     m_aspectRatio(1.0f),
     m_nearPlane(0.1f),
-    m_farPlane(3000.0f),
-    m_moveSpeed(CAMERA_SEEP),
-    m_rotationSpeed(XMConvertToRadians(0.1f)), // Sensibilidad de rotación por defecto (ajústala)
-    m_keyboardManager(),
+    m_farPlane(7000.0f),
+    m_moveSpeed(CAMERA_SPEED),
+    m_rotationSpeed(XMConvertToRadians(0.1f)), // Sensibilidad ajustada para deltas de movimiento de ratón
     m_viewDirty(true),
     m_projectionDirty(true),
-	m_projectionMatrixCache(XMMatrixIdentity()),
-	m_viewMatrixCache(XMMatrixIdentity())
+    m_projectionMatrixCache(XMMatrixIdentity()),
+    m_viewMatrixCache(XMMatrixIdentity())
 {
-    m_keyboardManager = ManagerLocator::GetManager<KeyboardManager>();
 }
 
 HRESULT FirstPersonCamera::Init() {
+    // Obtener referencias a los servicios necesarios
+    m_keyboardManager = ManagerLocator::GetKeyboardManager();
+    m_mouseService = ServiceLocator::GetService<Mouse>();
+    
+    // Configurar posición inicial
+    SetPosition(40.0f, 40.0f, 40.0f);
+    SetLookAt(0.0f, 0.0f, 0.0f); // Mirar al origen por defecto
+    
     return S_OK;
 }
 
@@ -64,24 +71,7 @@ void FirstPersonCamera::SetPosition(float x, float y, float z) {
 
 void FirstPersonCamera::SetRotation(float pitch, float yaw, float roll) {
     m_rotation = XMFLOAT3(pitch, yaw, roll);
-
-    // Clamp pitch to prevent flipping (mirar directamente hacia arriba o abajo)
-    if (m_rotation.x > XM_PIDIV2)
-        m_rotation.x = XM_PIDIV2;
-    if (m_rotation.x < -XM_PIDIV2)
-        m_rotation.x = -XM_PIDIV2;
-
-    // Wrap yaw to keep it in a reasonable range (0 a 2*PI o -PI a PI)
-    if (m_rotation.y > XM_PI)
-        m_rotation.y -= XM_2PI;
-    if (m_rotation.y < -XM_PI)
-        m_rotation.y += XM_2PI;
-
-    // Roll (z) clamping if needed, typically 0 for FPS
-    // if (m_rotation.z > XM_PI) m_rotation.z -= XM_2PI;
-    // if (m_rotation.z < -XM_PI) m_rotation.z += XM_2PI;
-
-    m_viewDirty = true; // La vista cambia si la rotación cambia
+    m_viewDirty = true;
 }
 
 void FirstPersonCamera::SetLookAt(float x, float y, float z) {
@@ -123,6 +113,7 @@ float FirstPersonCamera::GetNearPlane() const {
 float FirstPersonCamera::GetFarPlane() const {
     return m_farPlane;
 }
+
 DirectX::XMFLOAT3 FirstPersonCamera::GetPosition() const {
     return m_position;
 }
@@ -185,12 +176,12 @@ void FirstPersonCamera::SetProjectionParams(float fieldOfViewRadians, float aspe
 }
 
 // Implementación de los métodos de movimiento y rotación
-    void FirstPersonCamera::Move(float x, float y, float z) {
-        m_position.x += x;
-        m_position.y += y;
-        m_position.z += z;
-        m_viewDirty = true;
-    }
+void FirstPersonCamera::Move(float x, float y, float z) {
+    m_position.x += x;
+    m_position.y += y;
+    m_position.z += z;
+    m_viewDirty = true;
+}
 
 void FirstPersonCamera::Rotate(float pitchOffset, float yawOffset, float rollOffset) {
     m_rotation.x += pitchOffset;
@@ -198,10 +189,10 @@ void FirstPersonCamera::Rotate(float pitchOffset, float yawOffset, float rollOff
     m_rotation.z += rollOffset;
 
     // Clamp pitch to prevent flipping
-    if (m_rotation.x > XM_PIDIV2)
-        m_rotation.x = XM_PIDIV2;
-    if (m_rotation.x < -XM_PIDIV2)
-        m_rotation.x = -XM_PIDIV2;
+    if (m_rotation.x > XM_PIDIV2 - 0.01f)
+        m_rotation.x = XM_PIDIV2 - 0.01f;
+    if (m_rotation.x < -XM_PIDIV2 + 0.01f)
+        m_rotation.x = -XM_PIDIV2 + 0.01f;
 
     // Wrap yaw to keep it in a reasonable range
     if (m_rotation.y > XM_PI)
@@ -212,82 +203,71 @@ void FirstPersonCamera::Rotate(float pitchOffset, float yawOffset, float rollOff
     m_viewDirty = true;
 }
 
+// Vectores de dirección para movimiento
+DirectX::XMVECTOR FirstPersonCamera::GetForwardVector() const {
+    XMMATRIX rotationMatrix = GetInternalRotationMatrix();
+    XMVECTOR forward = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+    return XMVector3TransformCoord(forward, rotationMatrix);
+}
+
+DirectX::XMVECTOR FirstPersonCamera::GetRightVector() const {
+    XMMATRIX rotationMatrix = GetInternalRotationMatrix();
+    XMVECTOR right = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
+    return XMVector3TransformCoord(right, rotationMatrix);
+}
+
+DirectX::XMVECTOR FirstPersonCamera::GetUpVector() const {
+    XMMATRIX rotationMatrix = GetInternalRotationMatrix();
+    XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+    return XMVector3TransformCoord(up, rotationMatrix);
+}
+
+// Actualización basada en la entrada
 void FirstPersonCamera::Update(float deltaTime) {
-    if (!m_keyboardManager) {
-        return; // No hay input si no tenemos KeyboardManager
+    // 1. Actualizar rotación basada en el ratón
+    float deltaX = static_cast<float>(m_mouseService->GetDeltaX());
+    float deltaY = static_cast<float>(m_mouseService->GetDeltaY());
+
+    // Aplicar rotación con los deltas del ratón
+    Rotate(
+        deltaY * m_rotationSpeed, // Negativo porque el eje Y de pantalla va hacia abajo
+        deltaX * m_rotationSpeed,
+        0.0f                      // Sin cambio en roll
+    );
+
+    m_mouseService->SetCenter();
+
+    // 2. Actualizar posición basada en el teclado
+    XMVECTOR moveDir = XMVectorZero();
+
+    // Movimiento adelante/atrás y lateral
+    if (m_keyboardManager->IsKeyDown(KeyMoves::Forward))
+        moveDir = XMVectorAdd(moveDir, GetForwardVector());
+    if (m_keyboardManager->IsKeyDown(KeyMoves::Backward))
+        moveDir = XMVectorAdd(moveDir, XMVectorScale(GetForwardVector(), -1.0f));
+    if (m_keyboardManager->IsKeyDown(KeyMoves::Left))
+        moveDir = XMVectorAdd(moveDir, XMVectorScale(GetRightVector(), -1.0f));
+    if (m_keyboardManager->IsKeyDown(KeyMoves::Right))
+        moveDir = XMVectorAdd(moveDir, GetRightVector());
+
+    // Normalizar y aplicar velocidad
+    if (!XMVector3Equal(moveDir, XMVectorZero())) {
+        moveDir = XMVector3Normalize(moveDir);
+        moveDir = XMVectorScale(moveDir, m_moveSpeed * deltaTime);
+        
+        // Actualizar posición
+        XMVECTOR position = XMLoadFloat3(&m_position);
+        position = XMVectorAdd(position, moveDir);
+        XMStoreFloat3(&m_position, position);
+        
+        m_viewDirty = true;
     }
+}
 
-    // Movimiento de la cámara (Horizontal y Vertical si permitimos volar)
-    float currentMoveSpeed = m_moveSpeed * deltaTime; // Aplicar deltaTime
-
-    // Calcular la dirección hacia adelante (ignorando el pitch para movimiento horizontal tipo FPS)
-    XMMATRIX yawRotationMatrix = XMMatrixRotationY(m_rotation.y); // Solo yaw para movimiento en el plano XZ
-    XMVECTOR forwardDir = XMVector3TransformCoord(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), yawRotationMatrix);
-    XMVECTOR strafeDir = XMVector3TransformCoord(XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f), yawRotationMatrix);
-
-    XMFLOAT3 fwd, s;
-    XMStoreFloat3(&fwd, forwardDir);
-    XMStoreFloat3(&s, strafeDir);
-
-    float moveX = 0.0f;
-    float moveZ = 0.0f;
-    float moveY = 0.0f; // Para movimiento vertical libre
-
-    if (m_keyboardManager->IsKeyDown('W') || m_keyboardManager->IsKeyDown(VK_UP)) {
-        moveX += fwd.x * currentMoveSpeed;
-        moveZ += fwd.z * currentMoveSpeed;
+void FirstPersonCamera::UpdateViewMatrix() {
+    if (m_viewDirty) {
+        RecalculateViewMatrix();
     }
-    if (m_keyboardManager->IsKeyDown('S') || m_keyboardManager->IsKeyDown(VK_DOWN)) {
-        moveX -= fwd.x * currentMoveSpeed;
-        moveZ -= fwd.z * currentMoveSpeed;
-    }
-    if (m_keyboardManager->IsKeyDown('A') || m_keyboardManager->IsKeyDown(VK_LEFT)) {
-        moveX -= s.x * currentMoveSpeed;
-        moveZ -= s.z * currentMoveSpeed;
-    }
-    if (m_keyboardManager->IsKeyDown('D') || m_keyboardManager->IsKeyDown(VK_RIGHT)) {
-        moveX += s.x * currentMoveSpeed;
-        moveZ += s.z * currentMoveSpeed;
-    }
-    // Movimiento vertical libre (ejemplo con Q/E o espacio/control)
-    if (m_keyboardManager->IsKeyDown(VK_SPACE)) { // Subir
-        moveY += currentMoveSpeed;
-    }
-    if (m_keyboardManager->IsKeyDown(VK_CONTROL)) { // Bajar
-        moveY -= currentMoveSpeed;
-    }
-
-    Move(moveX, moveY, moveZ);
-
-
-    if (m_keyboardManager->IsKeyDown(VK_F8)) {
-		SetPosition(200.0f, 200.0f, 200.0f); // Resetear posición a un punto fijo
-		SetLookAt(0.0f, 0.0f, 0.0f); // Mirar al origen
-		m_farPlane = 6000.0f; // Ajustar el plano lejano para una vista más cercana
-        RecalculateProjectionMatrix();
-    }
-
-    // Modificar velocidad de la cámara (shift/control)
-    if (m_keyboardManager->IsKeyDown(VK_SHIFT)) { // Usamos SHIFT para acelerar
-        m_moveSpeed = CAMERA_SEEPDY;
-    }
-    else { // Si no, velocidad normal
-        m_moveSpeed = CAMERA_SEEP;
-    }
-    // Nota: El control para `VK_CONTROL` para la velocidad `CAMERA_SEEPDY` estaba duplicado y ahora se usa para bajar.
-    // Esto es solo un ejemplo, ajusta las teclas a tu gusto.
-
-
-    // Rotación de la cámara usando el ratón (si MouseManager está disponible)
-    // Esto asume que KeyboardManager también maneja el input del ratón o que hay un MouseManager separado.
-    // Si tu KeyboardManager tiene GetMouseDeltaX/Y, úsalos.
-    // Si no, deberás obtener un MouseManager del ServiceLocator o pasar uno a la FPC.
-
-    // Comentado para evitar errores de compilación si no tienes estos métodos en KeyboardManager.
-    // Si los tienes, descomenta y ajusta la sensibilidad:
-    // float pitchOffset = m_keyboardManager->GetMouseDeltaY() * m_rotationSpeed * deltaTime;
-    // float yawOffset = m_keyboardManager->GetMouseDeltaX() * m_rotationSpeed * deltaTime;
-    // Rotate(pitchOffset, yawOffset, 0.0f);
 }
 
 void FirstPersonCamera::ExtractFrustumPlanes(XMFLOAT4 planes[6]) const {
@@ -334,7 +314,6 @@ Util::Triangle* FirstPersonCamera::GetTriangleLookingAt(const std::vector<Util::
     for (const auto& triangle : triangles) { // Usar const auto& para eficiencia
         // Trace contra un solo triángulo, asegúrate que Trace puede tomar una lista de un solo elemento
         // o ajusta la firma de RayTracing::Trace.
-        // Asumo que tu Util::RayTracing::Trace tiene una sobrecarga para un solo triángulo o un vector de triángulos.
         float distance = rayTracer.Trace(cameraPosition, cameraDirection, 1000.0f, { triangle });
         if (distance > 0.0f && distance < closestDistance) {
             closestDistance = distance;

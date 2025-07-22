@@ -4,7 +4,6 @@
 #include <d3d11.h>
 #include <vector>
 #include <directxmath.h>
-
 #include "Material/Material.h"        // Asegúrate de que esta ruta sea correcta para tu Material.h
 #include "../MarchingCubes/MarchingCubes.h" // Incluye la definición de MarchingCubesVertex y MarchingCubesMesh
 #include "Utils.h" // Incluye MarchingCubesVertex (si no lo tienes ya en MarchingCubes.h)

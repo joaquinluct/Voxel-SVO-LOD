@@ -1,13 +1,18 @@
-// Configuración de KeyboardManager
 #pragma once
 
 #include <string>
 #include <vector>
+#include <map>
+#include <ConfigBase.h>
 
-namespace KeyboardManagerConfig{
-
-	struct Values {
-		std::string default_move_forward_key = "W";
-		std::string default_move_backward_key = "S";
-	};
+class KeyboardManagerConfig : public ConfigBase {
+public:
+	KeyboardManagerConfig();
+	static const std::string& GetStaticConfigName()
+	{
+		static const std::string className = "KeyboardManagerConfig";
+		return className;
+	}
+	std::string service;
+	std::map<std::string, std::vector<std::string>> key_bindings;
 };

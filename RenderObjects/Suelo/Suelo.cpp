@@ -11,7 +11,7 @@ Suelo::~Suelo() {
 	Release();
 }
 
-HRESULT Suelo::Init(ID3D11Device* device) {
+HRESULT Suelo::Init(std::shared_ptr<ID3D11Device> device) {
 	// Crear descripción del buffer
 	D3D11_BUFFER_DESC bufferDesc = {};
 	bufferDesc.Usage = D3D11_USAGE_DEFAULT;

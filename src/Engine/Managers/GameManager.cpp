@@ -33,19 +33,22 @@ HRESULT GameManager::InitGameServices() const {
 }
 
 HRESULT GameManager::InitGame() {
-    m_gameConfig = new GameEngineConfig::Values();
+    m_gameConfig = new GameEngineConfig();
     if (!m_gameConfig || !m_gameConfig->services_init_order.size()) {
         OutputDebugStringA("GameManager: Invalid game configuration.\n");
         return E_FAIL;
 	}
-
-    return InitGameServices();
+    //return InitGameServices();
+    return S_OK;
 }
 
 HRESULT GameManager::Init() {
+   /* OutputDebugStringA("Incializando GameManager...\n");
     OutputDebugStringA("GameManager Init called.\n");
-    InitGame();
-	return S_OK;
+    HRESULT hr = InitGame();
+    OutputDebugStringA(("Resultado Init " + std::to_string(hr) + " en GameManager\n").c_str());*/
+    HRESULT hr = InitGame();
+    return hr;
 }
 
 void GameManager::Update(float deltaTime) {
