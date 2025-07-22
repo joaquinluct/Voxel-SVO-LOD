@@ -1,15 +1,34 @@
 #pragma once
 
-#include "ICamera.h"
-#include "IService.h"
+#include <KeyboardManager.h>
+//#include <Services/Mouse.h>
+class Mouse; // Declaración anticipada para evitar incluir el archivo completo aquí
+#include <ICamera.h>
+#include <IService.h>
 #include <DirectXMath.h>
 #include <memory>         // Para std::shared_ptr
 #include <vector>         // Para Util::Triangle
 #include <limits>         // Para std::numeric_limits
-#include "RayTracing/RayTracing.h"   
-#include <KeyboardManager.h>
+#include <RayTracing/RayTracing.h>
 
-// ... (tus #defines y forward declarations existentes) ...
+// Redefinir las constantes de DirectXMath si no están disponibles globalmente
+#ifndef XM_PIDIV4
+#define XM_PIDIV4 0.785398163f // Pi / 4
+#endif
+#ifndef XM_PIDIV2
+#define XM_PIDIV2 1.570796327f // Pi / 2
+#endif
+#ifndef XM_PI
+#define XM_PI 3.1415926535f    // Pi
+#endif
+#ifndef XM_2PI
+#define XM_2PI 6.283185307f    // 2 * Pi
+#endif
+
+// Asegurarse de que CAMERA_SPEED esté definido
+#ifndef CAMERA_SPEED
+#define CAMERA_SPEED 350.0f
+#endif
 
 class FirstPersonCamera : public ICamera, public IService {
 public:
@@ -36,28 +55,32 @@ public:
     DirectX::XMFLOAT3 GetPosition() const override;
     DirectX::XMFLOAT3 GetRotation() const override { return m_rotation; };
 
-    void SetPosition(float x, float y, float z) override; // Añadir override
-    void SetRotation(float pitch, float yaw, float roll) override; // Añadir override
-    void SetLookAt(float x, float y, float z) override; // Añadir override
-    void SetLookAt(const DirectX::XMFLOAT3& target) override; // Añadir override
-    void SetProjectionParams(float fieldOfViewRadians, float aspectRatio, float nearPlane, float farPlane) override; // Añadir override
+    void SetPosition(float x, float y, float z) override;
+    void SetRotation(float pitch, float yaw, float roll) override;
+    void SetLookAt(float x, float y, float z) override;
+    void SetLookAt(const DirectX::XMFLOAT3& target) override;
+    void SetProjectionParams(float fieldOfViewRadians, float aspectRatio, float nearPlane, float farPlane) override;
 
-    // --- ¡AÑADIR ESTAS DECLARACIONES! ---
     float GetFieldOfView() const override;
     float GetAspectRatio() const override;
     float GetNearPlane() const override;
     float GetFarPlane() const override;
-    // --- FIN DE AÑADIR ---
 
     void ExtractFrustumPlanes(DirectX::XMFLOAT4 planes[6]) const override;
-    Util::Triangle* GetTriangleLookingAt(const std::vector<Util::Triangle>& triangles) const override; // Añadir override
+    Util::Triangle* GetTriangleLookingAt(const std::vector<Util::Triangle>& triangles) const override;
 
+    // Configuración
     void SetMoveSpeed(float speed) { m_moveSpeed = speed; };
     void SetRotationSpeed(float speed) { m_rotationSpeed = speed; };
 
+    // Métodos para obtener vectores de dirección para movimiento
+    DirectX::XMVECTOR GetForwardVector() const;
+    DirectX::XMVECTOR GetRightVector() const;
+    DirectX::XMVECTOR GetUpVector() const;
+
 protected:
     DirectX::XMFLOAT3 m_position;
-    DirectX::XMFLOAT3 m_rotation;
+    DirectX::XMFLOAT3 m_rotation;  // x = pitch, y = yaw, z = roll
 
     float m_fieldOfView;
     float m_aspectRatio;
@@ -72,12 +95,16 @@ protected:
     mutable bool m_viewDirty;
     mutable bool m_projectionDirty;
 
+    // Servicios dependientes
     std::shared_ptr<KeyboardManager> m_keyboardManager;
+    std::shared_ptr<Mouse> m_mouseService;
 
+    // Métodos internos
     DirectX::XMMATRIX GetInternalRotationMatrix() const;
     DirectX::XMVECTOR GetInternalLookAt(DirectX::XMVECTOR eyePos, DirectX::XMMATRIX rotationMatrix) const;
     void RecalculateViewMatrix() const;
     void RecalculateProjectionMatrix() const;
     void Move(float x, float y, float z);
     void Rotate(float pitchOffset, float yawOffset, float rollOffset);
+    void UpdateViewMatrix();
 };

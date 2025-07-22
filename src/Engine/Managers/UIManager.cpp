@@ -5,10 +5,7 @@
 
 REGISTER_MANAGER_TYPE(UIManager, "UIManager")
 
-UIManager::UIManager () : m_deviceManager(nullptr), m_renderTargetManager(nullptr) {
-	// Constructor por defecto
-	// Inicializar la matriz ortográfica a identidad
-	m_orthoMatrix = XMMatrixIdentity();
+UIManager::UIManager() : m_deviceManager(nullptr), m_renderTargetManager(nullptr), m_orthoMatrix{}, m_worldMatrixManager(nullptr) {	
 }
 
 UIManager::~UIManager()
@@ -18,6 +15,7 @@ UIManager::~UIManager()
 
 HRESULT UIManager::Init()
 {
+    OutputDebugStringA("Incializando UIManager...\n");
     m_deviceManager = ManagerLocator::GetManager<DeviceManager>();
     m_renderTargetManager = ManagerLocator::GetManager<RenderTargetManager>();
     
@@ -29,23 +27,20 @@ HRESULT UIManager::Init()
     m_orthoMatrix = DirectX::XMMatrixOrthographicOffCenterLH(
         0.0f,      // left
         static_cast<float>(width), // right
-        static_cast<float>(height), // bottom
-        0.0f,      // top
+        static_cast<float>(height), // top
+        0.0f, // bottom
         0.0f,      // nearZ
         1.0f       // farZ
     );
-        
-    return S_OK;
+
+    uiElements = {};
+    HRESULT hr = S_OK;
+    OutputDebugStringA(("Resultado Init " + std::to_string(hr) + " en UIManager\n").c_str());
+    return hr;
 }
 
 void UIManager::Render()
-{
-    // Configurar matrices para renderizado 2D
-    // Esto es CRUCIAL:  Pasar la matriz ortográfica a los elementos de la UI
-    int screenWidth = static_cast<int>(m_renderTargetManager->GetViewport().Width);
-    int screenHeight = static_cast<int>(m_renderTargetManager->GetViewport().Height);
-    
-
+{    
     // Crear una matriz de mundo identidad para la UI
     //DirectX::XMMATRIX uiWorldMatrix = DirectX::XMMatrixIdentity();
     m_deviceManager->EnableAlphaBlending();
@@ -63,8 +58,7 @@ void UIManager::Shutdown()
 {
     for (UIElement* element : uiElements)
     {
-        element->Release();
-        delete element;
+		SafeRelease(element);        
     }
     uiElements.clear();
 }

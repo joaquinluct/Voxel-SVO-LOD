@@ -5,9 +5,10 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h" // Incluir stb_image (o DirectXTex)
+#include <DirectX/DirectXTex/DirectXTex.h>
 
 HRESULT TextureLoader::LoadTextureFromFile(
-    ID3D11Device* device,
+    std::shared_ptr<ID3D11Device> device,
     const std::string& filename,
     ID3D11ShaderResourceView** textureView
 ) {
@@ -55,6 +56,52 @@ HRESULT TextureLoader::LoadTextureFromFile(
     texture->Release();
     stbi_image_free(image_data);
 
+    return hr;
+}
+
+
+HRESULT TextureLoader::LoadCubemapFromFile(
+    std::shared_ptr<ID3D11Device> device,
+    const std::string& filename,
+    ID3D11ShaderResourceView** textureView
+) {
+    HRESULT hr = S_OK;
+
+    // Convertir std::string a std::wstring para DirectXTex
+    std::wstring wFilename(filename.begin(), filename.end());
+
+    DirectX::TexMetadata metadata;
+    DirectX::ScratchImage scratchImage;
+
+    // Intentar cargar el archivo como DDS
+    hr = DirectX::LoadFromDDSFile(wFilename.c_str(), DirectX::DDS_FLAGS_NONE, &metadata, scratchImage);
+
+    // Si no es DDS, o quieres cargar otros formatos con mipmaps, puedes añadir esto:
+    if (FAILED(hr)) {
+        // Intentar cargar otros formatos de imagen (PNG, JPG, etc.)
+        // Puedes usar LoadWICTextureFromFile, LoadDDSTextureFromFile, etc.
+        // O si quieres mipmaps, usar LoadImage y GenerateMipmaps
+        // Para este ejemplo, solo nos centramos en DDS para cubemaps.
+        std::cerr << "Error loading DDS or other texture: " << filename << std::endl;
+        return hr;
+    }
+
+    // Verificar si es un cubemap
+    if (!metadata.IsCubemap())
+    {
+        std::cerr << "Loaded DDS is not a cubemap: " << filename << std::endl;
+        return E_FAIL;
+    }
+
+    // Crear la vista de recurso de shader (SRV) a partir de la imagen cargada
+    // Esto manejará automáticamente la creación de ID3D11Texture2D con MiscFlags=D3D11_RESOURCE_MISC_TEXTURECUBE
+    hr = DirectX::CreateShaderResourceView(device.get(), scratchImage.GetImages(), scratchImage.GetImageCount(), metadata, textureView);
+    if (FAILED(hr)) {
+        std::cerr << "Error creating shader resource view for " << filename << std::endl;
+        return hr;
+    }
+
+    // scratchImage liberará sus recursos automáticamente cuando salga del scope.
     return hr;
 }
 

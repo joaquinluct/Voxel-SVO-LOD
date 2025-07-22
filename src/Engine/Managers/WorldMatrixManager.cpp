@@ -11,7 +11,7 @@ REGISTER_MANAGER_TYPE(WorldMatrixManager, "WorldMatrixManager");
 
 WorldMatrixManager::WorldMatrixManager() :
     g_matrixBuffer(nullptr),
-    g_matrix({}),
+    //g_matrix(nullptr),
     m_device(nullptr),
     m_cameraManager(nullptr),
     m_renderTargetManager(nullptr)
@@ -26,6 +26,7 @@ WorldMatrixManager::~WorldMatrixManager() {
 
 // Implementación de IInitializable
 HRESULT WorldMatrixManager::Init() {
+    OutputDebugStringA("Incializando WorldMatrixManager...\n");
     OutputDebugStringA("WorldMatrixManager::Init called.\n");
 
     // Obtener los managers necesarios del ServiceLocator
@@ -36,14 +37,17 @@ HRESULT WorldMatrixManager::Init() {
 	if (!m_cameraManager) { OutputDebugStringA("ERROR: WorldMatrixManager failed to get CameraManager.\n"); return E_FAIL; }
 
     // Llamar a la inicialización interna del buffer
-    return InitInternal(m_device);
+    HRESULT hr = InitInternal(m_device);
+    OutputDebugStringA(("Resultado Init " + std::to_string(hr) + " en WorldMatrixManager\n").c_str());
+    return hr;
 }
 
 // La implementación original de Init con DeviceManager
 HRESULT WorldMatrixManager::InitInternal(std::shared_ptr<DeviceManager> device) {
     D3D11_BUFFER_DESC matrixBufferDesc = {};
     matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC; // DYNAMIC para UpdateSubresource
-    matrixBufferDesc.ByteWidth = sizeof(MatrixBufferType);
+    matrixBufferDesc.ByteWidth = sizeof(g_matrix);
+    matrixBufferDesc.ByteWidth = sizeof(g_matrix);
     matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
     matrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE; // Necesario para DYNAMIC
 
@@ -58,9 +62,9 @@ HRESULT WorldMatrixManager::InitInternal(std::shared_ptr<DeviceManager> device) 
 
 // Método para actualizar las matrices globales que se guardarán en el buffer
 void WorldMatrixManager::SetGlobalMatrices(const DirectX::XMMATRIX& world, const DirectX::XMMATRIX& view, const DirectX::XMMATRIX& projection) {
-    g_matrix.worldMatrix = DirectX::XMMatrixTranspose(world);
+    /*g_matrix-> worldMatrix = DirectX::XMMatrixTranspose(world);
     g_matrix.viewMatrix = DirectX::XMMatrixTranspose(view);
-    g_matrix.projectionMatrix = DirectX::XMMatrixTranspose(projection);
+    g_matrix.projectionMatrix = DirectX::XMMatrixTranspose(projection);*/
 }
 
 // Implementación de IRenderable
@@ -79,7 +83,7 @@ void WorldMatrixManager::Render() {
         OutputDebugStringA("ERROR: WorldMatrixManager failed to map matrix buffer.\n");
         return;
     }
-    memcpy(mappedResource.pData, &g_matrix, sizeof(MatrixBufferType));
+    memcpy(mappedResource.pData, &g_matrix, sizeof(g_matrix));
     m_device->GetContext()->Unmap(g_matrixBuffer, 0);
 }
 

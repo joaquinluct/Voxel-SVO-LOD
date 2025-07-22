@@ -18,7 +18,7 @@ namespace MarchingCubesUtil {
     int GetCubeIndex(float(&cube)[8], XMFLOAT3 origin, float size, const SVO_Node* node, const VoxelData* voxelData, World* world, float ISO_LEVEL);
     
     // Interpolación de vértices en todas las aristas de un cubo basado en la tabla de aristas
-    void InterpolateEdgeVerts(int cubeIndex, const XMFLOAT3 p_local[8], const float density[8], XMFLOAT3 (&vertlist)[12], float ISO_LEVEL);
+    void InterpolateEdgeVerts(int cubeIndex, const XMFLOAT3 p_local[8], const float density[8], XMFLOAT3 (&vertlist)[12], int ISO_LEVEL);
 
     float TrilinearInterpolate(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& nodeOrigin, float nodeSize, const float cornerDensities[8]);
 };

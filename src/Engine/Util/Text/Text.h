@@ -1,5 +1,7 @@
 #pragma once
 #include <string>
+#include <filesystem>
+#include <WinNls.h>
 
 inline std::string normalizeBackslashes(std::string path) {
     // La subcadena que queremos buscar (dos barras invertidas literales)
@@ -59,4 +61,84 @@ inline std::string EscapeCppStringLiteral(const std::string& input) {
     }
 
     return result;
+}
+
+inline std::string roundFloat(float value, int numDecimals = 2) {
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(numDecimals) << value;
+    return ss.str();
+}
+
+inline void StringReplace(std::string& s, const std::string& oldSubstr, const std::string& newSubstr) {
+    // Si la subcadena a buscar está vacía, no tiene sentido hacer nada.
+    if (oldSubstr.empty()) {
+        return;
+    }
+
+    size_t pos = 0; // Posición actual para iniciar la búsqueda
+    while ((pos = s.find(oldSubstr, pos)) != std::string::npos) {
+        // Encontramos una ocurrencia de oldSubstr
+        // Reemplazamos oldSubstr por newSubstr
+        s.replace(pos, oldSubstr.length(), newSubstr);
+
+        // Avanzamos la posición para la siguiente búsqueda.
+        // Es crucial avanzar por la longitud de newSubstr para evitar bucles infinitos
+        // si newSubstr contiene oldSubstr (ej. reemplazar "a" con "aa").
+        pos += newSubstr.length();
+    }
+}
+
+inline std::string ParseInt(int number) {
+    std::stringstream ss;
+    ss << std::fixed << number;
+    return ss.str();
+}
+
+inline void StrToLower(std::string& s) {
+    // std::transform aplica una operación a cada elemento de un rango.
+    // s.begin() y s.end() definen el rango (toda la cadena).
+    // s.begin() como tercer argumento indica que el resultado se guarda en la misma cadena.
+    // [](unsigned char c){ return std::tolower(c); } es una lambda expression.
+    // Convierte cada carácter 'c' a su equivalente en minúscula.
+    // Es importante usar unsigned char con std::tolower para evitar problemas con valores de caracteres negativos.
+    std::transform(s.begin(), s.end(), s.begin(),
+        [](unsigned char c) { return std::tolower(c); });
+}
+
+// Converts std::string (UTF-8 assumed) to std::wstring (UTF-16)
+inline std::wstring StringToWstring(const std::string& str) {
+    if (str.empty()) {
+        return L"";
+    }
+
+    // Determine the size needed for the wide string
+    int size_needed = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), (int)str.length(), NULL, 0);
+    if (size_needed == 0) {
+        // Handle error, e.g., GetLastError()
+        return L"";
+    }
+
+    std::vector<wchar_t> wstr_buf(size_needed);
+    MultiByteToWideChar(CP_UTF8, 0, str.c_str(), (int)str.length(), &wstr_buf[0], size_needed);
+
+    return std::wstring(wstr_buf.begin(), wstr_buf.end());
+}
+
+// Converts std::wstring (UTF-16 assumed) to std::string (UTF-8)
+inline std::string WstringToString(const std::wstring& wstr) {
+    if (wstr.empty()) {
+        return "";
+    }
+
+    // Determine the size needed for the multi-byte string
+    int size_needed = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), (int)wstr.length(), NULL, 0, NULL, NULL);
+    if (size_needed == 0) {
+        // Handle error, e.g., GetLastError()
+        return "";
+    }
+
+    std::vector<char> str_buf(size_needed);
+    WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), (int)wstr.length(), &str_buf[0], size_needed, NULL, NULL);
+
+    return std::string(str_buf.begin(), str_buf.end());
 }

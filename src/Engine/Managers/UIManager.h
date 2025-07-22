@@ -1,5 +1,7 @@
 // UIManager.h
 #pragma once
+#include <Windows.h>
+#include <string>
 #include <vector>
 #include "IManager.h"
 #include "IInitializable.h"
@@ -12,13 +14,11 @@
 #include "RenderTargetManager.h"
 #include <ManagerLocator/ManagerLocator.h>
 
-using namespace DirectX;
-
 class UIManager : public IManager, public IInitializable, public IRenderable, public IUpdatable, public IShutdownable
 {
 public:
     UIManager();
-    ~UIManager();
+    ~UIManager() override;
     const std::string& GetManagerName() const override {
         static const std::string name = "UIManager";
         return name;
@@ -37,6 +37,8 @@ public:
     void AddElement(UIElement* element);
     void RemoveElement(UIElement* element);
     std::vector<UIElement*> uiElements;
+
+    XMMATRIX GetOrthoMatrix() const { return m_orthoMatrix; };
 
 private:
     std::shared_ptr<DeviceManager> m_deviceManager;

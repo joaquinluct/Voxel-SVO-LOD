@@ -19,11 +19,12 @@ CameraManager::~CameraManager() {
 }
 
 HRESULT CameraManager::Init(HWND hwnd, int width, int height) {
+    OutputDebugStringA("Incializando CameraManager...\n");
     m_hwnd = hwnd;
     m_width = width;
     m_height = height;
 
-    m_config = new CameraManagerConfig::Values();
+    m_config = new CameraManagerConfig();
 
     HRESULT hr = ServiceLocator::InitializeServices(m_config->camerasTypes);
     if (FAILED(hr)) {
@@ -42,6 +43,9 @@ HRESULT CameraManager::Init(HWND hwnd, int width, int height) {
         if (firstName.empty()) {
             firstName = camName;
         }
+        if (m_config->camerasTypes.size() <= index) {
+            continue; // Evitar acceso fuera de rango
+		}
         std::string camType = m_config->camerasTypes[index];
         if (camType == "FirstPersonCamera") {
             std::shared_ptr<FirstPersonCamera> cam = ServiceLocator::GetService<FirstPersonCamera>();
@@ -57,7 +61,9 @@ HRESULT CameraManager::Init(HWND hwnd, int width, int height) {
         SetCurrentCamera(m_config->initialCamera);
     }
 
-    return S_OK;
+    hr = S_OK;
+    OutputDebugStringA(("Resultado Init " + std::to_string(hr) + " en CameraManager\n").c_str());
+    return hr;
 }
 
 void CameraManager::Update(float deltaTime) {

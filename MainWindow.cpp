@@ -2,12 +2,12 @@
 #include <winerror.h>
 
 MainWindow::MainWindow(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
-	: g_hInstance(hInstance), g_hPrevInstance(hPrevInstance), g_lpCmdLine(lpCmdLine), g_nCmdShow(nCmdShow), g_hWnd(nullptr), g_controller(nullptr), mouse(nullptr), g_keyboard(nullptr) 
+	: g_hInstance(hInstance), g_hPrevInstance(hPrevInstance), g_lpCmdLine(lpCmdLine), g_nCmdShow(nCmdShow), g_hWnd(nullptr), g_controller(nullptr), g_mouse(nullptr), g_keyboard(nullptr) 
 {   
 }
 
 MainWindow::~MainWindow() {
-	SafeRelease(g_controller);
+	SafeShutDown(g_controller);
 }
 
 int MainWindow::Create(int width, int height)
@@ -23,6 +23,10 @@ int MainWindow::Create(int width, int height)
     g_controller->Initialize(g_hWnd, width, height);
 
 	g_keyboard = g_controller->GetKeyboard(); // Obtener el teclado del controlador
+	g_mouse = g_controller->GetMouse(); // Obtener el ratón del controlador
+
+	SetKeyboard(g_keyboard); // Establecer el teclado en el controlador
+    SetMouse(g_mouse);
 
     //if (FAILED(g_controller->Init(g_hWnd, keyboard))) // Pasar el puntero correctamente
     //{
@@ -62,8 +66,6 @@ int MainWindow::Create(int width, int height)
 
             g_controller->Update(deltaTime); // Llama a Update
             g_controller->Render();
-            //mouse->Render();   // Actualizar y usar la entrada del ratón
-            //keyboard->Render(); // Actualizar y usar la entrada del teclado
             //InvalidateRect(g_hWnd, NULL, TRUE); // Fuerza a repintar toda la ventana
             //UpdateWindow(g_hWnd); // Sincroniza el repintado
         }
@@ -72,7 +74,7 @@ int MainWindow::Create(int width, int height)
     //mouse->Release();   // Liberar Mouse
     //keyboard->Release(); // Liberar Keyboard
 
-    SafeRelease(g_controller);
+    SafeShutDown(g_controller);
 
     return (int)msg.wParam;
 
@@ -132,9 +134,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
 		break;
     case WM_MOUSEMOVE:
-        /*if (pMainWindow) {
-            pMainWindow->mouse.Update(hWnd);
-        }*/
+        if (pMainWindow) {
+			std::shared_ptr<Mouse> mouse = pMainWindow->GetMouse();
+            if (mouse) {
+                mouse->Update(0); // Actualizar el ratón
+			}
+        }
         break;
     case WM_DESTROY:
         PostQuitMessage(0);

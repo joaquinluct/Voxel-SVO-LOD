@@ -6,7 +6,8 @@
 #include "IUpdatable.h"
 #include "IRenderable.h"
 #include "IShutdownable.h"
-
+#include <Config/Base/KeyboardManagerConfig.h>
+#include <Services/KeyBindings.h>
 
 class KeyboardManager : public IManager, public IInitializable, public IUpdatable, public IRenderable, public IShutdownable
 {
@@ -15,7 +16,8 @@ public:
 	~KeyboardManager();
 
 	HRESULT Init() override;
-	void Render() override;
+	HRESULT InitKeyBindings();
+	void Render() override {};
 	void Update(float deltaTime) override {};
 	void Shutdown() override;
 	const std::string& GetManagerName() const override { 
@@ -32,6 +34,14 @@ public:
 	bool IsKeyPressed(int keyCode) const;
 	bool IsKeyReleased(int keyCode) const;
 	bool OnKeyReleased(int keyCode) const;
+
+	bool IsKeyDown(KeyMoves keyMove) const;
+	bool IsKeyPressed(KeyMoves keyMove) const;
+	bool IsKeyReleased(KeyMoves keyMove) const;
+
+	
 private:
 	std::shared_ptr<Keyboard> m_keyboard;
+	std::shared_ptr<KeyBindings> m_keyBindings;
+	std::shared_ptr<KeyboardManagerConfig> m_config;
 };

@@ -10,7 +10,7 @@ Line::~Line() {
     Release();
 }
 
-HRESULT Line::Init(ID3D11Device* device) {
+HRESULT Line::Init(std::shared_ptr<ID3D11Device>  device) {
     // Crear descripción del buffer de vértices
     D3D11_BUFFER_DESC bufferDesc = {};
     bufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
@@ -32,12 +32,21 @@ HRESULT Line::Init(ID3D11Device* device) {
     HRESULT hr = device->CreateBuffer(&bufferDesc, &initData, &m_vertexBuffer);
     if (FAILED(hr)) return hr;
 
+    m_deviceManager = ManagerLocator::GetDeviceManager();
+    m_cameraManager = ManagerLocator::GetCameraManager();
+
     return S_OK;
 }
 
 void Line::Render(ID3D11DeviceContext* context) {
     // Aplicar shaders y estados del material
     m_material->Apply(context);
+
+	/*XMMATRIX worldMatrix = XMMatrixIdentity();
+	XMMATRIX viewMatrix = m_cameraManager->GetCurrentViewMatrix();
+    XMMATRIX projectionMatrix = m_cameraManager->GetCurrentProjectionMatrix();*/
+	
+	//m_material->SetShaderParameters<Vertex>(context, worldMatrix, viewMatrix, projectionMatrix);
 
     // Configurar el Input Layout (si no lo hace el material)
     //context->IASetInputLayout(m_material->GetInputLayout());

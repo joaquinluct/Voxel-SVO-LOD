@@ -1,234 +1,330 @@
 // MeshAsset.cpp
+#include "MeshAsset.h"
 #include <string>
 #include <DDSTextureLoader.h> // Para CreateDDSTextureFromFile
-#include "MeshAsset.h"
 #include <windows.h> // Para OutputDebugStringA
-#include <REGISTER_ASSET_MACRO.h>
-#include <Mesh/SkyboxCube.h> 
+#include <Assets/Base/VertexAsset.h>
+#include <AssetLocator/AssetLocator.h>
+#include <DefineLocator/DefineLocator.h>
 #include <ManagerLocator/ManagerLocator.h>
-#include <Text/Text.h>
-#include <../Resources/resource.h>
+#include <REGISTER_ASSET_MACRO.h>
+#include <Util/Text/Text.h>
+#include <Assets/Base/TextureAsset.h>
+#define TINYOBJLOADER_IMPLEMENTATION
+#include <Assets/Base/ObjFormat/ObjUtil.h>
 
 REGISTER_ASSET_TYPE(MeshAsset, "MeshAsset")
 
-MeshAsset::MeshAsset() :
-    m_vertexBuffer(nullptr),
-    m_indexBuffer(nullptr),
-    m_vertexCount(0),
-    m_indexCount(0),
-	m_config(nullptr),
-	m_inputLayout(nullptr),
-    m_material(nullptr),
-    m_shaderManager(nullptr),
-    m_deviceManager(nullptr),
-    m_cameraManager(nullptr),
-    m_wMatrixManager(nullptr),
-    m_vertexShader(nullptr),
-    m_pixelShader(nullptr)
-    //m_axis(nullptr)
-{
-    // Constructor
+MeshAsset::MeshAsset()
+    : m_meshConfig(nullptr)
+    , m_indexBuffer(nullptr)
+    , m_vertexBuffer(nullptr)
+    , m_vertexCount(0)
+    , m_deviceManager(nullptr)
+    , m_cameraManager(nullptr)
+    , m_shaderManager(nullptr)
+    , m_material(nullptr)
+	, m_textureAsset(nullptr)
+{}
+
+MeshAsset::~MeshAsset() {}
+
+HRESULT MeshAsset::InitManagers() {
+    m_deviceManager = ManagerLocator::GetDeviceManager();
+    if (!m_deviceManager) {
+        OutputDebugStringA("MeshAsset::Init - ERROR: DeviceManager not found.\n");
+        return E_FAIL;
+    }
+    m_cameraManager = ManagerLocator::GetCameraManager();
+    if (!m_cameraManager) {
+        OutputDebugStringA("MeshAsset::Init - ERROR: CameraManager not found.\n");
+        return E_FAIL;
+    }
+    m_shaderManager = ManagerLocator::GetShaderManager();
+    if (!m_shaderManager) {
+        OutputDebugStringA("MeshAsset::Init - ERROR: ShaderManager not found.\n");
+        return E_FAIL;
+    }
+    return S_OK;
 }
 
-MeshAsset::~MeshAsset() {
-    Shutdown();
+HRESULT MeshAsset::InitTexture() {
+    std::string shaderAssetName = m_meshConfig->shader;
+    std::string meshObj = m_meshConfig->mesh_path;
+    std::string textureAssetName = m_meshConfig->texture;
+
+    m_material = new Material();
+    if (!m_material) {
+        OutputDebugStringA(("MeshAsset::Init - ERROR: Failed to create Material resource for mesh '" + meshObj + "'.\n").c_str());
+        return E_FAIL;
+    }
+
+    m_material->SetShaderName(StringToWstring(shaderAssetName));
+
+    HRESULT hr = m_material->Init();
+    if (FAILED(hr)) {
+        OutputDebugStringA(("MeshAsset::Init - ERROR: Failed to initialize Material resource for mesh '" + meshObj + "'.\n").c_str());
+        return E_FAIL;
+    }
+
+    if (!textureAssetName.empty()) {
+        m_textureAsset = AssetLocator::GetTextureAsset(textureAssetName);
+        m_textureAsset->SetTextureView(m_material);
+    }
+
+    return hr;
+}
+
+HRESULT MeshAsset::InitMesh() {
+
+    // Obtener el vertexDefinition del shader
+    std::string meshObj = m_meshConfig->mesh_path;
+    std::string shaderAssetName = m_meshConfig->shader;
+
+    std::shared_ptr<ShaderAsset> shaderAsset = AssetLocator::GetShaderAsset(shaderAssetName);
+    if (!shaderAsset) {
+        OutputDebugStringA(("MeshAsset::Init - ERROR: Failed to get ShaderAsset for mesh '" + meshObj + "'.\n").c_str());
+        return E_FAIL;
+    }
+
+    // Crear el array de vértices e índices
+    std::string vertexDef = shaderAsset->GetConfig()->vertex_def;
+    auto vertex = DefineLocator::GetVertexDefineAsVector(vertexDef);
+    std::vector<uint16_t> indexes = {};
+
+    // Cargar el .obj
+    bool result = ObjUtil::LoadObj(meshObj, vertex, indexes);
+
+    if (!result) {
+        OutputDebugStringA(("MeshAsset::Init - ERROR: Failed to load mesh file '" + meshObj + "'.\n").c_str());
+        return E_FAIL;
+    }
+
+    if (vertex.empty()) {
+        OutputDebugStringA(("MeshAsset::Init - ERROR: No vertex data found in mesh file '" + meshObj + "'.\n").c_str());
+        return E_FAIL;
+    }
+
+    HRESULT hr = InitD3D11ResourcesVertex(m_deviceManager->GetDevice(), vertex, indexes);
+
+    if (FAILED(hr)) {
+        OutputDebugStringA(("MeshAsset::Init - ERROR: Failed to initialize D3D11 resources for mesh '" + meshObj + "'.\n").c_str());
+        return hr;
+    }
+
+    return hr;
 }
 
 HRESULT MeshAsset::Init() {
-	m_shaderManager = ManagerLocator::GetManager<ShaderManager>();
-    m_deviceManager = ManagerLocator::GetManager<DeviceManager>();
-    m_cameraManager = ManagerLocator::GetManager<CameraManager>();
-    m_wMatrixManager = ManagerLocator::GetManager<WorldMatrixManager>();
-	m_keyboardrManager = ManagerLocator::GetManager<KeyboardManager>();
-    m_deviceManager->InitRasterizedState();
-    m_material = new Material(SHADER_TEXTURE_BASE);
-	m_material->Init(m_deviceManager->GetDevice());
-    Material* m_material2 = new Material(SHADER_BASE);
-    m_material2->Init(m_deviceManager->GetDevice());
-    //m_axis = new Axis(m_material2);
-	//m_axis->Init(m_deviceManager->GetDevice());
+    if (m_meshConfig == nullptr) {
+        return S_OK;
+    }
 
+    HRESULT hr = InitManagers();
+    if (FAILED(hr)) {
+        OutputDebugStringA("MeshAsset::Init - ERROR: Managers init.\n");
+        return E_FAIL;
+    }
 
-    RECT clientRect;
-    GetClientRect(*m_deviceManager->GetHwnd(), &clientRect);
-    float width = static_cast<float>(clientRect.right - clientRect.left);
-    float height = static_cast<float>(clientRect.bottom - clientRect.top);
-    float aspectRatio = width / height;
+    hr = InitTexture();
+    if (FAILED(hr)) {
+        OutputDebugStringA("MeshAsset::Init - ERROR: Texture init.\n");
+        return E_FAIL;
+    }
 
-    const std::shared_ptr<ICamera> camera = m_cameraManager->GetCurrentCamera();
+    hr = InitMesh();
+    if (FAILED(hr)) {
+        OutputDebugStringA("MeshAsset::Init - ERROR: Mesh init.\n");
+        return E_FAIL;
+    }
 
-	camera->SetPosition(50.0f, 50.0f, 50.0f);
-    camera->SetLookAt(0.0f, 0.0f, 0.0f); // Mira hacia el centro del mundo
-	camera->SetProjectionParams(XM_PIDIV4, aspectRatio, 0.1f, 6000.0f);
-
-	//m_cameraManager->AddCamera("FPC", m_camera);
-
-    return S_OK;
-}
-
-void MeshAsset::SetType(const std::string& type) {
-    if (type == "SkyboxCube") {
-        m_vertextType = "SimpleVertex";
-        SkyboxCubeConfig::Values<VertexDefinition::SimpleVertex>* config = new SkyboxCubeConfig::Values<VertexDefinition::SimpleVertex>();
-        config->SetVertex(SkyboxCube::GetVertex());
-        config->SetIndex(SkyboxCube::GetIndex());
-        m_config = config;
-		InitD3D11Resources<VertexDefinition::SimpleVertex>(m_deviceManager->GetDevice(), config->GetVertex(), config->GetIndex());
-        std::wstring wShaderName(m_shaderName.begin(), m_shaderName.end());
-        m_vertexShader = m_shaderManager->GetVertexShader(wShaderName);
-        m_pixelShader = m_shaderManager->GetPixelShader(wShaderName);
-	}
+    return hr;
 }
 
 void MeshAsset::Shutdown() {
-    // ComPtr maneja la liberación. Solo para explicitar.
-    m_vertexBuffer.Reset();
-    m_indexBuffer.Reset();
-    //OutputDebugStringA(("MeshAsset '" + m_name + "' released.\n").c_str());
-}
-
-void MeshAsset::SetTexture(const std::string& texture) {
-    ID3D11Device* device = m_deviceManager->GetDevice();
-    ID3D11DeviceContext* context = m_deviceManager->GetContext();
-
-    ID3D11ShaderResourceView* m_skyboxSRV = nullptr;
-    std::wstring wTexture = std::wstring(texture.begin(), texture.end());
-    HRESULT hr = DirectX::CreateDDSTextureFromFile(device, wTexture.c_str(), nullptr, &m_skyboxSRV);
-    if (FAILED(hr)) {
-        // Manejar error
-    }
-
-    ID3D11SamplerState* m_samplerState{nullptr};
-    D3D11_SAMPLER_DESC sampDesc = {};
-    sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-    sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-    sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
-    sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
-
-    device->CreateSamplerState(&sampDesc, &m_samplerState);
-
-    context->PSSetShaderResources(0, 1, &m_skyboxSRV);
-    context->PSSetSamplers(0, 1, &m_samplerState);
-
-	context->IASetInputLayout(m_inputLayout);
-
-    XMMATRIX viewMatrix = m_cameraManager->GetCurrentViewMatrix();
-    XMMATRIX proyectionMatrix = m_cameraManager->GetCurrentProjectionMatrix();
-
-	ID3D11Buffer* buffer = m_wMatrixManager->GetMatrixBuffer();
-        
-    XMMATRIX viewProj = XMMatrixMultiply(viewMatrix, proyectionMatrix);
-    context->UpdateSubresource(buffer, 0, nullptr, &viewProj, 0, 0);
-    context->VSSetConstantBuffers(0, 1, &buffer);
-
-}
-
-template<typename TVertex>
-HRESULT MeshAsset::InitD3D11Resources(ID3D11Device* pDevice,
-    const std::vector<TVertex>& vertices,
-    const std::vector<WORD>& indices) {
-    if (!pDevice) {
-        OutputDebugStringA("ERROR: ID3D11Device is null when initializing mesh.\n");
-        return E_INVALIDARG;
-    }
-    if (vertices.empty() || indices.empty()) {
-        OutputDebugStringA(("ERROR: No vertex or index data provided for mesh '" + m_name + "'.\n").c_str());
-        return E_INVALIDARG;
-    }
-
-    HRESULT hr = S_OK;
-
-    // Crear Vertex Buffer
-    D3D11_BUFFER_DESC vbDesc = {};
-    vbDesc.Usage = D3D11_USAGE_DEFAULT;
-    vbDesc.ByteWidth = sizeof(TVertex) * vertices.size();
-    vbDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    vbDesc.CPUAccessFlags = 0;
-    vbDesc.MiscFlags = 0;
-
-    D3D11_SUBRESOURCE_DATA vbInitData = {};
-    vbInitData.pSysMem = vertices.data();
-    hr = pDevice->CreateBuffer(&vbDesc, &vbInitData, &m_vertexBuffer);
-    if (FAILED(hr)) {
-        OutputDebugStringA(("ERROR: Failed to create vertex buffer for mesh '" + m_name + "'. HRESULT: " + std::to_string(hr) + "\n").c_str());
-        return hr;
-    }
-    m_vertexCount = vertices.size();
-
-    // Crear Index Buffer
-    D3D11_BUFFER_DESC ibDesc = {};
-    ibDesc.Usage = D3D11_USAGE_DEFAULT;
-    ibDesc.ByteWidth = sizeof(WORD) * indices.size();
-    ibDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-    ibDesc.CPUAccessFlags = 0;
-    ibDesc.MiscFlags = 0;
-
-    D3D11_SUBRESOURCE_DATA ibInitData = {};
-    ibInitData.pSysMem = indices.data();
-    hr = pDevice->CreateBuffer(&ibDesc, &ibInitData, &m_indexBuffer);
-    if (FAILED(hr)) {
-        OutputDebugStringA(("ERROR: Failed to create index buffer for mesh '" + m_name + "'. HRESULT: " + std::to_string(hr) + "\n").c_str());
-        // Liberar vertex buffer si el index buffer falla
-        m_vertexBuffer.Reset();
-        return hr;
-    }
-    m_indexCount = indices.size();
-
-    //OutputDebugStringA(("MeshAsset '" + m_name + "' D3D11 resources initialized.\n").c_str());
-    return S_OK;
-}
-
-void MeshAsset::PrepareViewMatrix(ID3D11DeviceContext* context) {
-	//using namespace DirectX;
- //   XMMATRIX viewMatrix = m_cameraManager->GetCurrentViewMatrix();
- //   XMMATRIX view = XMLoadFloat4x4(&viewMatrix);
- //   view.r[3] = XMVectorSet(0, 0, 0, 1); // Eliminar traslación
- //   XMMATRIX proj = XMLoadFloat4x4(&projectionMatrix);
- //   XMMATRIX viewProj = XMMatrixMultiply(view, proj);
- //   context->UpdateSubresource(m_constantBuffer, 0, nullptr, &viewProj, 0, 0);
 }
 
 void MeshAsset::Render() {
 
-	ID3D11DeviceContext* context = m_deviceManager->GetContext();
-    
-    if (!m_vertexBuffer || !m_indexBuffer || !context) {
-        if (m_vertextType == "SimpleVertex") {
-            SkyboxCubeConfig::Values<VertexDefinition::SimpleVertex>* config = new SkyboxCubeConfig::Values<VertexDefinition::SimpleVertex>();
-            config->SetVertex(SkyboxCube::GetVertex());
-            config->SetIndex(SkyboxCube::GetIndex());
-            InitD3D11Resources<VertexDefinition::SimpleVertex>(m_deviceManager->GetDevice(), config->GetVertex(), config->GetIndex());
-        }
-        //OutputDebugStringA(("ERROR: MeshAsset '" + m_name + "' has not been initialized properly.\n").c_str());
-        //return;
-    }
-
-	PrepareViewMatrix(context);
-
+    ID3D11DeviceContext* context = m_deviceManager->GetContext();
     m_deviceManager->SetRasterizerState();
 
-    XMMATRIX viewMatrix = m_cameraManager->GetCurrentViewMatrix();
-    XMMATRIX proyectionMatrix = m_cameraManager->GetCurrentProjectionMatrix();
-    
-    ID3D11Buffer* buffer = m_wMatrixManager->GetMatrixBuffer();
+    m_material->Render();
 
-    XMMATRIX viewProj = XMMatrixMultiply(viewMatrix, proyectionMatrix);
-
-	m_material->SetShaderParameters(context, XMMatrixIdentity(), viewMatrix, viewProj);
-	m_material->Apply(context);
-
-    /*context->VSSetShader(m_vertexShader, nullptr, 0);
-    context->PSSetShader(m_pixelShader, nullptr, 0);*/
-
-    if (m_vertextType == "SimpleVertex") {
-        UINT stride = sizeof(VertexDefinition::SimpleVertex);
-        UINT offset = 0;
-        context->IASetVertexBuffers(0, 1, &m_vertexBuffer, &stride, &offset);
-		context->IASetIndexBuffer(GetIndexBuffer(), DXGI_FORMAT_R16_UINT, 0);
-        context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        context->DrawIndexed(m_indexCount, 0, 0);
-	}
-
-    //m_axis->Render(context);
-    
+    UINT stride = m_vertexTypeSize;
+    UINT offset = 0;
+    context->IASetVertexBuffers(0, 1, &m_vertexBuffer, &stride, &offset);
+ 	context->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R16_UINT, 0);
+    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    context->DrawIndexed(m_indexCount, 0, 0);
 }
+
+HRESULT MeshAsset::CreateVertexBuffer(std::shared_ptr<ID3D11Device> pDevice, const std::vector<std::shared_ptr<VertexDefinition::VertexVariant>> vertex) {
+    if (m_vertexBuffer) {
+        m_vertexBuffer->Release();
+        m_vertexBuffer = nullptr;
+    }
+    m_vertexCount = 0;
+    m_vertexTypeSize = 0; // Se inicializa aquí para asegurar que siempre está limpia
+
+    // --- 1. Validar parámetros de entrada ---
+    if (!pDevice || vertex.empty()) {
+        std::cerr << "CreateVertexBuffer: Parámetros de entrada inválidos o vector de vértices vacío.\n";
+        return E_INVALIDARG;
+    }
+
+    // --- 2. Determinar el tamaño del tipo de vértice (Stride) ---
+    // Asumimos que todos los vértices en el vector son del mismo tipo concreto
+    // para este búfer.
+    std::visit([&](auto& currentVertex) {
+        // 'currentVertex' es la instancia del tipo de vértice concreto (ej., SimpleVertex).
+        // Llamamos a GetSize() en esa instancia para obtener su tamaño.
+		m_vertexTypeSize = currentVertex.Size(); // Asegúrate de que GetSize() esté implementado en tus structs de vértice
+        }, *vertex[0]); // Visita el primer elemento del vector de variants
+
+    if (m_vertexTypeSize == 0) {
+        std::cerr << "CreateVertexBuffer: No se pudo determinar el tamaño del tipo de vértice (es 0).\n";
+        return E_FAIL;
+    }
+
+    // --- 3. Calcular el tamaño total del búfer de vértices ---
+    m_vertexCount = static_cast<UINT>(vertex.size());
+    UINT totalByteWidth = m_vertexTypeSize * m_vertexCount;
+
+    // --- 4. Crear un búfer contiguo de datos raw en la CPU ---
+    // Este vector temporal almacenará todos los datos de tus vértices
+    // en un formato lineal, listo para la GPU.
+    std::vector<uint8_t> rawVertexData(totalByteWidth);
+
+    // --- 5. Iterar sobre cada VertexVariant y copiar sus datos raw al búfer contiguo ---
+    size_t currentOffset = 0;
+    for (const auto& v_shared_ptr : vertex) {
+        if (!v_shared_ptr) {
+            std::cerr << "CreateVertexBuffer: Se encontró un shared_ptr nulo en el vector de variants.\n";
+            // Limpiar recursos antes de salir por error
+            if (m_vertexBuffer) { m_vertexBuffer->Release(); m_vertexBuffer = nullptr; }
+            m_vertexCount = 0;
+            m_vertexTypeSize = 0;
+            return E_INVALIDARG;
+        }
+
+        // Usamos std::visit para acceder al tipo concreto dentro del std::variant.
+        std::visit([&](auto& currentVertex) {
+            // 'currentVertex' es una referencia al objeto concreto (ej., SimpleVertex).
+            // Llamamos a GetRawData() en esa instancia para obtener el puntero a sus datos.
+            const void* source_data = currentVertex.GetRawData();
+
+            // Copiamos los bytes de la instancia actual al búfer contiguo.
+            std::memcpy(rawVertexData.data() + currentOffset, source_data, m_vertexTypeSize);
+            currentOffset += m_vertexTypeSize;
+            }, *v_shared_ptr); // Desreferencia el shared_ptr para acceder al VertexVariant por valor
+    }
+
+    // --- 6. Configurar D3D11_BUFFER_DESC ---
+    D3D11_BUFFER_DESC vbDesc = {};
+    vbDesc.Usage = D3D11_USAGE_DEFAULT;         // Uso predeterminado para datos estáticos
+    vbDesc.ByteWidth = totalByteWidth;           // Tamaño total del búfer en bytes
+    vbDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER; // Se usará como búfer de vértices
+    vbDesc.CPUAccessFlags = 0;                   // No necesita acceso de CPU después de la creación
+    vbDesc.MiscFlags = 0;                        // Sin banderas misceláneas
+    vbDesc.StructureByteStride = 0;              // No es un Structured Buffer
+
+    // --- 7. Configurar D3D11_SUBRESOURCE_DATA ---
+    D3D11_SUBRESOURCE_DATA vbInitData = {};
+    vbInitData.pSysMem = rawVertexData.data();   // ¡Aquí apuntamos al inicio del búfer contiguo!
+    vbInitData.SysMemPitch = 0;                  // No aplicable para vertex buffers
+    vbInitData.SysMemSlicePitch = 0;             // No aplicable para vertex buffers
+
+    // --- 8. Crear el ID3D11Buffer ---
+    HRESULT hr = pDevice->CreateBuffer(&vbDesc, &vbInitData, &m_vertexBuffer);
+    if (FAILED(hr)) {
+        std::cerr << "CreateVertexBuffer: Error al crear el ID3D11Buffer: " << std::hex << hr << std::endl;
+        // Limpiar variables de estado en caso de fallo
+        m_vertexCount = 0;
+        m_vertexTypeSize = 0;
+        if (m_vertexBuffer) {
+            m_vertexBuffer->Release();
+            m_vertexBuffer = nullptr;
+        }
+    }
+
+    return hr;
+}
+
+//HRESULT CreateVertexBuffer(ID3D11Device* pDevice, const std::vector<std::shared_ptr<VertexDefinition::VertexVariant>> vertex) {
+//    if (vertex.empty()) {
+//        std::cerr << "MeshAsset::CreateBuffers: El vector de variantes está vacío.\n";
+//        return E_INVALIDARG;
+//    }
+//
+//    // --- 1. Determinar el Stride y el ByteWidth total ---
+//    // Necesitas el stride (tamaño de un solo vértice)
+//    // std::visit es útil aquí para obtener el tamaño del primer elemento.
+//    // Asumimos que todos los vértices en el vector son del mismo tipo concreto para el stride.
+//    m_vertexTypeSize = 0;
+//    std::visit([&](auto& currentVertex) {
+//        // currentVertex es el tipo concreto (SimpleVertex, TextureBasicVertex, etc.)
+//        // Necesitamos que tus structs de vértice tengan un método GetSize()
+//        // o un sizeof() para obtener su tamaño.
+//        m_vertexTypeSize = static_cast<UINT>(sizeof(&currentVertex));
+//        // O si tus structs concretos tienen un GetSize() virtual:
+//        // m_vertexStride = currentVertex.GetSize(); // ¡Solo si el variant contiene un puntero!
+//        // Si el variant contiene el objeto por valor, sizeof(currentVertex) es la opción.
+//
+//        // Si el variant contiene punteros a IVertex, como en tu DefineLocator anterior:
+//        // std::shared_ptr<IVertex> ptr_to_base_vertex = currentVertex; // Si el variant contiene ptrs
+//        // m_vertexStride = static_cast<UINT>(ptr_to_base_vertex->GetSize());
+//
+//        // **IMPORTANTE**: Asegúrate de que el tamaño sea el correcto para TU struct de vértice.
+//        // Para la mayoría de los casos de uso con std::variant, el variant contiene el objeto por valor.
+//        // Así que 'sizeof(currentVertex)' suele ser lo correcto.
+//        }, *vertex[0]); // Visita el primer elemento para obtener el stride
+//
+//    if (m_vertexTypeSize == 0) {
+//        std::cerr << "MeshAsset::CreateBuffers: No se pudo determinar el stride del vértice.\n";
+//        return E_FAIL;
+//    }
+//
+//    UINT totalByteWidth = m_vertexTypeSize * static_cast<UINT>(vertex.size());
+//
+//    // --- 2. Crear un Buffer Contiguo de Datos Raw ---
+//    std::vector<uint8_t> rawVertexData(totalByteWidth);
+//
+//    // Copiar los datos de cada vértice a este buffer contiguo
+//    size_t currentOffset = 0;
+//    for (const auto& v_shared_ptr : vertex) {
+//        std::visit([&](auto& currentVertex) {
+//            // 'currentVertex' es el objeto de vértice concreto (ej., SimpleVertex)
+//            // Usamos GetRawData() para obtener un puntero a sus datos.
+//            const void* source_data = currentVertex.GetRawData(); // Asumo que GetRawData() existe en tus structs de vértice
+//
+//            // Copia los bytes del vértice actual al buffer contiguo
+//            std::memcpy(rawVertexData.data() + currentOffset, &currentVertex, m_vertexTypeSize);
+//            currentOffset += m_vertexTypeSize;
+//            }, *v_shared_ptr); // Desreferencia el shared_ptr para acceder al VertexVariant
+//    }
+//
+//    // --- 3. Rellenar D3D11_BUFFER_DESC y D3D11_SUBRESOURCE_DATA ---
+//    D3D11_BUFFER_DESC vbDesc = {};
+//    vbDesc.Usage = D3D11_USAGE_DEFAULT;
+//    vbDesc.ByteWidth = totalByteWidth; // ¡Este es el tamaño total correcto!
+//    vbDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+//    vbDesc.CPUAccessFlags = 0;
+//    vbDesc.MiscFlags = 0;
+//    vbDesc.StructureByteStride = 0; // Correcto para un vertex buffer normal
+//
+//    D3D11_SUBRESOURCE_DATA vbInitData = {};
+//    vbInitData.pSysMem = rawVertexData.data(); // ¡Aquí apuntas al inicio del buffer contiguo!
+//    vbInitData.SysMemPitch = 0;       // No aplicable para vertex buffers
+//    vbInitData.SysMemSlicePitch = 0;  // No aplicable para vertex buffers
+//
+//    // --- 4. Crear el Vertex Buffer de DirectX ---
+//    HRESULT hr = pDevice->CreateBuffer(&vbDesc, &vbInitData, &m_vertexBuffer);
+//    if (FAILED(hr)) {
+//        std::cerr << "Error al crear el Vertex Buffer: " << std::hex << hr << std::endl;
+//        return hr;
+//    }
+//
+//    m_vertexCount = static_cast<UINT>(vertex.size());
+//    return hr;
+//}

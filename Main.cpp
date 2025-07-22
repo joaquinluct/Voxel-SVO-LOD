@@ -10,7 +10,7 @@
 #include <directxmath.h>
 #include <directxcolors.h>
 #include "MainWindow.h"
-#include "AssetManager.h"
+//#include "AssetManager.h"
 //#include "MarchingCubes.h"
 //#include "Camera.h"
 //#include "Common.h"

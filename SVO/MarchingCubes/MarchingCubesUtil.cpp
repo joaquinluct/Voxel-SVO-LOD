@@ -325,7 +325,7 @@ int GetCubeIndex(float(&cube)[8], XMFLOAT3 origin, float size, const SVO_Node* n
     return cubeIndex;
 }
 
-void InterpolateEdgeVerts(int cubeIndex, const XMFLOAT3 p_local[8], const float density[8], XMFLOAT3 (&vertlist)[12], float ISO_LEVEL) {
+void InterpolateEdgeVerts(int cubeIndex, const XMFLOAT3 p_local[8], const float density[8], XMFLOAT3 (&vertlist)[12], int ISO_LEVEL) {
     using namespace MarchingCubesTables;
     
     // Encontrar los puntos de intersección de la superficie con las aristas del cubo

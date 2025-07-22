@@ -7,6 +7,7 @@
 #include "IRenderable.h"    // Para Render (la fase de renderizado)
 #include "IShutdownable.h"  // Para Release
 #include "Utils.h"
+#include <Defines/MatrixDefinition.h>
 
 #include <d3d11.h>
 #include <DirectXMath.h>
@@ -51,14 +52,14 @@ public:
     void SetGlobalMatrices(const DirectX::XMMATRIX& world, const DirectX::XMMATRIX& view, const DirectX::XMMATRIX& projection);
 
     // Getter para el buffer si algún shader lo necesita directamente (raro, normalmente lo vincula el manager)
-    ID3D11Buffer* GetMatrixBuffer() const { return g_matrixBuffer; }
+    //ID3D11Buffer* GetMatrixBuffer() const { return g_matrixBuffer; }
 
     // Liberación de recursos
     void Shutdown() override; // Implementa IShutdownable
 
 private:
     ID3D11Buffer* g_matrixBuffer;
-    MatrixBufferType g_matrix; // Guarda las matrices actuales
+    MatrixDefinition::AnyMatrixBuffer g_matrix; // Guarda las matrices actuales
 
     // Punteros a managers que se obtendrán del ServiceLocator en Init
     std::shared_ptr<DeviceManager> m_device;

@@ -1,25 +1,25 @@
-// Configuración de MainCam
 #pragma once
 
 #include <string>
 #include <vector>
+#include <map>
+#include <ConfigBase.h>
 
-namespace MainCamConfig{
-
-	struct Values {
-		std::string type = "FirstPersonCamera";
-		bool active = true;
-		float move_speed = 150.000000f;
-		float rotation_speed = 120.000000f;
-		float fov_y = 60.000000f;
-		float near_clip = 0.100000f;
-		float far_clip = 6000.000000f;
-		std::vector<float> position {
-			0.000000f,
-			100.000000f,
-			0.000000f,
-		};
-		float initial_pitch = 0.000000f;
-		float initial_yaw = 0.000000f;
-	};
+class MainCamConfig : public ConfigBase {
+public:
+	MainCamConfig();
+	static const std::string& GetStaticConfigName()
+	{
+		static const std::string className = "MainCamConfig";
+		return className;
+	}
+	bool active;
+	float move_speed;
+	float rotation_speed;
+	float fov_y;
+	float near_clip;
+	float far_clip;
+	std::vector<float> position;
+	float initial_pitch;
+	float initial_yaw;
 };

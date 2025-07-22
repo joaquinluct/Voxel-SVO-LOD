@@ -41,8 +41,19 @@ public:
     void EnableClearEffect(bool enable);
     void SetClearEffectSpeed(float speed);
     void ResetClearEffect();
+    void GetViewPortDimensions(UINT& width, UINT& height) const {
+        width = m_width;
+        height = m_height;
+	}
+
+    void SetClearColor(const FLOAT clearColor[4]) {
+        for (int i = 0; i < 4; ++i) {
+            this->clearColor[i] = clearColor[i];
+        }
+	}
 
 private:
+    FLOAT clearColor[4] = { .7f, 0.7f, 0.7f, 1.0f };
     std::shared_ptr<DeviceManager>  m_deviceManager;
     ID3D11RenderTargetView* m_pRenderTargetView;
     ID3D11DepthStencilView* m_pDepthStencilView;

@@ -19,6 +19,7 @@ public:
             return E_FAIL;
         }
         // Este es el paso CRÍTICO: La creación de recursos D3D11 ocurre en el hilo principal
-        return m_textureAsset->InitD3D11Resources(pDevice, m_filePath);
+        //return m_textureAsset->InitD3D11Resources(pDevice, m_filePath);
+        return S_OK;
     }
 };

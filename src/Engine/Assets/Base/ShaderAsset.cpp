@@ -1,7 +1,8 @@
 #include "ShaderAsset.h"
 #include <REGISTER_ASSET_MACRO.h>
-#include <Material/includes/VertexDefinition.h>
+#include <Defines/VertexDefinition.h>
 #include <vector>
+#include <IAssetShaderConfig.h>
 
 REGISTER_ASSET_TYPE(ShaderAsset, "ShaderAsset")
 
@@ -17,6 +18,19 @@ HRESULT ShaderAsset::Init() {
 	std::vector<WORD> index{};
 	m_mesh->CreateCubeData<VertexDefinition::SimpleVertex>(vertex, index);*/
 	return S_OK;
+}
+
+
+void ShaderAsset::SetConfig(std::shared_ptr<ConfigBase> config) {
+	m_shaderConfig = std::dynamic_pointer_cast<IAssetShaderConfig>(config);
+}
+
+std::shared_ptr<IAssetShaderConfig> ShaderAsset::GetConfig() const {
+	return m_shaderConfig;
+}
+
+void ShaderAsset::SetName(const std::string& name) {
+	m_name = name;
 }
 
 void ShaderAsset::Shutdown() {

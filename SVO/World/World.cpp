@@ -345,7 +345,10 @@ SVO_Node* World::GetOrCreateArea(const AreaKey& key) {
     /*XMFLOAT3 pos = AreaKey::GetPositionFromAreaKey(key);
     XMFLOAT3 posEnd{pos.x+AREA_SIZE_F, pos.y + AREA_SIZE_F, pos.z };
     m_terrainGenerator->PrepareNoiseOutput(pos, posEnd, AREA_SIZE_F);*/
-    fillNode(node.get(), key.x * AREA_SIZE, key.y * AREA_SIZE, key.z * AREA_SIZE, AREA_SIZE, 0);
+	float x = static_cast<float>(key.x) * AREA_SIZE_F;
+	float y = static_cast<float>(key.y) * AREA_SIZE_F;
+	float z = static_cast<float>(key.z) * AREA_SIZE_F;
+    fillNode(node.get(), x, y, z, AREA_SIZE, 0);
     SVO_Node* ptr = node.get();
     m_areas[key] = std::move(node);
     return ptr;

@@ -1,9 +1,16 @@
 #include "ShaderManager.h"
 #include "REGISTER_MANAGER_MACRO.h"
-#include <d3dcompiler.h> // Necesario para la compilación de shaders
-#include <d3d11.h>       // Asegúrate de incluirlo aquí también
+#include <d3dcompiler.h>
+#include <d3d11.h>
+#include <vector>
+#include <variant>
 #include "../Resources/resource.h"
 #include <ManagerLocator/ManagerLocator.h>
+#include <AssetLocator/AssetLocator.h>
+#include <DefineLocator/DefineLocator.h>
+#include <Assets/Base/ShaderAsset.h>
+#include <Util/Text/Text.h>
+#include <Defines/MatrixDefinitionBase.h>
 
 REGISTER_MANAGER_TYPE(ShaderManager, "ShaderManager")
 
@@ -14,11 +21,12 @@ ShaderManager::ShaderManager() {
 	inputLayouts.clear();
 	vertexShaderBlobs.clear();
 	pixelShaderBlobs.clear();
+    matrixShaders.clear();
 }
 
 ShaderManager::~ShaderManager() {}
 
-HRESULT ShaderManager::LoadShader(ID3D11Device* device, std::wstring shaderName, std::wstring vsPath, std::wstring psPath, D3D11_INPUT_ELEMENT_DESC layoutDesc[], UINT numElements) {
+HRESULT ShaderManager::LoadShader(std::shared_ptr<ID3D11Device> device, std::wstring shaderName, std::wstring vsPath, std::wstring psPath, D3D11_INPUT_ELEMENT_DESC layoutDesc[], UINT numElements) {
     // Verificar si el shader ya está cargado
     if (vertexShaders.find(shaderName) != vertexShaders.end()) {
         return S_OK;
@@ -120,62 +128,143 @@ UINT ShaderManager::GetVertexShaderBytecodeLength(std::wstring shaderName) {
     return 0; // Or another appropriate value to indicate "not found" or error
 }
 
-HRESULT ShaderManager::Init() {
-	// Aquí puedes inicializar cualquier recurso adicional que necesites
-    // Cargar shaders
-	deviceManager = ManagerLocator::GetManager<DeviceManager>();
-
-    // SHADER 0: TEXTUREBASE.
-    D3D11_INPUT_ELEMENT_DESC layoutDescBase[] = {
-        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0}
-    };
-    UINT numElementsBase = ARRAYSIZE(layoutDescBase);
-    HRESULT result = LoadShader(deviceManager->GetDevice(),
-        SHADER_TEXTURE_BASE,
-        L"C:/Users/joaqu/source/repos/DirectX-Voxelado/Assets/Shader/TextureBase.hlsl",
-        L"C:/Users/joaqu/source/repos/DirectX-Voxelado/Assets/Shader/TextureBase.hlsl", layoutDescBase, numElementsBase);
-
-    // SHADER 1: SUELO
-    D3D11_INPUT_ELEMENT_DESC layoutDesc[] = {
-        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0} // Ajuste correcto de offset
-    };
-	UINT numElements = ARRAYSIZE(layoutDesc);
-    result = LoadShader(deviceManager->GetDevice(),
-        SHADER_BASE,
-        L"Resources/Shaders/BasicShader.hlsl",
-		L"Resources/Shaders/BasicShader.hlsl", layoutDesc, numElements);
-
-	// SHADER 2: VOXEL
-    D3D11_INPUT_ELEMENT_DESC layoutVoxelDesc[] = {
-    {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-    {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0}, // Nueva entrada para la normal
-    {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0} // Color va después de la normal
-    };
-    UINT numVoxelElements = ARRAYSIZE(layoutVoxelDesc);
-    result = LoadShader(deviceManager->GetDevice(),
-        SHADER_VOXEL,
-        L"Resources/Shaders/VoxelShader.hlsl", // Ruta del Vertex Shader
-        L"Resources/Shaders/VoxelShader.hlsl", // Ruta del Pixel Shader (asumiendo el mismo archivo)
-        layoutVoxelDesc, numVoxelElements);
-
-	// SHADER 3: TEXT
-    D3D11_INPUT_ELEMENT_DESC layoutText[] = {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 }
-    };
-	UINT numElementsText = ARRAYSIZE(layoutText);
-    result = LoadShader(deviceManager->GetDevice(),
-        SHADER_TEXT,
-        L"Resources/Shaders/TextShader.hlsl",
-        L"Resources/Shaders/TextShader.hlsl", layoutText, numElementsText);
-
-    if (FAILED(result)) {
-        OutputDebugStringA("Error en la carga de shaders.\n");
-        return result;
+std::map<std::string, std::pair<int, std::unique_ptr<MatrixDefinition::AnyMatrixBuffer>>>& ShaderManager::GetMatrixBuffers(std::wstring shaderName) {
+    auto it = matrixShaders.find(shaderName);
+    if (it == matrixShaders.end()) {
+        std::string msg = "Error: No se encontraron buffers de matrices para el shader: " + WstringToString(shaderName) + ".\n";
+        OutputDebugStringA(msg.c_str());
+        // Lanzar una excepción es la forma idiomática de indicar un fallo en este caso
+        throw std::runtime_error(msg);
     }
-	return result;
+    return it->second; // Devuelve una referencia constante al mapa interno
+}
+
+void ShaderManager::SetConstantsBuffers(std::wstring shaderName, const MatrixDefinitionBase::MatrixParams& matrixParams, std::map<std::string, Microsoft::WRL::ComPtr<ID3D11Buffer>>& constantBuffers, ID3D11DeviceContext* context) {
+
+    D3D11_MAPPED_SUBRESOURCE mapped = {};
+    // Accedemos al mapa de matrices específico para este shader
+    std::map<std::string, std::pair<int, std::unique_ptr<MatrixDefinition::AnyMatrixBuffer>>>& matrices = matrixShaders[shaderName];
+
+    // Iteramos sobre cada tipo de buffer de constante que este shader requiere
+    for (const auto& [matrixName, matrix] : matrices) {
+        // Buscamos el ID3D11Buffer correspondiente en nuestro mapa de buffers globales
+        auto bufferComPtrIt = constantBuffers.find(matrixName);
+        if (bufferComPtrIt == constantBuffers.end()) {
+            // Si no se encuentra el buffer (por ejemplo, no se creó durante la inicialización),
+            // lo saltamos y continuamos con el siguiente.
+            continue;
+        }
+
+        // 'nSlot' es el registro (ej. b0, b1, b2) que el shader espera para este buffer
+        int nSlot = matrix.first;
+        // Obtenemos el puntero raw del ComPtr para usarlo con los métodos de DirectX
+        ID3D11Buffer* pBuffer = bufferComPtrIt->second.Get();
+
+        // Mapeamos el buffer de constante para escritura.
+        // D3D11_MAP_WRITE_DISCARD es eficiente si el buffer se actualiza cada frame.
+        HRESULT hr = context->Map(pBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+        if (FAILED(hr)) {
+            // Manejar error de mapeo, quizás con un log o assert.
+            continue;
+        }
+
+        std::string matrixType = "";
+
+        // Usamos std::visit para aplicar el método SetMatrixData correcto
+        // a la estructura de buffer de constante específica (MatrixBufferType, DirectionalLight, etc.).
+        std::visit([&](auto& currentMatrixStruct) {
+            // Llamamos a SetMatrixData para rellenar la estructura con los datos actuales
+            // de MatrixParams. Cada estructura sabe qué datos de MatrixParams necesita.
+            currentMatrixStruct.SetMatrixData(matrixParams);
+            matrixType = currentMatrixStruct.MatrixType();
+            // Copiamos los datos de nuestra estructura C++ a la memoria mapeada de la GPU.
+            // Asegúrate de que el tamaño de la estructura coincida con el tamaño del buffer en la GPU.
+            memcpy(mapped.pData, &currentMatrixStruct, sizeof(std::decay_t<decltype(currentMatrixStruct)>));
+            }, *matrix.second); // Accedemos al contenido del unique_ptr<AnyMatrixBuffer>
+
+        // Desmapeamos el buffer para que la GPU pueda acceder a los datos actualizados.
+        context->Unmap(pBuffer, 0);
+
+        // --- ENLACE DE LOS CONSTANT BUFFERS A LOS SHADERS ---
+        // Aquí decidimos a qué estadio del pipeline se enlaza cada buffer.
+        // Lo más común es:
+        // - Matrices de transformación (World, View, Projection): Vertex Shader.
+        // - Datos de cámara, luz, material: Pixel Shader (para cálculos de iluminación).
+
+        if (matrixType == MATRIX_TYPE_VERTEX.data() || matrixType == MATRIX_TYPE_MIXED.data()) {
+            // Estos buffers contienen matrices de transformación que suelen usarse en el Vertex Shader.
+            context->VSSetConstantBuffers(nSlot, 1, &pBuffer);
+        }
+
+        if (matrixType == MATRIX_TYPE_PIXEL.data() || matrixType == MATRIX_TYPE_MIXED.data()) {
+            // Estos buffers contienen datos que son cruciales para los cálculos de iluminación
+            // y propiedades de superficie, que se realizan en el Pixel Shader.
+            context->PSSetConstantBuffers(nSlot, 1, &pBuffer);
+        }
+        // Nota: Si un buffer como "CameraData" también se necesitara en el Vertex Shader (ej. para billboarding),
+        // podrías añadir otra línea: context->VSSetConstantBuffers(nSlot, 1, &pBuffer);
+    }
+}
+
+HRESULT ShaderManager::Init() {
+	OutputDebugStringA("Inicializando ShaderManager...\n");
+
+    deviceManager = ManagerLocator::GetManager<DeviceManager>();
+    if (!deviceManager) {
+        OutputDebugStringA("Error: DeviceManager no encontrado.\n");
+        return E_FAIL;
+	}
+
+    std::vector<std::shared_ptr<ShaderAsset>> shaders = AssetLocator::GetShaders();
+    if (shaders.empty()) {
+        OutputDebugStringA("No se encontraron shaders para cargar.\n");
+        return S_OK; // No hay shaders que cargar, pero no es un error.
+	}
+
+    for(const auto& shader : shaders) {
+        OutputDebugStringA(("** Shader: " + shader->GetStaticAssetName() + ".\n").c_str());
+        std::shared_ptr<IAssetShaderConfig> config =  shader->GetConfig();
+        if (!config || config->vertex_def.empty()) {
+            OutputDebugStringA("Error: Configuración del shader no encontrada.\n");
+            continue; // Saltar este shader si no tiene configuración
+		}
+
+        std::string vertexDef = config->vertex_def;
+		std::vector<std::string> matrixDef = config->matrix_slots;
+
+        //std::unique_ptr<VertexDefinition::VertexVariant> vertex = VertexDefinition::Factory().createVertex(vertexDef);
+        std::shared_ptr<IVertex> vertex = DefineLocator::GetVertexDefine(vertexDef);
+        if (!vertex) {
+            OutputDebugStringA("Error: Configuración del shader: Definición de vértices no encontrada.\n");
+            continue;
+        }
+
+        unsigned int numItems = 0;
+        //D3D11_INPUT_ELEMENT_DESC* layout;// = vertex->GetInputLayout(numItems);
+        D3D11_INPUT_ELEMENT_DESC* layout = vertex->GetInputLayout(numItems);
+
+        if (!layout) {
+            OutputDebugStringA("Error: Layout de entrada no encontrado.\n");
+            continue; // Saltar este shader si no tiene layout
+        }
+
+		std::wstring name = StringToWstring(shader->GetAssetName());
+		std::wstring vsPath = StringToWstring(config->shader_path);
+
+        HRESULT result = LoadShader(deviceManager->GetDevice(), name, vsPath, vsPath, layout, numItems);
+
+        if (SUCCEEDED(result)) {
+            int idx = 0;
+            for (const std::string& matrixName : matrixDef) {
+    			MatrixDefinition::AnyMatrixBuffer matrix = MatrixDefinition::Get(matrixName);
+                const std::string matrixSlotName = ParseInt(idx) + matrixName;
+                matrixShaders[name][matrixSlotName] = { idx, (std::make_unique<MatrixDefinition::AnyMatrixBuffer>(std::move(matrix))) };
+				idx++;
+			}
+		}
+	}
+
+    return S_OK;
 }
 
 void ShaderManager::Shutdown() {

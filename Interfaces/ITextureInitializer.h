@@ -15,7 +15,7 @@ public:
     // Opcional: podrías pasar un puntero a Material* si la lógica es más compleja,
     // pero pasar los miembros directamente es más explícito y menos acoplado.
     virtual HRESULT Init(
-        ID3D11Device* device,
+        std::shared_ptr<ID3D11Device> device,
         ID3D11SamplerState** outSamplerState, // Puntero al SamplerState de Material
         ID3D11Buffer** outMatrixBuffer       // Puntero al MatrixBuffer de Material
     ) = 0;

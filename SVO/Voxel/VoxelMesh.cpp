@@ -107,7 +107,7 @@ void VoxelMesh::Render(ID3D11DeviceContext* context, const XMMATRIX& worldMatrix
     m_deviceManager->SetRasterizerState();
 
     // 1. Establecer los par�metros del shader (matrices) a trav�s del material
-    m_material->SetShaderParameters(context, worldMatrix, viewMatrix, projectionMatrix);
+    m_material->SetConstantBuffers(context, worldMatrix, viewMatrix, projectionMatrix);
 
     // 2. Establecer el material (shaders e input layout)
     m_material->Apply(context);
@@ -160,7 +160,7 @@ std::vector<Util::Triangle> VoxelMesh::GetTriangles(std::vector<unsigned int> in
         unsigned int index2 = indices[i + 2];
 
         // Asegurarse de que los índices son válidos
-        if (index0 >= m_vertexCount || index1 >= m_vertexCount || index2 >= m_vertexCount) {
+        if (index0 >= static_cast<unsigned int>(m_vertexCount) || index1 >= static_cast<unsigned int>(m_vertexCount) || index2 >= static_cast<unsigned int>(m_vertexCount)) {
             std::cerr << "Índice fuera de rango: " << index0 << ", " << index1 << ", " << index2 << std::endl;
             continue; // Saltar este triángulo si algún índice está fuera de rango
         }

@@ -10,8 +10,10 @@
 #include <yaml-cpp/yaml.h>
 #include <Assets/Base/Commands/CreateTextureGPUCommand.h>
 #include <AssetLocator/AssetLocator.h>
+#include <ConfigLocator/ConfigLocator.h>
 #include "REGISTER_MANAGER_MACRO.h"
 #include <TextureLoader/TextureLoader.h>
+#include <ITextureConfig.h>
 
 REGISTER_MANAGER_TYPE(AssetManager, "AssetManager")
 
@@ -20,23 +22,46 @@ AssetManager::AssetManager() {
     // Sus miembros (pDevice, pImmediateContext, etc.) se inicializarán a nullptr si son punteros
     // o shared_ptr vacíos si son smart pointers.
     // Los valores correctos se asignan en Init().
-	m_config = new IndexConfig::Values();
+	m_config = new MainIndexConfig();
 }
 
 AssetManager::~AssetManager() {
     Shutdown();
 }
 
+HRESULT AssetManager::InitShaders(HWND hwnd, int width, int height) {
+    if (!m_config) {
+        OutputDebugStringA("AssetManager InitShaders: m_config is null.\n");
+		return E_FAIL; // Error si m_config no está inicializado
+    }
+
+    return S_OK;
+}
+
 HRESULT AssetManager::Init(HWND hwnd, int width, int height) {
+    /*OutputDebugStringA("Incializando AssetManager...\n");
 
-    m_configBase = new BaseIndexConfig::Values();
+    m_configBase = new BaseIndexConfig();
 
-    HRESULT hr = AssetLocator::InitializeAssets(m_configBase->index);
+
+    HRESULT hr = AssetLocator::InitializeBaseAssets(m_configBase->index);
     if (FAILED(hr)) {
         OutputDebugStringA("MainController Init: Failed to initialize services.\n");
         return hr;
     }
-    return S_OK;
+
+    hr = AssetLocator::InitializeShaders(m_config->mainIndex);
+
+    m_config = new MainIndexConfig();
+
+    hr = AssetLocator::InitializeAssets(m_config->mainIndex);
+    if (FAILED(hr)) {
+        OutputDebugStringA("MainController Init: Failed to initialize services.\n");
+        return hr;
+    }
+    OutputDebugStringA(("Resultado Init " + std::to_string(hr) + " en AssetManager\n").c_str());
+    return hr;*/
+	return S_OK; // Retorna S_OK si la inicialización fue exitosa
 }
 
 void AssetManager::Render() {
@@ -114,21 +139,34 @@ void AssetManager::Shutdown() {
     //OutputDebugStringA("AssetManager shutdown.\n");
 }
 
-ID3D11ShaderResourceView* AssetManager::LoadTexture(ID3D11Device* device, const std::string& filePath) {
-    ID3D11ShaderResourceView* fontTextureView = nullptr;
-    HRESULT hr = TextureLoader::LoadTextureFromFile(device,
-		filePath.c_str(),
-        &fontTextureView);
-    if (FAILED(hr)) {
-        // Manejar el error (por ejemplo, mostrar un mensaje y salir)
-        OutputDebugStringA("Error al cargar la textura de la fuente.\n");
+//ID3D11ShaderResourceView* AssetManager::LoadTexture(std::shared_ptr<ID3D11Device> device, const std::string& filePath) {
+//    ID3D11ShaderResourceView* fontTextureView = nullptr;
+//    HRESULT hr = TextureLoader::LoadTextureFromFile(device,
+//		filePath.c_str(),
+//        &fontTextureView);
+//    if (FAILED(hr)) {
+//        // Manejar el error (por ejemplo, mostrar un mensaje y salir)
+//        OutputDebugStringA("Error al cargar la textura de la fuente.\n");
+//        return nullptr;
+//    }
+//	return fontTextureView;
+//}
+
+ID3D11ShaderResourceView* AssetManager::LoadTexture(std::string assetName) {
+    std::shared_ptr<DeviceManager> deviceManager = ManagerLocator::GetDeviceManager();
+    if (!deviceManager) {
+        OutputDebugStringA("ERROR: DeviceManager not found.\n");
         return nullptr;
-    }
-	return fontTextureView;
-}
+	}
+    //auto asset = AssetLocator::GetAssetBase(assetName);
 
-ID3D11ShaderResourceView* LoadTexture(std::string assetName) {
+    //std::shared_ptr<TextureAsset> textureAsset = std::dynamic_pointer_cast<TextureAsset>(asset);
 
+    //if (textureAsset) { // Si el cast fue exitoso (no es nullptr)
+    //    std::shared_ptr<ITextureConfig> config = ConfigLocator::GetConfig<ITextureConfig>(assetName + "Config");
+    //    std::string path = config->file_path;
+    //}
+    return nullptr;
 }
 
 

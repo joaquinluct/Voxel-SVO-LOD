@@ -1,0 +1,162 @@
+# engine_config.yaml
+
+# Orden de inicialización de los servicios del motor
+Config:
+  Base:
+    Engine:
+      managers_init_order:
+          - DeviceManager
+          - RenderTargetManager
+          - RenderManager
+          - KeyboardManager
+          - CameraManager
+          - AssetManager
+          - ShaderManager
+          # - WorldMatrixManager
+          - UIManager
+          - GameManager
+      managers_render_order:
+          - RenderTargetManager
+          # - WorldMatrixManager
+          - GameManager
+          - UIManager
+          - DeviceManager
+      managers_update_order:
+          - KeyboardManager
+          # - WorldMatrixManager
+          - CameraManager
+          - GameManager
+          - UIManager
+
+    RenderManager:
+     dependencies:
+        - UIManager
+
+    AssetManager:
+      manifest_path: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Resources\\assets_manifest.yaml"
+      asset_cache_size: 1000 # Número máximo de activos en caché
+      asset_load_timeout: 5.0 # Tiempo máximo para cargar un activo (en segundos)
+      dependencies:
+        - DeviceManager
+
+    # --- Configuraciones de Managers ---
+    DeviceManager:
+      vsync: true
+      fullscreen: false
+      debug_device: true # Usar D3D11_CREATE_DEVICE_DEBUG
+      swap_chain_buffer_count: 2
+      dependencies:
+        - None
+      # Puedes añadir más configuraciones específicas del dispositivo aquí
+
+    RenderTargetManager:
+      # RenderTargetManager a menudo no necesita mucha configuración directa
+      # Sus propiedades suelen derivar del DeviceManager o del swap chain.
+      clear_color: [0.0, 0.2, 0.4, 1.0] # RGBA
+      dependencies:
+        - DeviceManager
+
+    ShaderManager:
+      enabled: true
+      shader_cache_enabled: true
+      shader_paths:
+        - Shaders/Core/
+        - Shaders/Materials/
+      dependencies:
+        - DeviceManager
+        - ShaderAsset
+        - AssetManager 
+
+    KeyboardManager:
+      service: "Keyboard"
+      key_bindings:
+        move_forward:
+          - KEY_W
+          - KEY_UP
+        move_backward: 
+          - KEY_S
+          - KEY_DOWN
+        move_left:
+          - KEY_A
+          - KEY_LEFT
+        move_right:
+          - KEY_D
+          - KEY_RIGHT
+        jump:
+          - KEY_SPACE
+          - MOUSE_BUTTON3
+        crouch:
+          - KEY_CTRL_LEFT
+          - MOUSE_BUTTON2
+        sprint:
+          - KEY_SHIFT_LEFT
+          - KEY_SHIFT_RIGHT
+        interact:
+          - KEY_E
+          - MOUSE_BUTTON1
+        inventory:
+          - KEY_I
+          - KEY_TAB
+
+      dependencies:
+        - Keybindings
+        - Keyboard
+    CameraManager:
+      initialCamera: "MainCam"
+      cameras:
+        - MainCam
+        - DebugCam
+      camerasTypes:
+        - FirstPersonCamera
+      dependencies:
+        - Mouse
+        - Keyboard
+        - KeyboardManager
+        - RenderTargetManager 
+    WorldMatrixManager:
+      # Podrías definir el tamaño máximo de objetos, tamaño de lotes para instancing, etc.
+      max_instances_per_batch: 1024
+      dependencies:
+        - DeviceManager
+        - RenderTargetManager
+        - CameraManager
+
+    # --- Configuraciones de Subsistemas de Juego ---
+    GameManager:
+      manifestPath: "Resources\\game_manifest.yaml"
+      playerEntitConfig: "Data/Entities/player_character_default.yaml"
+      initialPlayerPosition: [0.0, 100.0, 0.0]
+      gameSpeedMultiplier: 1.0
+      debugMode: true
+      dependencies:
+        - DeviceManager
+        # Puedes añadir más subsistemas aquí
+
+    UIManager:
+      initial_screen: "main_menu.yaml"
+      font_path: "Assets/Fonts/Roboto-Regular.ttf"
+      font_size: 24
+      dependencies:
+        - DeviceManager
+        - RenderTargetManager
+        - WorldMatrixManager
+        - ShaderManager 
+
+Definition:
+  Default:
+    language: 1 # C++
+    type: "Class"
+    needs_register: true
+    file_level: 2 # Nivel donde comienza la definición de cada fichero
+                  # Ejemplo: Config: Base: Service: (en 3 líneas) -> el fichero en nivel 2 sería "Service.h" 
+                  #          y como tiene class_suffix = "Config" sería "ServiceConfig.h
+    register_include: "REGISTER_CONFIG_TYPE"
+    register_macro: "REGISTER_CONFIG_MACRO"
+    interface_name: "ConfigBase"
+    class_suffix: "Config"
+    class_prefix: ""
+    inherits_properties:
+        - type
+        - dependencies
+    output_path: 'c:\Users\joaqu\source\repos\DirectX-Voxelado\src\Engine\Core\Config\Base\'
+    #output_path: 'C:\Users\joaqu\source\repos\DirectX-Voxelado\TestConfig\Game\'

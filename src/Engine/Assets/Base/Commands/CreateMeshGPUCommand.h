@@ -22,6 +22,7 @@ public:
             OutputDebugStringA("WARNING: CreateMeshGPUCommand: Mesh asset is null or expired.\n");
             return E_FAIL;
         }
-        return m_meshAsset->InitD3D11Resources(pDevice, m_vertices, m_indices);
+        //return m_meshAsset->InitD3D11Resources<TVertex>(pDevice, m_vertices, m_indices);
+        return S_OK;
     }
 };

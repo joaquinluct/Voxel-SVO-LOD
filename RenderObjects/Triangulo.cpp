@@ -2,7 +2,7 @@
 
 Triangulo::Triangulo(Material* material) : m_vertexBuffer(nullptr), m_material(material) {}
 
-HRESULT Triangulo::Init(ID3D11Device* device) {
+HRESULT Triangulo::Init(std::shared_ptr<ID3D11Device> device) {
     // Definir vértices
     vertices = {
         { 0.0f, 0.5f, 0.0f },  // Vértice superior

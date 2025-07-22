@@ -2,9 +2,10 @@
 //
 #define CAMERA_MAIN				L"MainCam"
 #define SHADER_TEXTURE_BASE		L"DefaultShader"
-#define SHADER_BASE				L"SimpleLineShader"
+#define SHADER_BASE				L"BasicShader"
 #define SHADER_TEXT				L"TextShader"
 #define SHADER_VOXEL			L"VoxelShader"
+#define SHADER_SKYBOX			L"SkyboxShader"
 #define IDS_APP_TITLE           103
 #define IDR_MAINFRAME           128
 #define IDD_TUTORIAL1_DIALOG    102

@@ -41,8 +41,8 @@ private:
     HRESULT InitGame();
     HRESULT InitGameServices() const;
 
-    GameManagerConfig::Values* m_config{}; // Configuración base del GameManager
-    GameEngineConfig::Values* m_gameConfig{}; // Configuración del motor de juego
+    GameManagerConfig* m_config{}; // Configuración base del GameManager
+    GameEngineConfig* m_gameConfig{}; // Configuración del motor de juego
 
     // Punteros a otros managers que GameManager necesitará para su lógica
     std::shared_ptr<CameraManager> m_cameraManager;

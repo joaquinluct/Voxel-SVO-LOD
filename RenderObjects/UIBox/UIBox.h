@@ -1,12 +1,12 @@
 // UIBox.h
 #pragma once
 
-#include <d3d11_1.h>
+#include "../Line/Line.h"
 #include <DirectXMath.h> // Para XMFLOAT3, XMFLOAT4
-#include <vector>        // Para std::vector
-
-#include "Material/Material.h" // Necesitas tu clase Material
-#include "../Line/Line.h"     // Necesitas tu clase Line
+#include <Windows.h>
+#include <string>
+#include <vector>
+#include <Services/Material.h>
 
 class UIBox {
 public:
@@ -19,7 +19,7 @@ public:
     ~UIBox();
 
     // M�todo de inicializaci�n (para crear los recursos de Direct3D para las l�neas)
-    HRESULT Init(ID3D11Device* device);
+    HRESULT Init(std::shared_ptr<ID3D11Device> device);
     
     // M�todo de renderizado
     void Render(ID3D11DeviceContext* context);
@@ -34,11 +34,11 @@ public:
 
 private:
     Material* m_material;
-    std::vector<Line*> m_lines; // Contendr� las 12 l�neas que forman la caja
+    std::vector<Line*> m_lines;
     DirectX::XMFLOAT3 m_origin;
     float m_sizeX, m_sizeY, m_sizeZ;
     DirectX::XMFLOAT4 m_color;
 
-    // M�todos privados para calcular los puntos de las esquinas y crear las l�neas
+    // Métodos privados para calcular los puntos de las esquinas y crear las líneas
     void CreateLines();
 };

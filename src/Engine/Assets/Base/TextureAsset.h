@@ -1,15 +1,21 @@
 // Texture.h
 #pragma once
-#include "Assets/IAsset.h"
+#include <DeviceManager.h> // Asegúrate de que este archivo exista y contenga la definición de ITextureConfig
+#include <ManagerLocator/ManagerLocator.h> // Asegúrate de que este archivo exista y contenga la definición de IConfig
+#include <Services/Material.h>
+#include <Assets/Base/AssetBase.h>
 #include <d3d11.h>
+#include <ConfigBase.h>
 #include <string>
 #include <wrl/client.h> // Para Microsoft::WRL::ComPtr
+#include <memory> // Para std::shared_ptr
+#include <RenderTargetManager.h> 
 
 // Define un tipo de alias para ComPtr para mayor comodidad
 template <typename T>
 using ComPtr = Microsoft::WRL::ComPtr<T>;
 
-class TextureAsset : public IAsset {
+class TextureAsset : public AssetBase {
 public:
     TextureAsset(); // Constructor simple, la carga es en el AssetManager
     ~TextureAsset() override;
@@ -30,19 +36,39 @@ public:
         static const std::string name = "TextureAsset";
         return name;
     }
+        
+    void SetConfig(std::shared_ptr<ConfigBase> config) override {
+		SetConfig(std::dynamic_pointer_cast<ITextureConfig>(config));
+    }
+    void SetConfig(std::shared_ptr<ITextureConfig> config) {
+        m_textureConfig = config;
+
+    };
+    void SetTexture(Material* material, std::string textureType, std::string textureMap);
+    void SetTextureView(Material* material);
+    ID3D11ShaderResourceView* GetTextureView(std::string textureType, std::string mapType);
+    ID3D11ShaderResourceView* GetFileTextureView(std::string mapType);
+    ID3D11ShaderResourceView* GetCubemapTextureView() const;
 
     // Métodos específicos de Texture
-    ID3D11Resource* GetTexture2D() const { return m_texture2D; }
+    ID3D11Resource* GetTexture2D() const { return m_textureAlbedo2D; }
     
     // Método para inicializar la textura con los recursos de D3D11
     HRESULT InitD3D11Resources(ID3D11Device* pDevice, const std::string& filePath);
 
-private:
+    std::shared_ptr<ITextureConfig> m_textureConfig = nullptr; // Configuración de textura
+private:	
     /*ComPtr<ID3D11Texture2D> m_texture2D;
     ComPtr<ID3D11ShaderResourceView> m_shaderResourceView;*/
 
-    ID3D11Resource* m_texture2D = nullptr; // Puntero a la textura 2D de D3D11
-	ID3D11ShaderResourceView* m_shaderResourceView = nullptr; // Vista de recurso de shader
+    ID3D11Resource* m_textureAlbedo2D = nullptr; // Puntero a la textura 2D de D3D11
+    ID3D11Resource* m_textureNormal2D = nullptr; // Puntero a la textura 2D de D3D11
+    ID3D11Resource* m_textureRoughtness2D = nullptr; // Puntero a la textura 2D de D3D11
+    ID3D11Resource* m_textureAmbientOcclusion2D = nullptr; // Puntero a la textura 2D de D3D11
+    ID3D11Resource* m_textureARM_Map2D = nullptr; // Puntero a la textura 2D de D3D11
+    ID3D11ShaderResourceView* m_shaderResourceView = nullptr; // Vista de recurso de shader
+
+    std::string GetFilePathByMapType(std::string mapType);
 
     // *******************************************
     // ****Evitar copias para recursos D3D11******

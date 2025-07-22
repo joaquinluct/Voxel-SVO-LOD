@@ -37,6 +37,7 @@ void RenderTargetManager::Clear(const FLOAT clearColor[4])
 
 HRESULT RenderTargetManager::Init(HWND hwnd, int width, int height)
 {
+    OutputDebugStringA("Incializando RenderTargetManager...\n");
     m_width = width;
     m_height = height;
 
@@ -93,7 +94,9 @@ HRESULT RenderTargetManager::Init(HWND hwnd, int width, int height)
     SetRenderTargets();
     SetViewport();
 
-    return S_OK;
+    hr = S_OK;
+    OutputDebugStringA(("Resultado Init " + std::to_string(hr) + " en RenderTargetManager\n").c_str());
+    return hr;
 }
 
 void RenderTargetManager::Shutdown()
@@ -135,7 +138,6 @@ void RenderTargetManager::Render()
 	EnableClearEffect(true); // Asegurarse de que el efecto de limpieza esté habilitado antes de limpiar
     SetClearEffectSpeed(0.5f);
 
-    FLOAT clearColor[4] = { .7f, 0.7f, 0.7f, 1.0f };
     Clear(clearColor);
 
     return;
