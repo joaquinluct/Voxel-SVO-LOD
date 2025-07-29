@@ -4,7 +4,7 @@
 REGISTER_CONFIG_TYPE(BiomeConfig,"BiomeConfig");
 
 BiomeConfig::BiomeConfig(){
-	name = "BiomwManager";
+	name = "BiomeService";
 	enabled = true;
 	version = "1.0.0";
 	type = "ForestBiome";

@@ -53,6 +53,30 @@ Config:
         name: "PBRShader"
         dependencies:
           - ShaderAsset
+      PBRShadowShader:
+        type: "ShaderAsset"
+        shader_path: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Shader\\PBRShadowShader.hlsl"
+        vertex_def: "TextureMapVertex"
+        matrix_slots:
+            - MatrixBufferType
+            - DirectionalLight
+            - CameraData
+            - MaterialData
+            - LightSpaceMatrices
+        name: "PBRShadowShader"
+        dependencies:
+          - ShaderAsset
+      ShadowMapShader:
+        # Shader para la generación de mapas de sombras. No se usa directamente en la escena, 
+        # sino que se utiliza para generar mapas de sombras que luego son usados por otros shaders.
+        type: "ShaderAsset"
+        shader_path: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Shader\\ShadowMapShader.hlsl"
+        vertex_def: "SimpleVertex"
+        matrix_slots:
+            - LightSpaceMatrices
+        name: "ShadowMapShader"
+        dependencies:
+          - ShaderAsset
       SkyboxShader:
         type: "ShaderAsset"
         shader_path: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Shader\\SkyboxShader.hlsl"

@@ -21,6 +21,11 @@ public:
     ~TextureAsset() override;
 
 	// IAsset overrides
+    virtual std::shared_ptr<AssetBase> Clone() const override {
+        // Crea una nueva instancia utilizando el constructor de copia
+        // y la devuelve como un shared_ptr.
+        return std::make_shared<TextureAsset>(*this);
+    }
 	void Load() override {};
 	void Unload() override {};
     HRESULT Init() override { return S_OK; };

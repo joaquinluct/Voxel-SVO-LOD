@@ -105,7 +105,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;YAML_CPP_STATIC_DEFINE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\Users\joaqu\source\repos oficiales\DirectXTK-main\Inc;C:\Users\joaqu\Downloads\yaml-cpp-master-original\yaml-cpp-master\include;$(ProjectDir)Libs;$(ProjectDir)src;$(ProjectDir)Assets;$(ProjectDir)Interfaces;$(ProjectDir)Interfaces/Config;$(ProjectDir)Interfaces/Assets;$(ProjectDir)src/Engine;$(ProjectDir)src/Engine/Managers;$(ProjectDir)src/Engine/Core;$(ProjectDir)src/Engine/Util;$(Projectdir)src/Engine/Core/Locators/Registers;$(Projectdir)src/Engine/Core/Locators;$(Projectdir)src/Engine/Core/Config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\joaqu\source\repos oficiales\DirectXTK-main\Inc;C:\Users\joaqu\Downloads\yaml-cpp-master-original\yaml-cpp-master\include;$(ProjectDir)Libs;$(ProjectDir)src;$(ProjectDir)Assets;$(ProjectDir)Interfaces;$(ProjectDir)Interfaces/Pipeline;$(ProjectDir)Interfaces/Config;$(ProjectDir)Interfaces/Assets;$(ProjectDir)src/Engine;$(ProjectDir)src/Engine/Managers;$(ProjectDir)src/Engine/Core;$(ProjectDir)src/Engine/Util;$(Projectdir)src/Engine/Core/Locators/Registers;$(Projectdir)src/Engine/Core/Locators;$(Projectdir)src/Engine/Core/Config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -175,17 +175,22 @@
     <ClCompile Include="src\Engine\Core\Config\Assets\Base\VertexAssetConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Material\DefaultSkyboxMaterialConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Mesh\FloorMeshConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Assets\Mesh\House1MeshConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Mesh\SkyboxMeshConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\DefaultShaderConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\PBRShaderConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Assets\Shader\PBRShadowShaderConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\ShaderTextUIConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Assets\Shader\ShadowMapShaderConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\SkyboxShaderConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\TextureBasicShaderConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\TextureMapShaderConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\TextureMap\DefaultSkyboxMapConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Assets\TextureMap\TextureBricks001MapConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\TextureMap\TextureGrassDiffuseMapConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\TextureMap\TextureTextUIMapConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Texture\DefaultSkyboxConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Assets\Texture\TextureBricks001Config.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Texture\TextureGrassDiffuseConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Texture\TextureTextUIConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Vertex\FloorVertexConfig.cpp" />
@@ -195,8 +200,18 @@
     <ClCompile Include="src\Engine\Core\Config\Base\DeviceManagerConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\EngineConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\GameManagerConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\InitManagerConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\KeyboardManagerConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\RenderManagerConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderPass\MainColorPassConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderPass\ShadowPassConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\BlendingMainColor.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\RasterizedMainColorPass.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\RasterizedShadowPass.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\StencilMainColor.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\SwapChainMain.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\ViewportMainColor.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\ViewportShadow.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\RenderTargetManagerConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\ShaderManagerConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\UIManagerConfig.cpp" />
@@ -212,6 +227,8 @@
     <ClCompile Include="src\Engine\Core\Config\Game\System\CycleConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Game\System\LightingConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Game\System\PhysicsConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Game\System\RendererConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Game\System\ShadowsConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Game\System\SkyboxConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Game\System\TerrainConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Game\System\WheatherConfig.cpp" />
@@ -221,13 +238,29 @@
     <ClCompile Include="src\Engine\Core\Config\Services\MaterialConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Services\MouseConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Services\ServiceConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Services\UIBaseConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Services\UIDebugConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Defines\MatrixDefinition.cpp" />
+    <ClCompile Include="src\Engine\Core\Locators\Pipeline\PipelineStateLocator.cpp" />
+    <ClCompile Include="src\Engine\Managers\InitManager.cpp" />
+    <ClCompile Include="src\Engine\Managers\InitManager\Pipeline\PipelineConfigurator.cpp" />
+    <ClCompile Include="src\Engine\Managers\RenderManager\Pipeline\RenderPipelineExecutor.cpp" />
     <ClCompile Include="src\Engine\Core\Defines\VertexDefinition.cpp" />
     <ClCompile Include="src\Engine\Core\Locators\AssetLocator\AssetLocator.cpp" />
     <ClCompile Include="src\Engine\Core\Locators\ConfigLocator\ConfigLocator.cpp" />
     <ClCompile Include="src\Engine\Core\Locators\DefineLocator\DefineLocator.cpp" />
     <ClCompile Include="src\Engine\Core\Locators\ManagerLocator\ManagerLocator.cpp" />
+    <ClCompile Include="src\Engine\Core\Locators\Pipeline\RenderPassLocator.cpp" />
+    <ClCompile Include="src\Engine\Managers\RenderManager\Passes\MainColorPass.cpp" />
+    <ClCompile Include="src\Engine\Managers\RenderManager\Passes\ShadowPass.cpp" />
+    <ClCompile Include="src\Engine\Managers\RenderManager\RenderPass.cpp" />
+    <ClCompile Include="src\Game\GameObjects\TestingFloor.cpp" />
+    <ClCompile Include="src\Game\Systems\RenderPipeline\Pipeline\InputAssemblyStage.cpp" />
+    <ClCompile Include="src\Game\Systems\RenderPipeline\Pipeline\OutputMergerStage.cpp" />
+    <ClCompile Include="src\Game\Systems\RenderPipeline\Pipeline\PixelShaderStage.cpp" />
+    <ClCompile Include="src\Game\Systems\RenderPipeline\Pipeline\RasterizerStage.cpp" />
+    <ClCompile Include="src\Game\Systems\RenderPipeline\Pipeline\VertexShaderStage.cpp" />
+    <ClCompile Include="src\Game\Systems\RenderPipeline\RenderPipeline.cpp" />
     <ClCompile Include="src\Engine\Managers\AssetManager.cpp" />
     <ClCompile Include="src\Engine\Assets\Base\MeshAsset.cpp" />
     <ClCompile Include="src\Engine\Assets\Base\TextureAsset.cpp" />
@@ -268,30 +301,18 @@
     <ClCompile Include="src\Engine\Managers\DeviceManager.cpp" />
     <ClCompile Include="src\Engine\Managers\KeyboardManager.cpp" />
     <ClCompile Include="src\Engine\Managers\RenderTargetManager.cpp" />
-    <ClCompile Include="src\Game\GameObjects\AxisXYZ.cpp" />
     <ClCompile Include="src\Engine\Services\Keyboard.cpp" />
+    <ClCompile Include="src\Game\Systems\Lighting.cpp" />
+    <ClCompile Include="src\Game\Systems\Shadows.cpp" />
     <ClCompile Include="src\Game\Systems\Skybox.cpp" />
     <ClCompile Include="src\Engine\Managers\WorldMatrixManager.cpp" />
     <ClCompile Include="src\Engine\Services\Material.cpp" />
     <ClCompile Include="src\Engine\Managers\GameManager.cpp" />
-    <ClCompile Include="RenderObjects\Line\Line.cpp" />
-    <ClCompile Include="RenderObjects\Suelo\Suelo.cpp" />
-    <ClCompile Include="RenderObjects\Triangulo.cpp" />
     <ClCompile Include="src\Engine\Managers\ShaderManager.cpp" />
-    <ClCompile Include="RenderObjects\UIBox\UIBox.cpp" />
-    <ClCompile Include="src\Game\GameObjects\TestingBasic.cpp" />
-    <ClCompile Include="src\Game\GameObjects\TestingBasic2.cpp" />
-    <ClCompile Include="src\Game\GameObjects\TestingFloor.cpp" />
-    <ClCompile Include="src\Game\GameObjects\TextBasicTexture.cpp" />
-    <ClCompile Include="src\Game\GameObjects\UIDebug.cpp" />
     <ClCompile Include="src\Engine\Util\IGPUCreateCommand.cpp" />
     <ClCompile Include="src\Engine\Managers\UIManager.cpp" />
     <ClCompile Include="src\UI\UIBase.cpp" />
     <ClCompile Include="TestManagerName.cpp" />
-    <ClCompile Include="src\Engine\UI\UIButton.cpp" />
-    <ClCompile Include="src\Engine\UI\UIElement.cpp" />
-    <ClCompile Include="src\Engine\UI\UIRectangle.cpp" />
-    <ClCompile Include="src\Engine\UI\UIText.cpp" />
     <ClCompile Include="src\Engine\Util\LOD.cpp" />
     <ClCompile Include="src\Engine\Util\RayTracing\RayTracing.cpp" />
     <ClCompile Include="src\Engine\Util\TextureLoader\TextureLoader.cpp" />
@@ -352,10 +373,19 @@
     <ClInclude Include="Interfaces\Config\MeshAssetConfigBase.h" />
     <ClInclude Include="Interfaces\Config\ITextureConfig.h" />
     <ClInclude Include="Interfaces\Config\VertexAssetConfigBase.h" />
+    <ClInclude Include="Interfaces\IClonable.h" />
+    <ClInclude Include="Interfaces\IClonableAsset.h" />
     <ClInclude Include="Interfaces\IConfig.h" />
     <ClInclude Include="Interfaces\IDefine.h" />
     <ClInclude Include="Interfaces\IDefine\IVertex.h" />
+    <ClInclude Include="Interfaces\IPipelineState.h" />
+    <ClInclude Include="Interfaces\IRenderPass.h" />
     <ClInclude Include="Interfaces\IService.h" />
+    <ClInclude Include="Interfaces\Pipeline\IPipelineBlendingState.h" />
+    <ClInclude Include="Interfaces\Pipeline\IPipelineRasterizedState.h" />
+    <ClInclude Include="Interfaces\Pipeline\IPipelineStencilState.h" />
+    <ClInclude Include="Interfaces\Pipeline\IPipelineSwapChainState.h" />
+    <ClInclude Include="Interfaces\Pipeline\IPipelineViewportState.h" />
     <ClInclude Include="Libs\TinyObjLoader\tiny_obj_loader.h" />
     <ClInclude Include="src\Engine\Assets\Base\AssetBase.h" />
     <ClInclude Include="src\Engine\Assets\Base\MaterialAsset.h" />
@@ -374,17 +404,22 @@
     <ClInclude Include="src\Engine\Core\Config\Assets\Base\VertexAssetConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Material\DefaultSkyboxMaterialConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Mesh\FloorMeshConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Assets\Mesh\House1MeshConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Mesh\SkyboxMeshConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\DefaultShaderConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\PBRShaderConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Assets\Shader\PBRShadowShaderConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\ShaderTextUIConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Assets\Shader\ShadowMapShaderConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\SkyboxShaderConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\TextureBasicShaderConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\TextureMapShaderConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\TextureMap\DefaultSkyboxMapConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Assets\TextureMap\TextureBricks001MapConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\TextureMap\TextureGrassDiffuseMapConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\TextureMap\TextureTextUIMapConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Texture\DefaultSkyboxConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Assets\Texture\TextureBricks001Config.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Texture\TextureGrassDiffuseConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Texture\TextureTextUIConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Vertex\FloorVertexConfig.h" />
@@ -394,8 +429,18 @@
     <ClInclude Include="src\Engine\Core\Config\Base\DeviceManagerConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\EngineConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\GameManagerConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\InitManagerConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\KeyboardManagerConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\RenderManagerConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderPass\MainColorPassConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderPass\ShadowPassConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\BlendingMainColor.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\RasterizedMainColorPass.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\RasterizedShadowPass.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\StencilMainColor.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\SwapChainMain.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\ViewportMainColor.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\ViewportShadow.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\RenderTargetManagerConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\ShaderManagerConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\UIManagerConfig.h" />
@@ -411,6 +456,8 @@
     <ClInclude Include="src\Engine\Core\Config\Game\System\CycleConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Game\System\LightingConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Game\System\PhysicsConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Game\System\RendererConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Game\System\ShadowsConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Game\System\SkyboxConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Game\System\TerrainConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Game\System\WheatherConfig.h" />
@@ -420,12 +467,15 @@
     <ClInclude Include="src\Engine\Core\Config\Services\MaterialConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Services\MouseConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Services\ServiceConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Services\UIBaseConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Services\UIDebugConfig.h" />
     <ClInclude Include="src\Engine\Core\Defines\Asset.h" />
     <ClInclude Include="src\Engine\Core\Defines\Components.h" />
     <ClInclude Include="src\Engine\Core\Defines\Light.h" />
     <ClInclude Include="src\Engine\Core\Defines\MatrixDefinition.h" />
     <ClInclude Include="src\Engine\Core\Defines\MatrixDefinitionBase.h" />
+    <ClInclude Include="src\Engine\Core\Defines\Pipeline.h" />
+    <ClInclude Include="src\Engine\Core\Defines\RenderPass.h" />
     <ClInclude Include="src\Engine\Core\Defines\Texture.h" />
     <ClInclude Include="src\Engine\Core\Locators\AssetLocator\AssetLocator.h" />
     <ClInclude Include="src\Engine\Core\Locators\ConfigLocator\ConfigLocator.h" />
@@ -454,19 +504,34 @@
     <ClInclude Include="src\Engine\Core\Locators\DefineLocator\DefineLocator.h" />
     <ClInclude Include="src\Engine\Core\Locators\ManagerLocator\ManagerLocator.h" />
     <ClInclude Include="src\Engine\Core\Defines\VertexDefinition.h" />
+    <ClInclude Include="src\Engine\Core\Locators\Pipeline\PipelineStateLocator.h" />
+    <ClInclude Include="src\Engine\Core\Locators\Registers\REGISTER_PIPELINE_STATE_MACRO.h" />
+    <ClInclude Include="src\Engine\Core\Locators\Registers\REGISTER_RENDER_PASS_MACRO.h" />
+    <ClInclude Include="src\Engine\Core\Locators\Pipeline\RenderPassLocator.h" />
     <ClInclude Include="src\Engine\Core\Locators\Registers\REGISTER_DEFINE_MACRO.h" />
+    <ClInclude Include="src\Engine\Managers\InitManager.h" />
+    <ClInclude Include="src\Engine\Managers\InitManager\Pipeline\PipelineConfigurator.h" />
+    <ClInclude Include="src\Engine\Managers\RenderManager\Passes\MainColorPass.h" />
+    <ClInclude Include="src\Engine\Managers\RenderManager\Passes\ShadowPass.h" />
+    <ClInclude Include="src\Engine\Managers\RenderManager\Pipeline\RenderPipelineExecutor.h" />
+    <ClInclude Include="src\Engine\Managers\RenderManager\RenderPass.h" />
+    <ClInclude Include="src\Game\GameObjects\TestingFloor.h" />
+    <ClInclude Include="src\Game\Systems\RenderPipeline\Pipeline\InputAssemblyStage.h" />
+    <ClInclude Include="src\Game\Systems\RenderPipeline\Pipeline\OutputMergerStage.h" />
+    <ClInclude Include="src\Game\Systems\RenderPipeline\Pipeline\PixelShaderStage.h" />
+    <ClInclude Include="src\Game\Systems\RenderPipeline\Pipeline\RasterizerStage.h" />
+    <ClInclude Include="src\Game\Systems\RenderPipeline\Pipeline\VertexShaderStage.h" />
+    <ClInclude Include="src\Game\Systems\RenderPipeline\RenderPipeline.h" />
     <ClInclude Include="src\Engine\Helpers\Assets.h" />
     <ClInclude Include="src\Engine\Managers\AssetLoadContext.h" />
     <ClInclude Include="src\Engine\Managers\AssetManager.h" />
     <ClInclude Include="src\Engine\Assets\Base\MeshAsset.h" />
     <ClInclude Include="src\Engine\Assets\Base\TextureAsset.h" />
     <ClInclude Include="src\Engine\Camera\FirstPersonCamera.h" />
-    <ClInclude Include="src\Engine\Core\ServiceCreator\ServiceCreator.h" />
     <ClInclude Include="src\Engine\Core\Locators\ServiceLocator\ServiceLocator.h" />
     <ClInclude Include="src\Engine\Managers\RenderManager\BaseRenderManager.h" />
     <ClInclude Include="src\Engine\Managers\RenderManager\GameRenderManager.h" />
     <ClInclude Include="src\Engine\Managers\RenderManager\RenderManager.h" />
-    <ClInclude Include="src\Game\GameObjects\TestingFloor.h" />
     <ClInclude Include="src\Engine\Services\KeyBindings.h" />
     <ClInclude Include="src\Engine\Services\Mouse.h" />
     <ClInclude Include="Interfaces\Assets\IAsset.h" />
@@ -544,37 +609,26 @@
     <ClInclude Include="src\Engine\Core\Locators\Registers\REGISTER_MANAGER_MACRO.h" />
     <ClInclude Include="src\Engine\Core\Locators\Registers\REGISTER_SERVICE_MACRO.h" />
     <ClInclude Include="src\Engine\Managers\RenderTargetManager.h" />
-    <ClInclude Include="src\Game\GameObjects\AxisXYZ.h" />
     <ClInclude Include="src\Engine\Services\Keyboard.h" />
+    <ClInclude Include="src\Game\Systems\Lighting.h" />
+    <ClInclude Include="src\Game\Systems\Shadows.h" />
     <ClInclude Include="src\Game\Systems\Skybox.h" />
     <ClInclude Include="src\Engine\Managers\WorldMatrixManager.h" />
     <ClInclude Include="src\Engine\Services\Material.h" />
     <ClInclude Include="src\Engine\Managers\GameManager.h" />
-    <ClInclude Include="RenderObjects\Suelo\Suelo.h" />
-    <ClInclude Include="RenderObjects\Triangulo.h" />
-    <ClInclude Include="RenderObjects\UIBox\UIBox.h" />
     <ClInclude Include="Resources\resource.h" />
     <ClInclude Include="src\Engine\Managers\ShaderManager.h" />
-    <ClInclude Include="src\Game\GameObjects\TestBasicTexture.h" />
-    <ClInclude Include="src\Game\GameObjects\TestingBasic.h" />
-    <ClInclude Include="src\Game\GameObjects\TestingBasic2.h" />
-    <ClInclude Include="src\Game\GameObjects\UIDebug.h" />
     <ClInclude Include="src\Engine\Util\AssetType.h" />
     <ClInclude Include="src\Engine\Util\IGPUCreateCommand.h" />
     <ClInclude Include="src\Engine\Util\Text\Text.h" />
     <ClInclude Include="src\Engine\Util\Array\ArrayUtility.h" />
     <ClInclude Include="src\Engine\Util\DirectXUtils.h" />
     <ClInclude Include="src\Engine\Managers\UIManager.h" />
-    <ClInclude Include="src\Engine\UI\UIButton.h" />
-    <ClInclude Include="src\Engine\UI\UIElement.h" />
-    <ClInclude Include="src\Engine\UI\UIRectangle.h" />
-    <ClInclude Include="src\Engine\UI\UIText.h" />
     <ClInclude Include="src\Engine\Util\RayTracing\RayTracing.h" />
     <ClInclude Include="src\Engine\Util\Texture.h" />
     <ClInclude Include="src\Engine\Util\TextureLoader\stb_image.h" />
     <ClInclude Include="src\Engine\Util\TextureLoader\TextureLoader.h" />
     <ClInclude Include="src\Engine\Util\Utils.h" />
-    <ClInclude Include="RenderObjects\Line\Line.h" />
     <ClInclude Include="src\Engine\Util\VisibleNodeInfo.h" />
     <ClInclude Include="src\UI\UIBase.h" />
   </ItemGroup>
@@ -582,6 +636,19 @@
     <FxCompile Include="Assets\Shader\PBRShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       </ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="Assets\Shader\PBRShadowShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="Assets\Shader\ShadowMapShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
@@ -645,6 +712,12 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <Image Include="Assets\Textures\Brick\Poliigon_BrickWallReclaimed_8320_AmbientOcclusion.jpg" />
+    <Image Include="Assets\Textures\Brick\Poliigon_BrickWallReclaimed_8320_BaseColor.jpg" />
+    <Image Include="Assets\Textures\Brick\Poliigon_BrickWallReclaimed_8320_Displacement.tiff" />
+    <Image Include="Assets\Textures\Brick\Poliigon_BrickWallReclaimed_8320_Metallic.jpg" />
+    <Image Include="Assets\Textures\Brick\Poliigon_BrickWallReclaimed_8320_Normal.png" />
+    <Image Include="Assets\Textures\Brick\Poliigon_BrickWallReclaimed_8320_Roughness.jpg" />
     <Image Include="Assets\Textures\Rock\Coast_sand_rock\coast_sand_rocks_02_ao_4k.jpg" />
     <Image Include="Assets\Textures\Rock\Coast_sand_rock\coast_sand_rocks_02_arm_4k.jpg" />
     <Image Include="Assets\Textures\Rock\Coast_sand_rock\coast_sand_rocks_02_diff_4k.jpg" />
@@ -666,6 +739,7 @@
     <Image Include="Resources\Textures\Rock\Coast sand rock\coast_sand_rocks_02_rough_4k.jpg" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Assets\Textures\Brick\Poliigon_BrickWallReclaimed_8320.mtlx" />
     <None Include="Assets\Textures\DefaultSkybox\build_dds.bat" />
     <None Include="cpp.hint" />
     <None Include="Libs\DirectX\DirectXTex\DirectXTex.inl" />
@@ -684,6 +758,16 @@
     <None Include="Libs\DirectX\DirectXTex\Shaders\Compiled\BC7Encode_TryMode456CS.inc" />
     <None Include="Libs\DirectX\DirectXTex\Shaders\Compiled\BC7Encode_TryMode456CS_cs40.inc" />
     <None Include="Libs\DirectX\DirectXTex\Shaders\CompileShaders.cmd" />
+    <None Include="md\PIPE-LINE.md" />
+    <None Include="md\SAMPLERS.md" />
+    <None Include="md\SAVE_FBX.md" />
+    <None Include="md\SHADER_REGISTROS.md" />
+    <None Include="md\SVO con LOD.md" />
+    <None Include="md\SVO Generar Octree.md" />
+    <None Include="md\SVO-BASE.md" />
+    <None Include="md\SVO.md" />
+    <None Include="md\SVO_TRIÁNGULOS.md" />
+    <None Include="md\VOXEL-CHUNKS.md" />
     <None Include="READ.md" />
     <None Include="Resources\Config\Assets\assets_base.yaml" />
     <None Include="Resources\Config\Assets\assets_material.yaml" />
@@ -696,6 +780,8 @@
     <None Include="Resources\Config\Assets\assets_texture.yaml" />
     <None Include="EstructuraProyecto.md" />
     <None Include="Resources\Config\camera_config.yaml" />
+    <None Include="Resources\Config\Engine\engine_render_pass.yaml" />
+    <None Include="Resources\Config\Engine\Pipeline\engine_render_state.yaml" />
     <None Include="Resources\Config\engine_config.yaml" />
     <None Include="Resources\Config\Game\game_base.yaml" />
     <None Include="Resources\Config\Game\game_object.yaml" />

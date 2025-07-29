@@ -19,6 +19,7 @@ ServiceConfig::ServiceConfig(){
 	services_update_order = {
 		"Mouse",
 		"Keyboard",
-		"UIBase"
+		"UIBase",
+		"Material"
 	};
 };

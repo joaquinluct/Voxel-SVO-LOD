@@ -4,7 +4,7 @@
 REGISTER_CONFIG_TYPE(TerrainConfig,"TerrainConfig");
 
 TerrainConfig::TerrainConfig(){
-	name = "TerrainManager";
+	name = "TerrainService";
 	enabled = true;
 	version = "1.0.0";
 	type = "ProceduralTerrain";

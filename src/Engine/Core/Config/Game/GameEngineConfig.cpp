@@ -5,11 +5,14 @@ REGISTER_CONFIG_TYPE(GameEngineConfig,"GameEngineConfig");
 
 GameEngineConfig::GameEngineConfig(){
 	services_init_order = {
+		"Lighting",
+		"Shadows",
 		"Skybox",
 		"TestingFloor"
 	};
 	services_render_order = {
 		"Skybox",
-		"TestingFloor"
+		"TestingFloor",
+		"Lighting"
 	};
 };

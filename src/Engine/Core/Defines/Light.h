@@ -90,4 +90,27 @@ namespace Light {
             return MATRIX_TYPE_PIXEL.data();
         }
     };
+
+    // Necesario para el cálculo de sombras en el shader principal.
+    struct LightSpaceMatrices {
+		DirectX::XMMATRIX worldMatrix; // Matriz de transformación del objeto en espacio mundo
+        DirectX::XMMATRIX LightViewProjection; // Matriz de vista*proyección de la luz
+
+        void SetMatrixData(MatrixParams params) {
+            // Asigna la matriz de vista-proyección de la luz desde MatrixParams
+            // DirectX::XMMATRIX ya es de 16 bytes de alineación y tamaño apropiado.
+            this->LightViewProjection = params.lightViewProjectionMatrix;
+        }
+
+        UINT Size() {
+            // DirectX::XMMATRIX ya está alineada y es un tamaño apropiado para un constant buffer (64 bytes).
+            return 2 * sizeof(DirectX::XMMATRIX);
+        }
+
+        std::string MatrixType() {
+            // Normalmente esta matriz es usada tanto en el Vertex Shader (para transformar posiciones)
+            // como en el Pixel Shader (para muestrear el mapa de sombras).
+            return MATRIX_TYPE_VERTEX.data();
+        }
+    };
 }

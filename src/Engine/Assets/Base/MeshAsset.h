@@ -2,6 +2,7 @@
 #pragma once
 #include <d3d11.h>
 #include <DirectXMath.h>
+#include <wrl/client.h>
 #include <string>
 #include <vector>
 #include <memory>
@@ -13,12 +14,14 @@
 #include <DeviceManager.h>
 #include <CameraManager.h>
 #include <ShaderManager.h>
+#include <RenderManager/RenderManager.h>
 #include <Services/Material.h>
 
 class TextureAsset;
 
 class MeshAsset : public AssetBase {
 private:
+	DirectX::XMMATRIX m_worldMatrix = DirectX::XMMatrixIdentity();
     UINT m_vertexCount = 0;
     UINT m_indexCount = 0;
 
@@ -28,10 +31,12 @@ private:
     std::shared_ptr<DeviceManager> m_deviceManager;
     std::shared_ptr<CameraManager> m_cameraManager;
     std::shared_ptr <ShaderManager> m_shaderManager;
+    std::shared_ptr <RenderManager> m_renderManager;
     std::shared_ptr<TextureAsset> m_textureAsset;
 
-    ID3D11Buffer* m_vertexBuffer;
-    ID3D11Buffer* m_indexBuffer;
+    Microsoft::WRL::ComPtr<ID3D11Buffer> m_vertexBuffer;
+    Microsoft::WRL::ComPtr<ID3D11Buffer> m_indexBuffer;
+
 
     Material* m_material;
 
@@ -40,8 +45,20 @@ private:
     MeshAsset& operator=(const MeshAsset&) = delete;*/
 public:
     MeshAsset();
+	MeshAsset(const MeshAsset& other) : m_vertexCount(other.m_vertexCount), m_indexCount(other.m_indexCount),
+        m_vertexTypeSize(other.m_vertexTypeSize), m_meshConfig(other.m_meshConfig),
+        m_deviceManager(other.m_deviceManager), m_cameraManager(other.m_cameraManager),
+        m_shaderManager(other.m_shaderManager), m_textureAsset(other.m_textureAsset),
+        m_vertexBuffer(other.m_vertexBuffer), m_indexBuffer(other.m_indexBuffer),
+		m_material(other.m_material) {
+	}
     ~MeshAsset();
     // IAsset overrides
+    virtual std::shared_ptr<AssetBase> Clone() const override {
+        // Crea una nueva instancia utilizando el constructor de copia
+        // y la devuelve como un shared_ptr.
+        return std::make_shared<MeshAsset>(*this);
+    }
     void Load() override {};
     void Unload() override {};
     HRESULT Init() override;
@@ -51,6 +68,29 @@ public:
     void Render() override;
     void Update(float deltaTime) override {};
     void Shutdown() override;
+
+    void SetPosition(const DirectX::XMFLOAT3& position) {
+        m_worldMatrix = DirectX::XMMatrixTranslation(position.x, position.y, position.z);
+	}
+    void SetPosition(float x, float y, float z) {
+        m_worldMatrix = DirectX::XMMatrixTranslation(x, y, z);
+    }
+    void SetRotation(const DirectX::XMFLOAT3& rotation) {
+        m_worldMatrix = DirectX::XMMatrixRotationRollPitchYaw(rotation.x, rotation.y, rotation.z);
+	}
+    void SetRotation(float pitch, float yaw, float roll) {
+        m_worldMatrix = DirectX::XMMatrixRotationRollPitchYaw(pitch, yaw, roll);
+	}
+    void SetScale(const DirectX::XMFLOAT3& scale) {
+        m_worldMatrix = DirectX::XMMatrixScaling(scale.x, scale.y, scale.z);
+    }
+    void SetScale(float x, float y, float z) {
+        m_worldMatrix = DirectX::XMMatrixScaling(x, y, z);
+    }
+    void SetWorldMatrix(const DirectX::XMMATRIX& worldMatrix) {
+        m_worldMatrix = worldMatrix;
+	}
+
     const std::string& GetAssetName() override {
         static const std::string name = "MeshAsset";
         return name;
@@ -60,10 +100,38 @@ public:
         static const std::string name = "MeshAsset";
         return name;
     }
-        
-    HRESULT CreateVertexBuffer(std::shared_ptr<ID3D11Device> pDevice, const std::vector<std::shared_ptr<VertexDefinition::VertexVariant>> vertex);
 
-    HRESULT CreateIndexBuffer(std::shared_ptr<ID3D11Device> pDevice, const std::vector<uint16_t>& indexes) {
+    XMMATRIX GetWorldMatrix() {
+        return m_worldMatrix;
+    }
+
+    Microsoft::WRL::ComPtr<ID3D11Buffer> GetVertexBuffer() {
+		return m_vertexBuffer;
+	}
+    Microsoft::WRL::ComPtr<ID3D11Buffer> GetIndexBuffer() {
+        return m_indexBuffer;
+    }
+    UINT GetVertexCount() const {
+        return m_vertexCount;
+	}
+    UINT GetIndexCount() const {
+        return m_indexCount;
+    }
+    UINT GetVertexTypeSize() const {
+        return m_vertexTypeSize;
+	}
+    const std::string GetShaderName() const {
+        if (!m_meshConfig) {
+            return "";
+        }
+        return m_meshConfig->shader;
+    }
+
+    Material* GetMaterial() { return m_material; };
+        
+    HRESULT CreateVertexBuffer(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, const std::vector<std::shared_ptr<VertexDefinition::VertexVariant>> vertex);
+
+    HRESULT CreateIndexBuffer(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, const std::vector<uint16_t>& indexes) {
         // Crear Vertex Buffer
         D3D11_BUFFER_DESC ibDesc = {};
         ibDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -87,7 +155,7 @@ public:
     }
 
     
-    HRESULT InitD3D11ResourcesVertex(std::shared_ptr <ID3D11Device> pDevice, std::vector<std::shared_ptr<VertexDefinition::VertexVariant>> vertex, std::vector<uint16_t> indexes)  {
+    HRESULT InitD3D11ResourcesVertex(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, std::vector<std::shared_ptr<VertexDefinition::VertexVariant>> vertex, std::vector<uint16_t> indexes)  {
 
 		HRESULT hr = CreateVertexBuffer(pDevice, vertex);
 

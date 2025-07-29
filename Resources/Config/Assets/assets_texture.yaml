@@ -14,6 +14,12 @@ Config:
         dependencies:
           - DeviceManager
           - TextureAsset 
+      TextureBricks001:
+        type: "TextureAsset"
+        map: "TextureBricks001Map"
+        dependencies:
+          - DeviceManager
+          - TextureAsset
       DefaultSkybox:
         type: "TextureAsset"
         map: "DefaultSkyboxMap"

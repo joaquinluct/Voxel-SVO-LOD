@@ -7,3 +7,5 @@ constexpr std::string_view MESH_ASSET = "MeshAsset";
 constexpr std::string_view SHADER_ASSET = "ShaderAsset";
 constexpr std::string_view VERTEX_ASSET = "VertexAsset";
 constexpr std::string_view MATERIAL_ASSET = "MaterialAsset";
+
+constexpr std::wstring_view SHADER_SHADOW_MAP = L"ShadowMapShader";

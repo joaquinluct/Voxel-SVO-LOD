@@ -8,11 +8,10 @@ Config:
         name: "FloorMesh"
         mesh_path: 'c:\Users\joaqu\source\repos\DirectX-Voxelado\Assets\Mesh\floor.obj'
         texture: "TextureGrassDiffuse"
-        # shader: "DefaultShader"
-        # shader: "TextureBasicShader"
-        # shader: "TextureMapShader"
         shader: "PBRShader"
-        position: [0.0, 100.0, 0.0]
+        position: [1.0, 100.0, 1.0]
+        cast_shadows: true
+        receive_shadows: true
         dependencies:
           - MeshAsset
       SkyboxMesh:
@@ -23,6 +22,20 @@ Config:
         texture: "DefaultSkybox"
         # shader: "DefaultShader"
         shader: "SkyboxShader"
+        cast_shadows: false
+        receive_shadows: false
+        dependencies:
+          - MeshAsset
+      House1Mesh:
+        enabled: true
+        type: "MeshAsset"
+        name: "House1Mesh"
+        mesh_path: 'C:\Users\joaqu\source\repos\DirectX-Voxelado\Assets\Mesh\Builds\Houses\house1.obj'
+        texture: "TextureBricks001"
+        shader: "PBRShader"
+        position: [0.0, 100.0, 0.0]
+        cast_shadows: true
+        receive_shadows: true
         dependencies:
           - MeshAsset
 Definition:
@@ -45,6 +58,8 @@ Definition:
         - mesh_path
         - texture
         - position 
+        - cast_shadows
+        - receive_shadows
         - dependencies
     # output_path: 'C:\Users\joaqu\source\repos\DirectX-Voxelado\TestConfig\Assets\'
     output_path: 'c:\Users\joaqu\source\repos\DirectX-Voxelado\src\Engine\Core\Config\Assets\'

@@ -55,6 +55,7 @@ public:
     
     static HRESULT InitializeServices(const std::vector<std::string>& orderList);
     static HRESULT RenderServices(const std::vector<std::string>& orderList);
+    static HRESULT RenderShadowPassServices(const std::vector<std::string>& orderList);
     static HRESULT UpdateServices(const std::vector<std::string>& orderList, float DeltaTime);
     //static void ShutdownServices(const std::vector<std::string>& orderList); // Shutdown suele ser void
 
@@ -62,12 +63,12 @@ public:
     // Ahora usa dynamic_pointer_cast internamente, ya que s_services almacena IService.
     template<typename T>
     static std::shared_ptr<T> GetService() {
-        const std::string name1 = typeid(T).name();
+        //const std::string name1 = typeid(T).name();
 		const std::string name = T::GetStaticServiceName();
 		auto& s_serviceEntries = GetServiceEntries();
         auto it = s_serviceEntries.find(name);
         if (it != s_serviceEntries.end()) {
-            std::shared_ptr<T> service = std::dynamic_pointer_cast<T>(it->second.instance);            
+            std::shared_ptr<T> service = std::dynamic_pointer_cast<T>(it->second.instance);
             return service;
         }
         return nullptr;

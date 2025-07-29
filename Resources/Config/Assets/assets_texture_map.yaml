@@ -12,6 +12,14 @@ Config:
          roughness: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\Coast_sand_rock\\coast_sand_rocks_02_rough_4k.jpg"
          metallic: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\Coast_sand_rock\\coast_sand_rocks_02_arm_4k.jpg"
          ao: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\Coast_sand_rock\\coast_sand_rocks_02_ao_4k.jpg"
+      TextureBricks001Map:
+        texture_type: "JPG"
+        albedo: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Brick\\Poliigon_BrickWallReclaimed_8320_BaseColor.jpg"
+        normal: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Brick\\Poliigon_BrickWallReclaimed_8320_Normal.jpg"
+        roughness: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Brick\\Poliigon_BrickWallReclaimed_8320_Roughness.jpg"
+        metallic: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Brick\\Poliigon_BrickWallReclaimed_8320_Metallic.jpg"
+        ao: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Brick\\Poliigon_BrickWallReclaimed_8320_AmbientOcclusion.jpg"
+        displacement: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Brick\\Poliigon_BrickWallReclaimed_8320_Displacement.tiff"
       DefaultSkyboxMap:
         texture_type: "CUBEMAP"
         albedo: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Skybox\\defaultSkybox.dds"

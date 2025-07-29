@@ -60,6 +60,6 @@ private:
     UINT CreateVertexBufferZZZ();
     void SetVertexBufferZZZ(ID3D11DeviceContext* context);
     UINT CreateVertexBuffer();
-    void SetVertexBuffer(ID3D11DeviceContext* context);
-    void ApplyMaterial(ID3D11DeviceContext* context, std::shared_ptr<Material> m_material, XMMATRIX orthoMatrix);
+    void SetVertexBuffer(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context);
+    void ApplyMaterial(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context, std::shared_ptr<Material> m_material, XMMATRIX orthoMatrix);
 };

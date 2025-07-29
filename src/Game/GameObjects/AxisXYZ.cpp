@@ -24,7 +24,7 @@ HRESULT AxisXYZ::Init() {
     if (!m_deviceManager) {
         return E_FAIL; // DeviceManager not found
     }
-    std::shared_ptr<ID3D11Device> device = m_deviceManager->GetDevice();
+    Microsoft::WRL::ComPtr<ID3D11Device> device = m_deviceManager->GetDevice();
     if (!device) {
         return E_FAIL; // Device not found
     }
@@ -84,7 +84,7 @@ HRESULT AxisXYZ::Init() {
 
 void AxisXYZ::Render() {
     // Renderizar cada línea
-	ID3D11DeviceContext* context = m_deviceManager->GetContext();
+    Microsoft::WRL::ComPtr<ID3D11DeviceContext> context = m_deviceManager->GetContext();
 
     DirectX::XMMATRIX worldIdentity = DirectX::XMMatrixIdentity();
     DirectX::XMMATRIX viewIdentity = m_cameraManager->GetCurrentViewMatrix();

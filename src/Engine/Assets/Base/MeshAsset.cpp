@@ -45,6 +45,11 @@ HRESULT MeshAsset::InitManagers() {
         OutputDebugStringA("MeshAsset::Init - ERROR: ShaderManager not found.\n");
         return E_FAIL;
     }
+	m_renderManager = ManagerLocator::GetManager<RenderManager>();
+    if (!m_renderManager) {
+        OutputDebugStringA("MeshAsset::Init - ERROR: RenderManager not found.\n");
+        return E_FAIL;
+	}
     return S_OK;
 }
 
@@ -52,6 +57,7 @@ HRESULT MeshAsset::InitTexture() {
     std::string shaderAssetName = m_meshConfig->shader;
     std::string meshObj = m_meshConfig->mesh_path;
     std::string textureAssetName = m_meshConfig->texture;
+    bool castShadows = m_meshConfig->cast_shadows;
 
     m_material = new Material();
     if (!m_material) {
@@ -60,7 +66,7 @@ HRESULT MeshAsset::InitTexture() {
     }
 
     m_material->SetShaderName(StringToWstring(shaderAssetName));
-
+    
     HRESULT hr = m_material->Init();
     if (FAILED(hr)) {
         OutputDebugStringA(("MeshAsset::Init - ERROR: Failed to initialize Material resource for mesh '" + meshObj + "'.\n").c_str());
@@ -105,7 +111,7 @@ HRESULT MeshAsset::InitMesh() {
         return E_FAIL;
     }
 
-    HRESULT hr = InitD3D11ResourcesVertex(m_deviceManager->GetDevice(), vertex, indexes);
+    HRESULT hr = InitD3D11ResourcesVertex(m_deviceManager->GetDevice().Get(), vertex, indexes);
 
     if (FAILED(hr)) {
         OutputDebugStringA(("MeshAsset::Init - ERROR: Failed to initialize D3D11 resources for mesh '" + meshObj + "'.\n").c_str());
@@ -146,20 +152,21 @@ void MeshAsset::Shutdown() {
 
 void MeshAsset::Render() {
 
-    ID3D11DeviceContext* context = m_deviceManager->GetContext();
-    m_deviceManager->SetRasterizerState();
+    Microsoft::WRL::ComPtr<ID3D11DeviceContext> context = m_deviceManager->GetContext();
 
-    m_material->Render();
+    if (m_renderManager->IsRenderColourPassActive()) {
+        m_material->Render();
+    }
 
     UINT stride = m_vertexTypeSize;
     UINT offset = 0;
     context->IASetVertexBuffers(0, 1, &m_vertexBuffer, &stride, &offset);
- 	context->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R16_UINT, 0);
+ 	context->IASetIndexBuffer(m_indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
     context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     context->DrawIndexed(m_indexCount, 0, 0);
 }
 
-HRESULT MeshAsset::CreateVertexBuffer(std::shared_ptr<ID3D11Device> pDevice, const std::vector<std::shared_ptr<VertexDefinition::VertexVariant>> vertex) {
+HRESULT MeshAsset::CreateVertexBuffer(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, const std::vector<std::shared_ptr<VertexDefinition::VertexVariant>> vertex) {
     if (m_vertexBuffer) {
         m_vertexBuffer->Release();
         m_vertexBuffer = nullptr;
@@ -250,81 +257,3 @@ HRESULT MeshAsset::CreateVertexBuffer(std::shared_ptr<ID3D11Device> pDevice, con
 
     return hr;
 }
-
-//HRESULT CreateVertexBuffer(ID3D11Device* pDevice, const std::vector<std::shared_ptr<VertexDefinition::VertexVariant>> vertex) {
-//    if (vertex.empty()) {
-//        std::cerr << "MeshAsset::CreateBuffers: El vector de variantes está vacío.\n";
-//        return E_INVALIDARG;
-//    }
-//
-//    // --- 1. Determinar el Stride y el ByteWidth total ---
-//    // Necesitas el stride (tamaño de un solo vértice)
-//    // std::visit es útil aquí para obtener el tamaño del primer elemento.
-//    // Asumimos que todos los vértices en el vector son del mismo tipo concreto para el stride.
-//    m_vertexTypeSize = 0;
-//    std::visit([&](auto& currentVertex) {
-//        // currentVertex es el tipo concreto (SimpleVertex, TextureBasicVertex, etc.)
-//        // Necesitamos que tus structs de vértice tengan un método GetSize()
-//        // o un sizeof() para obtener su tamaño.
-//        m_vertexTypeSize = static_cast<UINT>(sizeof(&currentVertex));
-//        // O si tus structs concretos tienen un GetSize() virtual:
-//        // m_vertexStride = currentVertex.GetSize(); // ¡Solo si el variant contiene un puntero!
-//        // Si el variant contiene el objeto por valor, sizeof(currentVertex) es la opción.
-//
-//        // Si el variant contiene punteros a IVertex, como en tu DefineLocator anterior:
-//        // std::shared_ptr<IVertex> ptr_to_base_vertex = currentVertex; // Si el variant contiene ptrs
-//        // m_vertexStride = static_cast<UINT>(ptr_to_base_vertex->GetSize());
-//
-//        // **IMPORTANTE**: Asegúrate de que el tamaño sea el correcto para TU struct de vértice.
-//        // Para la mayoría de los casos de uso con std::variant, el variant contiene el objeto por valor.
-//        // Así que 'sizeof(currentVertex)' suele ser lo correcto.
-//        }, *vertex[0]); // Visita el primer elemento para obtener el stride
-//
-//    if (m_vertexTypeSize == 0) {
-//        std::cerr << "MeshAsset::CreateBuffers: No se pudo determinar el stride del vértice.\n";
-//        return E_FAIL;
-//    }
-//
-//    UINT totalByteWidth = m_vertexTypeSize * static_cast<UINT>(vertex.size());
-//
-//    // --- 2. Crear un Buffer Contiguo de Datos Raw ---
-//    std::vector<uint8_t> rawVertexData(totalByteWidth);
-//
-//    // Copiar los datos de cada vértice a este buffer contiguo
-//    size_t currentOffset = 0;
-//    for (const auto& v_shared_ptr : vertex) {
-//        std::visit([&](auto& currentVertex) {
-//            // 'currentVertex' es el objeto de vértice concreto (ej., SimpleVertex)
-//            // Usamos GetRawData() para obtener un puntero a sus datos.
-//            const void* source_data = currentVertex.GetRawData(); // Asumo que GetRawData() existe en tus structs de vértice
-//
-//            // Copia los bytes del vértice actual al buffer contiguo
-//            std::memcpy(rawVertexData.data() + currentOffset, &currentVertex, m_vertexTypeSize);
-//            currentOffset += m_vertexTypeSize;
-//            }, *v_shared_ptr); // Desreferencia el shared_ptr para acceder al VertexVariant
-//    }
-//
-//    // --- 3. Rellenar D3D11_BUFFER_DESC y D3D11_SUBRESOURCE_DATA ---
-//    D3D11_BUFFER_DESC vbDesc = {};
-//    vbDesc.Usage = D3D11_USAGE_DEFAULT;
-//    vbDesc.ByteWidth = totalByteWidth; // ¡Este es el tamaño total correcto!
-//    vbDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-//    vbDesc.CPUAccessFlags = 0;
-//    vbDesc.MiscFlags = 0;
-//    vbDesc.StructureByteStride = 0; // Correcto para un vertex buffer normal
-//
-//    D3D11_SUBRESOURCE_DATA vbInitData = {};
-//    vbInitData.pSysMem = rawVertexData.data(); // ¡Aquí apuntas al inicio del buffer contiguo!
-//    vbInitData.SysMemPitch = 0;       // No aplicable para vertex buffers
-//    vbInitData.SysMemSlicePitch = 0;  // No aplicable para vertex buffers
-//
-//    // --- 4. Crear el Vertex Buffer de DirectX ---
-//    HRESULT hr = pDevice->CreateBuffer(&vbDesc, &vbInitData, &m_vertexBuffer);
-//    if (FAILED(hr)) {
-//        std::cerr << "Error al crear el Vertex Buffer: " << std::hex << hr << std::endl;
-//        return hr;
-//    }
-//
-//    m_vertexCount = static_cast<UINT>(vertex.size());
-//    return hr;
-//}

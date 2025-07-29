@@ -4,7 +4,7 @@
 REGISTER_CONFIG_TYPE(PhysicsConfig,"PhysicsConfig");
 
 PhysicsConfig::PhysicsConfig(){
-	name = "PhysicManager";
+	name = "PhysicService";
 	enabled = true;
 	version = "1.0.0";
 	type = "BasicPhysics";

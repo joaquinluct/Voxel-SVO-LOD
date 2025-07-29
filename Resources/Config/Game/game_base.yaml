@@ -5,13 +5,14 @@ Config:
         # - UIDebug
         # - TestingBasic2
         # - AxisXYZ
+        - Lighting
+        - Shadows
         - Skybox
         - TestingFloor
         # - World
         # - Terrain
         # - Physics
         # - Biome
-        # - Lighting
         # - Cycle
         # - Wheather
       services_render_order:
@@ -24,7 +25,7 @@ Config:
         # - Terrain
         # - Physics
         # - Biome
-        # - Lighting
+        - Lighting
         # - Cycle
         # - Wheather
 Definition:

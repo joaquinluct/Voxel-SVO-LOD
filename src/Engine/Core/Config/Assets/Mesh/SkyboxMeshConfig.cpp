@@ -10,6 +10,8 @@ SkyboxMeshConfig::SkyboxMeshConfig(){
 	mesh_path = "c:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Mesh\\skybox1.obj";
 	texture = "DefaultSkybox";
 	shader = "SkyboxShader";
+	cast_shadows = false;
+	receive_shadows = false;
 	dependencies = {
 		"MeshAsset"
 	};

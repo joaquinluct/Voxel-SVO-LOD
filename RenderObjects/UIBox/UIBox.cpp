@@ -57,7 +57,7 @@ void UIBox::CreateLines() {
 }
 
 // Inicializaci�n: Llama a Init para cada l�nea
-HRESULT UIBox::Init(std::shared_ptr<ID3D11Device> device) {
+HRESULT UIBox::Init(Microsoft::WRL::ComPtr<ID3D11Device> device) {
     CreateLines(); // Primero, crea las instancias de Line
     for (Line* line : m_lines) {
         if (FAILED(line->Init(device))) {
@@ -69,7 +69,7 @@ HRESULT UIBox::Init(std::shared_ptr<ID3D11Device> device) {
 }
 
 // Renderizado: Llama a Render para cada l�nea
-void UIBox::Render(ID3D11DeviceContext* context) {
+void UIBox::Render(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context) {
     for (Line* line : m_lines) {
         line->Render(context);
     }

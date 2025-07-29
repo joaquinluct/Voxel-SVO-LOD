@@ -24,6 +24,13 @@ public:
     void Shutdown() override;
 
     virtual void SetConfig(std::shared_ptr<ConfigBase> config) = 0;
+
+    void SetAssetName(const std::string& name) {
+        m_assetName = name;
+	}
+    const std::string& GetAssetName() const {
+        return m_assetName;
+    }    
 protected:
     // Puedes agregar un miembro para el nombre si GetAssetName lo va a devolver.
     std::string m_assetName;

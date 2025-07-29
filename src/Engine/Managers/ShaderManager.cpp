@@ -26,7 +26,7 @@ ShaderManager::ShaderManager() {
 
 ShaderManager::~ShaderManager() {}
 
-HRESULT ShaderManager::LoadShader(std::shared_ptr<ID3D11Device> device, std::wstring shaderName, std::wstring vsPath, std::wstring psPath, D3D11_INPUT_ELEMENT_DESC layoutDesc[], UINT numElements) {
+HRESULT ShaderManager::LoadShader(Microsoft::WRL::ComPtr<ID3D11Device> device, std::wstring shaderName, std::wstring vsPath, std::wstring psPath, D3D11_INPUT_ELEMENT_DESC layoutDesc[], UINT numElements) {
     // Verificar si el shader ya está cargado
     if (vertexShaders.find(shaderName) != vertexShaders.end()) {
         return S_OK;
@@ -100,12 +100,12 @@ HRESULT ShaderManager::LoadShader(std::shared_ptr<ID3D11Device> device, std::wst
     return S_OK;
 }
 
-ID3D11VertexShader* ShaderManager::GetVertexShader(std::wstring shaderName) {
+Microsoft::WRL::ComPtr<ID3D11VertexShader> ShaderManager::GetVertexShader(std::wstring shaderName) {
     auto it = vertexShaders.find(shaderName);
     return (it != vertexShaders.end()) ? it->second : nullptr;
 }
 
-ID3D11PixelShader* ShaderManager::GetPixelShader(std::wstring shaderName) {
+Microsoft::WRL::ComPtr<ID3D11PixelShader> ShaderManager::GetPixelShader(std::wstring shaderName) {
     auto it = pixelShaders.find(shaderName);
     return (it != pixelShaders.end()) ? it->second : nullptr;
 }
@@ -139,7 +139,7 @@ std::map<std::string, std::pair<int, std::unique_ptr<MatrixDefinition::AnyMatrix
     return it->second; // Devuelve una referencia constante al mapa interno
 }
 
-void ShaderManager::SetConstantsBuffers(std::wstring shaderName, const MatrixDefinitionBase::MatrixParams& matrixParams, std::map<std::string, Microsoft::WRL::ComPtr<ID3D11Buffer>>& constantBuffers, ID3D11DeviceContext* context) {
+void ShaderManager::SetConstantsBuffers(std::wstring shaderName, const MatrixDefinitionBase::MatrixParams& matrixParams, std::map<std::string, Microsoft::WRL::ComPtr<ID3D11Buffer>>& constantBuffers, Microsoft::WRL::ComPtr<ID3D11DeviceContext> context) {
 
     D3D11_MAPPED_SUBRESOURCE mapped = {};
     // Accedemos al mapa de matrices específico para este shader

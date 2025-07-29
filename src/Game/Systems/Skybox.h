@@ -1,10 +1,11 @@
 #pragma once
 #include <windows.h>
 #include <string>
+#include <memory>
 #include <IService.h>
+#include <RenderManager/RenderManager.h>
+#include <Game/Systems/Lighting.h>
 #include <Assets/Base/MeshAsset.h>
-#include <ManagerLocator/ManagerLocator.h>
-#include <AssetLocator/AssetLocator.h>
 
 class Skybox : public IService
 {
@@ -20,12 +21,20 @@ public:
 		static const std::string name = "Skybox";
 		return name;
 	}
-	static const std::string& GetStaticManagerName()
+	static const std::string& GetStaticServiceName()
 	{
 		static const std::string name = "Skybox";
 		return name;
 	}
 
 private:
-	MeshAsset mesh;
+	std::shared_ptr<RenderManager> m_renderManager;
+	std::shared_ptr<Lighting> lighting;
+
+	std::shared_ptr<MeshAsset> mesh;
+
+	float m_eventTimer;
+	float m_eventInterval;
+	bool sign;
+	float m_rotationSpeed;
 };

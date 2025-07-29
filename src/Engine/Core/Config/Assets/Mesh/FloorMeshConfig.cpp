@@ -11,10 +11,12 @@ FloorMeshConfig::FloorMeshConfig(){
 	texture = "TextureGrassDiffuse";
 	shader = "PBRShader";
 	position = {
-		0.0f,
+		1.0f,
 		100.0f,
-		0.0f
+		1.0f
 	};
+	cast_shadows = true;
+	receive_shadows = true;
 	dependencies = {
 		"MeshAsset"
 	};

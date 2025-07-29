@@ -1,15 +1,16 @@
 #pragma once
 
 #include <KeyboardManager.h>
-//#include <Services/Mouse.h>
-class Mouse; // Declaración anticipada para evitar incluir el archivo completo aquí
 #include <ICamera.h>
 #include <IService.h>
 #include <DirectXMath.h>
 #include <memory>         // Para std::shared_ptr
 #include <vector>         // Para Util::Triangle
 #include <limits>         // Para std::numeric_limits
+#include <Config/Base/CameraManagerConfig.h>
 #include <RayTracing/RayTracing.h>
+
+class Mouse; // Declaración anticipada para evitar incluir el archivo completo aquí
 
 // Redefinir las constantes de DirectXMath si no están disponibles globalmente
 #ifndef XM_PIDIV4
@@ -27,7 +28,7 @@ class Mouse; // Declaración anticipada para evitar incluir el archivo completo a
 
 // Asegurarse de que CAMERA_SPEED esté definido
 #ifndef CAMERA_SPEED
-#define CAMERA_SPEED 350.0f
+#define CAMERA_SPEED 150.0f
 #endif
 
 class FirstPersonCamera : public ICamera, public IService {

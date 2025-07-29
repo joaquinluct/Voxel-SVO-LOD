@@ -4,7 +4,11 @@
 REGISTER_CONFIG_TYPE(RenderManagerConfig,"RenderManagerConfig");
 
 RenderManagerConfig::RenderManagerConfig(){
+	passes = {
+		"ShadowPass",
+		"MainColorPass"
+	};
 	dependencies = {
-		"UIManager"
+		"InitManager"
 	};
 };

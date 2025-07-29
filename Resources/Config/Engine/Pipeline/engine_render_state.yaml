@@ -1,0 +1,146 @@
+# engine_render_state.yaml
+Config:
+  Base:
+    Pipeline:
+      RenderStates:
+        SwapChainMain:
+          BufferCount: 2 #2;
+          Width: 0 #width;
+          Height: 0 #height;
+          Format: 28 #DXGI_FORMAT_R8G8B8A8_UNORM;
+          Numerator: 60 #60;
+          Denominator: 1 #1;
+          BufferUsage: 0x00000020UL #DXGI_USAGE_RENDER_TARGET_OUTPUT;
+          SampleCount: 1 #1;
+          SampleQuality: 0 #0;
+          Windowed: true #TRUE;
+          SwapEffect: 4 #DXGI_SWAP_EFFECT_FLIP_DISCARD;
+        RasterizedMainColorPass:
+          name: "RasterizedMainColorPass"
+          FillMode: 3 #D3D11_FILL_SOLID
+          CullMode: 3 #D3D11_CULL_BACK
+          FrontCounterClockwise: false
+          DepthBias: 0
+          DepthBiasClamp: 0.0
+          SlopeScaledDepthBias: 0.0
+          AntialiasedLineEnable: true
+          DepthClipEnable: true
+          ScissorEnable: true
+          MultisampleEnable: true
+        RasterizedShadowPass:
+          name: "RasterizedShadowPass"
+          FillMode: 3 #D3D11_FILL_SOLID
+          CullMode: 2 #D3D11_CULL_FRONT
+          FrontCounterClockwise: false
+          DepthBias: 50
+          DepthBiasClamp: 0.0
+          SlopeScaledDepthBias: 1.0
+          AntialiasedLineEnable: false
+          DepthClipEnable: true
+          ScissorEnable: false
+          MultisampleEnable: false
+        BlendingMainColor:
+          BlendEnable: true  #TRUE;
+          SrcBlend: 5 #D3D11_BLEND_SRC_ALPHA;
+          DestBlend: 6 #D3D11_BLEND_INV_SRC_ALPHA;
+          BlendOp: 1 #D3D11_BLEND_OP_ADD;
+          SrcBlendAlpha: 2 #D3D11_BLEND_ONE;
+          DestBlendAlpha: 1 #D3D11_BLEND_ZERO;
+          BlendOpAlpha: 1 #D3D11_BLEND_OP_ADD;
+          RenderTargetWriteMask: 15 #D3D11_COLOR_WRITE_ENABLE_ALL;
+        StencilMainColor:
+          MipLevels: 1
+          ArraySize: 1
+          Format: 45 #DXGI_FORMAT_D24_UNORM_S8_UINT;
+          SampleCount: 1
+          SampleQuality: 0
+          Usage: 0 #D3D11_USAGE_DEFAULT;
+          BindFlags: 64 #D3D11_BIND_DEPTH_STENCIL;
+        ViewportMainColor:
+          MinDepth: 0.0
+          MaxDepth: 1.0
+          TopLeftX: 0.0
+          TopLeftY: 0.0
+          Width: 0.0
+          Height: 0.0
+        ViewportShadow:
+          MinDepth: 0.0
+          MaxDepth: 1.0
+          TopLeftX: 0.0
+          TopLeftY: 0.0
+          Width: 2048.0
+          Height: 2048.0
+Definition:
+  Default:
+    language: 1 # C++
+    type: "Class"
+    needs_register: true
+    file_level: 4
+    register_include: "REGISTER_PIPELINE_STATE_TYPE"
+    register_macro: "REGISTER_PIPELINE_STATE_MACRO"
+    register_function_name: "GetStaticPipelineStateName"
+    interface_name: "IPipelineState"
+    class_suffix: ""
+    class_prefix: ""
+    inherits_properties:
+        - type
+        - BufferCount
+        - Width
+        - Height
+        - Format
+        - Numerator
+        - Denominator
+        - BufferUsage
+        - SampleCount
+        - SampleQuality
+        - Windowed
+        - SwapEffect
+        - FillMode
+        - CullMode
+        - FrontCounterClockwise
+        - DepthBias
+        - DepthBiasClamp
+        - SlopeScaledDepthBias
+        - AntialiasedLineEnable
+        - DepthClipEnable
+        - ScissorEnable
+        - MultisampleEnable
+        - BlendEnable
+        - SrcBlend
+        - DestBlend
+        - BlendOp
+        - SrcBlendAlpha
+        - DestBlendAlpha
+        - BlendOpAlpha
+        - RenderTargetWriteMask
+        - MipLevels
+        - ArraySize
+        - Format
+        - SampleCount
+        - SampleQuality
+        - Usage
+        - BindFlags
+        - TopLeftX
+        - TopLeftY
+        - MinDepth
+        - MaxDepth
+        - Width
+        - Height
+        - dependencies
+    output_path: 'c:\Users\joaqu\source\repos\DirectX-Voxelado\src\Engine\Core\Config\Base\'
+    #output_path: 'C:\Users\joaqu\source\repos\DirectX-Voxelado\TestConfig\Game\'
+  Classes:
+    SwapChainMain:
+      interface_name: "IPipelineSwapChainState"
+    RasterizedMainColorPass:
+      interface_name: "IPipelineRasterizedState"
+    RasterizedShadowPass:
+      interface_name: "IPipelineRasterizedState"
+    BlendingMainColor:
+      interface_name: "IPipelineBlendingState"
+    StencilMainColor:
+      interface_name: "IPipelineStencilState"
+    ViewportMainColor:
+      interface_name: "IPipelineViewportState"
+    ViewportShadow:
+      interface_name: "IPipelineViewportState"

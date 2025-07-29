@@ -2,13 +2,6 @@ BatchProcessor:
     description: 'DirectX-Voxel project config files'
     workDirectory: 'C:\Users\joaqu\source\repos\DirectX-Voxelado\Resources\Config'
     files:
-      - engine_config.yaml
-      - services_config.yaml
-      - camera_config.yaml
-      - Game\game_base.yaml
-      - Game\game_object.yaml
-      - Game\game_object_base.yaml
-      - Game\game_system.yaml
       - Assets\assets_base.yaml
       - Assets\assets_material.yaml
       - Assets\assets_mesh.yaml
@@ -16,3 +9,12 @@ BatchProcessor:
       - Assets\assets_texture.yaml
       - Assets\assets_texture_map.yaml
       - Assets\assets_vertex.yaml
+      - camera_config.yaml
+      - engine_config.yaml
+      - Engine\engine_render_pass.yaml
+      - Engine\Pipeline\engine_render_state.yaml
+      - Game\game_base.yaml
+      - Game\game_object.yaml
+      - Game\game_object_base.yaml
+      - Game\game_system.yaml
+      - services_config.yaml

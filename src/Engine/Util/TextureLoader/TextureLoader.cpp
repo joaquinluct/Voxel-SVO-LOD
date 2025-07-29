@@ -8,7 +8,7 @@
 #include <DirectX/DirectXTex/DirectXTex.h>
 
 HRESULT TextureLoader::LoadTextureFromFile(
-    std::shared_ptr<ID3D11Device> device,
+    Microsoft::WRL::ComPtr<ID3D11Device> device,
     const std::string& filename,
     ID3D11ShaderResourceView** textureView
 ) {
@@ -61,7 +61,7 @@ HRESULT TextureLoader::LoadTextureFromFile(
 
 
 HRESULT TextureLoader::LoadCubemapFromFile(
-    std::shared_ptr<ID3D11Device> device,
+    Microsoft::WRL::ComPtr<ID3D11Device> device,
     const std::string& filename,
     ID3D11ShaderResourceView** textureView
 ) {
@@ -95,7 +95,7 @@ HRESULT TextureLoader::LoadCubemapFromFile(
 
     // Crear la vista de recurso de shader (SRV) a partir de la imagen cargada
     // Esto manejará automáticamente la creación de ID3D11Texture2D con MiscFlags=D3D11_RESOURCE_MISC_TEXTURECUBE
-    hr = DirectX::CreateShaderResourceView(device.get(), scratchImage.GetImages(), scratchImage.GetImageCount(), metadata, textureView);
+    hr = DirectX::CreateShaderResourceView(device.Get(), scratchImage.GetImages(), scratchImage.GetImageCount(), metadata, textureView);
     if (FAILED(hr)) {
         std::cerr << "Error creating shader resource view for " << filename << std::endl;
         return hr;

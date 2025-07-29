@@ -52,12 +52,21 @@ public:
         }
 	}
 
+    ID3D11DepthStencilView* GetDepthStencilView() {
+        return m_pDepthStencilView;
+    
+    }
+
+    Microsoft::WRL::ComPtr<ID3D11RenderTargetView> GetRenderTargetView() {
+        return m_pRenderTargetView ? m_pRenderTargetView : nullptr;
+    }
+
 private:
     FLOAT clearColor[4] = { .7f, 0.7f, 0.7f, 1.0f };
     std::shared_ptr<DeviceManager>  m_deviceManager;
-    ID3D11RenderTargetView* m_pRenderTargetView;
+    Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_pRenderTargetView;
     ID3D11DepthStencilView* m_pDepthStencilView;
-    ID3D11DeviceContext* m_pContext;
+    Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_pContext;
     UINT m_width;
     UINT m_height;
     D3D11_VIEWPORT m_viewport;

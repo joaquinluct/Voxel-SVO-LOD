@@ -9,4 +9,5 @@ public:
 	std::string shader;
 	std::string text;
 	std::string mesh;
+	bool shadow_pass = false;
 };

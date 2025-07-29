@@ -14,8 +14,8 @@ public:
     Line(Material* material, const XMFLOAT3& start, const XMFLOAT3& end, const XMFLOAT4& color);
     ~Line();
 
-    HRESULT Init(std::shared_ptr<ID3D11Device> device);
-    void Render(ID3D11DeviceContext* context);
+    HRESULT Init(Microsoft::WRL::ComPtr<ID3D11Device> device);
+    void Render(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context);
     void Release();
     ID3D11Buffer* GetVertexBuffer() { return m_vertexBuffer; }
     //void SetKeyboardManager(KeyboardManager* keyboardManager) override {}

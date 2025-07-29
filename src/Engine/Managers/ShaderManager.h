@@ -3,7 +3,7 @@
 #include <string>
 #include <memory>
 #include <map>
-#include <wrl.h>
+#include <wrl/client.h>
 #include "IManager.h"
 #include "DeviceManager.h"
 #include "IInitializable.h"
@@ -33,14 +33,14 @@ public:
         return name;
     }
 
-    HRESULT LoadShader(std::shared_ptr<ID3D11Device> device, std::wstring shaderName, std::wstring vsPath, std::wstring psPath, D3D11_INPUT_ELEMENT_DESC layoutDesc[], UINT numElements);
+    HRESULT LoadShader(Microsoft::WRL::ComPtr<ID3D11Device> device, std::wstring shaderName, std::wstring vsPath, std::wstring psPath, D3D11_INPUT_ELEMENT_DESC layoutDesc[], UINT numElements);
 
-    void SetConstantsBuffers(std::wstring shaderName, const MatrixDefinitionBase::MatrixParams& matrixParams, std::map<std::string, Microsoft::WRL::ComPtr<ID3D11Buffer>>&  constantBuffers, ID3D11DeviceContext* context);
+    void SetConstantsBuffers(std::wstring shaderName, const MatrixDefinitionBase::MatrixParams& matrixParams, std::map<std::string, Microsoft::WRL::ComPtr<ID3D11Buffer>>&  constantBuffers, Microsoft::WRL::ComPtr<ID3D11DeviceContext> context);
 
     /*MatrixDefinition::AnyMatrixBuffer* GetMatrixBuffer(std::wstring shaderName);*/
     std::map<std::string, std::pair<int, std::unique_ptr<MatrixDefinition::AnyMatrixBuffer>>>& GetMatrixBuffers(std::wstring shaderName);
-    ID3D11VertexShader* GetVertexShader(std::wstring shaderName);
-    ID3D11PixelShader* GetPixelShader(std::wstring shaderName);
+    Microsoft::WRL::ComPtr<ID3D11VertexShader> GetVertexShader(std::wstring shaderName);
+    Microsoft::WRL::ComPtr<ID3D11PixelShader> GetPixelShader(std::wstring shaderName);
     ID3D11InputLayout* GetInputLayout(std::wstring shaderName);
     ID3DBlob* GetVertexShaderBytecode(std::wstring shaderName); // Nuevo método
     UINT GetVertexShaderBytecodeLength(std::wstring shaderName);

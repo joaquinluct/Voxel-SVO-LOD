@@ -19,10 +19,10 @@ public:
     ~UIBox();
 
     // M�todo de inicializaci�n (para crear los recursos de Direct3D para las l�neas)
-    HRESULT Init(std::shared_ptr<ID3D11Device> device);
+    HRESULT Init(Microsoft::WRL::ComPtr<ID3D11Device> device);
     
     // M�todo de renderizado
-    void Render(ID3D11DeviceContext* context);
+    void Render(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context);
 
     // M�todo para liberar recursos
     void Release();

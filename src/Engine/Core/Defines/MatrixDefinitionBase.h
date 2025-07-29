@@ -15,6 +15,7 @@ namespace MatrixDefinitionBase {
             : worldMatrix(DirectX::XMMatrixIdentity()),
             viewMatrix(DirectX::XMMatrixIdentity()),
             projectionMatrix(DirectX::XMMatrixIdentity()),
+            lightViewProjectionMatrix(DirectX::XMMatrixIdentity()),
             cameraPosition(0.0f, 0.0f, 0.0f),
             lightDirection(0.0f, -1.0f, 0.0f), // Dirección por defecto de la luz (hacia abajo)
             lightColor(1.0f, 1.0f, 1.0f, 1.0f), // Color por defecto de la luz (blanco)
@@ -51,5 +52,8 @@ namespace MatrixDefinitionBase {
         float materialAO;             // Oclusión ambiental
         float paddingMaterial1;       // Relleno para asegurar alineación final a 16 bytes si es necesario
         float paddingMaterial2;
+
+		// Datos para matrices de sombras
+        DirectX::XMMATRIX lightViewProjectionMatrix;
     };
 }
