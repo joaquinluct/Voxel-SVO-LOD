@@ -36,6 +36,7 @@ Debug/*
 DirectX-Voxelado/*
 .vs/*
 x64/*
+Assets/*
 
 # Visual Studio Code settings
 .vscode/*
