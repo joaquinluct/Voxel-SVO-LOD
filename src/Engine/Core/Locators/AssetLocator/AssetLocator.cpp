@@ -51,7 +51,8 @@ HRESULT AssetLocator::InitializeAssets(const std::vector<std::string>& orderList
             entries[assetName] = std::dynamic_pointer_cast<AssetBase>(GetAssetBase<TextureAsset>());
         }
         if (config->type == MESH_ASSET) {
-            entries[assetName] = std::dynamic_pointer_cast<AssetBase>(GetAssetBase<MeshAsset>());
+            MeshAsset* mesh = GetAssetBase<MeshAsset>().get();
+            entries[assetName] = mesh->Clone();
         }
         if (config->type == SHADER_ASSET) {
             entries[assetName] = std::dynamic_pointer_cast<AssetBase>(GetAssetBase<ShaderAsset>());
@@ -63,6 +64,7 @@ HRESULT AssetLocator::InitializeAssets(const std::vector<std::string>& orderList
             entries[assetName] = std::dynamic_pointer_cast<AssetBase>(GetAssetBase<VertexAsset>());
         }
         if (entries[assetName] != nullptr) {
+			entries[assetName]->SetAssetName(assetName);
             entries[assetName]->SetConfig(config);
         }
         else {
@@ -117,6 +119,11 @@ std::shared_ptr<AssetBase> AssetLocator::GetAsset(const std::string& name) {
     auto& entries = AssetLocator::GetAssetEntries();
     auto it = entries.find(name);
     if (it != entries.end()) {
+        std::string configName = name + "Config";
+        auto config = ConfigLocator::GetConfig<ConfigBase>(configName);
+        if (config) {
+            entries[name]->SetConfig(config);
+        }
         return entries[name];
 	}
     return nullptr;
@@ -179,6 +186,18 @@ std::shared_ptr<ShaderAsset> AssetLocator::GetShaderAsset(const std::string& nam
         return vAsset;
     }
     return nullptr;
+}
+
+std::vector<std::shared_ptr<ShaderAsset>> AssetLocator::GetAllShaderAsset() {
+    auto& entries = AssetLocator::GetAssetEntries();
+	std::vector<std::shared_ptr<ShaderAsset>> shaderAssets;
+	for (auto& entry : entries) {
+        std::shared_ptr<ShaderAsset> vAsset = std::dynamic_pointer_cast<ShaderAsset>(entry.second);
+        if (vAsset) {
+			shaderAssets.push_back(vAsset);
+        }        
+    }
+    return shaderAssets;
 }
 
 HRESULT AssetLocator::RenderAssets(const std::vector<std::string>& orderList) {

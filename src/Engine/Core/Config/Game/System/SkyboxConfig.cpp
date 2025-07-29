@@ -6,6 +6,7 @@ REGISTER_CONFIG_TYPE(SkyboxConfig,"SkyboxConfig");
 SkyboxConfig::SkyboxConfig(){
 	name = "Skybox";
 	enabled = true;
+	shadow_pass = false;
 	version = "1.0.0";
 	type = "DefaultSkybox";
 	mesh = "SkyboxMesh";

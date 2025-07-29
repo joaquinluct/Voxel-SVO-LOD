@@ -4,6 +4,8 @@
 #include <DefineLocator/DefineLocator.h>
 #include <ConfigLocator/ConfigLocator.h>
 #include <ServiceLocator/ServiceLocator.h>
+#include <Locators/Pipeline/PipelineStateLocator.h>
+#include <Locators/Pipeline/RenderPassLocator.h>
 
 MainController::MainController(HWND hwnd, int width, int height)
     : m_hwnd(hwnd), m_width(width), m_height(height), m_initController(nullptr) {
@@ -19,40 +21,71 @@ HRESULT MainController::Initialize(HWND hwnd, int width, int height) {
         return E_FAIL;
 	}
 
-    // 1. Inicializar definiciones básicas
-    HRESULT hr = DefineLocator::InitializeDefines();
+    // 1. Inicializar básicas
+    // ----------------------
 
-    // 2. Clases de configuración (clases autocontruidas a partir de los .yml de configuracion)
+	// 1.1 Inicializar defines
+    HRESULT hr = DefineLocator::InitializeDefines();
+    if (FAILED(hr)) {
+        OutputDebugStringA("MainController Init: Failed to initialize defines.\n");
+        return hr;
+	}
+
+	// 1.2 Inicializar render passes
+    hr = RenderPassLocator::CreateRenderPasss();
+    if (FAILED(hr)) {
+        OutputDebugStringA("MainController Init: Failed to initialize render passes.\n");
+		return hr;
+	}
+
+	// 1.3 Inicializar pipeline states  
+    hr = PipelineStateLocator::CreatePipelineStates();
+    if (FAILED(hr)) {
+        OutputDebugStringA("MainController Init: Failed to initialize pipeline states.\n");
+        return hr;
+    }
+
+    // 1.4 Inicializar render passes
     hr = ConfigLocator::CreateConfigs();
     if (FAILED(hr)) {
         OutputDebugStringA("MainController Init: Failed to initialize services.\n");
         return hr;
     }
 
+    // 2. Clases de configuración
+    // --------------------------
+
+	// 2.1 EngineConfig
     m_config = ConfigLocator::GetConfig<EngineConfig>();
     if (!m_config) {
         return E_FAIL;
 	}
+	// 2.2 ServiceConfig
     m_serviceConfig = ConfigLocator::GetConfig<ServiceConfig>();
     if (!m_serviceConfig) {
         return E_FAIL;
     }
+	// 2.3 AssetBaseConfig
     std::shared_ptr<BaseIndexConfig> m_assetBaseConfig = ConfigLocator::GetConfig<BaseIndexConfig>();
     if (!m_assetBaseConfig) {
         OutputDebugStringA("MainController Init: Failed to get BaseIndexConfig.\n");
         return E_FAIL;
 	}
+	// 2.4 AssetConfig
     std::shared_ptr<MainIndexConfig> m_assetConfig = ConfigLocator::GetConfig<MainIndexConfig>();
     if (!m_assetConfig) {
         OutputDebugStringA("MainController Init: Failed to get BaseIndexConfig.\n");
         return E_FAIL;
     }
+	// 2.5 GameEngineConfig
 	std::shared_ptr<GameEngineConfig> m_gameEngineConfig = ConfigLocator::GetConfig<GameEngineConfig>();
     if (!m_gameEngineConfig) {
         OutputDebugStringA("MainController Init: Failed to get GameEngineConfig.\n");
         return E_FAIL;
 	}
 
+    // 3. Obtener todos los commponentes para determinar el orden de dependencia
+	// -------------------------------------------------------------------------
     std::map<std::string, std::vector<std::string>> components = {};
     components[COMPONENT_MANAGER.data()] = m_config->managers_init_order;
     components[COMPONENT_SERVICE.data()] = m_serviceConfig->services_init;
@@ -72,19 +105,17 @@ HRESULT MainController::Initialize(HWND hwnd, int width, int height) {
                 OutputDebugStringA(("MainController Init: Failed to get config for " + componentName + "\n").c_str());
                 continue;
             }
-            std::vector<std::string> dependencies; // Aquí puedes agregar las dependencias si las tienes
-
             // Registrar el componente en InitController
             m_initController->RegisterComponent(componentTypeName, componentName, config->dependencies);
-            // Si tienes una configuración específica para el componente, puedes usarla aquí
-            // Por ejemplo, si tienes ConfigBase para cada componente, podrías hacer algo como:
-            //
         }
-        
 	}
  
+    // 4. Establecer el orden de inicilización por dependencia
+	// -------------------------------------------------------
     std::vector<std::pair<std::string, std::string>> initOrder = m_initController->GetInitializationOrder();
 
+    // 5. Ejecutar la inicilización en el orden establecido por dependencia
+	// --------------------------------------------------------------------
     for(const auto& [componentName, componentType] : initOrder) {
         if (componentType == COMPONENT_MANAGER) 
         {
@@ -129,11 +160,15 @@ HRESULT MainController::Initialize(HWND hwnd, int width, int height) {
         }
 	}
 
+    // Obtener servicios básicos
     m_keyboard = ServiceLocator::GetService<Keyboard>();
     m_mouse = ServiceLocator::GetService<Mouse>();
+    m_renderManager = ManagerLocator::GetManager<RenderManager>();
 
-	m_renderManager = ManagerLocator::GetManager<RenderManager>();
-
+    if (!m_keyboard || !m_mouse || !m_renderManager || !m_initManager) {
+        OutputDebugStringA("MainController Init: Failed to get required services or managers.\n");
+        return E_FAIL;
+	}
     return S_OK;
 }
 

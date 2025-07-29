@@ -4,7 +4,7 @@
 REGISTER_CONFIG_TYPE(WheatherConfig,"WheatherConfig");
 
 WheatherConfig::WheatherConfig(){
-	name = "WheatherManager";
+	name = "WheatherService";
 	enabled = true;
 	version = "1.0.0";
 	type = "DynamicWeather";

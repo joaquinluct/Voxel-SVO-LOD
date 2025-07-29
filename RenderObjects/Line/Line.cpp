@@ -10,7 +10,7 @@ Line::~Line() {
     Release();
 }
 
-HRESULT Line::Init(std::shared_ptr<ID3D11Device>  device) {
+HRESULT Line::Init(Microsoft::WRL::ComPtr<ID3D11Device>  device) {
     // Crear descripción del buffer de vértices
     D3D11_BUFFER_DESC bufferDesc = {};
     bufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
@@ -38,7 +38,7 @@ HRESULT Line::Init(std::shared_ptr<ID3D11Device>  device) {
     return S_OK;
 }
 
-void Line::Render(ID3D11DeviceContext* context) {
+void Line::Render(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context) {
     // Aplicar shaders y estados del material
     m_material->Apply(context);
 

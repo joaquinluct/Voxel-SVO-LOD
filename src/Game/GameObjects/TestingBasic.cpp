@@ -17,7 +17,7 @@ TestingBasic::~TestingBasic() {}
 
 HRESULT TestingBasic::Init() {
     m_deviceManager = ManagerLocator::GetManager<DeviceManager>();
-    std::shared_ptr<ID3D11Device> device = m_deviceManager->GetDevice();
+    Microsoft::WRL::ComPtr<ID3D11Device> device = m_deviceManager->GetDevice();
 
     // 🎯 Triángulo simple
     VertexBasic vertices[] = {
@@ -81,7 +81,7 @@ void TestingBasic::Render() {
 
     m_deviceManager->InitRasterizedState();
 
-    ID3D11DeviceContext* context = m_deviceManager->GetContext();
+    Microsoft::WRL::ComPtr<ID3D11DeviceContext> context = m_deviceManager->GetContext();
     UINT stride = sizeof(VertexBasic);
     UINT offset = 0;
 

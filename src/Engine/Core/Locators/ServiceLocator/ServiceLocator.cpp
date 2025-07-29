@@ -54,8 +54,9 @@ HRESULT ServiceLocator::InitializeServices(const std::vector<std::string>& order
                 OutputDebugStringA(("ERROR: Failed to initialize service '" + serviceName + "'\n").c_str());
                 return hr;
             }
-            /*std::shared_ptr<IService> service = std::static_pointer_cast<IService>(it->second.instance);
-            service->SetConfig(config);*/
+            
+            std::shared_ptr<IService> service = std::static_pointer_cast<IService>(it->second.instance);
+            service->SetNeedsShadowPass(config && config->shadow_pass);
         }
         else {
             OutputDebugStringA(("ERROR: Service '" + serviceName + "' in init order list but not registered.\n").c_str());
@@ -90,6 +91,22 @@ HRESULT ServiceLocator::RenderServices(const std::vector<std::string>& orderList
             // Un manager puede no ser renderizable, así que esto podría ser un warning si no implementa Render
             // o un error si debería hacerlo.
             OutputDebugStringA(("WARNING: Service '" + serviceName + "' not found, instance null, or not renderable.\n").c_str());
+        }
+    }
+    return S_OK;
+}
+
+HRESULT ServiceLocator::RenderShadowPassServices(const std::vector<std::string>& orderList) {
+    auto& entries = ServiceLocator::GetServiceEntries();
+    for (const std::string& serviceName : orderList) {
+        auto it = entries.find(serviceName);
+        if (it != entries.end() && it->second.instance && it->second.renderer && it->second.instance->NeedsShadowPass()) {
+            if (it->second.instance.get()->IsRunning()) {
+                it->second.renderer(it->second.instance);
+            }
+            else {
+                OutputDebugStringA(("WARNING: Service '" + serviceName + "' is not running, skipping render shadow pass.\n").c_str());
+            }
         }
     }
     return S_OK;

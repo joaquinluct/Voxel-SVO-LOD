@@ -1,4 +1,4 @@
-// En TextureMapShader.hlsl
+// PBRShader.hlsl
 
 // Constant Buffer para matrices (World, View, Projection)
 // Corresponde a MatrixBufferType en C++

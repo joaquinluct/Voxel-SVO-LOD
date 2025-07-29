@@ -1,6 +1,8 @@
 #define NOMINMAX 
 #include <windows.h>
 #include "DeviceManager.h"
+#include <ConfigLocator/ConfigLocator.h>
+#include <Pipeline/PipelineStateLocator.h>
 #include <ManagerLocator/ManagerLocator.h>
 #include "REGISTER_MANAGER_MACRO.h"
 #include <d3d11.h>
@@ -9,7 +11,7 @@
 REGISTER_MANAGER_TYPE(DeviceManager, "DeviceManager")
 
 DeviceManager::DeviceManager()
-	: m_device(nullptr, IUnknownReleaser())
+	: m_device()
 {
 	m_context = nullptr;
 	m_swapChain = nullptr;
@@ -17,6 +19,7 @@ DeviceManager::DeviceManager()
 	m_alphaBlendState = nullptr;
 	m_defaultBlendState = nullptr;
 	m_rasterizerState = nullptr;
+    m_rasterizerShadowsState = nullptr;
 }
 
 DeviceManager::~DeviceManager()
@@ -25,28 +28,44 @@ DeviceManager::~DeviceManager()
 
 HRESULT DeviceManager::Init(HWND hwnd, int width, int height)
 {   
+	m_swapChainMainConfig = PipelineStateLocator::GetPipelineState<SwapChainMain>();
+    HRESULT hr = (m_swapChainMainConfig) ? S_OK : E_FAIL;
+    if (FAILED(hr)) {
+        OutputDebugStringA("Error al obtener SwapChainMainConfig.\n");
+        return hr;
+	}
     OutputDebugStringA("Incializando DeviceManager...\n");
     m_hwnd = &hwnd;
-    HRESULT hr = CreateDeviceAndSwapChain(hwnd, width, height);
+    hr = CreateDeviceAndSwapChain(hwnd, width, height);
     if (FAILED(hr)) {
         MessageBox(hwnd, L"Error al crear el dispositivo DirectX 11", L"Error", MB_OK);
         return hr;
     }
 
-    // Modo Rasterizado
-    hr = InitRasterizedState();
-    if (FAILED(hr)) {
-        MessageBox(hwnd, L"Error al inciailizar el modo Raterizado", L"Error", MB_OK);
-        return hr;
-    }
+ //   // Modo Rasterizado (ColourPass)
+ //   hr = InitRasterizedState();
+ //   if (FAILED(hr)) {
+ //       MessageBox(hwnd, L"Error al inciailizar el modo Raterizado", L"Error", MB_OK);
+ //       return hr;
+ //   }
+
+	//// Modo Rasterizado para el pase de las sombras (ShadowPass)
+ //   hr = InitRasterizedShadowsState();
+ //   if (FAILED(hr)) {
+ //       MessageBox(hwnd, L"Error al inciailizar el modo Raterizado", L"Error", MB_OK);
+ //       return hr;
+ //   }
 
 
-	// Inicializar el estado de mezcla
-	hr = InitBlending();
-    if (FAILED(hr)) {
-        MessageBox(hwnd, L"Error al inciailizar el Blendig", L"Error", MB_OK);
-        return hr;
-    }
+	//// Inicializar el estado de mezcla
+	//hr = InitBlending();
+ //   if (FAILED(hr)) {
+ //       MessageBox(hwnd, L"Error al inciailizar el Blendig", L"Error", MB_OK);
+ //       return hr;
+ //   }
+
+    m_width = static_cast<float>(width);
+    m_height = static_cast<float>(height);
 
     OutputDebugStringA(("Resultado Init " + std::to_string(hr) + " en DeviceManager\n").c_str());
     return hr;
@@ -55,18 +74,18 @@ HRESULT DeviceManager::Init(HWND hwnd, int width, int height)
 HRESULT DeviceManager::CreateDeviceAndSwapChain(HWND hwnd, int width, int height) {
 
     DXGI_SWAP_CHAIN_DESC sd = {};
-    sd.BufferCount = 2;
+    sd.BufferCount = m_swapChainMainConfig->BufferCount;
     sd.BufferDesc.Width = width;
     sd.BufferDesc.Height = height;
-    sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    sd.BufferDesc.RefreshRate.Numerator = 60;
-    sd.BufferDesc.RefreshRate.Denominator = 1;
-    sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    sd.BufferDesc.Format = static_cast<DXGI_FORMAT>(m_swapChainMainConfig->Format);
+    sd.BufferDesc.RefreshRate.Numerator = m_swapChainMainConfig->Numerator;
+    sd.BufferDesc.RefreshRate.Denominator = m_swapChainMainConfig->Denominator;
+    sd.BufferUsage = std::stoul(m_swapChainMainConfig->BufferUsage);
     sd.OutputWindow = hwnd;
-    sd.SampleDesc.Count = 1;
-    sd.SampleDesc.Quality = 0;
-    sd.Windowed = TRUE;
-    sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+    sd.SampleDesc.Count = m_swapChainMainConfig->SampleCount;
+    sd.SampleDesc.Quality = m_swapChainMainConfig->SampleQuality;
+    sd.Windowed = m_swapChainMainConfig->Windowed;
+    sd.SwapEffect = static_cast<DXGI_SWAP_EFFECT>(m_swapChainMainConfig->SwapEffect);
 
     UINT createDeviceFlags = 0;
 #ifdef _DEBUG
@@ -89,7 +108,7 @@ HRESULT DeviceManager::CreateDeviceAndSwapChain(HWND hwnd, int width, int height
     );
 
     if (SUCCEEDED(hr)) {
-        m_device = std::shared_ptr<ID3D11Device>(pTempDevice, IUnknownReleaser());
+        m_device = Microsoft::WRL::ComPtr<ID3D11Device>(pTempDevice);
     }
 
     return hr;
@@ -105,7 +124,7 @@ HRESULT DeviceManager::InitRasterizedState() {
     //rasterDesc.FrontCounterClockwise = TRUE; // Orientaci�n de las caras frontales
 	rasterDesc.DepthClipEnable = true;
     rasterDesc.AntialiasedLineEnable = true;
-
+    
     HRESULT hr = m_device->CreateRasterizerState(&rasterDesc, &m_rasterizerState);
     if (FAILED(hr)) {
         OutputDebugString(L"Error al crear el Rasterizer State.\n");
@@ -113,7 +132,31 @@ HRESULT DeviceManager::InitRasterizedState() {
 
     // Guardar el estado del rasterizador globalmente si es necesario
     // m_context->RSSetState(m_rasterizerState);
-    return S_OK;
+    return hr;
+}
+
+HRESULT DeviceManager::InitRasterizedShadowsState() {
+    D3D11_RASTERIZER_DESC rasterDesc = {};
+    rasterDesc.FillMode = D3D11_FILL_SOLID;
+    rasterDesc.CullMode = D3D11_CULL_FRONT; // LO MÁS IMPORTANTE: Front-face culling
+    rasterDesc.FrontCounterClockwise = FALSE; // Esto debe coincidir con la orientación de tus vértices
+    // (FALSE para CCW, TRUE para CW)
+    rasterDesc.DepthBias = 50; // Ejemplo: un pequeño bias entero. Ajustar según necesites.
+    // 50 es un valor arbitrario, podría ser 1, 100, 1000 dependiendo de la escala.
+    rasterDesc.DepthBiasClamp = 0.0f; // No clamping en este ejemplo
+    rasterDesc.SlopeScaledDepthBias = 1.0f; // Ejemplo: 1.0f para bias escalado por la pendiente. Ajustar.
+    // Un valor común es 1.0f o 2.0f.
+    rasterDesc.DepthClipEnable = TRUE;
+    rasterDesc.ScissorEnable = FALSE;
+    rasterDesc.MultisampleEnable = FALSE; // No AA para el mapa de sombras
+    rasterDesc.AntialiasedLineEnable = FALSE; // No AA para líneas en el mapa de sombras
+
+    HRESULT hr = m_device->CreateRasterizerState(&rasterDesc, &m_rasterizerShadowsState);
+    if (FAILED(hr))
+    {
+        OutputDebugString(L"Error al crear el Rasterizer Shadow State.\n");
+    }
+    return hr;
 }
 
 HRESULT DeviceManager::InitBlending()
@@ -172,23 +215,18 @@ HRESULT DeviceManager::GetBackBuffer(ID3D11Texture2D** ppBackBuffer) {
     return hr;
 }
 
-std::shared_ptr<ID3D11Device> DeviceManager::GetDevice() {
+Microsoft::WRL::ComPtr<ID3D11Device> DeviceManager::GetDevice() {
     return m_device;
 }
 
-ID3D11DeviceContext* DeviceManager::GetContext() {
+Microsoft::WRL::ComPtr<ID3D11DeviceContext> DeviceManager::GetContext() {
 	return m_context;
-}
-
-IDXGISwapChain* DeviceManager::GetSwapChain() {
-	return m_swapChain;
 }
 
 void DeviceManager::Render()
 {    
 	// Presentar el swap chain
     m_swapChain->Present(1, 0);
-    //m_context->OMSetRenderTargets(1, &n_pRenderTargetView, m_pDepthStencilView);
 }
 
 void DeviceManager::EnableAlphaBlending()
@@ -220,6 +258,16 @@ void DeviceManager::SetRasterizerState()
     }
 }
 
+void DeviceManager::SetRasterizerShadowsState()
+{
+    if (m_context && m_rasterizerShadowsState) {
+        m_context->RSSetState(m_rasterizerShadowsState);
+    }
+    else {
+        OutputDebugString(L"Error: Contexto o Rasterizer State no est�n inicializados.\n");
+    }
+}
+
 void DeviceManager::ResetContextState()
 {
     if (m_context) {
@@ -236,7 +284,6 @@ void DeviceManager::Shutdown()
     if (m_context) m_context->ClearState();
 	SafeRelease(m_alphaBlendState);
     SafeRelease(m_defaultBlendState);
-    SafeRelease(m_swapChain);
 
     // Aseg�rate de liberar el ID3D11Device al final, opcionalmente con un reporte de objetos vivos
     if (m_device)
@@ -254,7 +301,6 @@ void DeviceManager::Shutdown()
         m_device = nullptr;
     }
     // Liberar el contexto inmediato
-	SafeRelease(m_swapChain);
 	m_device->Release();
 	//Saf(m_context);
 }

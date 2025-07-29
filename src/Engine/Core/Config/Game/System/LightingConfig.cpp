@@ -4,10 +4,11 @@
 REGISTER_CONFIG_TYPE(LightingConfig,"LightingConfig");
 
 LightingConfig::LightingConfig(){
-	name = "LightManager";
+	name = "LightService";
 	enabled = true;
+	shadow_pass = false;
 	version = "1.0.0";
-	type = "DynamicLighting";
+	type = "DirectionalLight";
 	ambient_light = {
 		0.2f,
 		0.2f,

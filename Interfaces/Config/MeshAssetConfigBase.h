@@ -12,5 +12,7 @@ public:
 	std::string texture;
 	std::string vertexDef;
 	std::string name;
+	bool cast_shadows = false;
+	bool receive_shadows = false;
 	std::vector<float> position = {0.0f, 0.0f, 0.0f};
 };

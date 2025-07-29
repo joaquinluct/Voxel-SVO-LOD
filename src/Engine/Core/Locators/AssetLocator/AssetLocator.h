@@ -71,6 +71,8 @@ public:
     static std::shared_ptr<ShaderAsset> GetShaderAsset(const std::string& name);
     static std::shared_ptr<AssetBase> GetAssetBase(const std::string& name);
 
+    static std::vector<std::shared_ptr<ShaderAsset>> GetAllShaderAsset();
+
     // Función para obtener un servicio ya inicializado por su tipo C++.
     // Ahora usa dynamic_pointer_cast internamente, ya que s_services almacena IAsset.
     template<typename T>
@@ -115,7 +117,7 @@ public:
                     shader->SetConfig(config);
                 }
                 //std::shared_ptr<ShaderAsset> m_shader = std::make_shared<ShaderAsset>(shader);
-                shaders.push_back(shader->Clone());
+                shaders.push_back(shader->CloneShader());
             }
         }
 		return shaders;

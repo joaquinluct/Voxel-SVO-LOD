@@ -4,7 +4,7 @@
 REGISTER_CONFIG_TYPE(CycleConfig,"CycleConfig");
 
 CycleConfig::CycleConfig(){
-	name = "CycleManager";
+	name = "CycleService";
 	enabled = true;
 	version = "1.0.0";
 	type = "DayNightCycle";

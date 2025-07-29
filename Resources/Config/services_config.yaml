@@ -17,6 +17,7 @@ Config:
           - Mouse
           - Keyboard
           - UIBase
+          - Material
           # - UIDebug
 
     KeyBindings:

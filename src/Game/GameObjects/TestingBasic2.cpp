@@ -18,7 +18,7 @@ TestingBasic2::~TestingBasic2() {}
 HRESULT TestingBasic2::Init() {
     m_cameraManager = ManagerLocator::GetManager<CameraManager>();
     m_deviceManager = ManagerLocator::GetManager<DeviceManager>();
-    std::shared_ptr<ID3D11Device> device = m_deviceManager->GetDevice();
+    Microsoft::WRL::ComPtr<ID3D11Device> device = m_deviceManager->GetDevice();
 
     m_deviceManager->SetRasterizerState();
        
@@ -116,7 +116,7 @@ HRESULT TestingBasic2::Init() {
 }
 
 void TestingBasic2::Render() {
-    ID3D11DeviceContext* context = m_deviceManager->GetContext();
+    Microsoft::WRL::ComPtr<ID3D11DeviceContext> context = m_deviceManager->GetContext();
     UINT stride = sizeof(VertexBasic2);
     UINT offset = 0;
 

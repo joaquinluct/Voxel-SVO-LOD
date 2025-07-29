@@ -7,7 +7,12 @@ class ShaderAsset : public AssetBase
 {
 public:
 	ShaderAsset();
-	std::unique_ptr<ShaderAsset> Clone() const {
+	std::unique_ptr<ShaderAsset> CloneShader() const {
+		// Usa std::make_unique para crear una nueva instancia de VertexShader
+		// y el constructor de copia para copiar el contenido.
+		return std::make_unique<ShaderAsset>(*this);
+	}
+	virtual std::shared_ptr<AssetBase> Clone() const override {
 		// Usa std::make_unique para crear una nueva instancia de VertexShader
 		// y el constructor de copia para copiar el contenido.
 		return std::make_unique<ShaderAsset>(*this);

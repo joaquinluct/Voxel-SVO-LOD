@@ -1,11 +1,14 @@
+#include <windows.h>
 #include "TestingFloor.h"
+#include <ManagerLocator/ManagerLocator.h>
 #include <AssetLocator/AssetLocator.h>
 #include <REGISTER_SERVICE_MACRO.h>
 
 REGISTER_SERVICE_TYPE(TestingFloor, "TestingFloor");
 
 TestingFloor::TestingFloor() :
-	mesh(nullptr)
+	mesh(nullptr),
+	houseMesh(nullptr)
 {
 }
 
@@ -15,14 +18,42 @@ TestingFloor::~TestingFloor()
 
 HRESULT TestingFloor::Init()
 {
-	mesh = std::static_pointer_cast<MeshAsset>(AssetLocator::GetAsset("FloorMesh"));
-	mesh->Init();
+	m_renderManager = ManagerLocator::GetManager<RenderManager>();
+	if (!m_renderManager) {
+		OutputDebugStringA("TestingFloor::Init - ERROR: RenderManager not found.\n");
+		return E_FAIL;
+	}
 
-	return S_OK; // Return success
+	mesh = m_renderManager->GameRenderManagerGet()->RegisterMesh("FloorMesh");
+	if (!mesh) {
+		OutputDebugStringA("TestingFloor::Init - ERROR: Mesh init.\n");
+	}
+	HRESULT hr = mesh->Init();
+	if (FAILED(hr)) {
+		OutputDebugStringA("TestingFloor::Init - ERROR: Mesh init failed.\n");
+		return hr;
+	}
+
+	houseMesh = m_renderManager->GameRenderManagerGet()->RegisterMesh(("House1Mesh"));
+	if (!houseMesh) {
+		OutputDebugStringA("TestingFloor::Init - ERROR: House mesh init.\n");
+	}
+	houseMesh->Init();
+	if (FAILED(hr)) {
+		OutputDebugStringA("TestingFloor::Init - ERROR: House mesh init failed.\n");
+		return hr;
+	}
+
+	houseMesh->SetScale(0.5f, 0.5f, 0.5f);
+
+	return S_OK;
 }
 
 void TestingFloor::Render() {
-	if (mesh) {
+	/*if (mesh) {
 		mesh->Render();
 	}	
+	if (houseMesh) {
+		houseMesh->Render();
+	}*/
 }

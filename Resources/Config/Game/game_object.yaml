@@ -4,6 +4,7 @@ Config:
       TestingFloor:
           name: "TestingFloor"
           enabled: true
+          shadow_pass: true
           version: "1.0.0"
           type: "TestingFloor"
           description: "Un suelo de pruebas."
@@ -13,6 +14,7 @@ Config:
       TestingBasic2:
           name: "TestingBasicManager"
           enabled: false
+          shadow_pass: true
           version: "1.0.0"
           type: "TestingBasic2"
           description: "Un triángulo de pruebas básicas."
@@ -36,6 +38,7 @@ Definition:
     inherits_properties:
         - type
         - enabled
+        - shadow_pass
         - dependencies 
     #output_path: 'C:\Users\joaqu\source\repos\DirectX-Voxelado\TestConfig\Game\'
     output_path: 'c:\Users\joaqu\source\repos\DirectX-Voxelado\src\Engine\Core\Config\Game\'

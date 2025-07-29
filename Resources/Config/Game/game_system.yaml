@@ -8,8 +8,15 @@ Config:
             description: "Un juego de aventura en un mundo voxelizado."
             type: "VoxelWorld"
             respawnTime: 5
+        Renderer:
+            name: "Renderer"
+            enabled: true
+            version: "1.0.0"
+            type: "DeferredRendering"
+            dependencies:
+              - DeviceManager
         Terrain:
-            name: "TerrainManager"
+            name: "TerrainService"
             enabled: true
             version: "1.0.0"
             type: "ProceduralTerrain"
@@ -17,44 +24,54 @@ Config:
         Skybox:
             name: "Skybox"
             enabled: true
+            shadow_pass: false
             version: "1.0.0"
             type: "DefaultSkybox"
             mesh: "SkyboxMesh"
             dependencies:
               - SkyboxMesh
         Physics:
-            name: "PhysicManager"
+            name: "PhysicService"
             enabled: true
             version: "1.0.0"
             type: "BasicPhysics"
             properties:
             gravity: [0.0, -9.81, 0.0] 
         Biome:
-            name: "BiomwManager"
+            name: "BiomeService"
             enabled: true
             version: "1.0.0"
             type: "ForestBiome"
             properties:
             vegetation_density: 0.8
             wildlife_density: 0.5
-        Lighting:
-            name: "LightManager"
+        Shadows:
+            name: "Shadows"
             enabled: true
+            shadow_pass: false
             version: "1.0.0"
-            type: "DynamicLighting"
+            type: "Shadows"
+            dependencies:
+              - ShaderManager
+        Lighting:
+            name: "LightService"
+            enabled: true
+            shadow_pass: false
+            version: "1.0.0"
+            type: "DirectionalLight"
             properties:
             ambient_light: [0.2, 0.2, 0.2]
             directional_light: [1.0, 1.0, 1.0]
             shadows: true
         Cycle:
-            name: "CycleManager"
+            name: "CycleService"
             enabled: true
             version: "1.0.0"
             type: "DayNightCycle"
             day_night_cycle: true
             day_night_cycle_speed: 0.1
         Wheather:
-            name: "WheatherManager"
+            name: "WheatherService"
             enabled: true
             version: "1.0.0"
             type: "DynamicWeather"
@@ -77,6 +94,7 @@ Definition:
         - type
         - enabled
         - mesh
+        - shadow_pass
         - dependencies 
     #output_path: 'C:\Users\joaqu\source\repos\DirectX-Voxelado\TestConfig\Game\'
     output_path: 'c:\Users\joaqu\source\repos\DirectX-Voxelado\src\Engine\Core\Config\Game\'

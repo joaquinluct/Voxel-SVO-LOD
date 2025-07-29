@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <IService.h>
+#include <RenderManager/RenderManager.h>
 #include <Assets/Base/MeshAsset.h>
 
 class TestingFloor: public IService
@@ -26,5 +27,7 @@ public:
         return name;
     }
 private:
+    std::shared_ptr<RenderManager> m_renderManager;
     std::shared_ptr<MeshAsset> mesh;
+    std::shared_ptr<MeshAsset> houseMesh;
 };

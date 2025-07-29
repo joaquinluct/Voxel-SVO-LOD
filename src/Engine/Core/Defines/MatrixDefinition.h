@@ -90,7 +90,8 @@ namespace MatrixDefinition {
         MatrixBufferTypeOrthographic, // Matriz Projection (para UI, etc.)
         Light::DirectionalLight,      // Datos de luz direccional para PBR
         Light::CameraData,            // Posición de la cámara
-        Light::MaterialData           // Propiedades de material PBR
+        Light::MaterialData,          // Propiedades de material PBR
+		Light::LightSpaceMatrices     // Matrices de espacio de luz para sombras
     >;
 
     // Declaración de la función Get para crear instancias de los buffers
@@ -112,6 +113,9 @@ namespace MatrixDefinition {
         }
         if (matrixDefinitionName == "MaterialData") {
             return Light::MaterialData{};
+        }
+        if (matrixDefinitionName == "LightSpaceMatrices") {
+            return Light::LightSpaceMatrices{};
         }
         throw std::runtime_error("Unknown matrix definition name: " + matrixDefinitionName);
     }

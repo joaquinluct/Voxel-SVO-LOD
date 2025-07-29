@@ -7,6 +7,7 @@ EngineConfig::EngineConfig(){
 	managers_init_order = {
 		"DeviceManager",
 		"RenderTargetManager",
+		"InitManager",
 		"RenderManager",
 		"KeyboardManager",
 		"CameraManager",
@@ -26,5 +27,13 @@ EngineConfig::EngineConfig(){
 		"CameraManager",
 		"GameManager",
 		"UIManager"
+	};
+	pipeline_states_init = {
+		"SwapChainMain",
+		"RasterizedMainColorPass",
+		"RasterizedShadowPass",
+		"BlendingMainColor",
+		"StencilMainColor",
+		"ViewportMain"
 	};
 };

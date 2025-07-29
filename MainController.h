@@ -18,18 +18,19 @@
 #include "RenderTargetManager.h"
 #include "ShaderManager.h"
 #include "WorldMatrixManager.h"
-#include <KeyboardManager.h>
+#include <InitManager.h>
 #include <RenderManager/RenderManager.h>
-#include "RenderObjects/Line/Line.h"
-#include "RenderObjects/UIBox/UIBox.h"
+#include <KeyboardManager.h>
+//#include "RenderObjects/Line/Line.h"
+//#include "RenderObjects/UIBox/UIBox.h"
 #include <UIManager.h>
 #include <Services/Keyboard.h>
 #include <Config/Base/EngineConfig.h>
 #include <Config/Services/ServiceConfig.h>
 #include <Assets/Base/TextureAsset.h>
-#include <Game/GameObjects/AxisXYZ.h>
-#include <Game/GameObjects/TestingBasic.h>
-#include <Game/GameObjects/UIDebug.h>
+//#include <Game/GameObjects/AxisXYZ.h>
+//#include <Game/GameObjects/TestingBasic.h>
+//#include <Game/GameObjects/UIDebug.h>
 #include <Camera/FirstPersonCamera.h>
 #include <GameManager.h>
 
@@ -75,4 +76,5 @@ private:
     std::shared_ptr<GameManager> m_GameManager;
     std::shared_ptr<UIManager> m_UIManager;
     std::shared_ptr<RenderManager> m_renderManager;
+    std::shared_ptr<InitManager> m_initManager;
 };

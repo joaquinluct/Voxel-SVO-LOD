@@ -16,4 +16,5 @@ public:
 	std::vector<std::string> managers_init_order;
 	std::vector<std::string> managers_render_order;
 	std::vector<std::string> managers_update_order;
+	std::vector<std::string> pipeline_states_init;
 };

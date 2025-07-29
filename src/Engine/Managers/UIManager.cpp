@@ -20,8 +20,8 @@ HRESULT UIManager::Init()
     m_renderTargetManager = ManagerLocator::GetManager<RenderTargetManager>();
     
     // Crear matriz de proyección ortográfica
-    UINT width = static_cast<UINT>(m_renderTargetManager->GetViewport().Width);
-    UINT height = static_cast<UINT>(m_renderTargetManager->GetViewport().Height);
+    UINT width = static_cast<UINT>(m_deviceManager->GetWidth());
+    UINT height = static_cast<UINT>(m_deviceManager->GetHeight());
     // m_orthoMatrix = XMMatrixOrthographicLH((float)width, (float)height, 0.0f, 1.0f);
 
     m_orthoMatrix = DirectX::XMMatrixOrthographicOffCenterLH(

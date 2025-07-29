@@ -1,0 +1,99 @@
+#pragma once
+#include <Windows.h>
+#include <IManager.h>
+#include <IWindowDependentInitializable.h>
+#include <d3d11.h>
+#include <wrl/client.h>
+#include <string>
+#include <memory>
+#include <vector>
+#include <variant>
+
+#include <RenderManager/Pipeline/RenderPipelineExecutor.h>
+#include <InitManager/Pipeline/PipelineConfigurator.h>
+#include <RenderManager/RenderPass.h> // Incluimos la clase RenderPass para usar su forma de añadir operaciones
+#include "Defines/Pipeline.h" // Incluimos las definiciones de operaciones y parámetros
+#include "DeviceManager.h" // Incluimos las definiciones de operaciones y parámetros
+
+#include <Config/Base/RenderStates/BlendingMainColor.h>
+#include <Config/Base/RenderStates/RasterizedMainColorPass.h>
+#include <Config/Base/RenderStates/RasterizedShadowPass.h>
+#include <Config/Base/RenderStates/StencilMainColor.h>
+#include <Config/Base/InitManagerConfig.h>
+
+class InitManager : public IManager, public IWindowDependentInitializable
+{
+private:
+	std::map<std::string, PipelineData> m_pipelineStates;
+
+    std::shared_ptr<DeviceManager> m_deviceManager;
+
+    std::shared_ptr<InitManagerConfig> m_config;
+	std::shared_ptr<BlendingMainColor> m_blendingMainColor;
+	std::shared_ptr<RasterizedMainColorPass> m_rasterizedMainColorPass;
+    std::shared_ptr<RasterizedShadowPass> m_rasterizedShadowPass;
+    std::shared_ptr<StencilMainColor> m_stencilMain;
+
+    Microsoft::WRL::ComPtr<ID3D11Device> m_device;
+    Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_context;
+    Microsoft::WRL::ComPtr<IDXGISwapChain> m_swapChain;
+
+    // Instancia del executor del pipeline
+    //std::unique_ptr<RenderPipeline::RenderPipelineExecutor> m_pipelineExecutor;
+    std::unique_ptr<PipelineConfigurator> m_pipelineInitiator;
+
+    // Parámetros de las operaciones contra la GPU
+    PipelineOperationParams m_params;
+
+    // Un "pase" de inicialización para almacenar las operaciones
+    // Aunque no es un pase de renderizado real, nos sirve para agrupar las operaciones de la misma manera que un RenderPass lo haría.
+    std::shared_ptr<RenderPass> m_initPass;
+
+    // Aquí almacenaríamos los recursos creados durante la inicialización
+    Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_renderTargetView;
+    Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_depthStencilView;
+    Microsoft::WRL::ComPtr<ID3D11InputLayout> m_inputLayout;
+    Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_rasterizerState;
+    Microsoft::WRL::ComPtr<ID3D11SamplerState> m_samplerState;
+    Microsoft::WRL::ComPtr<ID3D11VertexShader> m_vertexShader;
+    Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pixelShader;
+
+public:
+    InitManager();
+    ~InitManager() override;
+
+    HRESULT Init(HWND hwnd, int width, int heigth) override;
+    HRESULT InitManagers();
+    HRESULT InitConfigs();
+    HRESULT InitPipelineStates(int width, int height);
+    HRESULT InitFinalOperations();
+    HRESULT InitMainPipelineOperations(int width, int height);
+
+    const std::string& GetManagerName() const override {
+        static const std::string name = "InitManager";
+        return name;
+    }
+
+    static const std::string& GetStaticManagerName() {
+        static const std::string name = "InitManager";
+        return name;
+    }
+
+    std::map<std::string, PipelineData> GetPipelineStates() { return m_pipelineStates; }
+
+    template<typename T>
+    T GetState(std::string stateName) {
+        T result;
+        auto pair = m_pipelineStates.find(stateName);
+        if (pair != m_pipelineStates.end()) {
+            result = std::get<T>(pair->second);
+        }
+        return result;
+    }
+
+    Microsoft::WRL::ComPtr<ID3D11RenderTargetView> GetRenderTargetView()
+    {
+
+    }
+
+};

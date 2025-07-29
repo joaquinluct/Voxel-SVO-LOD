@@ -5,32 +5,57 @@ Config:
   Base:
     Engine:
       managers_init_order:
-          - DeviceManager
-          - RenderTargetManager
-          - RenderManager
-          - KeyboardManager
-          - CameraManager
-          - AssetManager
-          - ShaderManager
-          # - WorldMatrixManager
-          - UIManager
-          - GameManager
+        - DeviceManager
+        - RenderTargetManager
+        - InitManager
+        - RenderManager
+        - KeyboardManager
+        - CameraManager
+        - AssetManager
+        - ShaderManager
+        # - WorldMatrixManager
+        - UIManager
+        - GameManager
       managers_render_order:
-          - RenderTargetManager
-          # - WorldMatrixManager
-          - GameManager
-          - UIManager
-          - DeviceManager
+        - RenderTargetManager
+        # - WorldMatrixManager
+        - GameManager
+        - UIManager
+        - DeviceManager
       managers_update_order:
-          - KeyboardManager
-          # - WorldMatrixManager
-          - CameraManager
-          - GameManager
-          - UIManager
+         - KeyboardManager
+         # - WorldMatrixManager
+         - CameraManager
+         - GameManager
+         - UIManager
+      pipeline_states_init:
+        - SwapChainMain
+        - RasterizedMainColorPass
+        - RasterizedShadowPass
+        - BlendingMainColor
+        - StencilMainColor
+        - ViewportMain
+    InitManager:
+      deviceAndSwapChain: SwapChainMain
+      rasterizedStates:
+        - RasterizedMainColorPass
+        - RasterizedShadowPass
+      blendingStates:
+        - BlendingMainColor
+      stencilStates:
+        - StencilMainColor
+      viewPortStates:
+        - ViewportMainColor
+        - ViewportShadow
+      dependencies:
+        - UIManager
 
     RenderManager:
-     dependencies:
-        - UIManager
+      passes:
+        - ShadowPass
+        - MainColorPass
+      dependencies:
+        - InitManager
 
     AssetManager:
       manifest_path: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Resources\\assets_manifest.yaml"
@@ -119,7 +144,7 @@ Config:
       dependencies:
         - DeviceManager
         - RenderTargetManager
-        - CameraManager
+        - CameraManager5
 
     # --- Configuraciones de Subsistemas de Juego ---
     GameManager:

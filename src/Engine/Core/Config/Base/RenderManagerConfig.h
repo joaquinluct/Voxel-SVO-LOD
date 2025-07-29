@@ -13,4 +13,5 @@ public:
 		static const std::string className = "RenderManagerConfig";
 		return className;
 	}
+	std::vector<std::string> passes;
 };

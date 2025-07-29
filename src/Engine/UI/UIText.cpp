@@ -175,7 +175,7 @@ void DebugVertextData(UIVertex* pInitialVertexData, int textLenght) {
     }
 }
 
-void UIText::SetVertexBuffer(ID3D11DeviceContext* context) {
+void UIText::SetVertexBuffer(Microsoft::WRL::ComPtr < ID3D11DeviceContext> context) {
 
     D3D11_MAPPED_SUBRESOURCE mappedResource;
     UIVertex* pVertexData;
@@ -242,7 +242,7 @@ void UIText::SetVertexBuffer(ID3D11DeviceContext* context) {
     context->Unmap(m_vertexBuffer, 0);
 }
 
-void UIText::ApplyMaterial(ID3D11DeviceContext* context, std::shared_ptr<Material> m_material, XMMATRIX orthoMatrix) {
+void UIText::ApplyMaterial(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context, std::shared_ptr<Material> m_material, XMMATRIX orthoMatrix) {
 
     m_material->Apply(context);
 
@@ -277,7 +277,7 @@ void UIText::Render(const DirectX::XMMATRIX& orthoMatrix) {
         return;
     }
 
-    ID3D11DeviceContext* context = m_device->GetContext();
+    Microsoft::WRL::ComPtr<ID3D11DeviceContext> context = m_device->GetContext();
 
 	// Aplicar el material y las matrices
 	ApplyMaterial(context, m_material, orthoMatrix);

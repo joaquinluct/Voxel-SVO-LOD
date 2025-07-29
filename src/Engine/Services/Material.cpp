@@ -10,6 +10,7 @@
 #include <Defines/Texture.h>
 #include <Defines/MatrixDefinition.h>
 #include <Defines/Light.h>
+#include <Util/DirectXUtils.h>
 #include <REGISTER_SERVICE_MACRO.h>
 
 REGISTER_SERVICE_TYPE(Material, "Material")
@@ -26,7 +27,10 @@ Material::Material()
     m_matrixBuffer(nullptr),
     m_deviceManager(nullptr),
     m_cameraManager(nullptr),
-	m_shaderManager(nullptr),
+    m_shaderManager(nullptr),
+    m_renderManager(nullptr),
+	m_lighting(nullptr),
+    m_shadows(nullptr),
     vertexShader(nullptr),
     pixelShader(nullptr),
 	inputLayout(nullptr)
@@ -52,6 +56,24 @@ HRESULT Material::InitManagers() {
         return E_FAIL;
     }
 
+	m_renderManager = ManagerLocator::GetManager<RenderManager>();
+    if (m_renderManager == nullptr) {
+        OutputDebugStringA("Error: RenderManager no inicializado.\n");
+        return E_FAIL;
+	}
+
+	m_lighting = ServiceLocator::GetService<Lighting>();
+    if (m_lighting == nullptr) {
+        OutputDebugStringA("Error: Lighting no inicializado.\n");
+        return E_FAIL;
+	}
+
+	m_shadows = ServiceLocator::GetService<Shadows>();
+    if (m_shadows == nullptr) {
+        OutputDebugStringA("Error: Shadows no inicializado.\n");
+		return E_FAIL;
+	}
+
     return S_OK;
 }
 
@@ -72,7 +94,7 @@ HRESULT Material::InitSampleState() {
         return E_FAIL;
     }
 
-    std::shared_ptr<ID3D11Device> device = m_deviceManager->GetDevice();
+    Microsoft::WRL::ComPtr<ID3D11Device> device = m_deviceManager->GetDevice();
 
     D3D11_SAMPLER_DESC samplerDesc = {};
     samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR; // Tipo de filtrado (bilineal, trilineal, etc.)
@@ -81,7 +103,6 @@ HRESULT Material::InitSampleState() {
     samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;    // Comportamiento de "envoltura" para coordenadas W (para 3D/cubemaps)
     samplerDesc.MipLODBias = 0.0f;
     samplerDesc.MaxAnisotropy = 1; // O más si usas filtrado anisotrópico
-    samplerDesc.ComparisonFunc = nullptr != m_texture_roughness ? D3D11_COMPARISON_NEVER : D3D11_COMPARISON_ALWAYS;
     samplerDesc.BorderColor[0] = 0; samplerDesc.BorderColor[1] = 0; samplerDesc.BorderColor[2] = 0; samplerDesc.BorderColor[3] = 0;
     samplerDesc.MinLOD = 0;
     samplerDesc.MaxLOD = D3D11_FLOAT32_MAX; // Usar todos los mipmaps
@@ -109,14 +130,6 @@ HRESULT Material::InitMatrixBuffer() {
 	}
 
     for (const auto& [matrixName, matrix] : matrixBuffers) {
-        /*size_t max_matrix_struct_size = (std::max)({
-           sizeof(MatrixDefinition::MatrixBufferType),
-           sizeof(MatrixDefinition::MatrixBufferTypeSkyBox),
-           sizeof(MatrixDefinition::MatrixBufferTypeOrthographic),
-           sizeof(Light::DirectionalLight),
-           sizeof(Light::MaterialData),
-           sizeof(Light::CameraData),
-            });*/
 
         UINT buffer_byte_width = 0;
 
@@ -136,7 +149,7 @@ HRESULT Material::InitMatrixBuffer() {
         cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
         cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
-        std::shared_ptr<ID3D11Device> device = m_deviceManager->GetDevice();
+        Microsoft::WRL::ComPtr<ID3D11Device> device = m_deviceManager->GetDevice();
 
         m_constantBuffers[matrixName] = nullptr;
 
@@ -193,19 +206,25 @@ HRESULT Material::Init() {
 
 void Material::Render() {
 
-    ID3D11DeviceContext* context = m_deviceManager->GetContext();
+    Microsoft::WRL::ComPtr<ID3D11DeviceContext> context = m_deviceManager->GetContext();
 
     XMMATRIX worldMatrix = XMMatrixIdentity();
     XMMATRIX viewMatrix = XMMatrixTranspose(m_cameraManager->GetCurrentViewMatrix());
     XMMATRIX projectionMatrix = XMMatrixTranspose(m_cameraManager->GetCurrentProjectionMatrix());
 
     MatrixDefinitionBase::MatrixParams matrixParams{};
-    matrixParams.worldMatrix = worldMatrix;
-    matrixParams.viewMatrix = viewMatrix;
-	matrixParams.projectionMatrix = projectionMatrix;
-	matrixParams.cameraPosition = m_cameraManager->GetCurrentCameraPosition();
-    matrixParams.lightDirection = XMFLOAT3{ .3f, -1.0f, .6f };
-    matrixParams.materialAO = 0.4f;
+    if (m_renderManager->IsRenderColourPassActive()) {
+        matrixParams.worldMatrix = worldMatrix;
+        matrixParams.viewMatrix = viewMatrix;
+        matrixParams.projectionMatrix = projectionMatrix;
+        matrixParams.cameraPosition = m_cameraManager->GetCurrentCameraPosition();
+        matrixParams.lightDirection = m_lighting->GetLightDirection();
+        matrixParams.lightColor = m_lighting->GetLightColor();
+        matrixParams.materialAO = 0.4f;
+    } else if (m_renderManager->IsRenderShadowsPassActive()) {
+        matrixParams.worldMatrix = worldMatrix;
+        matrixParams.lightViewProjectionMatrix = m_shadows->GetLightViewProjectionMatrix();
+    } 
     
 	SetConstantBuffers(context, matrixParams);
 
@@ -220,21 +239,21 @@ void Material::SetTexture(ID3D11ShaderResourceView* texture, std::string texture
     if (textureMap == TEXTURE_MAP_AO.data()) m_texture_ao = texture;
 }
 
-void Material::SetConstantBuffers(ID3D11DeviceContext* context, MatrixDefinitionBase::MatrixParams matrixParams, int slot) {
+void Material::SetConstantBuffers(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context, MatrixDefinitionBase::MatrixParams matrixParams, int slot) {
     m_shaderManager->SetConstantsBuffers(m_shaderName, matrixParams, m_constantBuffers, context);
 }
 
-void Material::Apply(ID3D11DeviceContext* context) {
+void Material::Apply(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context) {
     // Establecer shaders
     if (!vertexShader || !pixelShader) {
         OutputDebugStringA("Error: Shaders no inicializados correctamente.\n");
         return;
     }
-    context->VSSetShader(vertexShader, nullptr, 0);
-    context->PSSetShader(pixelShader, nullptr, 0);
+    context->VSSetShader(vertexShader.Get(), nullptr, 0);
+    context->PSSetShader(pixelShader.Get(), nullptr, 0);
 
     if (inputLayout) {
-        context->IASetInputLayout(inputLayout);
+        context->IASetInputLayout(inputLayout.Get());
     }
     else {
         OutputDebugStringA("Error: Input Layout no inicializado.\n");
@@ -300,9 +319,37 @@ ID3D11ShaderResourceView* Material::LoadTextureFromFile(std::shared_ptr<ID3D11De
     return texture;
 }
 
+float av = 10.0f;
+
+void Material::Update(float deltatime) {
+    m_keyboard = ManagerLocator::GetKeyboardManager();
+
+    if (m_keyboard == nullptr) {
+        return;
+	}
+
+    if (m_keyboard->IsKeyDown('T')) {
+		debug_lightDirection.x += deltatime * av; // Incrementar la dirección de la luz hacia arriba
+    }
+    if (m_keyboard->IsKeyDown('G')) {
+        debug_lightDirection.x -= deltatime * av; // Incrementar la dirección de la luz hacia arriba
+    }
+    if (m_keyboard->IsKeyDown('Y')) {
+        debug_lightDirection.y += deltatime * av; // Incrementar la dirección de la luz hacia arriba
+    }
+    if (m_keyboard->IsKeyDown('H')) {
+        debug_lightDirection.y -= deltatime * av; // Incrementar la dirección de la luz hacia arriba
+    }
+    if (m_keyboard->IsKeyDown('U')) {
+        debug_lightDirection.z += deltatime * av; // Incrementar la dirección de la luz hacia arriba
+    }
+    if (m_keyboard->IsKeyDown('J')) {
+        debug_lightDirection.z -= deltatime * av; // Incrementar la dirección de la luz hacia arriba
+    }
+}
+
 void Material::Shutdown() {
     SafeRelease(m_texture);
-    SafeRelease(m_samplerState);
     SafeRelease(m_matrixBuffer); // Liberar el buffer de matrices
     // Los shaders y el inputLayout no se liberan aqu� si son gestionados por ShaderManager
 }
