@@ -78,11 +78,13 @@ HRESULT PipelineConfigurator::ExecuteInitOperation(PipelineOperation& operation)
     case PipelineOperationType::Device_Init_CreateBackBuffer: {
         Microsoft::WRL::ComPtr<ID3D11Texture2D> data = operation.GetOperationData<Microsoft::WRL::ComPtr<ID3D11Texture2D>>();
 		auto param = operation.GetOperationParam<PipelineBackBufferData>();
-        //ID3D11Texture2D** buffer = &data;
-        Microsoft::WRL::ComPtr<ID3D11Texture2D> buffer = nullptr;
-        hr = m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), buffer.ReleaseAndGetAddressOf());
-        /*Microsoft::WRL::ComPtr<ID3D11Texture2D> d = buffer;
-        operation.SetOperationData(buffer);*/
+        ID3D11Texture2D* buffer = data.Get();
+		ID3D11Texture2D** cBuffer = &buffer;
+
+        //Microsoft::WRL::ComPtr<ID3D11Texture2D> buffer = nullptr;
+        hr = m_swapChain.Get()->GetBuffer(0, __uuidof(ID3D11Texture2D), (void **)cBuffer);
+        Microsoft::WRL::ComPtr<ID3D11Texture2D> d = buffer;
+        operation.SetOperationData(d);
         break;
     }
 
