@@ -30,7 +30,7 @@
 *.exe
 *.out
 *.app
-
+.vs
 debug/*
 Debug/*
 DirectX-Voxelado/*

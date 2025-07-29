@@ -1,5 +1,5 @@
 #pragma once
-#include <d3d11.h>
+#include <DirectXMath.h>
 #include <dxgi.h>
 #include <memory>
 #include <wrl/client.h>
