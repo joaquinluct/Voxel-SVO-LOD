@@ -14,20 +14,20 @@ Config:
         - AssetManager
         - ShaderManager
         # - WorldMatrixManager
-        - UIManager
+        # - UIManager
         - GameManager
       managers_render_order:
         - RenderTargetManager
         # - WorldMatrixManager
         - GameManager
-        - UIManager
+        # - UIManager
         - DeviceManager
       managers_update_order:
          - KeyboardManager
          # - WorldMatrixManager
          - CameraManager
          - GameManager
-         - UIManager
+         # - UIManager
       pipeline_states_init:
         - SwapChainMain
         - RasterizedMainColorPass
@@ -44,18 +44,22 @@ Config:
         - BlendingMainColor
       stencilStates:
         - StencilMainColor
+        - StencilShadow
       viewPortStates:
         - ViewportMainColor
         - ViewportShadow
       dependencies:
-        - UIManager
+        - Shadows
 
     RenderManager:
       passes:
-        - ShadowPass
+        # - ShadowPass
         - MainColorPass
       dependencies:
+        - RenderTargetManager
         - InitManager
+        - CameraManager
+        - Lighting
 
     AssetManager:
       manifest_path: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Resources\\assets_manifest.yaml"
@@ -79,6 +83,7 @@ Config:
       # Sus propiedades suelen derivar del DeviceManager o del swap chain.
       clear_color: [0.0, 0.2, 0.4, 1.0] # RGBA
       dependencies:
+        - InitManager
         - DeviceManager
 
     ShaderManager:

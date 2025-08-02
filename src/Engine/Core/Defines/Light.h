@@ -74,7 +74,8 @@ namespace Light {
             this->Roughness = params.materialRoughness;
             this->Metallic = params.materialMetallic;
             this->F0 = params.materialF0;
-            this->AO = params.materialAO;
+            //this->AO = params.materialAO;
+            this->AO = 1.0f;
         }
 
         UINT Size() {

@@ -11,7 +11,7 @@ namespace RenderPipeline
         RasterizerStage(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context);
 
         void SetState(Microsoft::WRL::ComPtr<ID3D11RasterizerState> pRasterizerState);
-        void SetViewport(const D3D11_VIEWPORT& viewport);
+        void SetViewport(D3D11_VIEWPORT& viewport);
 
     private:
         Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_context;

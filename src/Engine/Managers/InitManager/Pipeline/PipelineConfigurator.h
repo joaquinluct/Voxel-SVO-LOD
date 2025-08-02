@@ -1,5 +1,6 @@
 #pragma once
-#include <DirectXMath.h>
+#define NOMINMAX 
+#include <d3d11.h>
 #include <dxgi.h>
 #include <memory>
 #include <wrl/client.h>

@@ -16,12 +16,12 @@ namespace RenderPipeline
 
     void VertexShaderStage::SetShader(Microsoft::WRL::ComPtr<ID3D11VertexShader> pVertexShader)
     {
-        if (m_context) m_context->VSSetShader(pVertexShader.Get(), nullptr, 0);
+        //if (m_context) m_context->VSSetShader(pVertexShader.Get(), nullptr, 0);
     }
 
     void VertexShaderStage::SetConstantBuffers(UINT StartSlot, UINT NumBuffers, ID3D11Buffer* const* ppConstantBuffers)
     {
-        if (m_context) m_context->VSSetConstantBuffers(StartSlot, NumBuffers, ppConstantBuffers);
+        //if (m_context) m_context->VSSetConstantBuffers(StartSlot, NumBuffers, ppConstantBuffers);
     }
 
     void VertexShaderStage::UpdateGlobalPassConstants(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context, Microsoft::WRL::ComPtr<ID3D11Buffer> globalCB, const GlobalPassConstants& data)

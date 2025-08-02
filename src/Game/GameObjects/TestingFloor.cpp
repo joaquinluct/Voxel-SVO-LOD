@@ -18,13 +18,16 @@ TestingFloor::~TestingFloor()
 
 HRESULT TestingFloor::Init()
 {
-	m_renderManager = ManagerLocator::GetManager<RenderManager>();
+	/*m_renderManager = ManagerLocator::GetManager<RenderManager>();
 	if (!m_renderManager) {
 		OutputDebugStringA("TestingFloor::Init - ERROR: RenderManager not found.\n");
 		return E_FAIL;
-	}
+	}*/
 
-	mesh = m_renderManager->GameRenderManagerGet()->RegisterMesh("FloorMesh");
+	//mesh = m_renderManager->GameRenderManagerGet()->RegisterMesh("FloorMesh");
+
+	mesh = AssetLocator::GetAsset<MeshAsset>("FloorMesh");
+
 	if (!mesh) {
 		OutputDebugStringA("TestingFloor::Init - ERROR: Mesh init.\n");
 	}
@@ -34,7 +37,10 @@ HRESULT TestingFloor::Init()
 		return hr;
 	}
 
-	houseMesh = m_renderManager->GameRenderManagerGet()->RegisterMesh(("House1Mesh"));
+	//houseMesh = m_renderManager->GameRenderManagerGet()->RegisterMesh(("House1Mesh"));
+
+	/*houseMesh = AssetLocator::GetAsset<MeshAsset>("House1Mesh");
+
 	if (!houseMesh) {
 		OutputDebugStringA("TestingFloor::Init - ERROR: House mesh init.\n");
 	}
@@ -44,16 +50,17 @@ HRESULT TestingFloor::Init()
 		return hr;
 	}
 
-	houseMesh->SetScale(0.5f, 0.5f, 0.5f);
+	houseMesh->SetScale(0.5f, 0.5f, 0.5f);*/
 
 	return S_OK;
 }
 
 void TestingFloor::Render() {
-	/*if (mesh) {
+	// Comentar esto para el nuevo sistema de renderizado
+	if (mesh) {
 		mesh->Render();
 	}	
-	if (houseMesh) {
+	/*if (houseMesh) {
 		houseMesh->Render();
 	}*/
 }

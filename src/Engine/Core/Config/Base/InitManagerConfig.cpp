@@ -13,13 +13,14 @@ InitManagerConfig::InitManagerConfig(){
 		"BlendingMainColor"
 	};
 	stencilStates = {
-		"StencilMainColor"
+		"StencilMainColor",
+		"StencilShadow"
 	};
 	viewPortStates = {
 		"ViewportMainColor",
 		"ViewportShadow"
 	};
 	dependencies = {
-		"UIManager"
+		"Shadows"
 	};
 };

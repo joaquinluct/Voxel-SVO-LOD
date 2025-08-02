@@ -11,4 +11,6 @@ StencilMainColor::StencilMainColor(){
 	SampleQuality = 0;
 	Usage = 0;
 	BindFlags = 64;
+	Depth = 1.0f;
+	Stencil = 0.0f;
 };

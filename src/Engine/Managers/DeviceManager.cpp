@@ -41,28 +41,31 @@ HRESULT DeviceManager::Init(HWND hwnd, int width, int height)
         MessageBox(hwnd, L"Error al crear el dispositivo DirectX 11", L"Error", MB_OK);
         return hr;
     }
+ // -------CÓDIGO COMENTADO ANTES DEL CAMBIO DE RENDERING------------------
+    // Modo Rasterizado (ColourPass)
+    hr = InitRasterizedState();
+    if (FAILED(hr)) {
+        MessageBox(hwnd, L"Error al inciailizar el modo Raterizado", L"Error", MB_OK);
+        return hr;
+    }
 
- //   // Modo Rasterizado (ColourPass)
- //   hr = InitRasterizedState();
- //   if (FAILED(hr)) {
- //       MessageBox(hwnd, L"Error al inciailizar el modo Raterizado", L"Error", MB_OK);
- //       return hr;
- //   }
-
-	//// Modo Rasterizado para el pase de las sombras (ShadowPass)
- //   hr = InitRasterizedShadowsState();
- //   if (FAILED(hr)) {
- //       MessageBox(hwnd, L"Error al inciailizar el modo Raterizado", L"Error", MB_OK);
- //       return hr;
- //   }
+	// Modo Rasterizado para el pase de las sombras (ShadowPass)
+    /*hr = InitRasterizedShadowsState();
+    if (FAILED(hr)) {
+        MessageBox(hwnd, L"Error al inciailizar el modo Raterizado", L"Error", MB_OK);
+        return hr;
+    }*/
 
 
-	//// Inicializar el estado de mezcla
-	//hr = InitBlending();
- //   if (FAILED(hr)) {
- //       MessageBox(hwnd, L"Error al inciailizar el Blendig", L"Error", MB_OK);
- //       return hr;
- //   }
+	// Inicializar el estado de mezcla
+	hr = InitBlending();
+    if (FAILED(hr)) {
+        MessageBox(hwnd, L"Error al inciailizar el Blendig", L"Error", MB_OK);
+        return hr;
+    }
+// -------FIN CÓDIGO COMENTADO ANTES DEL CAMBIO DE RENDERING------------------ 
+
+
 
     m_width = static_cast<float>(width);
     m_height = static_cast<float>(height);
@@ -80,7 +83,9 @@ HRESULT DeviceManager::CreateDeviceAndSwapChain(HWND hwnd, int width, int height
     sd.BufferDesc.Format = static_cast<DXGI_FORMAT>(m_swapChainMainConfig->Format);
     sd.BufferDesc.RefreshRate.Numerator = m_swapChainMainConfig->Numerator;
     sd.BufferDesc.RefreshRate.Denominator = m_swapChainMainConfig->Denominator;
-    sd.BufferUsage = std::stoul(m_swapChainMainConfig->BufferUsage);
+    size_t pos;
+    unsigned long flags = std::stoul(m_swapChainMainConfig->BufferUsage, &pos, 16);
+    sd.BufferUsage = static_cast<DXGI_USAGE>(flags);
     sd.OutputWindow = hwnd;
     sd.SampleDesc.Count = m_swapChainMainConfig->SampleCount;
     sd.SampleDesc.Quality = m_swapChainMainConfig->SampleQuality;
@@ -198,21 +203,25 @@ HRESULT DeviceManager::InitBlending()
         return hr;
     }
 
+    // OJO : QUITAR ESTA LÍNEA !!!!!!!!!!!!!!!!!!
+    SetRasterizerState();
+
     return S_OK;
 }
 
 HRESULT DeviceManager::GetBackBuffer(ID3D11Texture2D** ppBackBuffer) {
-    if (!m_swapChain) {
-        OutputDebugStringA("Error: SwapChain no est� inicializado.\n");
-        return E_FAIL;
-    }
+    //if (!m_swapChain) {
+    //    OutputDebugStringA("Error: SwapChain no est� inicializado.\n");
+    //    return E_FAIL;
+    //}
 
-    // Obtener el back buffer del swap chain
-    HRESULT hr = m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)ppBackBuffer);
-    if (FAILED(hr)) {
-        OutputDebugStringA("Error: No se pudo obtener el back buffer del swap chain.\n");
-    }
-    return hr;
+    //// Obtener el back buffer del swap chain
+    //HRESULT hr = m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)ppBackBuffer);
+    //if (FAILED(hr)) {
+    //    OutputDebugStringA("Error: No se pudo obtener el back buffer del swap chain.\n");
+    //}
+    //return hr;
+    return S_OK;
 }
 
 Microsoft::WRL::ComPtr<ID3D11Device> DeviceManager::GetDevice() {

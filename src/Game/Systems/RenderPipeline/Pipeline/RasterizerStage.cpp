@@ -13,7 +13,7 @@ namespace RenderPipeline
         if (m_context) m_context->RSSetState(pRasterizerState.Get());
     }
 
-    void RasterizerStage::SetViewport(const D3D11_VIEWPORT& viewport)
+    void RasterizerStage::SetViewport(D3D11_VIEWPORT& viewport)
     {
         if (m_context) m_context->RSSetViewports(1, &viewport);
     }

@@ -11,6 +11,7 @@ RenderTargetManagerConfig::RenderTargetManagerConfig(){
 		1.0f
 	};
 	dependencies = {
+		"InitManager",
 		"DeviceManager"
 	};
 };
