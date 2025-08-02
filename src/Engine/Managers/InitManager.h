@@ -6,6 +6,7 @@
 #include <wrl/client.h>
 #include <string>
 #include <memory>
+#include <map>
 #include <vector>
 #include <variant>
 
@@ -24,7 +25,6 @@
 class InitManager : public IManager, public IWindowDependentInitializable
 {
 private:
-	std::map<std::string, PipelineData> m_pipelineStates;
 
     std::shared_ptr<DeviceManager> m_deviceManager;
 
@@ -57,6 +57,11 @@ private:
     Microsoft::WRL::ComPtr<ID3D11SamplerState> m_samplerState;
     Microsoft::WRL::ComPtr<ID3D11VertexShader> m_vertexShader;
     Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pixelShader;
+
+	// Esto es un supuesto store del pipeline
+	std::map<std::string, PipelineData> m_pipelineStates;
+    std::map<std::string, PipelineViewPortData> m_viewports;
+    std::map<std::string, PipelineDepthStencilData> m_stencilDesc;
 
 public:
     InitManager();
@@ -91,9 +96,87 @@ public:
         return result;
     }
 
-    Microsoft::WRL::ComPtr<ID3D11RenderTargetView> GetRenderTargetView()
-    {
-
+    Microsoft::WRL::ComPtr<ID3D11Texture2D> GetBackBuffer() {
+        auto it = m_pipelineStates.find("Backbuffer");
+        if (it != m_pipelineStates.end()) {
+            return std::get<Microsoft::WRL::ComPtr<ID3D11Texture2D>>(it->second);
+        }
+        return nullptr;
     }
 
+    Microsoft::WRL::ComPtr<ID3D11RasterizerState> GetRasterizerState(std::string stateName) {
+        auto it = m_pipelineStates.find(stateName);
+        if (it != m_pipelineStates.end()) {
+            return std::get<Microsoft::WRL::ComPtr<ID3D11RasterizerState>>(it->second);
+        }
+        return nullptr;
+	}
+    Microsoft::WRL::ComPtr<ID3D11BlendState> GetBlendState(std::string stateName) {
+        auto it = m_pipelineStates.find(stateName);
+        if (it != m_pipelineStates.end()) {
+            return std::get<Microsoft::WRL::ComPtr<ID3D11BlendState>>(it->second);
+        }
+        return nullptr;
+    }
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> GetDepthStencilView(std::string viewName) {
+        auto it = m_pipelineStates.find(viewName);
+        if (it != m_pipelineStates.end()) {
+            return std::get<Microsoft::WRL::ComPtr<ID3D11DepthStencilView>>(it->second);
+        }
+        return nullptr;
+    }
+    Microsoft::WRL::ComPtr<ID3D11DepthStencilState> GetDepthStencilState(std::string stateName) {
+        auto it = m_pipelineStates.find(stateName);
+        if (it != m_pipelineStates.end()) {
+            return std::get<Microsoft::WRL::ComPtr<ID3D11DepthStencilState>>(it->second);
+        }
+        return nullptr;
+	}
+    Microsoft::WRL::ComPtr<ID3D11SamplerState> GetSamplerState(std::string stateName) {
+        auto it = m_pipelineStates.find(stateName);
+        if (it != m_pipelineStates.end()) {
+            return std::get<Microsoft::WRL::ComPtr<ID3D11SamplerState>>(it->second);
+        }
+        return nullptr;
+    }    
+    Microsoft::WRL::ComPtr<ID3D11Texture2D> GetTexture2D(std::string textureName) {
+        auto it = m_pipelineStates.find(textureName);
+        if (it != m_pipelineStates.end()) {
+            return std::get<Microsoft::WRL::ComPtr<ID3D11Texture2D>>(it->second);
+        }
+        return nullptr;
+	}
+    Microsoft::WRL::ComPtr<ID3D11RenderTargetView> GetRenderTargetView(std::string viewName) {
+        //auto it = m_pipelineStates.find("RenderTargetView");
+        auto it = m_pipelineStates.find(viewName);
+        if (it != m_pipelineStates.end()) {
+            return std::get<Microsoft::WRL::ComPtr<ID3D11RenderTargetView>>(it->second);
+        }
+        return nullptr;
+    }
+    /*Microsoft::WRL::ComPtr<ID3D11RenderTargetView> GetRenderTargetView(std::string viewName) {
+        auto it = m_pipelineStates.find(viewName);
+        if (it != m_pipelineStates.end()) {
+            return std::get<Microsoft::WRL::ComPtr<ID3D11RenderTargetView>>(it->second);
+        }
+        return nullptr;
+    }*/
+    D3D11_VIEWPORT GetViewport(std::string viewportName) {
+        auto it = m_viewports.find(viewportName);
+        if (it != m_viewports.end()) {
+            return it->second.desc;
+        }
+        return D3D11_VIEWPORT();
+	}
+
+    PipelineDepthStencilData GetDepthStencilData(std::string stencilName) {
+        auto it = m_stencilDesc.find(stencilName);
+        if (it != m_stencilDesc.end()) {
+            return it->second;
+        }
+        return PipelineDepthStencilData();
+    }
+
+    std::map<std::string, D3D11_VIEWPORT> GetRenderTargetViewPorts();
+    
 };

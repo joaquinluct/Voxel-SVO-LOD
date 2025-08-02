@@ -2,7 +2,9 @@
 #define NOMINMAX 
 #include <d3d11.h>
 #include <windows.h>
+#include <memory>
 #include "IManager.h"
+#include <InitManager.h>
 #include "IWindowDependentInitializable.h"
 #include "IRenderable.h"
 #include "IUpdatable.h"
@@ -62,9 +64,13 @@ public:
     }
 
 private:
-    FLOAT clearColor[4] = { .7f, 0.7f, 0.7f, 1.0f };
+	std::shared_ptr<InitManager> m_initManager;
+
+    //FLOAT clearColor[4] = { .7f, 0.7f, 0.7f, 1.0f };
+    FLOAT clearColor[4] = { .9f, 0.0f, 0.0f, 0.8f };
     std::shared_ptr<DeviceManager>  m_deviceManager;
-    Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_pRenderTargetView;
+    //Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_pRenderTargetView;
+    ID3D11RenderTargetView* m_pRenderTargetView;
     ID3D11DepthStencilView* m_pDepthStencilView;
     Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_pContext;
     UINT m_width;

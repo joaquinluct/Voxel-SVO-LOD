@@ -209,6 +209,7 @@
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\RasterizedMainColorPass.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\RasterizedShadowPass.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\StencilMainColor.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\StencilShadow.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\SwapChainMain.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\ViewportMainColor.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\ViewportShadow.cpp" />
@@ -438,6 +439,7 @@
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\RasterizedMainColorPass.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\RasterizedShadowPass.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\StencilMainColor.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\StencilShadow.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\SwapChainMain.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\ViewportMainColor.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\ViewportShadow.h" />

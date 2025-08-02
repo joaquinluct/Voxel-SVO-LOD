@@ -45,11 +45,11 @@ HRESULT MeshAsset::InitManagers() {
         OutputDebugStringA("MeshAsset::Init - ERROR: ShaderManager not found.\n");
         return E_FAIL;
     }
-	m_renderManager = ManagerLocator::GetManager<RenderManager>();
+	/*m_renderManager = ManagerLocator::GetManager<RenderManager>();
     if (!m_renderManager) {
         OutputDebugStringA("MeshAsset::Init - ERROR: RenderManager not found.\n");
         return E_FAIL;
-	}
+	}*/
     return S_OK;
 }
 
@@ -154,13 +154,14 @@ void MeshAsset::Render() {
 
     Microsoft::WRL::ComPtr<ID3D11DeviceContext> context = m_deviceManager->GetContext();
 
-    if (m_renderManager->IsRenderColourPassActive()) {
+    //if (m_renderManager->IsRenderColourPassActive()) {
         m_material->Render();
-    }
+    //}
 
     UINT stride = m_vertexTypeSize;
     UINT offset = 0;
-    context->IASetVertexBuffers(0, 1, &m_vertexBuffer, &stride, &offset);
+	ID3D11Buffer* vertexBuffers[] = { m_vertexBuffer.Get() };
+    context->IASetVertexBuffers(0, 1, vertexBuffers, &stride, &offset);
  	context->IASetIndexBuffer(m_indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
     context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     context->DrawIndexed(m_indexCount, 0, 0);

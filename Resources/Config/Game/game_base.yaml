@@ -7,7 +7,7 @@ Config:
         # - AxisXYZ
         - Lighting
         - Shadows
-        - Skybox
+        # - Skybox
         - TestingFloor
         # - World
         # - Terrain
@@ -19,7 +19,7 @@ Config:
         # - UIDebug
         # - TestingBasic2
         # - AxisXYZ
-        - Skybox
+        # - Skybox
         - TestingFloor
         # - World
         # - Terrain

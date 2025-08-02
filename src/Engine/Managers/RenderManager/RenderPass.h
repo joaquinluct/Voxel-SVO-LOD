@@ -62,6 +62,7 @@ public:
         return operation->GetPriority();
     }
 
+	void ClearOperations() { m_operations.clear(); };
     std::vector<std::shared_ptr<PipelineOperation>> GetOperations() { return m_operations; };
     std::vector<std::shared_ptr<PipelineOperation>> GetInitialOperations() { return m_initialOperations; };
 };

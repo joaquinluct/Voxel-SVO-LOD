@@ -178,11 +178,15 @@ void MainController::Update(float deltaTime) {
 }
 
 void MainController::Render() {
+    // La nueva llamada
     m_renderManager->ExecRender();
-    /*m_renderManager->BeginRender();
+
+    // Las antiguas llamadas
+    //m_renderManager->BeginRender();
     ServiceLocator::RenderServices(m_serviceConfig->services_render_order);
-    m_renderManager->Render();
-    m_renderManager->EndRender();*/    
+	ManagerLocator::RenderManagers(m_config->managers_render_order);
+    /*m_renderManager->Render();
+    m_renderManager->EndRender();*/
 }
 
 void MainController::Shutdown() {

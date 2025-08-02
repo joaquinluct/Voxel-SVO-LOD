@@ -8,6 +8,7 @@
 #include <Managers/ShaderManager.h>
 #include <Managers/DeviceManager.h>
 #include <Managers/RenderTargetManager.h>
+#include <Managers/InitManager.h>
 #include <Config/Base/RenderPass/ShadowPassConfig.h>
 
 class Shadows;
@@ -18,6 +19,7 @@ private:
     std::shared_ptr<DeviceManager> m_deviceManager;
     std::shared_ptr<ShaderManager> m_shaderManager;
     std::shared_ptr<RenderTargetManager> m_renderTargetManager;
+    std::shared_ptr<InitManager> m_initManager;
     std::shared_ptr<Shadows> m_shadows;
     std::shared_ptr<ShadowPassConfig> config;
 public:

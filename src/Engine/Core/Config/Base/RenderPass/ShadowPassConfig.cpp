@@ -8,7 +8,7 @@ ShadowPassConfig::ShadowPassConfig(){
 	shader_name = "ShadowMapShader";
 	rasterizedState = "RasterizedShadowPass";
 	viewPortState = "ViewportShadow";
-	stencilState = "none";
+	stencilState = "StencilShadow";
 	blendState = "none";
 	drawType = "DrawIndexed";
 	primitiveTopology = 4;

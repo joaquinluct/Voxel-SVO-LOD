@@ -28,7 +28,7 @@ class Mouse; // Declaración anticipada para evitar incluir el archivo completo a
 
 // Asegurarse de que CAMERA_SPEED esté definido
 #ifndef CAMERA_SPEED
-#define CAMERA_SPEED 150.0f
+#define CAMERA_SPEED 20.0f
 #endif
 
 class FirstPersonCamera : public ICamera, public IService {

@@ -13,20 +13,17 @@ EngineConfig::EngineConfig(){
 		"CameraManager",
 		"AssetManager",
 		"ShaderManager",
-		"UIManager",
 		"GameManager"
 	};
 	managers_render_order = {
 		"RenderTargetManager",
 		"GameManager",
-		"UIManager",
 		"DeviceManager"
 	};
 	managers_update_order = {
 		"KeyboardManager",
 		"CameraManager",
-		"GameManager",
-		"UIManager"
+		"GameManager"
 	};
 	pipeline_states_init = {
 		"SwapChainMain",

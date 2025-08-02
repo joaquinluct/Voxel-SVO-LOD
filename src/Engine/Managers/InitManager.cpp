@@ -51,57 +51,57 @@ HRESULT InitManager::InitPipelineStates(int width, int height) {
     }
 
 	// RASTERIZER STATE
-    for (const std::string& stateName : m_config->rasterizedStates) {
-        std::shared_ptr<IPipelineRasterizedState> state = PipelineStateLocator::GetPipelineState< IPipelineRasterizedState>(stateName);
+ //   for (const std::string& stateName : m_config->rasterizedStates) {
+ //       std::shared_ptr<IPipelineRasterizedState> state = PipelineStateLocator::GetPipelineState<IPipelineRasterizedState>(stateName);
 
-		D3D11_RASTERIZER_DESC desc = {};
-        
-        desc.FillMode = static_cast<D3D11_FILL_MODE>(state->FillMode);
-        desc.CullMode = static_cast<D3D11_CULL_MODE>(state->CullMode);
-        desc.FrontCounterClockwise = static_cast<BOOL>(state->FrontCounterClockwise);
-        desc.AntialiasedLineEnable = static_cast<BOOL>(state->AntialiasedLineEnable);
-        desc.DepthClipEnable = static_cast<BOOL>(state->DepthClipEnable);
+	//	D3D11_RASTERIZER_DESC desc = {};
+ //       
+ //       desc.FillMode = static_cast<D3D11_FILL_MODE>(state->FillMode);
+ //       desc.CullMode = static_cast<D3D11_CULL_MODE>(state->CullMode);
+ //       desc.FrontCounterClockwise = static_cast<BOOL>(state->FrontCounterClockwise);
+ //       desc.AntialiasedLineEnable = static_cast<BOOL>(state->AntialiasedLineEnable);
+ //       desc.DepthClipEnable = static_cast<BOOL>(state->DepthClipEnable);
 
-        PipelineRasteriezeData m_param = {};
-		m_param.desc = desc;
-		m_param.name = stateName;
+ //       PipelineRasteriezeData m_param = {};
+	//	m_param.desc = desc;
+	//	m_param.name = stateName;
 
-        Microsoft::WRL::ComPtr<ID3D11RasterizerState> data = nullptr;
-        /*m_pipelineStates[stateName] = data;*/
+ //       Microsoft::WRL::ComPtr<ID3D11RasterizerState> data = nullptr;
+ //       /*m_pipelineStates[stateName] = data;*/
 
 
-        m_initPass->AddOperation(PipelineOperationType::Device_Init_RasterizedState, m_param, data);
-    }
+ //       m_initPass->AddOperation(PipelineOperationType::Device_Init_RasterizedState, m_param, data);
+ //   }
 
-	// BLENDING STATE
-    for (const std::string& stateName : m_config->blendingStates) {
-        std::shared_ptr<IPipelineBlendingState> state = PipelineStateLocator::GetPipelineState< IPipelineBlendingState>(stateName);
+	//// BLENDING STATE
+ //   for (const std::string& stateName : m_config->blendingStates) {
+ //       std::shared_ptr<IPipelineBlendingState> state = PipelineStateLocator::GetPipelineState< IPipelineBlendingState>(stateName);
 
-		D3D11_BLEND_DESC desc = {};
+	//	D3D11_BLEND_DESC desc = {};
 
-		desc.AlphaToCoverageEnable = static_cast<BOOL>(state->AlphaToCoverageEnable);
-		desc.IndependentBlendEnable = static_cast<BOOL>(state->IndependentBlendEnable);
-        desc.RenderTarget[0].BlendEnable = static_cast<BOOL>(state->BlendEnable);
-        desc.RenderTarget[0].SrcBlend = static_cast<D3D11_BLEND>(state->SrcBlend);
-        desc.RenderTarget[0].DestBlend = static_cast<D3D11_BLEND>(state->DestBlend);
-        desc.RenderTarget[0].BlendOp = static_cast<D3D11_BLEND_OP>(state->BlendOp);
-        desc.RenderTarget[0].SrcBlendAlpha = static_cast<D3D11_BLEND>(state->SrcBlendAlpha);
-        desc.RenderTarget[0].DestBlendAlpha = static_cast<D3D11_BLEND>(state->DestBlendAlpha);
-        desc.RenderTarget[0].BlendOpAlpha = static_cast<D3D11_BLEND_OP>(state->BlendOpAlpha);
+	//	desc.AlphaToCoverageEnable = static_cast<BOOL>(state->AlphaToCoverageEnable);
+	//	desc.IndependentBlendEnable = static_cast<BOOL>(state->IndependentBlendEnable);
+ //       desc.RenderTarget[0].BlendEnable = static_cast<BOOL>(state->BlendEnable);
+ //       desc.RenderTarget[0].SrcBlend = static_cast<D3D11_BLEND>(state->SrcBlend);
+ //       desc.RenderTarget[0].DestBlend = static_cast<D3D11_BLEND>(state->DestBlend);
+ //       desc.RenderTarget[0].BlendOp = static_cast<D3D11_BLEND_OP>(state->BlendOp);
+ //       desc.RenderTarget[0].SrcBlendAlpha = static_cast<D3D11_BLEND>(state->SrcBlendAlpha);
+ //       desc.RenderTarget[0].DestBlendAlpha = static_cast<D3D11_BLEND>(state->DestBlendAlpha);
+ //       desc.RenderTarget[0].BlendOpAlpha = static_cast<D3D11_BLEND_OP>(state->BlendOpAlpha);
 
-        PipelineBledingData m_param = {};
-		m_param.desc = desc;
-        m_param.name = stateName;
+ //       PipelineBledingData m_param = {};
+	//	m_param.desc = desc;
+ //       m_param.name = stateName;
 
-        Microsoft::WRL::ComPtr<ID3D11BlendState> data = nullptr;
-        //m_pipelineStates[stateName] = data;
+ //       Microsoft::WRL::ComPtr<ID3D11BlendState> data = nullptr;
+ //       //m_pipelineStates[stateName] = data;
 
-        m_initPass->AddOperation(PipelineOperationType::Device_Init_BledingState, m_param, data);
-    }
+ //       m_initPass->AddOperation(PipelineOperationType::Device_Init_BledingState, m_param, data);
+ //   }
 
-	// STENCIL STATE
+	//// STENCIL STATE
     for (const std::string& stateName : m_config->stencilStates) {
-        std::shared_ptr<IPipelineStencilState> state = PipelineStateLocator::GetPipelineState< IPipelineStencilState>(stateName);
+        std::shared_ptr<IPipelineStencilState> state = PipelineStateLocator::GetPipelineState<IPipelineStencilState>(stateName);
 
 		D3D11_TEXTURE2D_DESC desc = {};
 
@@ -118,24 +118,39 @@ HRESULT InitManager::InitPipelineStates(int width, int height) {
         PipelineDepthStencilData m_param = {};
 		m_param.desc = desc;
         m_param.name = stateName;
+        m_param.depth = static_cast<FLOAT>(state->Depth);
+        m_param.stencil = static_cast<UINT8>(state->Stencil);
+
+        m_stencilDesc[stateName] = m_param;
 
         Microsoft::WRL::ComPtr<ID3D11DepthStencilView> data = nullptr;
-        //m_pipelineStates[stateName] = data;
+        m_pipelineStates[stateName] = data;
 
 		m_initPass->AddOperation(PipelineOperationType::Device_Init_SetencilView, m_param, data);
     }
 
+	// VIEWPORT STATE
     for (const std::string& stateName : m_config->viewPortStates) {
         std::shared_ptr<IPipelineViewportState> state = PipelineStateLocator::GetPipelineState< IPipelineViewportState>(stateName);
 
 		D3D11_VIEWPORT viewport = {};
 
+		FLOAT width = static_cast<FLOAT>(state->Width);
+		FLOAT height = static_cast<FLOAT>(state->Height);
+
+        if (width <= 0 || height <= 0) {
+            width = static_cast<FLOAT>(m_deviceManager->GetWidth());
+            height = static_cast<FLOAT>(m_deviceManager->GetHeight());
+		}
+
         viewport.TopLeftX = state->TopLeftX;
         viewport.TopLeftY = state->TopLeftY;
-        viewport.Width = state->Width;
-        viewport.Height = state->Height;
+        viewport.Width = width;
+		viewport.Height = height;
         viewport.MinDepth = state->MinDepth;
         viewport.MaxDepth = state->MaxDepth;
+
+		m_viewports[stateName].desc = viewport;
 
         PipelineViewPortData m_param = {};
 		m_param.desc = viewport;
@@ -167,9 +182,15 @@ HRESULT InitManager::InitMainPipelineOperations(int width, int height)
 
 HRESULT InitManager::InitFinalOperations() {
     PipelineRenderTargetViewData rtParam = {};
-    /*rtParam.backBuffer = data;
-    Microsoft::WRL::ComPtr<ID3D11RenderTargetView> rtData = nullptr;
-      m_initPass->AddOperation(PipelineOperationType::Device_Init_CreateRenderTargetView, rtParam, rtData);*/
+    rtParam.backBuffer = GetBackBuffer();
+    //rtParam.name = "RenderTargetView";
+    std::map<std::string, D3D11_VIEWPORT> views = GetRenderTargetViewPorts();
+    for (const auto& pView : views) {
+		std::string name = pView.first;
+        rtParam.name = name;
+        Microsoft::WRL::ComPtr<ID3D11RenderTargetView> rtData = nullptr;
+        m_initPass->AddOperation(PipelineOperationType::Device_Init_CreateRenderTargetView, rtParam, rtData);
+	}
 
     return S_OK;
 }
@@ -216,12 +237,10 @@ HRESULT InitManager::Init(HWND hwnd, int width, int height)
             std::string name = p.name;
             m_pipelineStates[name] = data;
         }, param);
-
-        //m_pipelineStates[std::get<std::string>param.name] = data;
-        m_pipelineInitiator->ExecuteInitOperation(*operation);
     }
 
     operations.clear();
+    m_initPass = std::make_shared<RenderPass>(RenderPassType::Unknown, 0, "InitPass");
 
     hr = InitFinalOperations();
 
@@ -233,5 +252,28 @@ HRESULT InitManager::Init(HWND hwnd, int width, int height)
         m_pipelineInitiator->ExecuteInitOperation(*operation);
     }
 
+    operations = m_initPass->GetOperations();
+
+    for (auto& operation : operations) {
+        PipelineParameter param = operation->GetOperationParam();
+        PipelineData data = operation->GetOperationData();
+
+        std::visit([&](auto& p) {
+            std::string name = p.name;
+            m_pipelineStates[name] = data;
+            }, param);
+    }
+
     return S_OK;
+}
+
+std::map<std::string, D3D11_VIEWPORT> InitManager::GetRenderTargetViewPorts()
+{
+    std::map<std::string, D3D11_VIEWPORT> result;
+    for (auto& pair : m_viewports) {
+        // Comprobamos si el PipelineData contiene un ID3D11RenderTargetView
+		std::string name = pair.first;
+        result[name] = pair.second.desc;
+    }
+    return result;
 }

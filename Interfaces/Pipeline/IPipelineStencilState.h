@@ -13,6 +13,8 @@ public:
 	int SampleQuality;
 	int Usage;
 	int BindFlags;
+	float Depth;
+	float Stencil;
 
 	void Activate() override {
 		active = true;

@@ -15,19 +15,26 @@ void ShadowPass::SetInitialOperations() {
 	//std::string cullMode = config->cull_mode;
 
 	// 1. Limpiar Render Target
-	AddInitialOperation(PipelineOperationType::Device_ClearDepthStencilView);
+	PipelineDepthStencilData dscData = {};
+	dscData.data = m_initManager->GetDepthStencilView(config->stencilState);
+	AddInitialOperation(PipelineOperationType::Device_ClearDepthStencilView, dscData);
+
+	// 1.1. Set Render target view
+	PipelineSetRenderTargetsData srData = {};
+	srData.targetView = m_initManager->GetRenderTargetView(config->viewPortState);
+	srData.stencilView = m_initManager->GetDepthStencilView(config->stencilState);
+	srData.isColorPass = false;
+	AddInitialOperation(PipelineOperationType::Device_Init_SetRenderTargetView, srData);
 
 	// 2. Configurar Viewport;
 	PipelineViewPortData vpData = {};
-	vpData.desc = {};
-	vpData.desc.Width = resolution;
-	vpData.desc.Height = resolution;
+	vpData.desc = m_initManager->GetViewport(config->viewPortState);
 	AddInitialOperation(PipelineOperationType::Device_SetViewport, vpData);
 
 	// 3. Configurar RasterizedState
 	PipelineRasteriezeData rData = {};
 	rData.desc = {};
-	rData.state = m_deviceManager->GetRasterizedShadowState();
+	rData.state = m_initManager->GetRasterizerState(config->rasterizedState);
 	//params.rasterize.desc.DepthBias = static_cast<int>(config->depth_bias);
 	/*if (cullMode == "front") params.rasterize.data.CullMode = D3D11_CULL_FRONT;
 	if (cullMode == "back") params.rasterize.data.CullMode = D3D11_CULL_BACK;*/
@@ -35,7 +42,7 @@ void ShadowPass::SetInitialOperations() {
 
 	// 4. Configurar DepthStencil
 	PipelineDepthStencilData dsData = {};
-	dsData.data = Microsoft::WRL::ComPtr< ID3D11DepthStencilView>(m_renderTargetManager->GetDepthStencilView());
+	dsData.data = m_initManager->GetDepthStencilView(config->stencilState);
 	dsData.desc = {};
 	dsData.desc.Height = config->resolution;
 	dsData.desc.Width = config->resolution;
@@ -47,12 +54,13 @@ void ShadowPass::SetInitialOperations() {
 	dsData.desc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
 	dsData.desc.CPUAccessFlags = 0;
 	dsData.desc.MiscFlags = 0;
+	dsData.clearFlags = D3D11_CLEAR_DEPTH;
 	AddInitialOperation(PipelineOperationType::Device_SetDepthStencilState, dsData);
 
 	// 5. Activar Shader
-	PipelineVertexShaderData vsData = {};
+	/*PipelineVertexShaderData vsData = {};
 	vsData.data = m_shaderManager->GetVertexShader(StringToWstring(shaderName));
-	AddInitialOperation(PipelineOperationType::Device_Init_SetPixelShader, vsData);
+	AddInitialOperation(PipelineOperationType::Device_Init_SetPixelShader, vsData);*/
 
 	// 6. Configurar Input Layout
 	//params.layout.desc = { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 };
@@ -84,6 +92,10 @@ HRESULT ShadowPass::InitManagers() {
 	if (!m_shadows) {
 		return E_FAIL;
 	}
+	m_initManager = ManagerLocator::GetManager<InitManager>();
+	if (!m_initManager) {
+		return E_FAIL;
+	}
 	return S_OK;
 }
 
@@ -106,6 +118,8 @@ std::vector<std::shared_ptr<PipelineOperation>> ShadowPass::BeginPass()
 std::vector<std::shared_ptr<PipelineOperation>> ShadowPass::ExecPass(std::shared_ptr<MeshAsset> mesh)
 {
 	int primitiveTopology = config->primitiveTopology;
+
+	ClearOperations();
 	
 	PipelineOperationParams params = {};
 	// 1. Constants buffers

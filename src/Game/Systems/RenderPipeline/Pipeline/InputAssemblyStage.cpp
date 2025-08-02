@@ -17,7 +17,8 @@ namespace RenderPipeline
     {
         // ppVertexBuffers ya es un array de punteros crudos, por lo que Get() no es necesario aquí.
         // Si ppVertexBuffers fuera un array de ComPtr, necesitarías transformar el array.
-        if (m_context) m_context->IASetVertexBuffers(StartSlot, NumBuffers, &ppVertexBuffers, pStrides, pOffsets);
+		ID3D11Buffer* ppVertexBuffersArray = ppVertexBuffers.Get();
+        if (m_context) m_context->IASetVertexBuffers(StartSlot, NumBuffers, &ppVertexBuffersArray, pStrides, pOffsets);
     }
 
     void InputAssemblyStage::SetIndexBuffer(Microsoft::WRL::ComPtr<ID3D11Buffer> pIndexBuffer, DXGI_FORMAT Format, UINT Offset)

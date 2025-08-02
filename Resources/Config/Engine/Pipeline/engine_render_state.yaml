@@ -56,6 +56,18 @@ Config:
           SampleQuality: 0
           Usage: 0 #D3D11_USAGE_DEFAULT;
           BindFlags: 64 #D3D11_BIND_DEPTH_STENCIL;
+          Depth: 1.0
+          Stencil: 0.0
+        StencilShadow:
+          MipLevels: 1
+          ArraySize: 1
+          Format: 47
+          SampleCount: 1
+          SampleQuality: 0
+          Usage: 0
+          BindFlags: 96
+          Depth: 1.0
+          Stencil: 0.0
         ViewportMainColor:
           MinDepth: 0.0
           MaxDepth: 1.0
@@ -120,6 +132,8 @@ Definition:
         - SampleQuality
         - Usage
         - BindFlags
+        - Depth
+        - Stencil
         - TopLeftX
         - TopLeftY
         - MinDepth
@@ -139,6 +153,8 @@ Definition:
     BlendingMainColor:
       interface_name: "IPipelineBlendingState"
     StencilMainColor:
+      interface_name: "IPipelineStencilState"
+    StencilShadow:
       interface_name: "IPipelineStencilState"
     ViewportMainColor:
       interface_name: "IPipelineViewportState"

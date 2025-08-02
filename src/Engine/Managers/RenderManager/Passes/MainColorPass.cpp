@@ -1,6 +1,7 @@
 #include "MainColorPass.h"
 #include <ManagerLocator/ManagerLocator.h>
 #include <ServiceLocator/ServiceLocator.h>
+#include <Locators/Pipeline/PipelineStateLocator.h>
 #include <Game/Systems/Shadows.h>
 #include <Game/Systems/Lighting.h>
 #include <Util/Text/Text.h>
@@ -15,36 +16,52 @@ void MainColorPass::SetInitialOperations() {
 	float width = m_deviceManager->GetWidth();
 	float height = m_deviceManager->GetHeight();	
 	int primitiveTopology = config->primitiveTopology;
+	std::string stencilName = config->stencilState;
 
 	PipelineOperationParams params = {};
 
-	// 1. Borrar Render target view y Depth stencil
-	PipelineRenderTargetViewData rtvData = {};
-	rtvData.data = m_renderTargetManager->GetRenderTargetView();
-	rtvData.clearColor = XMFLOAT4{ .0f,.0f,.0f,1.0f };
-	AddInitialOperation(PipelineOperationType::Device_ClearRenderTargetView, rtvData);
-	PipelineDepthStencilData dscData = {};
-	dscData.data = m_renderTargetManager->GetDepthStencilView();
-	AddInitialOperation(PipelineOperationType::Device_ClearDepthStencilView, dscData);
-
-	// 2. Configurar viewport
+	// 1. Configurar viewport
 	PipelineViewPortData vpData = {};
-	vpData.desc = {};
-	vpData.desc.Width = width;
-	vpData.desc.Height = height;
+	vpData.desc = m_initManager->GetViewport(config->viewPortState);
 	AddInitialOperation(PipelineOperationType::Device_SetViewport, vpData);
 
+	// 2. Set Render target view
+	PipelineSetRenderTargetsData srData = {};
+	srData.targetView = m_initManager->GetRenderTargetView(config->viewPortState);
+	srData.stencilView = m_initManager->GetDepthStencilView(config->stencilState);
+	srData.isColorPass = true;
+	AddInitialOperation(PipelineOperationType::Device_Init_SetRenderTargetView, srData);
+
+	// 3. Borrar Render target view y Depth stencil
+	PipelineRenderTargetViewData rtvData = {};
+	rtvData.data = m_initManager->GetRenderTargetView(config->viewPortState);
+	rtvData.clearColor = XMFLOAT4{ .4f,.4f,.0f,1.0f };
+	AddInitialOperation(PipelineOperationType::Device_ClearRenderTargetView, rtvData);
+	PipelineDepthStencilData dscData = m_initManager->GetDepthStencilData(stencilName);	
+	dscData.data = m_initManager->GetDepthStencilView(stencilName);
+	dscData.clearFlags = D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL;	
+	AddInitialOperation(PipelineOperationType::Device_ClearDepthStencilView, dscData);
+
+	return;
+
 	// 3. Raterized state
+	std::shared_ptr<IPipelineRasterizedState> state = PipelineStateLocator::GetPipelineState<IPipelineRasterizedState>(config->rasterizedState);
 	PipelineRasteriezeData rData = {};
 	rData.desc = {};
-	rData.state = m_deviceManager->GetRasterizedState();
+	rData.desc.FillMode = static_cast<D3D11_FILL_MODE>(state->FillMode);
+	//rData.desc.CullMode = static_cast<D3D11_CULL_MODE>(state->CullMode);
+	rData.desc.CullMode = D3D11_CULL_NONE;
+	rData.desc.FrontCounterClockwise = static_cast<BOOL>(state->FrontCounterClockwise);
+	rData.desc.AntialiasedLineEnable = static_cast<BOOL>(state->AntialiasedLineEnable);
+	rData.desc.DepthClipEnable = static_cast<BOOL>(state->DepthClipEnable);
+	rData.state = m_initManager->GetRasterizerState(config->rasterizedState);	
 	/*if (cullMode == "front") params.rasterize.data.CullMode = D3D11_CULL_FRONT;
 	if (cullMode == "back") params.rasterize.data.CullMode = D3D11_CULL_BACK;*/
 	AddInitialOperation(PipelineOperationType::Device_SetRasterizedState, rData);
 
 	// 4. Depth stencil
 	PipelineDepthStencilData dsData = {};
-	dsData.data = Microsoft::WRL::ComPtr<ID3D11DepthStencilView>(m_renderTargetManager->GetDepthStencilView());
+	dsData.data = m_initManager->GetDepthStencilView(config->stencilState);
 	dsData.desc = {};
 	dsData.desc.Height = static_cast<UINT>(height);
 	dsData.desc.Width = static_cast<UINT>(width);
@@ -55,7 +72,9 @@ void MainColorPass::SetInitialOperations() {
 	dsData.desc.SampleDesc.Quality = 0;
 	dsData.desc.Usage = D3D11_USAGE_DEFAULT;
 	dsData.desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-	AddInitialOperation(PipelineOperationType::Device_SetDepthStencilState, dsData);
+	dsData.clearFlags = D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL;
+	//AddInitialOperation(PipelineOperationType::Device_SetDepthStencilState, dsData);
+	AddInitialOperation(PipelineOperationType::Device_ClearDepthStencilView, dsData);
 
 	// 5. Topology
 	PipelinePrimitiveTopologyData ptData = {};
@@ -78,6 +97,10 @@ HRESULT MainColorPass::InitManagers() {
 	}
 	m_renderTargetManager = ManagerLocator::GetRenderManager();
 	if (!m_shaderManager) {
+		return E_FAIL;
+	}
+	m_initManager = ManagerLocator::GetManager<InitManager>();
+	if (!m_initManager) {
 		return E_FAIL;
 	}
 	m_shadows = ServiceLocator::GetService<Shadows>();
@@ -121,7 +144,10 @@ std::vector<std::shared_ptr<PipelineOperation>> MainColorPass::BeginPass()
 
 std::vector<std::shared_ptr<PipelineOperation>> MainColorPass::ExecPass(std::shared_ptr<MeshAsset> mesh)
 {
+	return {};
 	shaderName = StringToWstring(mesh->GetShaderName());
+
+	ClearOperations();
 
 	PipelineOperationParams params = {};
 
@@ -142,9 +168,25 @@ std::vector<std::shared_ptr<PipelineOperation>> MainColorPass::ExecPass(std::sha
 	spData.data = mesh->GetMaterial()->GetSamplerState();
 	AddOperation(PipelineOperationType::Mesh_Render_SetSampler, spData);
 	// 5. Constants buffers
-	PipelineMaterialBufferData mData = {};
+	MatrixDefinitionBase::MatrixParams mData = {};	
+
 	mData.worldMatrix = mesh->GetWorldMatrix();
-	AddOperation(PipelineOperationType::Device_SetConstantsBufferState, mData);
+	mData.viewMatrix = XMMatrixTranspose(m_cameraManager->GetCurrentViewMatrix());
+	mData.projectionMatrix = XMMatrixTranspose(m_cameraManager->GetCurrentProjectionMatrix());
+	mData.cameraPosition = m_cameraManager->GetCurrentCameraPosition();
+	mData.lightDirection = m_lighthing->GetLightDirection();
+	mData.lightColor = m_lighthing->GetLightColor();
+	mData.materialAO = 0.4f;
+	/*mesh->GetMaterial()->SetConstantBuffers(m_deviceManager->GetContext(), mData);
+	mesh->GetMaterial()->Apply(m_deviceManager->GetContext());*/
+	/*unsigned int oper = static_cast<unsigned int>(PipelineMatrixBufferType::WorldMatrix) | static_cast<unsigned int>(PipelineMatrixBufferType::ViewMatrix) | static_cast<unsigned int>(PipelineMatrixBufferType::ProjectionMatrix) | static_cast<unsigned int>(PipelineMatrixBufferType::CameraPosition) | static_cast<unsigned int>(PipelineMatrixBufferType::LightDirection) | static_cast<unsigned int>(PipelineMatrixBufferType::LightColor) | static_cast<unsigned int>(PipelineMatrixBufferType::MaterialAO);*/
+	//mData.oper = oper;
+	PipelineMatrixBufferData matrixData = {};
+	matrixData.data = mData;
+	matrixData.material = mesh->GetMaterial();
+
+	AddOperation(PipelineOperationType::Device_SetConstantsBufferState, matrixData);
+
 	// 6. Set Textures
 	PipelineTextureData tData = {};
 	tData.data = {};

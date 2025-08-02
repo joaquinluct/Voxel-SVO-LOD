@@ -7,7 +7,7 @@ Config:
         shader_name: ShadowMapShader
         rasterizedState: RasterizedShadowPass
         viewPortState: ViewportShadow
-        stencilState: none
+        stencilState: StencilShadow
         blendState: none
         drawType: "DrawIndexed"
         primitiveTopology: 4 # D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELISTs

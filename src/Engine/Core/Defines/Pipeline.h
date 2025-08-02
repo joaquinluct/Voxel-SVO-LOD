@@ -2,9 +2,13 @@
 #include <d3d11.h>
 #include <map>
 #include <variant>
+//#include <Services/Material.h>
 #include <Defines/Pipeline.h>
 #include <Defines/MatrixDefinition.h>
+#include <Defines/MatrixDefinitionBase.h>
 #include <wrl/client.h>
+
+class Material;
 
 // Define los diferentes tipos de pases de renderizado
 enum class RenderPassType {
@@ -29,6 +33,7 @@ enum class PipelineOperationType {
     Device_Init_SetencilState,
     Device_Init_SetencilView,
     Device_Init_SetPixelShader,
+    Device_Init_SetRenderTargetView,
     Device_Init_SetVertexShader,
     Device_Init_Viewport,
     Device_draw,
@@ -61,6 +66,24 @@ enum class PipelineOperationType {
     Count // Para iterar o saber el número de operaciones
 };
 
+// Enum para tipos de buffers de matrices, usando flags binarios
+enum class PipelineMatrixBufferType : unsigned int {
+    None                = 0,
+    WorldMatrix         = 1 << 0, // 1
+    ViewMatrix          = 1 << 1, // 2
+    ProjectionMatrix    = 1 << 2, // 4
+    LightViewProjMatrix = 1 << 3, // 8
+    CameraPosition      = 1 << 4, // 16
+    LightDirection      = 1 << 5, // 32
+    LightColor          = 1 << 6, // 64
+    MaterialAlbedo      = 1 << 7, // 128
+    MaterialRoughness   = 1 << 8, // 256
+    MaterialMetallic    = 1 << 9, // 512
+    MaterialF0          = 1 << 10, // 1024
+    MaterialAO          = 1 << 11, // 2048
+    // Puedes añadir más flags según sea necesario
+};
+
 struct PipelineOperBase
 {
 	std::string name; // Nombre de la operación
@@ -86,6 +109,8 @@ struct PipelineMaterialBufferData : public PipelineOperBase {
         paddingMaterial2(.0f)
     {
     }
+
+    unsigned int oper = 0;
 
     DirectX::XMMATRIX worldMatrix;
     DirectX::XMMATRIX viewMatrix;
@@ -139,9 +164,16 @@ struct PipelineSamplerSateData : public PipelineOperBase
 
 struct PipelineRenderTargetViewData : public PipelineOperBase
 {
-    Microsoft::WRL::ComPtr<ID3D11Resource> backBuffer;
+    Microsoft::WRL::ComPtr<ID3D11Texture2D> backBuffer;
     Microsoft::WRL::ComPtr<ID3D11RenderTargetView> data;
     DirectX::XMFLOAT4 clearColor;
+};
+
+struct PipelineSetRenderTargetsData: public PipelineOperBase
+{
+    Microsoft::WRL::ComPtr<ID3D11DepthStencilView> stencilView;
+    Microsoft::WRL::ComPtr<ID3D11RenderTargetView> targetView;
+    bool isColorPass;
 };
 
 struct PipelineSetVertexBufferData : public PipelineOperBase
@@ -194,6 +226,9 @@ struct PipelineDepthStencilData : public PipelineOperBase
 {
     Microsoft::WRL::ComPtr <ID3D11DepthStencilView> data;
     D3D11_TEXTURE2D_DESC desc;
+    UINT clearFlags;
+    FLOAT depth;
+	UINT8 stencil;
 };
 
 struct PipelineViewPortData : public PipelineOperBase
@@ -219,7 +254,14 @@ struct PipelineBackBufferData : public PipelineOperBase
     Microsoft::WRL::ComPtr<ID3D11Texture2D> data;
 };
 
+struct PipelineMatrixBufferData : public PipelineOperBase
+{
+    Material* material;
+    MatrixDefinitionBase::MatrixParams data;
+};
+
 using PipelineParameter = std::variant<
+	PipelineMatrixBufferData,
     PipelineMaterialBufferData,
     PipelineRasteriezeData,
     PipelineBledingData,
@@ -236,16 +278,18 @@ using PipelineParameter = std::variant<
     PipelineSamplerSateData,
     PipelineTextureData,
     PipelinePresentSwapChain,
-    PipelineBackBufferData
+    PipelineBackBufferData,
+    PipelineSetRenderTargetsData
 >;
 
 class PipelineOperationParams
 {
 public:
     PipelineOperationParams():
-		name(""), matrices(), rasterize(), blending(), stencil(), viewport(), vertexShader(), pixelShader(), layout(), drawIndexed(), primitiveTopology(), vertexData(), indexData(), renderTargetView(), samplerState(), textures(), presentSwapChain()
+		name(""), matrixBuffer(), matrices(), rasterize(), blending(), stencil(), viewport(), vertexShader(), pixelShader(), layout(), drawIndexed(), primitiveTopology(), vertexData(), indexData(), renderTargetView(), samplerState(), textures(), presentSwapChain()
     {};
 	std::string name; // Nombre de la operación
+    PipelineMatrixBufferData matrixBuffer;
     PipelineMaterialBufferData matrices;
     PipelineRasteriezeData rasterize;
     PipelineBledingData blending;
@@ -262,6 +306,7 @@ public:
     PipelineSamplerSateData samplerState;
     PipelineTextureData textures;
     PipelinePresentSwapChain presentSwapChain;
+    PipelineSetRenderTargetsData renderTargets;
 };
 
 using PipelineData = std::variant<
@@ -283,11 +328,11 @@ private:
     HRESULT result;
 public:
     // Constructor por defecto
-    PipelineOperation() : operationType(PipelineOperationType::Unknown), operationParam(), operationData(), priority(0) {}
-    PipelineOperation(const PipelineOperation* other) : operationType(other->GetOperationType()), priority(other->GetPriority()), operationParam(other->GetOperationParam()), operationData(other->GetOperationData()) {}
+    PipelineOperation() : operationType(PipelineOperationType::Unknown), operationParam(), operationData(), priority(0), result() {}
+    PipelineOperation(const PipelineOperation* other) : operationType(other->GetOperationType()), priority(other->GetPriority()), operationParam(other->GetOperationParam()), operationData(other->GetOperationData()), result() {}
     // Constructor con parámetros
     PipelineOperation(PipelineOperationType type, PipelineParameter param, PipelineData operationOutData = {}, int prio = 0)
-        : operationType(type), operationParam(param), operationData(operationOutData), priority(prio) {}
+        : operationType(type), operationParam(param), operationData(operationOutData), priority(prio), result() {}
     ~PipelineOperation() {};
     PipelineOperationType GetOperationType() const { return operationType; };
     PipelineParameter GetOperationParam() const { return operationParam; };

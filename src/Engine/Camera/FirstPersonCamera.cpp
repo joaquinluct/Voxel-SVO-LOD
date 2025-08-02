@@ -28,10 +28,10 @@ REGISTER_SERVICE_TYPE(FirstPersonCamera, "FirstPersonCamera")
 // Podrían estar en un archivo de constantes compartidas, o definidos aquí si son específicos de FPC.
 // Por el momento, los mantengo aquí para que compile, pero considera su ubicación.
 #ifndef CAMERA_SPEED
-#define CAMERA_SPEED 50.0f
+#define CAMERA_SPEED 5.0f
 #endif
 #ifndef CAMERA_SPEEDY
-#define CAMERA_SPEEDY 150.0f
+#define CAMERA_SPEEDY 50.0f
 #endif
 
 using namespace DirectX;

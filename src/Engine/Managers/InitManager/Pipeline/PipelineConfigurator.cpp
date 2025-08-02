@@ -59,42 +59,48 @@ HRESULT PipelineConfigurator::ExecuteInitOperation(PipelineOperation& operation)
 
     }
     case PipelineOperationType::Mesh_Init_SamplerState: {
-        auto data = operation.GetOperationData<Microsoft::WRL::ComPtr<ID3D11SamplerState>>();
+        /*auto data = operation.GetOperationData<Microsoft::WRL::ComPtr<ID3D11SamplerState>>();
         auto param = operation.GetOperationParam<PipelineSamplerSateData>();
         ID3D11SamplerState* state = data.Get();
+        param.desc.ComparisonFunc = D3D11_COMPARISON_NEVER;
         hr = m_device->CreateSamplerState(&param.desc, &state);
         Microsoft::WRL::ComPtr<ID3D11SamplerState> d = state;
-        operation.SetOperationData(d);
+        operation.SetOperationData(d);*/
         break;
     }
 
     case PipelineOperationType::Device_Init_Viewport: {
         auto param = operation.GetOperationParam<PipelineViewPortData>();
+        //operation.SetOperationData(param.desc);
         m_context->RSSetViewports(1, &param.desc);
         break;
 
     }
 
     case PipelineOperationType::Device_Init_CreateBackBuffer: {
-        Microsoft::WRL::ComPtr<ID3D11Texture2D> data = operation.GetOperationData<Microsoft::WRL::ComPtr<ID3D11Texture2D>>();
-		auto param = operation.GetOperationParam<PipelineBackBufferData>();
-        ID3D11Texture2D* buffer = data.Get();
-		ID3D11Texture2D** cBuffer = &buffer;
+        Microsoft::WRL::ComPtr<ID3D11Texture2D> backBufferTexture;
+        // Esta es la forma estándar y segura de obtener una interfaz COM en un ComPtr
+        // La macro IID_PPV_ARGS() se encarga de proporcionar el IID y el cast a void**
+        hr = m_swapChain->GetBuffer(0, IID_PPV_ARGS(&backBufferTexture));
 
-        //Microsoft::WRL::ComPtr<ID3D11Texture2D> buffer = nullptr;
-        hr = m_swapChain.Get()->GetBuffer(0, __uuidof(ID3D11Texture2D), (void **)cBuffer);
-        Microsoft::WRL::ComPtr<ID3D11Texture2D> d = buffer;
-        operation.SetOperationData(d);
+        // Después de que GetBuffer rellene backBufferTexture, lo pasamos a la operación.
+        if (SUCCEEDED(hr)) {
+            operation.SetOperationData(backBufferTexture);
+        }
         break;
     }
 
     case PipelineOperationType::Device_Init_CreateRenderTargetView: {
-        auto data = operation.GetOperationData<Microsoft::WRL::ComPtr<ID3D11RenderTargetView>>();
+        Microsoft::WRL::ComPtr<ID3D11RenderTargetView> data = operation.GetOperationData<Microsoft::WRL::ComPtr<ID3D11RenderTargetView>>();
         auto param = operation.GetOperationParam<PipelineRenderTargetViewData>();
-        
-        hr = m_device->CreateRenderTargetView(param.backBuffer.Get(), nullptr, &data);
 
-        operation.SetOperationData(data);
+        ID3D11Texture2D* backBuffer = param.backBuffer.Get();
+
+        Microsoft::WRL::ComPtr<ID3D11RenderTargetView> state = nullptr;
+        
+        hr = m_device->CreateRenderTargetView(backBuffer, nullptr, &state);
+
+        operation.SetOperationData(state);
     }
     // Me he quedado aquí.
 	// Antes pasaba params y ahora lo he reducido a un solo parmámetro.

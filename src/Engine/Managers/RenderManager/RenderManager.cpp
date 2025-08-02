@@ -1,3 +1,5 @@
+#include <vector>
+#include <memory>
 #include <variant>
 #include "RenderManager.h"
 #include <Pipeline/RenderPassLocator.h>
@@ -100,21 +102,25 @@ void RenderManager::BeginRender() {
 }
 
 void RenderManager::Render() {
-	/*m_baseRenderManager->Render();
-	m_gameRenderManager->Render();*/
+	m_baseRenderManager->Render();
+	m_gameRenderManager->Render();
 }
 
 void RenderManager::EndRender() {
-	PipelinePresentSwapChain param = {};
+	/*PipelinePresentSwapChain param = {};
 	param.data = m_deviceManager->GetSwapChain();
-	AddOperation(PipelineOperationType::Device_PresentSwapChain, param);
+	AddOperation(PipelineOperationType::Device_PresentSwapChain, param);*/
 }
 
 void RenderManager::ExecRender() {
+
+	// CÓDIGO ANTIGUO
 	/*BeginRender();
 	ServiceLocator::RenderServices(m_serviceConfig->services_render_order);
 	Render();
 	EndRender();*/
+
+	// CÓDIGO NUEVO
 	ClearOperations();
 	BeginRender();
 	for (const auto& passPair : m_renderPasses) {
@@ -126,16 +132,17 @@ void RenderManager::ExecRender() {
 
 		if (pass->IsActive()) {
 			std::vector<std::shared_ptr<PipelineOperation>> operations = pass->BeginPass();
-			for (const auto& meshPair : m_gameRenderManager->GetMeshes()) {
-				auto mesh = meshPair.second;
-				if (mesh) {
-					std::vector<std::shared_ptr<PipelineOperation>> meshOperations = pass->ExecPass(mesh);
-					operations.append_range(meshOperations);
-				}
-			}
-			// De momento ningún pase devuelve nada en el EndPass
-			pass->EndPass();
-			m_renderOperations = operations;
+			//std::map<std::string, std::shared_ptr<MeshAsset>> meshes = m_gameRenderManager->GetMeshes();
+			//for (const auto& meshPair : meshes) {
+			//	auto mesh = meshPair.second;
+			//	if (mesh) {
+			//		std::vector<std::shared_ptr<PipelineOperation>> meshOperations = pass->ExecPass(mesh);
+			//		operations.insert_range(operations.end(), meshOperations);
+			//	}
+			//}
+			//// De momento ningún pase devuelve nada en el EndPass
+			//pass->EndPass();
+			m_renderOperations.insert_range(m_renderOperations.end(), operations);
 		}
 	}
 	EndRender();
@@ -154,8 +161,8 @@ HRESULT RenderManager::ExecOperations()
 
 	for (std::shared_ptr<PipelineOperation> oper: m_renderOperations) {
 		executor->ExecuteOperation(oper);
-
 	}
+
 	return S_OK;
 }
 

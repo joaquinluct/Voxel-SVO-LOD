@@ -56,11 +56,11 @@ HRESULT Material::InitManagers() {
         return E_FAIL;
     }
 
-	m_renderManager = ManagerLocator::GetManager<RenderManager>();
+	/*m_renderManager = ManagerLocator::GetManager<RenderManager>();
     if (m_renderManager == nullptr) {
         OutputDebugStringA("Error: RenderManager no inicializado.\n");
         return E_FAIL;
-	}
+	}*/
 
 	m_lighting = ServiceLocator::GetService<Lighting>();
     if (m_lighting == nullptr) {
@@ -139,9 +139,9 @@ HRESULT Material::InitMatrixBuffer() {
             }, * matrix.second);
 
         // Si no es un múltiplo de 16, redondear hacia arriba
-        if (buffer_byte_width % 16 != 0) {
+        /*if (buffer_byte_width % 16 != 0) {
             buffer_byte_width = (buffer_byte_width / 16 + 1) * 16;
-        }
+        }*/
 
         D3D11_BUFFER_DESC cbd = {};
         cbd.Usage = D3D11_USAGE_DYNAMIC;
@@ -213,7 +213,7 @@ void Material::Render() {
     XMMATRIX projectionMatrix = XMMatrixTranspose(m_cameraManager->GetCurrentProjectionMatrix());
 
     MatrixDefinitionBase::MatrixParams matrixParams{};
-    if (m_renderManager->IsRenderColourPassActive()) {
+    //if (m_renderManager->IsRenderColourPassActive()) {
         matrixParams.worldMatrix = worldMatrix;
         matrixParams.viewMatrix = viewMatrix;
         matrixParams.projectionMatrix = projectionMatrix;
@@ -221,10 +221,10 @@ void Material::Render() {
         matrixParams.lightDirection = m_lighting->GetLightDirection();
         matrixParams.lightColor = m_lighting->GetLightColor();
         matrixParams.materialAO = 0.4f;
-    } else if (m_renderManager->IsRenderShadowsPassActive()) {
+    /*} else if (m_renderManager->IsRenderShadowsPassActive()) {
         matrixParams.worldMatrix = worldMatrix;
         matrixParams.lightViewProjectionMatrix = m_shadows->GetLightViewProjectionMatrix();
-    } 
+    } */
     
 	SetConstantBuffers(context, matrixParams);
 
@@ -306,7 +306,8 @@ void Material::Apply(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context) {
     context->PSSetShaderResources(0, mapSize, texturesToBind);
 
     // Siempre bindea el sampler, aunque no haya textura
-    context->PSSetSamplers(0, 1, &m_samplerState);
+	ID3D11SamplerState* samplerStates[] = { m_samplerState.Get() };
+    context->PSSetSamplers(0, 1, samplerStates);
 }
 
 ID3D11ShaderResourceView* Material::LoadTextureFromFile(std::shared_ptr<ID3D11Device> device, const std::wstring& filename) {

@@ -177,9 +177,12 @@ void ShaderManager::SetConstantsBuffers(std::wstring shaderName, const MatrixDef
             // de MatrixParams. Cada estructura sabe qué datos de MatrixParams necesita.
             currentMatrixStruct.SetMatrixData(matrixParams);
             matrixType = currentMatrixStruct.MatrixType();
+            size_t size = currentMatrixStruct.Size();
+            //size_t size = sizeof(currentMatrixStruct);
             // Copiamos los datos de nuestra estructura C++ a la memoria mapeada de la GPU.
             // Asegúrate de que el tamaño de la estructura coincida con el tamaño del buffer en la GPU.
-            memcpy(mapped.pData, &currentMatrixStruct, sizeof(std::decay_t<decltype(currentMatrixStruct)>));
+            //memcpy(mapped.pData, &currentMatrixStruct, sizeof(std::decay_t<decltype(currentMatrixStruct)>));
+            memcpy(mapped.pData, &currentMatrixStruct, size);
             }, *matrix.second); // Accedemos al contenido del unique_ptr<AnyMatrixBuffer>
 
         // Desmapeamos el buffer para que la GPU pueda acceder a los datos actualizados.
