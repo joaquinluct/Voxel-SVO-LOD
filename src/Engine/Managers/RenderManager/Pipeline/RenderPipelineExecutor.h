@@ -3,8 +3,10 @@
 
 #include <d3d11.h>
 #include <wrl/client.h> // For Microsoft::WRL::ComPtr
+#include <string>       // For std::unique_ptr
 #include <memory>       // For std::unique_ptr
 #include <vector>       // For potential use with multiple buffers/views
+#include <variant>
 
 // Incluye las definiciones de tus operaciones y parámetros
 #include <Defines/Pipeline.h>

@@ -9,6 +9,12 @@ FloorMeshConfig::FloorMeshConfig(){
 	name = "FloorMesh";
 	mesh_path = "c:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Mesh\\floor.obj";
 	texture = "TextureGrassDiffuse";
+	texture_transforms = {
+		3.0f,
+		3.0f,
+		0.0f,
+		0.0f
+	};
 	shader = "PBRShader";
 	position = {
 		1.0f,

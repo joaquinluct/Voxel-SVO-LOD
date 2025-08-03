@@ -183,8 +183,8 @@ void MainController::Render() {
 
     // Las antiguas llamadas
     //m_renderManager->BeginRender();
-    ServiceLocator::RenderServices(m_serviceConfig->services_render_order);
-	ManagerLocator::RenderManagers(m_config->managers_render_order);
+    //ServiceLocator::RenderServices(m_serviceConfig->services_render_order);
+	//ManagerLocator::RenderManagers(m_config->managers_render_order);
     /*m_renderManager->Render();
     m_renderManager->EndRender();*/
 }

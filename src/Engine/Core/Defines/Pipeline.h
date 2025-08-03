@@ -1,12 +1,15 @@
 #pragma once
 #include <d3d11.h>
+#include <string>
 #include <map>
+#include <vector>
 #include <variant>
+#include <memory>
+#include <wrl/client.h>
 //#include <Services/Material.h>
 #include <Defines/Pipeline.h>
-#include <Defines/MatrixDefinition.h>
-#include <Defines/MatrixDefinitionBase.h>
-#include <wrl/client.h>
+#include <Defines/Matrix/MatrixDefinition.h>
+#include <Defines/Matrix/MatrixDefinitionBase.h>
 
 class Material;
 
@@ -151,7 +154,8 @@ struct PipelineTextureData : public PipelineOperBase
 {
     UINT startSlot = 0;
     UINT numTextures = 1;
-    std::map<std::string, ID3D11ShaderResourceView*> data;
+    //std::map<std::string, ID3D11ShaderResourceView*> data;
+    std::vector<ID3D11ShaderResourceView*> data;
 };
 
 struct PipelineSamplerSateData : public PipelineOperBase
@@ -256,8 +260,14 @@ struct PipelineBackBufferData : public PipelineOperBase
 
 struct PipelineMatrixBufferData : public PipelineOperBase
 {
+    // Entrada:
     Material* material;
     MatrixDefinitionBase::MatrixParams data;
+    std::map<std::string, std::pair<int, MatrixDefinition::AnyMatrixBuffer>> matrices;
+
+	// Salida:
+	std::map<std::string, Microsoft::WRL::ComPtr<ID3D11Buffer>> constantsBuffers; // Mapa de buffers de constantes
+
 };
 
 using PipelineParameter = std::variant<
@@ -351,7 +361,7 @@ public:
     }
     template<typename T>
     T GetOperationParam() {
-        //if (!operationData) return nullptr;
+        //if (!operationParam) return nullptr;
         return std::get<T>(operationParam);
     }
     void SetResult(HRESULT hr) {

@@ -61,6 +61,15 @@ public:
     // Método para inicializar la textura con los recursos de D3D11
     HRESULT InitD3D11Resources(ID3D11Device* pDevice, const std::string& filePath);
 
+	// Devolver la matriz de transformación de la textura
+    XMFLOAT4 GetTextureTransform() const {
+		float scaleX = m_textureConfig ? m_textureConfig->x_scale : 1.0f;
+		float scaleY = m_textureConfig ? m_textureConfig->y_scale : 1.0f;
+		float offsetX = m_textureConfig ? m_textureConfig->x_offset : 0.0f;
+		float offsetY = m_textureConfig ? m_textureConfig->y_offset : 0.0f;
+		return XMFLOAT4(scaleX, scaleY, offsetX, offsetY);
+	}
+
     std::shared_ptr<ITextureConfig> m_textureConfig = nullptr; // Configuración de textura
 private:	
     /*ComPtr<ID3D11Texture2D> m_texture2D;

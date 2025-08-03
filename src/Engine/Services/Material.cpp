@@ -8,8 +8,8 @@
 #include <ManagerLocator/ManagerLocator.h>
 #include <ConfigLocator/ConfigLocator.h>
 #include <Defines/Texture.h>
-#include <Defines/MatrixDefinition.h>
-#include <Defines/Light.h>
+#include <Defines/Matrix/MatrixDefinition.h>
+#include <Defines/Matrix/Light.h>
 #include <Util/DirectXUtils.h>
 #include <REGISTER_SERVICE_MACRO.h>
 
@@ -56,11 +56,11 @@ HRESULT Material::InitManagers() {
         return E_FAIL;
     }
 
-	/*m_renderManager = ManagerLocator::GetManager<RenderManager>();
+	m_renderManager = ManagerLocator::GetManager<RenderManager>();
     if (m_renderManager == nullptr) {
         OutputDebugStringA("Error: RenderManager no inicializado.\n");
         return E_FAIL;
-	}*/
+	}
 
 	m_lighting = ServiceLocator::GetService<Lighting>();
     if (m_lighting == nullptr) {
@@ -159,6 +159,7 @@ HRESULT Material::InitMatrixBuffer() {
             return hr;
         }
     }
+	
     return S_OK;
 }
 
@@ -221,6 +222,7 @@ void Material::Render() {
         matrixParams.lightDirection = m_lighting->GetLightDirection();
         matrixParams.lightColor = m_lighting->GetLightColor();
         matrixParams.materialAO = 0.4f;
+        matrixParams.textureTransform = m_textureTranforms;
     /*} else if (m_renderManager->IsRenderShadowsPassActive()) {
         matrixParams.worldMatrix = worldMatrix;
         matrixParams.lightViewProjectionMatrix = m_shadows->GetLightViewProjectionMatrix();
@@ -239,75 +241,124 @@ void Material::SetTexture(ID3D11ShaderResourceView* texture, std::string texture
     if (textureMap == TEXTURE_MAP_AO.data()) m_texture_ao = texture;
 }
 
-void Material::SetConstantBuffers(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context, MatrixDefinitionBase::MatrixParams matrixParams, int slot) {
-    m_shaderManager->SetConstantsBuffers(m_shaderName, matrixParams, m_constantBuffers, context);
+void Material::SetTextureTranforms(float scaleX, float scaleY, float offsetX, float offsetY)
+{
+	m_textureTranforms = XMFLOAT4(scaleX, scaleY, offsetX, offsetY);
+}
+void Material::SetTextureTranforms(XMFLOAT4 tranforms)
+{
+    m_textureTranforms = tranforms;
+}
+
+void Material::SetConstantBuffers(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context,
+    MatrixDefinitionBase::MatrixParams matrixParams, int slot) {
+
+    return;
+
+    MatrixDefinitionBase::MatrixParams mData = {};
+
+    //mData.worldMatrix = mesh->GetWorldMatrix();
+    mData.worldMatrix = DirectX::XMMatrixIdentity();
+    mData.viewMatrix = DirectX::XMMatrixTranspose(m_cameraManager->GetCurrentViewMatrix());
+    mData.projectionMatrix = DirectX::XMMatrixTranspose(m_cameraManager->GetCurrentProjectionMatrix());
+    mData.cameraPosition = m_cameraManager->GetCurrentCameraPosition();
+    mData.lightDirection = m_lighting->GetLightDirection();
+    mData.lightColor = m_lighting->GetLightColor();
+    mData.materialAO = 0.4f;
+	mData.textureTransform = m_textureTranforms;
+    /*mesh->GetMaterial()->SetConstantBuffers(m_deviceManager->GetContext(), mData);
+    mesh->GetMaterial()->Apply(m_deviceManager->GetContext());*/
+    /*unsigned int oper = static_cast<unsigned int>(PipelineMatrixBufferType::WorldMatrix) | static_cast<unsigned int>(PipelineMatrixBufferType::ViewMatrix) | static_cast<unsigned int>(PipelineMatrixBufferType::ProjectionMatrix) | static_cast<unsigned int>(PipelineMatrixBufferType::CameraPosition) | static_cast<unsigned int>(PipelineMatrixBufferType::LightDirection) | static_cast<unsigned int>(PipelineMatrixBufferType::LightColor) | static_cast<unsigned int>(PipelineMatrixBufferType::MaterialAO);*/
+    //mData.oper = oper;
+    PipelineMatrixBufferData matrixData = {};
+    matrixData.data = mData;
+    matrixData.constantsBuffers = GetConstantBuffers();
+    matrixData.matrices = m_shaderManager->GetMatrixDefinitions(m_shaderName);
+
+    PipelineOperation oper = new PipelineOperation(PipelineOperationType::Device_SetConstantsBufferState, matrixData);
+
+    m_renderManager->ExecuteOperation(oper);
+
+
+    //m_shaderManager->SetConstantsBuffers(m_shaderName, matrixParams, m_constantBuffers, context);
 }
 
 void Material::Apply(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context) {
+    return;
     // Establecer shaders
     if (!vertexShader || !pixelShader) {
         OutputDebugStringA("Error: Shaders no inicializados correctamente.\n");
         return;
     }
-    context->VSSetShader(vertexShader.Get(), nullptr, 0);
-    context->PSSetShader(pixelShader.Get(), nullptr, 0);
+
+    PipelineVertexShaderData vsData = {};
+	vsData.data = vertexShader.Get();
+	PipelineOperation oper = new PipelineOperation(PipelineOperationType::Mesh_Render_SetVertexShader, vsData);
+
+    m_renderManager->ExecuteOperation(oper);
+
+    PipelinePixelShaderData psData = {};
+	psData.data = pixelShader.Get();
+	oper = new PipelineOperation(PipelineOperationType::Mesh_Render_SetPixelShader, psData);
+
+    m_renderManager->ExecuteOperation(oper);
+
+    PipelineLayoutData lData = {};
+    lData.data = GetInputLayout();
+    oper = new PipelineOperation(PipelineOperationType::Mesh_Render_SetInputLayout, lData);
+
+    m_renderManager->ExecuteOperation(oper);
+
+    PipelineTextureData tData = {};
+    tData.data = {};
+    tData.numTextures = GetNumTextures();
+    tData.data = GetTextures();
+    oper = new PipelineOperation(PipelineOperationType::Mesh_Render_SetTexture, tData);
+    
+    m_renderManager->ExecuteOperation(oper);
+
+    PipelineSamplerSateData spData = {};
+    spData.data = GetSamplerState();
+    
+    oper = new PipelineOperation(PipelineOperationType::Mesh_Render_SetSampler, spData);
+    
+    m_renderManager->ExecuteOperation(oper);
+
+    //context->VSSetShader(vertexShader.Get(), nullptr, 0);
+    //context->PSSetShader(pixelShader.Get(), nullptr, 0);
 
     if (inputLayout) {
-        context->IASetInputLayout(inputLayout.Get());
+        //context->IASetInputLayout(inputLayout.Get());
     }
     else {
         OutputDebugStringA("Error: Input Layout no inicializado.\n");
     }
 
-    // Log: Aplicando material, textura y sampler
-    // char logMsg[128];
-    // sprintf_s(logMsg, sizeof(logMsg), "[Material::Apply] m_texture=%p, m_samplerState=%p\n", m_texture, m_samplerState);
-    // OutputDebugStringA(logMsg);
+    
+    // Establecer textura
+    /*const int mapSize = 5;
+    ID3D11ShaderResourceView* texturesToBind[mapSize] = { nullptr, nullptr, nullptr, nullptr, nullptr };
 
-    // Establecer textura (si hay)
-    // Array para almacenar todas las vistas de recursos del shader
-    const int mapSize = 5;
-    ID3D11ShaderResourceView* texturesToBind[mapSize] = { nullptr, nullptr, nullptr, nullptr, nullptr }; // Inicializa todos los elementos a nullptr
-
-    // Asigna tus texturas a las posiciones correctas en el array.
-    // Asegúrate de que las variables miembro m_texture_albedo, m_texture_normal, etc.,
-    // sean punteros a ID3D11ShaderResourceView*.
-
-    // Slot 0: Albedo
     if (m_texture_albedo) {
         texturesToBind[0] = m_texture_albedo;
     }
-
-    // Slot 1: Normal
     if (m_texture_normal) {
         texturesToBind[1] = m_texture_normal;
     }
-
-    // Slot 2: Roughness
-    // *** IMPORTANTE: Tu código original comprobaba 'if (m_texture_normal)'.
-    // *** Deberías comprobar 'if (m_texture_roughness)' para asegurarte de que el mapa de rugosidad existe.
     if (m_texture_roughness) {
         texturesToBind[2] = m_texture_roughness;
     }
-
     if (m_texture_metallic) {
         texturesToBind[3] = m_texture_metallic;
     }
-
-    // Slot 3: Ambient Occlusion (AO)
-    // *** IMPORTANTE: Similar al caso anterior, tu código original comprobaba 'if (m_texture_normal)'.
-    // *** Deberías comprobar 'if (m_texture_ao)' para el mapa de oclusión ambiental.
     if (m_texture_ao) {
         texturesToBind[4] = m_texture_ao;
     }
 
-    // Finalmente, vincula todas las texturas en una sola llamada.
-    // 'StartSlot' es 0, y 'NumViews' es 4 porque queremos vincular 4 texturas desde el slot 0.
-    context->PSSetShaderResources(0, mapSize, texturesToBind);
+    context->PSSetShaderResources(0, mapSize, texturesToBind);*/
 
-    // Siempre bindea el sampler, aunque no haya textura
-	ID3D11SamplerState* samplerStates[] = { m_samplerState.Get() };
-    context->PSSetSamplers(0, 1, samplerStates);
+	/*ID3D11SamplerState* samplerStates[] = { m_samplerState.Get() };
+    context->PSSetSamplers(0, 1, samplerStates);*/
 }
 
 ID3D11ShaderResourceView* Material::LoadTextureFromFile(std::shared_ptr<ID3D11Device> device, const std::wstring& filename) {

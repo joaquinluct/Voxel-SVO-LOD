@@ -2,8 +2,10 @@
 #include <memory>
 #include <variant>
 #include "RenderManager.h"
+#include <Config/Base/EngineConfig.h>
 #include <Pipeline/RenderPassLocator.h>
 #include <ServiceLocator/ServiceLocator.h>
+#include <ManagerLocator/ManagerLocator.h>
 #include "REGISTER_MANAGER_MACRO.h"
 
 REGISTER_MANAGER_TYPE(RenderManager, "RenderManager")
@@ -39,6 +41,10 @@ HRESULT RenderManager::InitSubManagers() {
 	hr = m_gameRenderManager->Init();
 	if (FAILED(hr)) {
 		return hr;
+	}
+	m_engineConfig = ConfigLocator::GetConfig<EngineConfig>();
+	if (!m_engineConfig) {
+		return E_FAIL;
 	}
 	m_config = ConfigLocator::GetConfig<RenderManagerConfig>();
 	if (!m_config) {
@@ -95,6 +101,9 @@ HRESULT RenderManager::Init() {
 		OutputDebugStringA("RenderManager: ERROR al inicializar los pases");
 		return hr;
 	}
+
+	InitPipelineExecutor();
+
 	return hr;
 }
 
@@ -107,9 +116,10 @@ void RenderManager::Render() {
 }
 
 void RenderManager::EndRender() {
-	/*PipelinePresentSwapChain param = {};
-	param.data = m_deviceManager->GetSwapChain();
-	AddOperation(PipelineOperationType::Device_PresentSwapChain, param);*/
+	PipelinePresentSwapChain param = {};
+	//param.data = m_deviceManager->GetSwapChain();
+	param.data = m_initManager->GetSwapChain();
+	AddOperation(PipelineOperationType::Device_PresentSwapChain, param);
 }
 
 void RenderManager::ExecRender() {
@@ -121,8 +131,12 @@ void RenderManager::ExecRender() {
 	EndRender();*/
 
 	// CÓDIGO NUEVO
+	ServiceLocator::RenderServices(m_serviceConfig->services_render_order);	
+	ManagerLocator::RenderManagers(m_engineConfig->managers_render_order);
 	ClearOperations();
 	BeginRender();
+	/*ExecOperations();
+	ClearOperations();*/
 	for (const auto& passPair : m_renderPasses) {
 		if (passPair.second == nullptr) {
 			continue; // Skip null passes
@@ -132,38 +146,54 @@ void RenderManager::ExecRender() {
 
 		if (pass->IsActive()) {
 			std::vector<std::shared_ptr<PipelineOperation>> operations = pass->BeginPass();
-			//std::map<std::string, std::shared_ptr<MeshAsset>> meshes = m_gameRenderManager->GetMeshes();
-			//for (const auto& meshPair : meshes) {
-			//	auto mesh = meshPair.second;
-			//	if (mesh) {
-			//		std::vector<std::shared_ptr<PipelineOperation>> meshOperations = pass->ExecPass(mesh);
-			//		operations.insert_range(operations.end(), meshOperations);
-			//	}
-			//}
-			//// De momento ningún pase devuelve nada en el EndPass
+			std::map<std::string, std::shared_ptr<MeshAsset>> meshes = m_gameRenderManager->GetMeshes();
+			for (const auto& meshPair : meshes) {
+				auto mesh = meshPair.second;
+				if (mesh) {
+					std::vector<std::shared_ptr<PipelineOperation>> meshOperations = pass->ExecPass(mesh);
+					operations.insert_range(operations.end(), meshOperations);
+				}
+			}
+			// De momento ningún pase devuelve nada en el EndPass
 			//pass->EndPass();
 			m_renderOperations.insert_range(m_renderOperations.end(), operations);
+			/*ExecOperations();
+			ClearOperations();*/
 		}
 	}
+	//ClearOperations();
 	EndRender();
 	ExecOperations();
 }
 
-HRESULT RenderManager::ExecOperations()
-{
+const std::shared_ptr<PipelineStore> RenderManager::GetPipelineStore() {
+	if (m_pipelineStore) {
+		return m_pipelineStore;
+	}
 	std::map<std::string, PipelineData> pipelineStates = m_initManager->GetPipelineStates();
-
 	PipelineStore* pStore = new PipelineStore();
 	pStore->SetPipelineStates(pipelineStates);
-	std::shared_ptr<PipelineStore> pipelineStore = std::make_shared<PipelineStore>(pStore);
+	m_pipelineStore = std::make_shared<PipelineStore>(pStore);
+	return m_pipelineStore;
+}
 
-	RenderPipeline::RenderPipelineExecutor* executor = new RenderPipeline::RenderPipelineExecutor(m_context, pipelineStore);
 
+
+HRESULT RenderManager::ExecOperations()
+{	
+	RenderPipeline::RenderPipelineExecutor* executor = GetPipelineExecutor();
+	
 	for (std::shared_ptr<PipelineOperation> oper: m_renderOperations) {
 		executor->ExecuteOperation(oper);
 	}
 
 	return S_OK;
+}
+
+void RenderManager::ExecuteOperation(PipelineOperation& operation) {
+	ClearOperations();
+	m_renderOperations.push_back(std::make_shared<PipelineOperation>(operation));
+	ExecOperations();
 }
 
 void RenderManager::Update(float deltaTime) {

@@ -3,7 +3,7 @@
 #include <string>
 #include <memory>
 #include <IService.h>
-#include <Defines/MatrixDefinitionBase.h>
+#include <Defines/Matrix/MatrixDefinitionBase.h>
 #include <Config/Game/System/LightingConfig.h>
 
 class Lighting : public IService

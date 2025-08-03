@@ -5,7 +5,7 @@
 #include <Game/Systems/Shadows.h>
 #include <Game/Systems/Lighting.h>
 #include <Util/Text/Text.h>
-#include <Defines/Light.h>
+#include <Defines/Matrix/Light.h>
 #include <Locators/Registers/REGISTER_RENDER_PASS_MACRO.h>
 
 REGISTER_RENDER_PASS_TYPE(MainColorPass, "MainColorPass")
@@ -144,72 +144,150 @@ std::vector<std::shared_ptr<PipelineOperation>> MainColorPass::BeginPass()
 
 std::vector<std::shared_ptr<PipelineOperation>> MainColorPass::ExecPass(std::shared_ptr<MeshAsset> mesh)
 {
-	return {};
-	shaderName = StringToWstring(mesh->GetShaderName());
-
 	ClearOperations();
 
-	PipelineOperationParams params = {};
+	Material* material = mesh->GetMaterial();
+	shaderName = StringToWstring(mesh->GetShaderName());
 
-	// 1. Set VertexShader;	
-	PipelineVertexShaderData vsData = {};
-	vsData.data = m_shaderManager->GetVertexShader(shaderName);
-	AddOperation(PipelineOperationType::Mesh_Render_SetVertexShader, vsData);
-	// 2. Set PixelShader;
-	PipelinePixelShaderData psData = {};
-	psData.data = m_shaderManager->GetPixelShader(shaderName);
-	AddOperation(PipelineOperationType::Mesh_Render_SetPixelShader, psData);
-	// 3. Set Layout;
-	PipelineLayoutData lData = {};
-	lData.data = mesh->GetMaterial()->GetInputLayout();
-	AddOperation(PipelineOperationType::Mesh_Render_SetInputLayout, lData);
-	// 4. Set Sampler
-	PipelineSamplerSateData spData = {};
-	spData.data = mesh->GetMaterial()->GetSamplerState();
-	AddOperation(PipelineOperationType::Mesh_Render_SetSampler, spData);
-	// 5. Constants buffers
-	MatrixDefinitionBase::MatrixParams mData = {};	
+	// 1. Set Constant buffers
+	MatrixDefinitionBase::MatrixParams mData = {};
 
 	mData.worldMatrix = mesh->GetWorldMatrix();
-	mData.viewMatrix = XMMatrixTranspose(m_cameraManager->GetCurrentViewMatrix());
-	mData.projectionMatrix = XMMatrixTranspose(m_cameraManager->GetCurrentProjectionMatrix());
+	mData.viewMatrix = DirectX::XMMatrixTranspose(m_cameraManager->GetCurrentViewMatrix());
+	mData.projectionMatrix = DirectX::XMMatrixTranspose(m_cameraManager->GetCurrentProjectionMatrix());
 	mData.cameraPosition = m_cameraManager->GetCurrentCameraPosition();
 	mData.lightDirection = m_lighthing->GetLightDirection();
 	mData.lightColor = m_lighthing->GetLightColor();
 	mData.materialAO = 0.4f;
-	/*mesh->GetMaterial()->SetConstantBuffers(m_deviceManager->GetContext(), mData);
-	mesh->GetMaterial()->Apply(m_deviceManager->GetContext());*/
-	/*unsigned int oper = static_cast<unsigned int>(PipelineMatrixBufferType::WorldMatrix) | static_cast<unsigned int>(PipelineMatrixBufferType::ViewMatrix) | static_cast<unsigned int>(PipelineMatrixBufferType::ProjectionMatrix) | static_cast<unsigned int>(PipelineMatrixBufferType::CameraPosition) | static_cast<unsigned int>(PipelineMatrixBufferType::LightDirection) | static_cast<unsigned int>(PipelineMatrixBufferType::LightColor) | static_cast<unsigned int>(PipelineMatrixBufferType::MaterialAO);*/
-	//mData.oper = oper;
+	mData.textureTransform = mesh->GetTextureTransforms();
+
 	PipelineMatrixBufferData matrixData = {};
 	matrixData.data = mData;
-	matrixData.material = mesh->GetMaterial();
+	matrixData.constantsBuffers = material->GetConstantBuffers();
+	matrixData.matrices = m_shaderManager->GetMatrixDefinitions(shaderName);
 
 	AddOperation(PipelineOperationType::Device_SetConstantsBufferState, matrixData);
 
-	// 6. Set Textures
+	// 2. Set VertexShader
+	PipelineVertexShaderData vsData = {};
+	vsData.data = material->GetVertexShader().Get();
+	AddOperation(PipelineOperationType::Mesh_Render_SetVertexShader, vsData);
+
+	// 3. Set PixelShader
+	PipelinePixelShaderData psData = {};
+	psData.data = material->GetPixelShader().Get();
+	AddOperation(PipelineOperationType::Mesh_Render_SetPixelShader, psData);
+
+	// 4. Set InputLayout
+	PipelineLayoutData lData = {};
+	lData.data = material->GetInputLayout();
+	AddOperation(PipelineOperationType::Mesh_Render_SetInputLayout, lData);
+
+	// 5. Set Textures
 	PipelineTextureData tData = {};
 	tData.data = {};
-	tData.numTextures = mesh->GetMaterial()->GetNumTextures();
-	tData.data = mesh->GetMaterial()->GetTextures();
+	tData.numTextures = material->GetNumTextures();
+	tData.data = material->GetTextures();
 	AddOperation(PipelineOperationType::Mesh_Render_SetTexture, tData);
+
+	// 6. Set Sampler
+	PipelineSamplerSateData spData = {};
+	spData.data = material->GetSamplerState();
+
+	AddOperation(PipelineOperationType::Mesh_Render_SetSampler, spData);
+
 	// 7. Set VertexBuffer
 	PipelineSetVertexBufferData vData = {};	
 	vData.stride = mesh->GetVertexTypeSize();
 	vData.vertexBuffer = mesh->GetVertexBuffer();
 	AddOperation(PipelineOperationType::Mesh_Render_SetVertexBuffer, vData);
+
 	// 8. Set IndexBuffer
 	PipelineSetIndexBufferData iData = {};	
 	iData.indexBuffer = mesh->GetIndexBuffer();
 	AddOperation(PipelineOperationType::Mesh_Render_SetIndexBuffer, iData);
+
 	// 9. Primitive topology
 	PipelinePrimitiveTopologyData ptData = {};
 	ptData.data = static_cast<D3D_PRIMITIVE_TOPOLOGY>(config->primitiveTopology);
 	AddOperation(PipelineOperationType::Mesh_Render_SetPrimitiveToplogy, ptData);
+
 	// 10. DrawIndexed
 	PipelineDrawIndexedData drawData = {};
 	drawData.numIndexes = mesh->GetIndexCount();
 	AddOperation(PipelineOperationType::Device_drawIndexed, drawData);
+
+	//return {};
+	//shaderName = StringToWstring(mesh->GetShaderName());
+
+	//ClearOperations();
+
+	//PipelineOperationParams params = {};
+
+	//// 4. Set Sampler
+	//PipelineSamplerSateData spData = {};
+	//spData.data = mesh->GetMaterial()->GetSamplerState();
+	//AddOperation(PipelineOperationType::Mesh_Render_SetSampler, spData);
+
+	//// 1. Set VertexShader;	
+	//PipelineVertexShaderData vsData = {};
+	//vsData.data = m_shaderManager->GetVertexShader(shaderName);
+	//AddOperation(PipelineOperationType::Mesh_Render_SetVertexShader, vsData)
+	//	;
+	//// 2. Set PixelShader;
+	//PipelinePixelShaderData psData = {};
+	//psData.data = m_shaderManager->GetPixelShader(shaderName);
+	//AddOperation(PipelineOperationType::Mesh_Render_SetPixelShader, psData);
+
+	//// 3. Set Layout;
+	//PipelineLayoutData lData = {};
+	//lData.data = mesh->GetMaterial()->GetInputLayout();
+	//AddOperation(PipelineOperationType::Mesh_Render_SetInputLayout, lData);
+
+	//
+	//// 5. Constants buffers
+	//MatrixDefinitionBase::MatrixParams mData = {};	
+
+	//mData.worldMatrix = mesh->GetWorldMatrix();
+	//mData.viewMatrix = XMMatrixTranspose(m_cameraManager->GetCurrentViewMatrix());
+	//mData.projectionMatrix = XMMatrixTranspose(m_cameraManager->GetCurrentProjectionMatrix());
+	//mData.cameraPosition = m_cameraManager->GetCurrentCameraPosition();
+	//mData.lightDirection = m_lighthing->GetLightDirection();
+	//mData.lightColor = m_lighthing->GetLightColor();
+	//mData.materialAO = 0.4f;
+	///*mesh->GetMaterial()->SetConstantBuffers(m_deviceManager->GetContext(), mData);
+	//mesh->GetMaterial()->Apply(m_deviceManager->GetContext());*/
+	///*unsigned int oper = static_cast<unsigned int>(PipelineMatrixBufferType::WorldMatrix) | static_cast<unsigned int>(PipelineMatrixBufferType::ViewMatrix) | static_cast<unsigned int>(PipelineMatrixBufferType::ProjectionMatrix) | static_cast<unsigned int>(PipelineMatrixBufferType::CameraPosition) | static_cast<unsigned int>(PipelineMatrixBufferType::LightDirection) | static_cast<unsigned int>(PipelineMatrixBufferType::LightColor) | static_cast<unsigned int>(PipelineMatrixBufferType::MaterialAO);*/
+	////mData.oper = oper;
+	//PipelineMatrixBufferData matrixData = {};
+	//matrixData.data = mData;
+	//matrixData.material = mesh->GetMaterial();
+
+	//AddOperation(PipelineOperationType::Device_SetConstantsBufferState, matrixData);
+
+	//// 6. Set Textures
+	//PipelineTextureData tData = {};
+	//tData.data = {};
+	//tData.numTextures = mesh->GetMaterial()->GetNumTextures();
+	//tData.data = mesh->GetMaterial()->GetTextures();
+	//AddOperation(PipelineOperationType::Mesh_Render_SetTexture, tData);
+	//// 7. Set VertexBuffer
+	//PipelineSetVertexBufferData vData = {};	
+	//vData.stride = mesh->GetVertexTypeSize();
+	//vData.vertexBuffer = mesh->GetVertexBuffer();
+	//AddOperation(PipelineOperationType::Mesh_Render_SetVertexBuffer, vData);
+	//// 8. Set IndexBuffer
+	//PipelineSetIndexBufferData iData = {};	
+	//iData.indexBuffer = mesh->GetIndexBuffer();
+	//AddOperation(PipelineOperationType::Mesh_Render_SetIndexBuffer, iData);
+	//// 9. Primitive topology
+	//PipelinePrimitiveTopologyData ptData = {};
+	//ptData.data = static_cast<D3D_PRIMITIVE_TOPOLOGY>(config->primitiveTopology);
+	//AddOperation(PipelineOperationType::Mesh_Render_SetPrimitiveToplogy, ptData);
+	//// 10. DrawIndexed
+	//PipelineDrawIndexedData drawData = {};
+	//drawData.numIndexes = mesh->GetIndexCount();
+	//AddOperation(PipelineOperationType::Device_drawIndexed, drawData);
 
 	return GetOperations();
 }

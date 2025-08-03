@@ -235,7 +235,7 @@ Microsoft::WRL::ComPtr<ID3D11DeviceContext> DeviceManager::GetContext() {
 void DeviceManager::Render()
 {    
 	// Presentar el swap chain
-    m_swapChain->Present(1, 0);
+    //m_swapChain->Present(1, 0);
 }
 
 void DeviceManager::EnableAlphaBlending()

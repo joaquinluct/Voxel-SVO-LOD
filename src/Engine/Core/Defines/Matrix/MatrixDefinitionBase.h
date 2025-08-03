@@ -21,7 +21,7 @@ namespace MatrixDefinitionBase {
             lightColor(1.0f, 1.0f, 1.0f, 1.0f), // Color por defecto de la luz (blanco)
             materialAlbedo(0.8f, 0.8f, 0.8f, 1.0f), // Color base del material (si no hay textura)
             materialRoughness(0.5f),           // Rugosidad del material (0.0=liso, 1.0=rugoso)
-            materialMetallic(0.1f),            // Metalicidad del material (0.0=dieléctrico, 1.0=metal)
+            materialMetallic(0.0f),            // Metalicidad del material (0.0=dieléctrico, 1.0=metal)
             materialF0(0.04f, 0.04f, 0.04f),    // Reflectividad especular para dieléctricos (generalmente 0.04)
             materialAO(0.3f),                 // Oclusión ambiental (1.0=sin oclusión)
             paddingCamera(.0f),
@@ -52,6 +52,9 @@ namespace MatrixDefinitionBase {
         float materialAO;             // Oclusión ambiental
         float paddingMaterial1;       // Relleno para asegurar alineación final a 16 bytes si es necesario
         float paddingMaterial2;
+
+		// Transformaciones de texturas (si se usan)
+        DirectX::XMFLOAT4 textureTransform; // (x, y: escala / z,w: traslación)
 
 		// Datos para matrices de sombras
         DirectX::XMMATRIX lightViewProjectionMatrix;

@@ -7,9 +7,11 @@ GameEngineConfig::GameEngineConfig(){
 	services_init_order = {
 		"Lighting",
 		"Shadows",
+		"Skybox",
 		"TestingFloor"
 	};
 	services_render_order = {
+		"Skybox",
 		"TestingFloor",
 		"Lighting"
 	};

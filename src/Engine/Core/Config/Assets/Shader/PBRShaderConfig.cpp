@@ -11,7 +11,8 @@ PBRShaderConfig::PBRShaderConfig(){
 		"MatrixBufferType",
 		"DirectionalLight",
 		"CameraData",
-		"MaterialData"
+		"MaterialData",
+		"TextureTransformations"
 	};
 	name = "PBRShader";
 	dependencies = {

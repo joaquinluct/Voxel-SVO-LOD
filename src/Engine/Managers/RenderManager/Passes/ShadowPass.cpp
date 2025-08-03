@@ -3,7 +3,7 @@
 #include <ServiceLocator/ServiceLocator.h>
 #include <Game/Systems/Shadows.h>
 #include <Util/Text/Text.h>
-#include <Defines/Light.h>
+#include <Defines/Matrix/Light.h>
 #include <Locators/Registers/REGISTER_RENDER_PASS_MACRO.h>
 
 REGISTER_RENDER_PASS_TYPE(ShadowPass, "ShadowPass")

@@ -37,6 +37,7 @@ private:
     Microsoft::WRL::ComPtr<ID3D11Buffer> m_vertexBuffer;
     Microsoft::WRL::ComPtr<ID3D11Buffer> m_indexBuffer;
 
+    std::vector<float> m_textureTransforms;
 
     Material* m_material;
 
@@ -128,6 +129,18 @@ public:
     }
 
     Material* GetMaterial() { return m_material; };
+
+    XMFLOAT4 GetTextureTransforms() {
+		XMFLOAT4 defaultTransform(1.0f, 1.0f, 0.0f, 0.0f);
+        if (m_textureTransforms.empty()) {
+            // Si no hay transformaciones de textura, obtenemos las del asset de textura
+            defaultTransform = m_material->GetTextureTranforms();
+        }
+        else {
+			defaultTransform = XMFLOAT4(m_textureTransforms[0], m_textureTransforms[1], m_textureTransforms[2], m_textureTransforms[3]);
+        }
+        return defaultTransform;
+    }
         
     HRESULT CreateVertexBuffer(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, const std::vector<std::shared_ptr<VertexDefinition::VertexVariant>> vertex);
 

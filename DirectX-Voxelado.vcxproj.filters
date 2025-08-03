@@ -192,7 +192,7 @@
     <ClCompile Include="src\Engine\Assets\Base\VertexAsset.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engine\Core\Defines\MatrixDefinition.cpp">
+    <ClCompile Include="src\Engine\Core\Defines\Matrix\MatrixDefinition.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Assets\Base\BaseIndexConfig.cpp">
@@ -1067,7 +1067,7 @@
     <ClInclude Include="src\Engine\Assets\Base\ObjFormat\ObjUtil.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Core\Defines\MatrixDefinition.h">
+    <ClInclude Include="src\Engine\Core\Defines\Matrix\MatrixDefinition.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Assets\Base\BaseIndexConfig.h">
@@ -1265,10 +1265,10 @@
     <ClInclude Include="src\UI\UIBase.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Core\Defines\Light.h">
+    <ClInclude Include="src\Engine\Core\Defines\Matrix\Light.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Core\Defines\MatrixDefinitionBase.h">
+    <ClInclude Include="src\Engine\Core\Defines\Matrix\MatrixDefinitionBase.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\PBRShaderConfig.h">
@@ -1419,6 +1419,12 @@
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\StencilShadow.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Defines\Matrix\MaterialMatrix.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Defines\Matrix\CameraMatrix.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
   </ItemGroup>

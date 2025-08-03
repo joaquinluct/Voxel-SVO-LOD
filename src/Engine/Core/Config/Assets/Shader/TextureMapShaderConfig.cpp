@@ -11,7 +11,8 @@ TextureMapShaderConfig::TextureMapShaderConfig(){
 		"MatrixBufferType",
 		"DirectionalLight",
 		"CameraData",
-		"MaterialData"
+		"MaterialData",
+		"TextureTransformations"
 	};
 	name = "TextureMapShader";
 	dependencies = {

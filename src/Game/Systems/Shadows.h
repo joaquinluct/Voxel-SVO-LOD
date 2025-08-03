@@ -8,7 +8,7 @@
 //#include <ShaderManager.h>
 //#include <DeviceManager.h>
 #include <Util/DirectXUtils.h>
-#include <Defines/MatrixDefinition.h>
+#include <Defines/Matrix/MatrixDefinition.h>
 #include <Defines/Asset.h>
 #include <Defines/Texture.h>
 

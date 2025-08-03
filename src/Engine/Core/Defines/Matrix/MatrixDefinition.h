@@ -5,8 +5,10 @@
 #include <variant>
 #include <string>
 #include <stdexcept>
-#include "Light.h"               // Asegúrate de que este include sea correcto para Light::
-#include "MatrixDefinitionBase.h" // Incluimos la base
+#include "Light.h"
+#include "MaterialMatrix.h"
+#include "CameraMatrix.h"
+#include "MatrixDefinitionBase.h"
 
 using namespace MatrixDefinitionBase;
 
@@ -85,13 +87,14 @@ namespace MatrixDefinition {
     // 2. Definición de AnyMatrixBuffer
     // Incluye tus nuevas estructuras de luz y material PBR.
     using AnyMatrixBuffer = std::variant<
-        MatrixBufferType, // Matriz World, View, Projection (para la mayoría de objetos)
-        MatrixBufferTypeSkyBox, // Matriz View, Projection (para Skybox, sin World)
-        MatrixBufferTypeOrthographic, // Matriz Projection (para UI, etc.)
-        Light::DirectionalLight,      // Datos de luz direccional para PBR
-        Light::CameraData,            // Posición de la cámara
-        Light::MaterialData,          // Propiedades de material PBR
-		Light::LightSpaceMatrices     // Matrices de espacio de luz para sombras
+        MatrixBufferType,                       // Matriz World, View, Projection (para la mayoría de objetos)
+        MatrixBufferTypeSkyBox,                 // Matriz View, Projection (para Skybox, sin World)
+        MatrixBufferTypeOrthographic,           // Matriz Projection (para UI, etc.)
+        Light::DirectionalLight,                // Datos de luz direccional para PBR
+		Light::LightSpaceMatrices,              // Matrices de espacio de luz para sombras
+        CameraMatrix::CameraData,               // Posición de la cámara
+        MaterialMatrix::MaterialData,           // Propiedades de material PBR
+		MaterialMatrix::TextureTransformations  // Transformaciones de texturas para PBR
     >;
 
     // Declaración de la función Get para crear instancias de los buffers
@@ -109,10 +112,13 @@ namespace MatrixDefinition {
             return Light::DirectionalLight{};
         }
         if (matrixDefinitionName == "CameraData") {
-            return Light::CameraData{};
+            return CameraMatrix::CameraData{};
         }
         if (matrixDefinitionName == "MaterialData") {
-            return Light::MaterialData{};
+            return MaterialMatrix::MaterialData{};
+        }
+        if (matrixDefinitionName == "TextureTransformations") {
+            return MaterialMatrix::TextureTransformations{};
         }
         if (matrixDefinitionName == "LightSpaceMatrices") {
             return Light::LightSpaceMatrices{};

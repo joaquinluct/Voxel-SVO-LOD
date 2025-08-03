@@ -26,10 +26,10 @@ class Mouse; // Declaración anticipada para evitar incluir el archivo completo a
 #define XM_2PI 6.283185307f    // 2 * Pi
 #endif
 
-// Asegurarse de que CAMERA_SPEED esté definido
-#ifndef CAMERA_SPEED
-#define CAMERA_SPEED 20.0f
-#endif
+//// Asegurarse de que CAMERA_SPEED esté definido
+//#ifndef CAMERA_SPEED
+//#define CAMERA_SPEED 70.0f
+//#endif
 
 class FirstPersonCamera : public ICamera, public IService {
 public:

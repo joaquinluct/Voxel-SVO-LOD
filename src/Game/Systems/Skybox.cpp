@@ -21,18 +21,18 @@ Skybox::~Skybox()
 
 HRESULT Skybox::Init() 
 {
-	/*m_renderManager = ManagerLocator::GetManager<RenderManager>();
+	m_renderManager = ManagerLocator::GetManager<RenderManager>();
 	if (!m_renderManager) {
 		return E_FAIL;
-	}*/
+	}
 
 	lighting = ServiceLocator::GetService<Lighting>();
 	if (!lighting) {
 		return E_FAIL;
 	}
 
-	//mesh = m_renderManager->GameRenderManagerGet()->RegisterMesh("SkyboxMesh");
-	mesh = AssetLocator::GetAsset<MeshAsset>("SkyboxMesh");
+	mesh = m_renderManager->GameRenderManagerGet()->RegisterMesh("SkyboxMesh");
+	/*mesh = AssetLocator::GetAsset<MeshAsset>("SkyboxMesh");*/
 
 	if (!mesh) {
 		return E_FAIL;
