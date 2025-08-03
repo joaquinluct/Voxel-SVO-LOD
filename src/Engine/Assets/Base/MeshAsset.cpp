@@ -45,11 +45,11 @@ HRESULT MeshAsset::InitManagers() {
         OutputDebugStringA("MeshAsset::Init - ERROR: ShaderManager not found.\n");
         return E_FAIL;
     }
-	/*m_renderManager = ManagerLocator::GetManager<RenderManager>();
+	m_renderManager = ManagerLocator::GetManager<RenderManager>();
     if (!m_renderManager) {
         OutputDebugStringA("MeshAsset::Init - ERROR: RenderManager not found.\n");
         return E_FAIL;
-	}*/
+	}
     return S_OK;
 }
 
@@ -57,6 +57,7 @@ HRESULT MeshAsset::InitTexture() {
     std::string shaderAssetName = m_meshConfig->shader;
     std::string meshObj = m_meshConfig->mesh_path;
     std::string textureAssetName = m_meshConfig->texture;
+	m_textureTransforms = m_meshConfig->texture_transforms;
     bool castShadows = m_meshConfig->cast_shadows;
 
     m_material = new Material();
@@ -76,6 +77,10 @@ HRESULT MeshAsset::InitTexture() {
     if (!textureAssetName.empty()) {
         m_textureAsset = AssetLocator::GetTextureAsset(textureAssetName);
         m_textureAsset->SetTextureView(m_material);
+        if (m_textureTransforms.size() == 4) {
+            XMFLOAT4 textureTransforms = XMFLOAT4(m_textureTransforms[0], m_textureTransforms[1], m_textureTransforms[2], m_textureTransforms[3]);
+            m_material->SetTextureTranforms(textureTransforms);
+		}
     }
 
     return hr;
@@ -110,7 +115,7 @@ HRESULT MeshAsset::InitMesh() {
         OutputDebugStringA(("MeshAsset::Init - ERROR: No vertex data found in mesh file '" + meshObj + "'.\n").c_str());
         return E_FAIL;
     }
-
+	// Crear el vetex & index buffer
     HRESULT hr = InitD3D11ResourcesVertex(m_deviceManager->GetDevice().Get(), vertex, indexes);
 
     if (FAILED(hr)) {
@@ -152,19 +157,19 @@ void MeshAsset::Shutdown() {
 
 void MeshAsset::Render() {
 
-    Microsoft::WRL::ComPtr<ID3D11DeviceContext> context = m_deviceManager->GetContext();
+ //   Microsoft::WRL::ComPtr<ID3D11DeviceContext> context = m_deviceManager->GetContext();
 
-    //if (m_renderManager->IsRenderColourPassActive()) {
-        m_material->Render();
-    //}
+ //   //if (m_renderManager->IsRenderColourPassActive()) {
+ //       m_material->Render();
+ //   //}
 
-    UINT stride = m_vertexTypeSize;
-    UINT offset = 0;
-	ID3D11Buffer* vertexBuffers[] = { m_vertexBuffer.Get() };
-    context->IASetVertexBuffers(0, 1, vertexBuffers, &stride, &offset);
- 	context->IASetIndexBuffer(m_indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
-    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    context->DrawIndexed(m_indexCount, 0, 0);
+ //   UINT stride = m_vertexTypeSize;
+ //   UINT offset = 0;
+	//ID3D11Buffer* vertexBuffers[] = { m_vertexBuffer.Get() };
+ //   context->IASetVertexBuffers(0, 1, vertexBuffers, &stride, &offset);
+ //	context->IASetIndexBuffer(m_indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
+ //   context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+ //   context->DrawIndexed(m_indexCount, 0, 0);
 }
 
 HRESULT MeshAsset::CreateVertexBuffer(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, const std::vector<std::shared_ptr<VertexDefinition::VertexVariant>> vertex) {
@@ -185,9 +190,7 @@ HRESULT MeshAsset::CreateVertexBuffer(Microsoft::WRL::ComPtr<ID3D11Device> pDevi
     // Asumimos que todos los vértices en el vector son del mismo tipo concreto
     // para este búfer.
     std::visit([&](auto& currentVertex) {
-        // 'currentVertex' es la instancia del tipo de vértice concreto (ej., SimpleVertex).
-        // Llamamos a GetSize() en esa instancia para obtener su tamaño.
-		m_vertexTypeSize = currentVertex.Size(); // Asegúrate de que GetSize() esté implementado en tus structs de vértice
+        m_vertexTypeSize = currentVertex.Size(); 
         }, *vertex[0]); // Visita el primer elemento del vector de variants
 
     if (m_vertexTypeSize == 0) {

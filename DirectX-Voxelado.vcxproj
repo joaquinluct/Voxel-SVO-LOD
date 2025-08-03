@@ -241,7 +241,7 @@
     <ClCompile Include="src\Engine\Core\Config\Services\ServiceConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Services\UIBaseConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Services\UIDebugConfig.cpp" />
-    <ClCompile Include="src\Engine\Core\Defines\MatrixDefinition.cpp" />
+    <ClCompile Include="src\Engine\Core\Defines\Matrix\MatrixDefinition.cpp" />
     <ClCompile Include="src\Engine\Core\Locators\Pipeline\PipelineStateLocator.cpp" />
     <ClCompile Include="src\Engine\Managers\InitManager.cpp" />
     <ClCompile Include="src\Engine\Managers\InitManager\Pipeline\PipelineConfigurator.cpp" />
@@ -473,9 +473,11 @@
     <ClInclude Include="src\Engine\Core\Config\Services\UIDebugConfig.h" />
     <ClInclude Include="src\Engine\Core\Defines\Asset.h" />
     <ClInclude Include="src\Engine\Core\Defines\Components.h" />
-    <ClInclude Include="src\Engine\Core\Defines\Light.h" />
-    <ClInclude Include="src\Engine\Core\Defines\MatrixDefinition.h" />
-    <ClInclude Include="src\Engine\Core\Defines\MatrixDefinitionBase.h" />
+    <ClInclude Include="src\Engine\Core\Defines\Matrix\CameraMatrix.h" />
+    <ClInclude Include="src\Engine\Core\Defines\Matrix\Light.h" />
+    <ClInclude Include="src\Engine\Core\Defines\Matrix\MaterialMatrix.h" />
+    <ClInclude Include="src\Engine\Core\Defines\Matrix\MatrixDefinition.h" />
+    <ClInclude Include="src\Engine\Core\Defines\Matrix\MatrixDefinitionBase.h" />
     <ClInclude Include="src\Engine\Core\Defines\Pipeline.h" />
     <ClInclude Include="src\Engine\Core\Defines\RenderPass.h" />
     <ClInclude Include="src\Engine\Core\Defines\Texture.h" />

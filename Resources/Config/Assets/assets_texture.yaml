@@ -5,24 +5,40 @@ Config:
       TextureTextUI:
         type: "TextureAsset"
         map: "TextureTextUIMap"
+        x_scale: 1.0
+        y_scale: 1.0
+        x_offset: 0.0
+        y_offset: 0.0
         dependencies:
           - DeviceManager
           - TextureAsset 
       TextureGrassDiffuse:
         type: "TextureAsset"
         map: "TextureGrassDiffuseMap"
+        x_scale: 1.0
+        y_scale: 1.0
+        x_offset: 0.0
+        y_offset: 0.0
         dependencies:
           - DeviceManager
           - TextureAsset 
       TextureBricks001:
         type: "TextureAsset"
         map: "TextureBricks001Map"
+        x_scale: 1.0
+        y_scale: 1.0
+        x_offset: 0.0
+        y_offset: 0.0
         dependencies:
           - DeviceManager
           - TextureAsset
       DefaultSkybox:
         type: "TextureAsset"
         map: "DefaultSkyboxMap"
+        x_scale: 1.0
+        y_scale: 1.0
+        x_offset: 0.0
+        y_offset: 0.0
         rotation_speed: 0.05 # Propiedad específica del skybox
         dependencies:
           - TextureAsset
@@ -43,6 +59,10 @@ Definition:
         - type
         - definition
         - map
+        - x_scale
+        - y_scale
+        - x_offset
+        - y_offset
         - dependencies
     # output_path: 'C:\Users\joaqu\source\repos\DirectX-Voxelado\TestConfig\Assets\'
     output_path: 'c:\Users\joaqu\source\repos\DirectX-Voxelado\src\Engine\Core\Config\Assets\'

@@ -18,7 +18,7 @@
 #include "Texture.h"
 #include "ITextureInitializer.h"
 #include <Defines/VertexDefinition.h>
-#include <Defines/MatrixDefinitionBase.h>
+#include <Defines/Matrix/MatrixDefinitionBase.h>
 #include <IService.h>
 
 struct ID3D11ShaderResourceViewReleaser {
@@ -35,6 +35,8 @@ public:
     Material();
     ~Material() override {};
     void SetTexture(ID3D11ShaderResourceView* texture, std::string textureMap) override;
+	void SetTextureTranforms(float scaleX, float scaleY, float offsetX, float offsetY);
+    void SetTextureTranforms(XMFLOAT4 tranforms);
     void Apply(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context) override;
     HRESULT Init() override;
     HRESULT InitManagers();
@@ -67,6 +69,10 @@ public:
     void SetShaderName(const std::wstring& shaderName) {
         m_shaderName = shaderName;
 	}
+
+    XMFLOAT4 GetTextureTranforms() const {
+        return m_textureTranforms;
+	}
     
     // Método para actualizar el contenido del buffer de matrices y vincularlo
     // Ahora toma las tres matrices por separado.	
@@ -85,7 +91,7 @@ public:
         return count;
     }
 
-    std::map<std::string, ID3D11ShaderResourceView*> GetTextures() {
+    std::map<std::string, ID3D11ShaderResourceView*> GetTextureMap() {
         std::map<std::string, ID3D11ShaderResourceView*> textures = {};
         if (m_texture_albedo) {
             textures[TEXTURE_MAP_ALBEDO.data()] = m_texture_albedo;
@@ -105,7 +111,31 @@ public:
         return textures;
     }
 
+    std::vector<ID3D11ShaderResourceView*> GetTextures() {
+        std::vector<ID3D11ShaderResourceView*> textures = {};
+        if (m_texture_albedo) {
+            textures.push_back(m_texture_albedo);
+        }
+        if (m_texture_normal) {
+            textures.push_back(m_texture_normal);
+        }
+        if (m_texture_roughness) {
+			textures.push_back(m_texture_roughness);
+        }
+        if (m_texture_metallic) {
+			textures.push_back(m_texture_metallic);
+        }
+        if (m_texture_ao) {
+			textures.push_back(m_texture_ao);
+        }
+        return textures;
+    }
+
     void SetConstantBuffers(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context, MatrixDefinitionBase::MatrixParams matrixParams, int slot = 0);
+
+    std::map<std::string, Microsoft::WRL::ComPtr<ID3D11Buffer>> GetConstantBuffers() const {
+        return m_constantBuffers;
+	}
 
     ID3D11ShaderResourceView* LoadTextureFromFile(std::shared_ptr<ID3D11Device> device, const std::wstring& filename);
 
@@ -144,4 +174,6 @@ private:
     Microsoft::WRL::ComPtr<ID3D11Buffer> m_pMaterialConstantBuffer;
 
 	XMFLOAT3 debug_lightDirection = { 0.0f, -1.0f, 0.0f };
+
+	XMFLOAT4 m_textureTranforms = { 3.0f, 3.0f, 0.0f, 0.0f }; // scalex, scaley, offsetX, offsetY
 };

@@ -10,7 +10,7 @@
 #include <DefineLocator/DefineLocator.h>
 #include <Assets/Base/ShaderAsset.h>
 #include <Util/Text/Text.h>
-#include <Defines/MatrixDefinitionBase.h>
+#include <Defines/Matrix/MatrixDefinitionBase.h>
 
 REGISTER_MANAGER_TYPE(ShaderManager, "ShaderManager")
 
@@ -126,6 +126,24 @@ UINT ShaderManager::GetVertexShaderBytecodeLength(std::wstring shaderName) {
         return static_cast<UINT>(it->second->GetBufferSize());
     }
     return 0; // Or another appropriate value to indicate "not found" or error
+}
+
+std::map<std::string, std::pair<int, MatrixDefinition::AnyMatrixBuffer>> ShaderManager::GetMatrixDefinitions(std::wstring shaderName) {
+    std::map<std::string, std::pair<int, MatrixDefinition::AnyMatrixBuffer>> matrixDefs;
+    auto it = matrixShaders.find(shaderName);
+    if (it != matrixShaders.end()) {
+        for (const auto& [matrixName, matrixPair] : it->second) {
+			int slot = matrixPair.first;
+            matrixDefs[matrixName] = { slot, *matrixPair.second };
+            //matrixDefs.push_back(*matrixPair.second); // Añadimos el contenido del unique_ptr
+        }
+    } else {
+        std::string msg = "Error: No se encontraron definiciones de matrices para el shader: " + WstringToString(shaderName) + ".\n";
+        OutputDebugStringA(msg.c_str());
+        // Lanzar una excepción es la forma idiomática de indicar un fallo en este caso
+        throw std::runtime_error(msg);
+    }
+    return matrixDefs;
 }
 
 std::map<std::string, std::pair<int, std::unique_ptr<MatrixDefinition::AnyMatrixBuffer>>>& ShaderManager::GetMatrixBuffers(std::wstring shaderName) {

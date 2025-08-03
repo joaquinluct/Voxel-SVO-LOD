@@ -1,6 +1,6 @@
 #include "RenderPipelineExecutor.h"
 #include "Services/Material.h"
-#include "Defines/MatrixDefinitionBase.h"
+#include "Defines/Matrix/MatrixDefinitionBase.h"
 
 namespace RenderPipeline {
 
@@ -128,7 +128,7 @@ namespace RenderPipeline {
             }
             break;
         }
-        /*case PipelineOperationType::Mesh_Render_SetVertexShader:
+        case PipelineOperationType::Mesh_Render_SetVertexShader:
         case PipelineOperationType::Device_Init_SetVertexShader: {
             if (m_vertexShaderStage) {
                 auto shaderData = operation->GetOperationParam<PipelineVertexShaderData>();
@@ -149,8 +149,8 @@ namespace RenderPipeline {
                 }
             }
             break;
-        }*/
-        /*case PipelineOperationType::Mesh_Render_SetInputLayout: {
+        }
+        case PipelineOperationType::Mesh_Render_SetInputLayout: {
             if (m_inputAssemblyStage != nullptr) {
                 auto layoutData = operation->GetOperationParam<PipelineLayoutData>();
                 if (layoutData.data) {
@@ -159,30 +159,35 @@ namespace RenderPipeline {
                 }
             }
             break;
-        }*/
+        }
         case PipelineOperationType::Mesh_Render_SetTexture: {
             if (m_pixelShaderStage) {
                 auto textureData = operation->GetOperationParam<PipelineTextureData>();
                 if (textureData.data.size()) {
-                    std::vector<ID3D11ShaderResourceView*> textures = {};
-                    for (auto texturePair : textureData.data) {
-                        textures.push_back(texturePair.second);
-                    }
-                    m_pixelShaderStage->SetShaderResources(textureData.startSlot, textureData.numTextures, textures.data());
+                    m_pixelShaderStage->SetShaderResources(textureData.startSlot, textureData.numTextures, textureData.data.data());
                 }
             }
             break;
         }
-        /*case PipelineOperationType::Mesh_Render_SetSampler: {
+        case PipelineOperationType::Mesh_Render_SetSampler: {
             if (m_pixelShaderStage) {
                 auto samplerData = operation->GetOperationParam<PipelineSamplerSateData>();
                 if (samplerData.data) {
-                    Microsoft::WRL::ComPtr<ID3D11SamplerState> pSampler = samplerData.data;
-                    m_pixelShaderStage->SetSamplers(samplerData.startSlot, samplerData.numSamplers, &pSampler);
+                    ID3D11SamplerState* samplerStates[] = { samplerData.data.Get() };
+                    m_pixelShaderStage->SetSamplers(samplerData.startSlot, samplerData.numSamplers, samplerStates);
                 }
             }
             break;
-        }*/
+        }
+        case PipelineOperationType::Mesh_Render_SetPrimitiveToplogy: {
+            if (m_inputAssemblyStage) {
+                auto topoData = operation->GetOperationParam<PipelinePrimitiveTopologyData>();
+                if (topoData.data) {
+                    m_inputAssemblyStage->SetPrimitiveTopology(topoData.data);
+                }
+            }
+            break;
+        }
         case PipelineOperationType::Device_drawIndexed: {
             if (m_context) {
                 PipelineDrawIndexedData drawData = operation->GetOperationParam<PipelineDrawIndexedData>();
@@ -192,11 +197,57 @@ namespace RenderPipeline {
             break;
         }
         case PipelineOperationType::Device_SetConstantsBufferState: {
+
             PipelineMatrixBufferData param = operation->GetOperationParam<PipelineMatrixBufferData>();
+
+            std::map<std::string, Microsoft::WRL::ComPtr<ID3D11Buffer>>& constantBuffers = param.constantsBuffers;
+            std::map<std::string, std::pair<int, MatrixDefinition::AnyMatrixBuffer>> matrices = param.matrices;
+
+            D3D11_MAPPED_SUBRESOURCE mapped = {};
+
+            for (const auto& [matrixName, matrixPair] : param.matrices) {
+				int nSlot = matrixPair.first;
+
+                auto bufferComPtrIt = constantBuffers.find(matrixName);
+                if (bufferComPtrIt == constantBuffers.end()) {
+                    // Si no se encuentra el buffer (por ejemplo, no se creó durante la inicialización),
+                    // lo saltamos y continuamos con el siguiente.
+                    continue;
+                }
+                ID3D11Buffer* pBuffer = bufferComPtrIt->second.Get();
+                // D3D11_MAP_WRITE_DISCARD es eficiente si el buffer se actualiza cada frame.
+                HRESULT hr = m_context->Map(pBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+                if (FAILED(hr)) {
+                    // Manejar error de mapeo, quizás con un log o assert.
+                    continue;
+                }
+                std::string matrixType = "";
+                std::visit([&](auto currentMatrixStruct) {
+                    currentMatrixStruct.SetMatrixData(param.data);
+                    matrixType = currentMatrixStruct.MatrixType();
+                    size_t size = currentMatrixStruct.Size();
+                    memcpy(mapped.pData, &currentMatrixStruct, size);
+                }, matrixPair.second);
+
+                m_context->Unmap(pBuffer, 0);
+
+                if (matrixType == MATRIX_TYPE_VERTEX.data() || matrixType == MATRIX_TYPE_MIXED.data()) {
+                    // Estos buffers contienen matrices de transformación que suelen usarse en el Vertex Shader.
+                    m_context->VSSetConstantBuffers(nSlot, 1, &pBuffer);
+                }
+
+                if (matrixType == MATRIX_TYPE_PIXEL.data() || matrixType == MATRIX_TYPE_MIXED.data()) {
+                    // Estos buffers contienen datos que son cruciales para los cálculos de iluminación
+                    // y propiedades de superficie, que se realizan en el Pixel Shader.
+                    m_context->PSSetConstantBuffers(nSlot, 1, &pBuffer);
+                }
+            }
+
+            /*PipelineMatrixBufferData param = operation->GetOperationParam<PipelineMatrixBufferData>();
             Material* material = param.material;
             MatrixDefinitionBase::MatrixParams matrixParams = param.data;
             material->SetConstantBuffers(m_context, matrixParams);
-            material->Apply(m_context);
+            material->Apply(m_context);*/
         }
         }
             

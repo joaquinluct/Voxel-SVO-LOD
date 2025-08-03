@@ -38,6 +38,7 @@ Config:
             - DirectionalLight
             - CameraData
             - MaterialData
+            - TextureTransformations
         name: "TextureMapShader"
         dependencies:
           - ShaderAsset
@@ -50,6 +51,7 @@ Config:
             - DirectionalLight
             - CameraData
             - MaterialData
+            - TextureTransformations
         name: "PBRShader"
         dependencies:
           - ShaderAsset

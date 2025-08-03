@@ -177,6 +177,10 @@ public:
         return PipelineDepthStencilData();
     }
 
+    Microsoft::WRL::ComPtr<IDXGISwapChain> GetSwapChain() {
+        return m_swapChain;
+    }
+
     std::map<std::string, D3D11_VIEWPORT> GetRenderTargetViewPorts();
     
 };
