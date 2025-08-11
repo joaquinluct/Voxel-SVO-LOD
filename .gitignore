@@ -40,6 +40,7 @@ Assets/Mesh/*
 Assets/Skybox/*
 Assets/Textures/*
 Libs/*
+*.cso
 # Visual Studio Code settings
 .vscode/*
 # Visual Studio Code workspace storage
