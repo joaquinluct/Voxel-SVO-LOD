@@ -1,6 +1,6 @@
 // MeshAsset.cpp
 #include "MeshAsset.h"
-#include <string>
+#include <type_traits>
 #include <DDSTextureLoader.h> // Para CreateDDSTextureFromFile
 #include <windows.h> // Para OutputDebugStringA
 #include <Assets/Base/VertexAsset.h>
@@ -12,6 +12,8 @@
 #include <Assets/Base/TextureAsset.h>
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <Assets/Base/ObjFormat/ObjUtil.h>
+#include <Defines/Mesh.h>
+#include <Defines/Vector.h>
 
 REGISTER_ASSET_TYPE(MeshAsset, "MeshAsset")
 
@@ -50,6 +52,11 @@ HRESULT MeshAsset::InitManagers() {
         OutputDebugStringA("MeshAsset::Init - ERROR: RenderManager not found.\n");
         return E_FAIL;
 	}
+	m_uiManager = ManagerLocator::GetManager<UIManager>();
+    if (!m_uiManager) {
+        OutputDebugStringA("MeshAsset::Init - ERROR: UIManager not found.\n");
+        return E_FAIL;
+	}
     return S_OK;
 }
 
@@ -74,7 +81,7 @@ HRESULT MeshAsset::InitTexture() {
         return E_FAIL;
     }
 
-    if (!textureAssetName.empty()) {
+    if (!textureAssetName.empty() && textureAssetName != "none") {
         m_textureAsset = AssetLocator::GetTextureAsset(textureAssetName);
         m_textureAsset->SetTextureView(m_material);
         if (m_textureTransforms.size() == 4) {
@@ -86,11 +93,28 @@ HRESULT MeshAsset::InitTexture() {
     return hr;
 }
 
+HRESULT MeshAsset::InitShadows()
+{
+    bool castShadows = m_meshConfig->cast_shadows;
+    if (!castShadows) {
+	    return S_OK;
+    }
+	m_shadowMaterial = new Material();
+    m_shadowMaterial->SetShaderName(StringToWstring(m_meshConfig->shader_shadows));
+    HRESULT hr = m_shadowMaterial->Init();
+    if (FAILED(hr)) {
+        OutputDebugStringA("MeshAsset::Init - ERROR: Failed to initialize Material resource for shadows.\n");
+        return E_FAIL;
+    }
+	return hr;
+}
+
 HRESULT MeshAsset::InitMesh() {
 
     // Obtener el vertexDefinition del shader
     std::string meshObj = m_meshConfig->mesh_path;
     std::string shaderAssetName = m_meshConfig->shader;
+	Mesh::Type meshType = static_cast<Mesh::Type>(m_meshConfig->meshType);
 
     std::shared_ptr<ShaderAsset> shaderAsset = AssetLocator::GetShaderAsset(shaderAssetName);
     if (!shaderAsset) {
@@ -100,23 +124,35 @@ HRESULT MeshAsset::InitMesh() {
 
     // Crear el array de vértices e índices
     std::string vertexDef = shaderAsset->GetConfig()->vertex_def;
-    auto vertex = DefineLocator::GetVertexDefineAsVector(vertexDef);
     std::vector<uint16_t> indexes = {};
+    bool result = false;
+    HRESULT hr = S_OK;
+   auto vertex = DefineLocator::GetVertexDefinitionAsVector(vertexDef);
 
-    // Cargar el .obj
-    bool result = ObjUtil::LoadObj(meshObj, vertex, indexes);
+	// PROCESASR EL ARCHIVO OBJ O TEXTO
+    if (meshType == Mesh::Type::File_Obj) {
+        result = ObjUtil::LoadObj(meshObj, vertex, indexes);
+        if (vertex.empty()) {
+            OutputDebugStringA(("MeshAsset::Init - ERROR: No vertex data found in mesh file '" + meshObj + "'.\n").c_str());
+            return E_FAIL;
+        }
+	}
+    // PROCESAR TIPO TEXTO
+    else if (meshType == Mesh::Type::Text) {
+        result = m_uiManager->InitText(vertex, "Texto de prueba");
+        if (vertex.empty()) {
+            OutputDebugStringA(("MeshAsset::Init - ERROR: No vertex data found in mesh file '" + meshObj + "'.\n").c_str());
+            return E_FAIL;
+        }
+    }
+
+    // Crear el vetex & index buffer
+    hr = InitD3D11ResourcesVertex(m_deviceManager->GetDevice().Get(), vertex, indexes);
 
     if (!result) {
         OutputDebugStringA(("MeshAsset::Init - ERROR: Failed to load mesh file '" + meshObj + "'.\n").c_str());
         return E_FAIL;
     }
-
-    if (vertex.empty()) {
-        OutputDebugStringA(("MeshAsset::Init - ERROR: No vertex data found in mesh file '" + meshObj + "'.\n").c_str());
-        return E_FAIL;
-    }
-	// Crear el vetex & index buffer
-    HRESULT hr = InitD3D11ResourcesVertex(m_deviceManager->GetDevice().Get(), vertex, indexes);
 
     if (FAILED(hr)) {
         OutputDebugStringA(("MeshAsset::Init - ERROR: Failed to initialize D3D11 resources for mesh '" + meshObj + "'.\n").c_str());
@@ -142,6 +178,12 @@ HRESULT MeshAsset::Init() {
         OutputDebugStringA("MeshAsset::Init - ERROR: Texture init.\n");
         return E_FAIL;
     }
+
+	hr = InitShadows();
+    if (FAILED(hr)) {
+        OutputDebugStringA("MeshAsset::Init - ERROR: Shadows init.\n");
+        return E_FAIL;
+	}
 
     hr = InitMesh();
     if (FAILED(hr)) {
@@ -172,7 +214,7 @@ void MeshAsset::Render() {
  //   context->DrawIndexed(m_indexCount, 0, 0);
 }
 
-HRESULT MeshAsset::CreateVertexBuffer(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, const std::vector<std::shared_ptr<VertexDefinition::VertexVariant>> vertex) {
+HRESULT MeshAsset::CreateVertexBuffer(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, const std::vector<std::shared_ptr<VertexDefinition::VertexVariant>> vertices) {
     if (m_vertexBuffer) {
         m_vertexBuffer->Release();
         m_vertexBuffer = nullptr;
@@ -181,7 +223,7 @@ HRESULT MeshAsset::CreateVertexBuffer(Microsoft::WRL::ComPtr<ID3D11Device> pDevi
     m_vertexTypeSize = 0; // Se inicializa aquí para asegurar que siempre está limpia
 
     // --- 1. Validar parámetros de entrada ---
-    if (!pDevice || vertex.empty()) {
+    if (!pDevice || vertices.empty()) {
         std::cerr << "CreateVertexBuffer: Parámetros de entrada inválidos o vector de vértices vacío.\n";
         return E_INVALIDARG;
     }
@@ -190,8 +232,11 @@ HRESULT MeshAsset::CreateVertexBuffer(Microsoft::WRL::ComPtr<ID3D11Device> pDevi
     // Asumimos que todos los vértices en el vector son del mismo tipo concreto
     // para este búfer.
     std::visit([&](auto& currentVertex) {
-        m_vertexTypeSize = currentVertex.Size(); 
-        }, *vertex[0]); // Visita el primer elemento del vector de variants
+        using T = std::decay_t<decltype(currentVertex)>;
+        //if constexpr (is_vector_v<T>) {
+            m_vertexTypeSize = currentVertex.Size();
+        //}
+        }, * vertices[0]); // Visita el primer elemento del vector de variants
 
     if (m_vertexTypeSize == 0) {
         std::cerr << "CreateVertexBuffer: No se pudo determinar el tamaño del tipo de vértice (es 0).\n";
@@ -199,7 +244,7 @@ HRESULT MeshAsset::CreateVertexBuffer(Microsoft::WRL::ComPtr<ID3D11Device> pDevi
     }
 
     // --- 3. Calcular el tamaño total del búfer de vértices ---
-    m_vertexCount = static_cast<UINT>(vertex.size());
+    m_vertexCount = static_cast<UINT>(vertices.size());
     UINT totalByteWidth = m_vertexTypeSize * m_vertexCount;
 
     // --- 4. Crear un búfer contiguo de datos raw en la CPU ---
@@ -209,8 +254,8 @@ HRESULT MeshAsset::CreateVertexBuffer(Microsoft::WRL::ComPtr<ID3D11Device> pDevi
 
     // --- 5. Iterar sobre cada VertexVariant y copiar sus datos raw al búfer contiguo ---
     size_t currentOffset = 0;
-    for (const auto& v_shared_ptr : vertex) {
-        if (!v_shared_ptr) {
+    for (const auto& vertex : vertices) {
+        if (!vertex) {
             std::cerr << "CreateVertexBuffer: Se encontró un shared_ptr nulo en el vector de variants.\n";
             // Limpiar recursos antes de salir por error
             if (m_vertexBuffer) { m_vertexBuffer->Release(); m_vertexBuffer = nullptr; }
@@ -224,11 +269,10 @@ HRESULT MeshAsset::CreateVertexBuffer(Microsoft::WRL::ComPtr<ID3D11Device> pDevi
             // 'currentVertex' es una referencia al objeto concreto (ej., SimpleVertex).
             // Llamamos a GetRawData() en esa instancia para obtener el puntero a sus datos.
             const void* source_data = currentVertex.GetRawData();
-
-            // Copiamos los bytes de la instancia actual al búfer contiguo.
             std::memcpy(rawVertexData.data() + currentOffset, source_data, m_vertexTypeSize);
+            // Copiamos los bytes de la instancia actual al búfer contiguo.
             currentOffset += m_vertexTypeSize;
-            }, *v_shared_ptr); // Desreferencia el shared_ptr para acceder al VertexVariant por valor
+            }, * vertex); // Desreferencia el shared_ptr para acceder al VertexVariant por valor
     }
 
     // --- 6. Configurar D3D11_BUFFER_DESC ---

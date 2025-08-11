@@ -15,4 +15,5 @@ public:
 	}
 	std::vector<std::string> services_init_order;
 	std::vector<std::string> services_render_order;
+	std::vector<std::string> service_update_order;
 };

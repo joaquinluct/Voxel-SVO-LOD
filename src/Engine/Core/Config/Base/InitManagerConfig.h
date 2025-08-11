@@ -16,6 +16,7 @@ public:
 	std::string deviceAndSwapChain;
 	std::vector<std::string> rasterizedStates;
 	std::vector<std::string> blendingStates;
+	std::vector<std::string> stencilViews;
 	std::vector<std::string> stencilStates;
 	std::vector<std::string> viewPortStates;
 };

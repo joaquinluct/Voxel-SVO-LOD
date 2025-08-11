@@ -29,7 +29,7 @@ Config:
             type: "DefaultSkybox"
             mesh: "SkyboxMesh"
             dependencies:
-              - SkyboxMesh
+              - ProcSkyboxMesh
         Physics:
             name: "PhysicService"
             enabled: true
@@ -61,8 +61,11 @@ Config:
             type: "DirectionalLight"
             properties:
             ambient_light: [0.2, 0.2, 0.2]
-            directional_light: [1.0, 1.0, 1.0]
+            directional_light: [0.5, 0.7, 0.5]
+            directional_light_color: [1.0, 1.0, 1.0, 1.0]
             shadows: true
+            dependencies:
+                - KeyboardManager
         Cycle:
             name: "CycleService"
             enabled: true

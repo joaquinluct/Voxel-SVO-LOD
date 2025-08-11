@@ -15,7 +15,7 @@ namespace RenderPipeline
 
     void OutputMergerStage::SetBlendState(Microsoft::WRL::ComPtr<ID3D11BlendState> pBlendState, const FLOAT BlendFactor[4], UINT SampleMask)
     {
-        if (m_context) m_context->OMSetBlendState(pBlendState.Get(), BlendFactor, SampleMask);
+        if (m_context) m_context->OMSetBlendState(pBlendState.Get(), nullptr, 0xFFFFFFFF);
     }
 
     void OutputMergerStage::SetDepthStencilState(Microsoft::WRL::ComPtr<ID3D11DepthStencilState> pDepthStencilState, UINT StencilRef)

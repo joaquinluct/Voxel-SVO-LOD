@@ -8,5 +8,7 @@ public:
 	std::string shader_path;
 	std::string vertex_def;
 	std::vector<std::string> matrix_slots;
+	std::vector<std::string> sampler_slots;
+	bool needs_shadow;
 	std::string name;
 };

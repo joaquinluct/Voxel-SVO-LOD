@@ -10,6 +10,10 @@ ShaderTextUIConfig::ShaderTextUIConfig(){
 	matrix_slots = {
 		"MatrixBufferTypeOrthographic"
 	};
+	sampler_slots = {
+		"UISampler"
+	};
+	needs_shadow = false;
 	name = "ShaderTextUI";
 	dependencies = {
 		"ShaderAsset"

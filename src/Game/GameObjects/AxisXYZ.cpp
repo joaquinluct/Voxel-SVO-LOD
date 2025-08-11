@@ -1,8 +1,8 @@
 #include "AxisXYZ.h"
-#include <REGISTER_SERVICE_MACRO.h>
 #include <ManagerLocator/ManagerLocator.h>
 #include <ShaderManager.h>
 #include "../../../Resources/resource.h"
+#include <REGISTER_SERVICE_MACRO.h>
 
 REGISTER_SERVICE_TYPE(AxisXYZ, "AxisXYZ")
 

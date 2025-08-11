@@ -3,6 +3,7 @@
 #include <d3dcompiler.h>
 #include <d3d11.h>
 #include <vector>
+#include <algorithm>
 #include <variant>
 #include "../Resources/resource.h"
 #include <ManagerLocator/ManagerLocator.h>
@@ -11,6 +12,7 @@
 #include <Assets/Base/ShaderAsset.h>
 #include <Util/Text/Text.h>
 #include <Defines/Matrix/MatrixDefinitionBase.h>
+#include <Defines/ShaderSampler.h>
 
 REGISTER_MANAGER_TYPE(ShaderManager, "ShaderManager")
 
@@ -128,13 +130,13 @@ UINT ShaderManager::GetVertexShaderBytecodeLength(std::wstring shaderName) {
     return 0; // Or another appropriate value to indicate "not found" or error
 }
 
-std::map<std::string, std::pair<int, MatrixDefinition::AnyMatrixBuffer>> ShaderManager::GetMatrixDefinitions(std::wstring shaderName) {
-    std::map<std::string, std::pair<int, MatrixDefinition::AnyMatrixBuffer>> matrixDefs;
+std::map<int, std::pair<std::string, MatrixDefinition::AnyMatrixBuffer>> ShaderManager::GetMatrixDefinitions(std::wstring shaderName) {
+    std::map<int, std::pair<std::string, MatrixDefinition::AnyMatrixBuffer>> matrixDefs;
     auto it = matrixShaders.find(shaderName);
     if (it != matrixShaders.end()) {
-        for (const auto& [matrixName, matrixPair] : it->second) {
-			int slot = matrixPair.first;
-            matrixDefs[matrixName] = { slot, *matrixPair.second };
+        for (const auto& [slot, matrixPair] : it->second) {
+			std::string matrixName  = matrixPair.first;
+            matrixDefs[slot] = { matrixName, *matrixPair.second };
             //matrixDefs.push_back(*matrixPair.second); // Añadimos el contenido del unique_ptr
         }
     } else {
@@ -146,7 +148,7 @@ std::map<std::string, std::pair<int, MatrixDefinition::AnyMatrixBuffer>> ShaderM
     return matrixDefs;
 }
 
-std::map<std::string, std::pair<int, std::unique_ptr<MatrixDefinition::AnyMatrixBuffer>>>& ShaderManager::GetMatrixBuffers(std::wstring shaderName) {
+std::map<int, std::pair<std::string, std::unique_ptr<MatrixDefinition::AnyMatrixBuffer>>>& ShaderManager::GetMatrixBuffers(std::wstring shaderName) {
     auto it = matrixShaders.find(shaderName);
     if (it == matrixShaders.end()) {
         std::string msg = "Error: No se encontraron buffers de matrices para el shader: " + WstringToString(shaderName) + ".\n";
@@ -161,10 +163,11 @@ void ShaderManager::SetConstantsBuffers(std::wstring shaderName, const MatrixDef
 
     D3D11_MAPPED_SUBRESOURCE mapped = {};
     // Accedemos al mapa de matrices específico para este shader
-    std::map<std::string, std::pair<int, std::unique_ptr<MatrixDefinition::AnyMatrixBuffer>>>& matrices = matrixShaders[shaderName];
+    std::map<int, std::pair<std::string, std::unique_ptr<MatrixDefinition::AnyMatrixBuffer>>>& matrices = matrixShaders[shaderName];
 
     // Iteramos sobre cada tipo de buffer de constante que este shader requiere
-    for (const auto& [matrixName, matrix] : matrices) {
+    for (const auto& [slot, matrix] : matrices) {
+		std::string matrixName = matrix.first; // Nombre del buffer de constante (ej. "WorldMatrix", "ViewMatrix", etc.) 
         // Buscamos el ID3D11Buffer correspondiente en nuestro mapa de buffers globales
         auto bufferComPtrIt = constantBuffers.find(matrixName);
         if (bufferComPtrIt == constantBuffers.end()) {
@@ -173,8 +176,6 @@ void ShaderManager::SetConstantsBuffers(std::wstring shaderName, const MatrixDef
             continue;
         }
 
-        // 'nSlot' es el registro (ej. b0, b1, b2) que el shader espera para este buffer
-        int nSlot = matrix.first;
         // Obtenemos el puntero raw del ComPtr para usarlo con los métodos de DirectX
         ID3D11Buffer* pBuffer = bufferComPtrIt->second.Get();
 
@@ -214,54 +215,61 @@ void ShaderManager::SetConstantsBuffers(std::wstring shaderName, const MatrixDef
 
         if (matrixType == MATRIX_TYPE_VERTEX.data() || matrixType == MATRIX_TYPE_MIXED.data()) {
             // Estos buffers contienen matrices de transformación que suelen usarse en el Vertex Shader.
-            context->VSSetConstantBuffers(nSlot, 1, &pBuffer);
+            context->VSSetConstantBuffers(slot, 1, &pBuffer);
         }
 
         if (matrixType == MATRIX_TYPE_PIXEL.data() || matrixType == MATRIX_TYPE_MIXED.data()) {
             // Estos buffers contienen datos que son cruciales para los cálculos de iluminación
             // y propiedades de superficie, que se realizan en el Pixel Shader.
-            context->PSSetConstantBuffers(nSlot, 1, &pBuffer);
+            context->PSSetConstantBuffers(slot, 1, &pBuffer);
         }
         // Nota: Si un buffer como "CameraData" también se necesitara en el Vertex Shader (ej. para billboarding),
         // podrías añadir otra línea: context->VSSetConstantBuffers(nSlot, 1, &pBuffer);
     }
 }
 
-HRESULT ShaderManager::Init() {
-	OutputDebugStringA("Inicializando ShaderManager...\n");
-
+HRESULT ShaderManager::InitManagers() {
     deviceManager = ManagerLocator::GetManager<DeviceManager>();
     if (!deviceManager) {
         OutputDebugStringA("Error: DeviceManager no encontrado.\n");
         return E_FAIL;
-	}
+    }
+    return S_OK;
+}
+
+HRESULT ShaderManager::InitShaders() {
 
     std::vector<std::shared_ptr<ShaderAsset>> shaders = AssetLocator::GetShaders();
     if (shaders.empty()) {
         OutputDebugStringA("No se encontraron shaders para cargar.\n");
         return S_OK; // No hay shaders que cargar, pero no es un error.
-	}
+    }
 
-    for(const auto& shader : shaders) {
-        OutputDebugStringA(("** Shader: " + shader->GetStaticAssetName() + ".\n").c_str());
-        std::shared_ptr<IAssetShaderConfig> config =  shader->GetConfig();
+    for (const auto& shader : shaders) {
+
+        // Nombre del Shader
+        std::wstring name = StringToWstring(shader->GetAssetName());
+
+		// Configuración del Shader
+        std::shared_ptr<IAssetShaderConfig> config = shader->GetConfig();
         if (!config || config->vertex_def.empty()) {
             OutputDebugStringA("Error: Configuración del shader no encontrada.\n");
             continue; // Saltar este shader si no tiene configuración
-		}
+        }
 
+		// Obtener valores de configuración
         std::string vertexDef = config->vertex_def;
-		std::vector<std::string> matrixDef = config->matrix_slots;
+        std::vector<std::string> matrixDef = config->matrix_slots;
+        std::vector<std::string> samplerDef = config->sampler_slots;
 
-        //std::unique_ptr<VertexDefinition::VertexVariant> vertex = VertexDefinition::Factory().createVertex(vertexDef);
         std::shared_ptr<IVertex> vertex = DefineLocator::GetVertexDefine(vertexDef);
         if (!vertex) {
             OutputDebugStringA("Error: Configuración del shader: Definición de vértices no encontrada.\n");
             continue;
         }
 
+		// Obtener el layout de entrada del shader
         unsigned int numItems = 0;
-        //D3D11_INPUT_ELEMENT_DESC* layout;// = vertex->GetInputLayout(numItems);
         D3D11_INPUT_ELEMENT_DESC* layout = vertex->GetInputLayout(numItems);
 
         if (!layout) {
@@ -269,23 +277,155 @@ HRESULT ShaderManager::Init() {
             continue; // Saltar este shader si no tiene layout
         }
 
-		std::wstring name = StringToWstring(shader->GetAssetName());
-		std::wstring vsPath = StringToWstring(config->shader_path);
+		// Cargar el shader
+        std::wstring vsPath = StringToWstring(config->shader_path);
 
         HRESULT result = LoadShader(deviceManager->GetDevice(), name, vsPath, vsPath, layout, numItems);
 
         if (SUCCEEDED(result)) {
-            int idx = 0;
+            // Guardar las constants matrix del shader
+            int slot = 0;
             for (const std::string& matrixName : matrixDef) {
-    			MatrixDefinition::AnyMatrixBuffer matrix = MatrixDefinition::Get(matrixName);
-                const std::string matrixSlotName = ParseInt(idx) + matrixName;
-                matrixShaders[name][matrixSlotName] = { idx, (std::make_unique<MatrixDefinition::AnyMatrixBuffer>(std::move(matrix))) };
-				idx++;
-			}
-		}
+                MatrixDefinition::AnyMatrixBuffer matrix = MatrixDefinition::Get(matrixName);
+                //const std::string matrixSlotName = ParseInt(idx) + matrixName;
+                //matrixShaders[name][matrixSlotName] = { idx, (std::make_unique<MatrixDefinition::AnyMatrixBuffer>(std::move(matrix))) };
+                matrixShaders[name][slot] = { matrixName, (std::make_unique<MatrixDefinition::AnyMatrixBuffer>(std::move(matrix))) };
+                slot++;
+            }
+        }
+
+        if (samplerDef.size()) {
+			// Guardar los samplers desc del shader
+            int slot = 0;
+            for (std::string samplerName : samplerDef) {
+                const std::string samplerSlotName = ParseInt(slot) + samplerName;
+                ShaderSampler::SamplerVariant sampler = ShaderSampler::GetSampler(samplerName);
+                std::visit([&](auto&& sampler) {
+                    ShaderSampler::SamplerDefinition samplerDef = {};
+					samplerDef.name = samplerName;
+					samplerDef.slot = slot;
+					samplerDef.desc = sampler.GetDesc();
+                    samplersDesc[name].push_back(samplerDef);
+                    }, sampler);
+                slot++;
+            }
+        }
+    }
+    return S_OK;
+}
+
+HRESULT ShaderManager::Init() {
+	OutputDebugStringA("Inicializando ShaderManager...\n");
+
+	HRESULT hr = InitManagers();
+    if (FAILED(hr)) {
+        OutputDebugStringA("Error al inicializar DeviceManager.\n");
+        return hr; // Fallo al inicializar DeviceManager
+	}
+    
+	hr = InitShaders();
+    if (FAILED(hr)) {
+        OutputDebugStringA("Error al inicializar shaders.\n");
+		return hr; // Fallo al inicializar shaders
+	}
+    
+    return hr;
+}
+
+std::vector<D3D11_SAMPLER_DESC> ShaderManager::GetSamplersDescAsVector(std::wstring shaderName) {
+    std::vector<D3D11_SAMPLER_DESC> samplers;
+    /*const auto it = samplersDesc.find(shaderName);
+    if (it != samplersDesc.end()) {
+        for (const auto& sampler : it->second) {
+            samplers.push_back(sampler.second.second);
+        }
+    }*/
+    return samplers;
+}
+std::vector<std::pair<int, D3D11_SAMPLER_DESC>> ShaderManager::GetSamplersDescAsVector() {
+    std::vector<std::pair<int, D3D11_SAMPLER_DESC>> allSamplers;
+    /*if (samplers.empty()) {
+        return allSamplers;
+    }
+    int slot = 0;
+    for (const auto& sampler: samplers) {
+        allSamplers.push_back({ slot, sampler.second });
+    }*/
+    return allSamplers;
+}
+
+std::vector<ShaderSampler::SamplerDefinition> ShaderManager::GetAllSamplersDesc() {
+    std::vector<ShaderSampler::SamplerDefinition> allSamplers;
+    if (samplersDesc.empty()) {
+        return allSamplers;
+    }
+	// Recorremos todos los shaders
+    for (const auto& shaderPair : samplersDesc) {
+		std::vector<ShaderSampler::SamplerDefinition> samplerDefs = shaderPair.second;
+        // Recorremos todos sus samplers
+        for (const ShaderSampler::SamplerDefinition& samplerDef : samplerDefs) {
+            bool found = false;
+            for (const auto& shader : allSamplers) {
+                if (samplerDef.name == shader.name) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+				// Si no se ha encontrado, lo añadimos a la lista de samplers
+                allSamplers.push_back(samplerDef);
+            }
+        }
+    }
+    return allSamplers;
+}
+
+SamplerStates ShaderManager::GetSamplersStates(std::wstring shaderName, SamplerStates state) {
+    SamplerStates result;
+
+    // Buscar la lista de samplers definidos para el shader
+    auto it = samplersDesc.find(shaderName);
+    if (it == samplersDesc.end()) {
+        // No hay samplers definidos para este shader
+        return result;
+    }
+
+    const std::vector<ShaderSampler::SamplerDefinition>& shaderSamplers = it->second;
+
+    // Para cada sampler definido en el shader, buscar su estado en state.data
+    for (const auto& samplerDef : shaderSamplers) {
+        auto stateIt = state.find(samplerDef.name);
+        if (stateIt != state.end()) {
+            result[samplerDef.name] = stateIt->second;
+        } else {
+            // Si no se encuentra, añadir un ComPtr vacío (nullptr) para mantener la clave
+            result[samplerDef.name] = nullptr;
+        }
+    }
+
+    return result;
+}
+
+bool ShaderManager::NeedsShadow(std::wstring shaderName) {
+    std::vector<std::shared_ptr<ShaderAsset>> shaders = AssetLocator::GetShaders();
+
+    if (shaders.empty()) {
+        OutputDebugStringA("No se encontraron shaders para verificar sombras.\n");
+        return false; // No hay shaders que verificar
 	}
 
-    return S_OK;
+	// Recorremos todos los shaders
+    for (const auto& shader : shaders) {
+        if (shader->GetAssetName() == WstringToString(shaderName)) {
+            // Verificamos si el shader tiene configuraciones de sombras
+            std::shared_ptr<IAssetShaderConfig> config = shader->GetConfig();
+            if (config && config->needs_shadow) {
+                // Si tiene configuraciones de sombras, retornamos true
+                return true;
+            }
+        }
+	}
+    return false; // No se encontró ninguna matriz de sombra
 }
 
 void ShaderManager::Shutdown() {

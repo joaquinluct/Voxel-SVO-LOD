@@ -4,6 +4,7 @@
 #include <ServiceLocator/ServiceLocator.h>
 #include <ManagerLocator/ManagerLocator.h>
 #include <Assets/Base/MeshAsset.h>
+#include <UI/UIText.h>
 
 GameRenderManager::GameRenderManager() : m_shadows{nullptr}, m_deviceManager{nullptr} {
 	m_gameConfig = new GameEngineConfig();
@@ -68,15 +69,49 @@ void GameRenderManager::Shutdown() {
 	// Release game-specific rendering resources here
 }
 
-std::shared_ptr<MeshAsset> GameRenderManager::RegisterMesh(const std::string& meshName) {
+std::shared_ptr<MeshAsset> GameRenderManager::RegisterMesh(const std::string meshName) {
 	auto mesh = std::static_pointer_cast<MeshAsset>(AssetLocator::GetAsset(meshName));
 	m_renderMesh[meshName] = mesh;
 	return mesh;
 }
 
+std::shared_ptr<UIText> GameRenderManager::RegisterTextMesh(const std::string& meshName) {
+	std::shared_ptr<MeshAsset> mesh = RegisterMesh(meshName);
+	mesh->Init();
+	std::shared_ptr<MeshAssetConfigBase> meshConfig = mesh->GetConfig();
+	if (meshConfig && meshConfig->textService.size() > 0) {
+		// If the mesh is a text mesh, we can register it as a UIText
+		std::shared_ptr<IService> textMesh = ServiceLocator::GetService(meshConfig->textService);
+		std::shared_ptr<UIText> textService = std::dynamic_pointer_cast<UIText>(textMesh);
+		m_renderTextMesh[meshName] = { mesh, textService };
+		return textService;
+	}
+	return nullptr;
+}
+
 void GameRenderManager::SetConstantBuffers() {
 
 }
+
+std::map<std::string, std::shared_ptr<MeshAsset>> GameRenderManager::GetMeshesByRenderPass(RenderPassType renderPassType) {
+	std::map<std::string, std::shared_ptr<MeshAsset>> meshesByPass;
+	for(const auto& mesh : m_renderMesh) {
+		if (mesh.second->IsRenderPassEnabled(renderPassType)) {
+			meshesByPass[mesh.first] = mesh.second;
+		}
+	}
+	return meshesByPass;
+};
+
+std::map<std::string, std::shared_ptr<MeshAsset>> GameRenderManager::GetCastShadowMeshes() {
+	std::map<std::string, std::shared_ptr<MeshAsset>> m_castShadowMeshes;
+	for (const auto& mesh : m_renderMesh) {
+		if (mesh.second->CastShadows()) {
+			m_castShadowMeshes[mesh.first] = mesh.second;
+		}
+	}
+	return m_castShadowMeshes;
+};
 
 void GameRenderManager::RenderMesh(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context, const std::shared_ptr<MeshAsset> mesh) {
 	Microsoft::WRL::ComPtr<ID3D11Buffer> vb = mesh->GetVertexBuffer();

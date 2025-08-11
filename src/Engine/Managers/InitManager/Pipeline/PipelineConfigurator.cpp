@@ -1,7 +1,11 @@
 #include "PipelineConfigurator.h"
+//#include <Defines/ShaderSampler.h>
 #include <wrl/client.h>
 #include <variant>
+#include <vector>
 #include <memory>
+
+class SamplerDefinition;
 
 PipelineConfigurator::PipelineConfigurator(
     Microsoft::WRL::ComPtr<ID3D11Device> device,
@@ -44,28 +48,67 @@ HRESULT PipelineConfigurator::ExecuteInitOperation(PipelineOperation& operation)
         break;
     }
 
-    case PipelineOperationType::Device_Init_SetencilView: {
+    case PipelineOperationType::Device_Init_SetSencilView: {
         auto data = operation.GetOperationData<Microsoft::WRL::ComPtr<ID3D11DepthStencilView>>();
         auto param = operation.GetOperationParam<PipelineDepthStencilData>();
-		ID3D11DepthStencilView* state = data.Get();
         ID3D11Texture2D* depthStencilBuffer = nullptr;
         hr = m_device->CreateTexture2D(&param.desc, nullptr, &depthStencilBuffer);
         if (SUCCEEDED(hr)) {
-            hr = m_device->CreateDepthStencilView(depthStencilBuffer, nullptr, &state);
-            Microsoft::WRL::ComPtr<ID3D11DepthStencilView> d = state;
-            operation.SetOperationData(d);
+			Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> shaderResourceView;
+		    ID3D11DepthStencilView* state = nullptr; 
+            if (param.hasViewDesc) {
+                D3D11_DEPTH_STENCIL_VIEW_DESC viewDesc =  param.viewDesc;
+                hr = m_device->CreateDepthStencilView(depthStencilBuffer, &viewDesc, &state);
+            }
+            else {
+                hr = m_device->CreateDepthStencilView(depthStencilBuffer, nullptr, &state);
+            }
+            if (SUCCEEDED(hr) && param.shaderViewDesc.Format != DXGI_FORMAT_UNKNOWN) {
+                D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = param.shaderViewDesc;
+                hr = m_device->CreateShaderResourceView(depthStencilBuffer, &srvDesc, &shaderResourceView);
+            }
+            if (FAILED(hr)) {
+				return hr; // Si falla, salimos inmediatamente
+			}
+
+			param.viewTextureData = depthStencilBuffer;
+            param.stencilViewData = state;
+			param.shaderViewData = shaderResourceView;
+
+            //Microsoft::WRL::ComPtr<ID3D11DepthStencilView> d = state;
+            operation.SetOperationData(param);
         }
 		break;
-
     }
-    case PipelineOperationType::Mesh_Init_SamplerState: {
-        /*auto data = operation.GetOperationData<Microsoft::WRL::ComPtr<ID3D11SamplerState>>();
+
+    case PipelineOperationType::Device_Init_SetSencilState: {
+        //auto data = operation.GetOperationData<Microsoft::WRL::ComPtr<ID3D11DepthStencilState>>();
+		auto param = operation.GetOperationParam<PipelineSetencilStateData>();
+        ID3D11DepthStencilState* state = nullptr;
+        hr = m_device->CreateDepthStencilState(&param.desc, &state);
+        Microsoft::WRL::ComPtr<ID3D11DepthStencilState> d = state;
+        operation.SetOperationData(d);
+		break;
+        
+    }
+
+    case PipelineOperationType::Device_Init_Samplers: {
         auto param = operation.GetOperationParam<PipelineSamplerSateData>();
-        ID3D11SamplerState* state = data.Get();
-        param.desc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-        hr = m_device->CreateSamplerState(&param.desc, &state);
-        Microsoft::WRL::ComPtr<ID3D11SamplerState> d = state;
-        operation.SetOperationData(d);*/
+        if (param.desc.size() ) {
+		    std::map<std::string, Microsoft::WRL::ComPtr<ID3D11SamplerState>> samplerStates;
+            for(const ShaderSampler::SamplerDefinition& descPair : param.desc) {
+                std::string samplerName = descPair.name;
+                Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerState;
+                hr = m_device->CreateSamplerState(&descPair.desc, &samplerState);
+                if (FAILED(hr)) {
+                    return hr; // Si falla, salimos inmediatamente
+                }
+                samplerStates[samplerName] = samplerState;
+			}
+            if (samplerStates.size() > 0) {
+                operation.SetOperationData(samplerStates);
+			}
+		}
         break;
     }
 

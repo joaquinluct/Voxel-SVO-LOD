@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include <IPipelineState.h>
 
 class IPipelineStencilState : public IPipelineState
@@ -6,15 +7,12 @@ class IPipelineStencilState : public IPipelineState
 private:
 	bool active = false;
 public:
-	int MipLevels;
-	int ArraySize;
-	int Format;
-	int SampleCount;
-	int SampleQuality;
-	int Usage;
-	int BindFlags;
-	float Depth;
-	float Stencil;
+	int DepthEnable = 0;
+	int DepthWriteMask = 0;
+	int DepthFunc = 0;
+	int StencilEnable = 0;
+	int StencilReadMask = 0;
+	int StencilWriteMask = 0;
 
 	void Activate() override {
 		active = true;

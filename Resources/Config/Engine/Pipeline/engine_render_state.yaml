@@ -15,6 +15,7 @@ Config:
           SampleQuality: 0 #0;
           Windowed: true #TRUE;
           SwapEffect: 4 #DXGI_SWAP_EFFECT_FLIP_DISCARD;
+
         RasterizedMainColorPass:
           name: "RasterizedMainColorPass"
           FillMode: 3 #D3D11_FILL_SOLID
@@ -39,7 +40,34 @@ Config:
           DepthClipEnable: true
           ScissorEnable: false
           MultisampleEnable: false
-        BlendingMainColor:
+        RasterizedUIPass:
+          name: "RasterizedUIPass"
+          FillMode: 3 #D3D11_FILL_SOLID
+          CullMode: 1 #D3D11_CULL_NONE
+          FrontCounterClockwise: false
+          DepthBias: 0
+          DepthBiasClamp: 0.0
+          SlopeScaledDepthBias: 0.0
+          AntialiasedLineEnable: false
+          DepthClipEnable: false
+          ScissorEnable: false
+          MultisampleEnable: false
+
+        DisabledBlending:
+          TYPE: D3D11_BLEND_DESC
+          AlphaToCoverageEnable: false
+          IndependentBlendEnable: false
+          BlendEnable: false #FALSE;
+          SrcBlend: 1 #D3D11_BLEND_ONE;
+          DestBlend: 1 #D3D11_BLEND_ZERO;
+          BlendOp: 1 #D3D11_BLEND_OP_ADD;
+          SrcBlendAlpha: 1 #D3D11_BLEND_ONE;
+          DestBlendAlpha: 1 #D3D11_BLEND_ZERO;
+          BlendOpAlpha: 1 #D3D11_BLEND_OP_ADD;
+          RenderTargetWriteMask: 15 #D3D11_COLOR_WRITE_ENABLE_ALL;
+        BlendingUI:
+          AlphaToCoverageEnable: false
+          IndependentBlendEnable: false
           BlendEnable: true  #TRUE;
           SrcBlend: 5 #D3D11_BLEND_SRC_ALPHA;
           DestBlend: 6 #D3D11_BLEND_INV_SRC_ALPHA;
@@ -48,7 +76,12 @@ Config:
           DestBlendAlpha: 1 #D3D11_BLEND_ZERO;
           BlendOpAlpha: 1 #D3D11_BLEND_OP_ADD;
           RenderTargetWriteMask: 15 #D3D11_COLOR_WRITE_ENABLE_ALL;
-        StencilMainColor:
+
+        StencilViewMainColor:
+          Type: D3D11_DEPTH_STENCIL_VIEW_DESC
+          StencilEnable: true
+          DepthEnable: true
+          DepthWriteMask: 1 #D3D11_DEPTH_WRITE_MASK_ALL;
           MipLevels: 1
           ArraySize: 1
           Format: 45 #DXGI_FORMAT_D24_UNORM_S8_UINT;
@@ -58,17 +91,60 @@ Config:
           BindFlags: 64 #D3D11_BIND_DEPTH_STENCIL;
           Depth: 1.0
           Stencil: 0.0
-        StencilShadow:
+          ViewDesc: false
+        StencilViewShadow:
+          Type: D3D11_DEPTH_STENCIL_VIEW_DESC
+          StencilEnable: true
+          DepthEnable: true
+          DepthWriteMask: 1 #D3D11_DEPTH_WRITE_MASK_ALL;
           MipLevels: 1
           ArraySize: 1
-          Format: 47
+          Format: 44
           SampleCount: 1
           SampleQuality: 0
           Usage: 0
-          BindFlags: 96
+          BindFlags: 72
           Depth: 1.0
           Stencil: 0.0
+          Width: 2048.0
+          Height: 2048.0
+          ViewDesc: true
+          ViewFormat: 45 #DXGI_FORMAT_D24_UNORM_S8_UINT;
+          ViewDimension: 3 #D3D11_DSV_DIMENSION_TEXTURE2D
+          ViewMipSlice: 0
+          ShaderView: ShaderViewShadow
+
+        StencilStateRegular:
+          Type: D3D11_DEPTH_STENCIL_DESC
+          DepthEnable: 1 # TRUE
+          DepthWriteMask: 1 # D3D11_DEPTH_WRITE_MASK_ALL
+          DepthFunc: 2 # D3D11_COMPARISON_LESS
+          StencilEnable: 0 # FALSE
+          StencilReadMask: 255 # D3D11_DEFAULT_STENCIL_READ_MASK (0xFF)
+        StencilStateUI:
+          Type: D3D11_DEPTH_STENCIL_DESC
+          DepthEnable: 0 # FALSE
+          DepthWriteMask: 0 # D3D11_DEPTH_WRITE_MASK_ZERO
+          DepthFunc: 8 # D3D11_COMPARISON_ALWAYS
+          StencilEnable: 0 # FALSE
+          StencilReadMask: 255 # D3D11_DEFAULT_STENCIL_READ_MASK (0xFF)
+          StencilWriteMask: 255 # D3D11_DEFAULT_STENCIL_WRITE_MASK (0xFF)
+
+        ShaderViewShadow:
+          Type: D3D11_SHADER_RESOURCE_VIEW_DESC
+          Format:  46 #DXGI_FORMAT_R24_UNORM_X8_TYPELESS
+          ViewDimension: 4 #D3D11_SRV_DIMENSION_TEXTURE2D
+          MipLevels: 1
+          MostDetailedMip: 0
+
         ViewportMainColor:
+          MinDepth: 0.0
+          MaxDepth: 1.0
+          TopLeftX: 0.0
+          TopLeftY: 0.0
+          Width: 0.0
+          Height: 0.0
+        ViewportUI:
           MinDepth: 0.0
           MaxDepth: 1.0
           TopLeftX: 0.0
@@ -117,6 +193,8 @@ Definition:
         - DepthClipEnable
         - ScissorEnable
         - MultisampleEnable
+        - AlphaToCoverageEnable
+        - IndependentBlendEnable
         - BlendEnable
         - SrcBlend
         - DestBlend
@@ -125,6 +203,9 @@ Definition:
         - DestBlendAlpha
         - BlendOpAlpha
         - RenderTargetWriteMask
+        - StencilEnable
+        - DepthEnable
+        - DepthWriteMask
         - MipLevels
         - ArraySize
         - Format
@@ -140,23 +221,56 @@ Definition:
         - MaxDepth
         - Width
         - Height
+        - ViewDesc
+        - ViewFormat
+        - ViewDimension
+        - ViewMipSlice
+        - ShaderView
+        - type
+        - format
+        - ViewDimension
+        - MipLevels
+        - MostDetailedMip
+        - DepthWriteMask
+        - DepthFunc
+        - StencilEnable
+        - StencilReadMask
         - dependencies
     output_path: 'c:\Users\joaqu\source\repos\DirectX-Voxelado\src\Engine\Core\Config\Base\'
     #output_path: 'C:\Users\joaqu\source\repos\DirectX-Voxelado\TestConfig\Game\'
   Classes:
     SwapChainMain:
       interface_name: "IPipelineSwapChainState"
+
     RasterizedMainColorPass:
       interface_name: "IPipelineRasterizedState"
     RasterizedShadowPass:
       interface_name: "IPipelineRasterizedState"
-    BlendingMainColor:
+    RasterizedUIPass:
+      interface_name: "IPipelineRasterizedState"
+
+    DisabledBlending:
       interface_name: "IPipelineBlendingState"
-    StencilMainColor:
+    BlendingUI:
+      interface_name: "IPipelineBlendingState"
+
+    StencilViewMainColor:
+      interface_name: "IPipelineStencilView"
+    StencilViewShadow:
+      interface_name: "IPipelineStencilView"
+
+    StencilStateRegular:
       interface_name: "IPipelineStencilState"
-    StencilShadow:
+    StencilStateUI:
       interface_name: "IPipelineStencilState"
+
+    ShaderViewShadow:
+      interface_name: "IPipelineShaderViewState"
+
     ViewportMainColor:
       interface_name: "IPipelineViewportState"
     ViewportShadow:
       interface_name: "IPipelineViewportState"
+    ViewportUI:
+      interface_name: "IPipelineViewportState"
+

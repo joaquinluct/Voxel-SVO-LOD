@@ -28,6 +28,10 @@ public:
     }
 private:
     std::shared_ptr<RenderManager> m_renderManager;
+    std::shared_ptr<UIManager> m_uiManager;
     std::shared_ptr<MeshAsset> mesh;
     std::shared_ptr<MeshAsset> houseMesh;
+    std::shared_ptr<MeshAsset> boxMesh;
+
+    std::shared_ptr<UIText> text;
 };

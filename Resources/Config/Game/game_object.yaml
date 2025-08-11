@@ -9,7 +9,7 @@ Config:
           type: "TestingFloor"
           description: "Un suelo de pruebas."
           dependencies:
-            - FloorMesh
+            - BoxMesh
 
       TestingBasic2:
           name: "TestingBasicManager"

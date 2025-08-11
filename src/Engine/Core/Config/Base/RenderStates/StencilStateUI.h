@@ -5,12 +5,14 @@
 #include <map>
 #include <IPipelineStencilState.h>
 
-class StencilMainColor : public IPipelineStencilState {
+class StencilStateUI : public IPipelineStencilState {
 public:
-	StencilMainColor();
+	StencilStateUI();
 	static const std::string& GetStaticPipelineStateName()
 	{
-		static const std::string className = "StencilMainColor";
+		static const std::string className = "StencilStateUI";
 		return className;
 	}
+	std::string Type;
+	int StencilWriteMask;
 };

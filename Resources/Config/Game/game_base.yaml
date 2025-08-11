@@ -28,6 +28,11 @@ Config:
         - Lighting
         # - Cycle
         # - Wheather
+      service_update_order:
+        - Skybox
+        - Lighting
+        # - UIDebug
+        # - TestingBasic2
 Definition:
   Default:
     language: 1 # C++

@@ -1,6 +1,7 @@
 #pragma once
 #include <d3d11.h>
 #include <string>
+#include <vector>
 #include <memory>
 #include <map>
 #include <wrl/client.h>
@@ -12,6 +13,8 @@
 #include "IShutdownable.h"
 #include <Util/Text/Text.h>
 #include <Defines/Matrix/MatrixDefinition.h>
+#include <Defines/ShaderSampler.h>
+#include <Defines/Pipeline.h>
 
 class ShaderManager : public IManager, public IInitializable, public IUpdatable, public IRenderable, public IShutdownable
 {
@@ -20,6 +23,8 @@ public:
 	~ShaderManager();
 	
     HRESULT Init() override;
+    HRESULT InitManagers();
+    HRESULT InitShaders();
     void Shutdown() override;
 	void Update(float deltaTime) override {};
     void Render() override {};
@@ -37,17 +42,27 @@ public:
 
     void SetConstantsBuffers(std::wstring shaderName, const MatrixDefinitionBase::MatrixParams& matrixParams, std::map<std::string, Microsoft::WRL::ComPtr<ID3D11Buffer>>&  constantBuffers, Microsoft::WRL::ComPtr<ID3D11DeviceContext> context);
 
-    std::map<std::string, std::pair<int, MatrixDefinition::AnyMatrixBuffer>> GetMatrixDefinitions(std::wstring shaderName);
+    std::map<int, std::pair<std::string, MatrixDefinition::AnyMatrixBuffer>> GetMatrixDefinitions(std::wstring shaderName);
 
     /*MatrixDefinition::AnyMatrixBuffer* GetMatrixBuffer(std::wstring shaderName);*/
-    std::map<std::string, std::pair<int, std::unique_ptr<MatrixDefinition::AnyMatrixBuffer>>>& GetMatrixBuffers(std::wstring shaderName);
+    std::map<int, std::pair<std::string, std::unique_ptr<MatrixDefinition::AnyMatrixBuffer>>>& GetMatrixBuffers(std::wstring shaderName);
     Microsoft::WRL::ComPtr<ID3D11VertexShader> GetVertexShader(std::wstring shaderName);
     Microsoft::WRL::ComPtr<ID3D11PixelShader> GetPixelShader(std::wstring shaderName);
     ID3D11InputLayout* GetInputLayout(std::wstring shaderName);
     ID3DBlob* GetVertexShaderBytecode(std::wstring shaderName); // Nuevo método
     UINT GetVertexShaderBytecodeLength(std::wstring shaderName);
 
-    std::map<std::wstring, std::map<std::string, std::pair<int, std::unique_ptr<MatrixDefinition::AnyMatrixBuffer>>>> matrixShaders;    
+	bool NeedsShadow(std::wstring shaderName);
+
+    std::vector<D3D11_SAMPLER_DESC> GetSamplersDescAsVector(std::wstring shaderName);
+    std::vector<ShaderSampler::SamplerDefinition> GetAllSamplersDesc();
+    std::vector<std::pair<int, D3D11_SAMPLER_DESC>> GetSamplersDescAsVector();
+	//std::vector<std::string> GetSamplersNames(std::wstring shaderName);
+    std::map<std::string, Microsoft::WRL::ComPtr<ID3D11SamplerState>> GetSamplersStates(std::wstring shaderName, SamplerStates state);
+
+    std::map<std::wstring, ShaderSampler::SamplerDefinition> samplers;
+    std::map<std::wstring, std::vector<ShaderSampler::SamplerDefinition>> samplersDesc;
+    std::map<std::wstring, std::map<int, std::pair<std::string, std::unique_ptr<MatrixDefinition::AnyMatrixBuffer>>>> matrixShaders;
     std::map<std::wstring, ID3D11VertexShader*> vertexShaders;
     std::map<std::wstring, ID3D11PixelShader*> pixelShaders;
     std::map<std::wstring, ID3D11InputLayout*> inputLayouts;

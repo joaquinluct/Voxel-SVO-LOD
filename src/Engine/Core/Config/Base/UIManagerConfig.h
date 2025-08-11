@@ -14,6 +14,7 @@ public:
 		return className;
 	}
 	std::string initial_screen;
+	std::string textMesh;
 	std::string font_path;
 	int font_size;
 };

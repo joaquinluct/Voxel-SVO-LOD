@@ -7,7 +7,7 @@ Config:
          - Line
          - Rectangle
          - Panel
-      Typgraph:
+      Typograph:
           font: "Arial"
           initil_size: 12
           letter_spacing: 1.0

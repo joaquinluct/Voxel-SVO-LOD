@@ -9,6 +9,7 @@
 #include "MaterialMatrix.h"
 #include "CameraMatrix.h"
 #include "MatrixDefinitionBase.h"
+#include "ProceduralSkybox.h"
 
 using namespace MatrixDefinitionBase;
 
@@ -52,11 +53,32 @@ namespace MatrixDefinition {
 
         void SetMatrixData(MatrixParams params) {
             this->viewMatrix = params.viewMatrix;
+            //this->viewMatrix = DirectX::XMMatrixTranspose(params.worldMatrix);
             this->projectionMatrix = params.projectionMatrix;
         }
 
         UINT Size() {
             return sizeof(viewMatrix) + sizeof(projectionMatrix);
+        }
+
+        std::string MatrixType() {
+            return MATRIX_TYPE_VERTEX.data();
+        }
+    };
+
+    struct MatrixBufferTypeProceduralSkyBox {
+        DirectX::XMMATRIX viewProjectionMatrix;
+
+        MatrixBufferTypeProceduralSkyBox() :
+            viewProjectionMatrix(DirectX::XMMatrixIdentity())
+        {}
+
+        void SetMatrixData(MatrixParams params) {
+            this->viewProjectionMatrix = params.viewProjectionMatrix;
+        }
+
+        UINT Size() {
+            return sizeof(viewProjectionMatrix);
         }
 
         std::string MatrixType() {
@@ -72,7 +94,7 @@ namespace MatrixDefinition {
         }
 
         void SetMatrixData(MatrixParams params) {
-            this->projectionMatrix = params.projectionMatrix;
+            this->projectionMatrix = params.projectionOrthoMatrix;
         }
 
         UINT Size() {
@@ -89,12 +111,14 @@ namespace MatrixDefinition {
     using AnyMatrixBuffer = std::variant<
         MatrixBufferType,                       // Matriz World, View, Projection (para la mayoría de objetos)
         MatrixBufferTypeSkyBox,                 // Matriz View, Projection (para Skybox, sin World)
+        MatrixBufferTypeProceduralSkyBox,       // Matriz View, Projection (para Skybox, sin World)
         MatrixBufferTypeOrthographic,           // Matriz Projection (para UI, etc.)
         Light::DirectionalLight,                // Datos de luz direccional para PBR
 		Light::LightSpaceMatrices,              // Matrices de espacio de luz para sombras
         CameraMatrix::CameraData,               // Posición de la cámara
         MaterialMatrix::MaterialData,           // Propiedades de material PBR
-		MaterialMatrix::TextureTransformations  // Transformaciones de texturas para PBR
+		MaterialMatrix::TextureTransformations, // Transformaciones de texturas para PBR
+		SkyboxMatrix::ProceduralSkyboxMatrix    // Matriz para Procedural Skybox
     >;
 
     // Declaración de la función Get para crear instancias de los buffers
@@ -104,6 +128,12 @@ namespace MatrixDefinition {
         }
         if (matrixDefinitionName == "MatrixBufferTypeSkyBox") {
             return MatrixBufferTypeSkyBox{};
+        }
+        if (matrixDefinitionName == "MatrixBufferTypeProceduralSkyBox") {
+            return MatrixBufferTypeProceduralSkyBox{};
+        }
+        if (matrixDefinitionName == "ProceduralSkyboxMatrix") {
+            return SkyboxMatrix::ProceduralSkyboxMatrix{};
         }
         if (matrixDefinitionName == "MatrixBufferTypeOrthographic") {
             return MatrixBufferTypeOrthographic{};

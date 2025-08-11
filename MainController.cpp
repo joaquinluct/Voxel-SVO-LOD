@@ -165,7 +165,7 @@ HRESULT MainController::Initialize(HWND hwnd, int width, int height) {
     m_mouse = ServiceLocator::GetService<Mouse>();
     m_renderManager = ManagerLocator::GetManager<RenderManager>();
 
-    if (!m_keyboard || !m_mouse || !m_renderManager || !m_initManager) {
+    if (!m_keyboard || !m_mouse || !m_renderManager) {
         OutputDebugStringA("MainController Init: Failed to get required services or managers.\n");
         return E_FAIL;
 	}

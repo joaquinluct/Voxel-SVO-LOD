@@ -1,161 +1,194 @@
 #include "ShadowPass.h"
+#include <Util/Text/Text.h>
 #include <ManagerLocator/ManagerLocator.h>
 #include <ServiceLocator/ServiceLocator.h>
+#include <Locators/Pipeline/PipelineStateLocator.h>
 #include <Game/Systems/Shadows.h>
-#include <Util/Text/Text.h>
-#include <Defines/Matrix/Light.h>
+#include <Game/Systems/Lighting.h>
+#include <Assets/Base/MeshAsset.h>
+//#include <Defines/Matrix/Shadow.h> // Asumo que tienes una definición para matrices de sombras
 #include <Locators/Registers/REGISTER_RENDER_PASS_MACRO.h>
 
 REGISTER_RENDER_PASS_TYPE(ShadowPass, "ShadowPass")
 
 void ShadowPass::SetInitialOperations() {
-	// 0 Obtener valores de configuración
-	float resolution = static_cast<float>(config->resolution);
-	std::string shaderName = config->shader_name;
-	//std::string cullMode = config->cull_mode;
 
-	// 1. Limpiar Render Target
-	PipelineDepthStencilData dscData = {};
-	dscData.data = m_initManager->GetDepthStencilView(config->stencilState);
-	AddInitialOperation(PipelineOperationType::Device_ClearDepthStencilView, dscData);
+    std::string stencilName = config->stencilState;
 
-	// 1.1. Set Render target view
-	PipelineSetRenderTargetsData srData = {};
-	srData.targetView = m_initManager->GetRenderTargetView(config->viewPortState);
-	srData.stencilView = m_initManager->GetDepthStencilView(config->stencilState);
-	srData.isColorPass = false;
-	AddInitialOperation(PipelineOperationType::Device_Init_SetRenderTargetView, srData);
+	// 1. Set Viewport
+    PipelineViewPortData vpData = {};
+    vpData.desc = m_initManager->GetViewport(config->viewPortState);
+    AddInitialOperation(PipelineOperationType::Device_SetViewport, vpData);
 
-	// 2. Configurar Viewport;
-	PipelineViewPortData vpData = {};
-	vpData.desc = m_initManager->GetViewport(config->viewPortState);
-	AddInitialOperation(PipelineOperationType::Device_SetViewport, vpData);
+	// 2. Set RenderTargetView
+    PipelineSetRenderTargetsData srData = {};
+    srData.targetView = nullptr;
+    srData.stencilView = m_initManager->GetDepthStencilView(config->stencilState);
+    srData.isColorPass = false;
+    AddInitialOperation(PipelineOperationType::Device_Init_SetRenderTargetView, srData);
 
-	// 3. Configurar RasterizedState
+    // Borrar el Depth Stencil view
+    // El color claro de profundidad es 1.0f (la distancia más lejana)
+    /*PipelineRenderTargetViewData rtvData = {};
+    rtvData.data = m_initManager->GetRenderTargetView(config->viewPortState);
+    rtvData.clearColor = XMFLOAT4{ .4f,.4f,.0f,1.0f };
+    AddInitialOperation(PipelineOperationType::Device_ClearRenderTargetView, rtvData);*/
+
+	// 3. Clear DepthStencilView
+    PipelineDepthStencilData dscData = m_initManager->GetDepthStencilData(stencilName);
+    dscData.stencilViewData = m_initManager->GetDepthStencilView(stencilName);
+    dscData.clearFlags = D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL;
+    AddInitialOperation(PipelineOperationType::Device_ClearDepthStencilView, dscData);
+
+	// 4. Raterized state
 	PipelineRasteriezeData rData = {};
 	rData.desc = {};
 	rData.state = m_initManager->GetRasterizerState(config->rasterizedState);
-	//params.rasterize.desc.DepthBias = static_cast<int>(config->depth_bias);
-	/*if (cullMode == "front") params.rasterize.data.CullMode = D3D11_CULL_FRONT;
-	if (cullMode == "back") params.rasterize.data.CullMode = D3D11_CULL_BACK;*/
 	AddInitialOperation(PipelineOperationType::Device_SetRasterizedState, rData);
 
-	// 4. Configurar DepthStencil
-	PipelineDepthStencilData dsData = {};
-	dsData.data = m_initManager->GetDepthStencilView(config->stencilState);
-	dsData.desc = {};
-	dsData.desc.Height = config->resolution;
-	dsData.desc.Width = config->resolution;
-	dsData.desc.MipLevels = 1;
-	dsData.desc.ArraySize = 1;
-	dsData.desc.Format = DXGI_FORMAT_R32_TYPELESS;
-	dsData.desc.SampleDesc.Quality = 0;
-	dsData.desc.SampleDesc.Count = 1;
-	dsData.desc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
-	dsData.desc.CPUAccessFlags = 0;
-	dsData.desc.MiscFlags = 0;
-	dsData.clearFlags = D3D11_CLEAR_DEPTH;
-	AddInitialOperation(PipelineOperationType::Device_SetDepthStencilState, dsData);
+	// 5. Stencil state
+	PipelineSetencilStateData pData = {};
+	pData.state = m_initManager->GetStencilState(config->stencilDef);
+	AddInitialOperation(PipelineOperationType::Device_SetDepthStencilState, pData);
 
-	// 5. Activar Shader
-	/*PipelineVertexShaderData vsData = {};
-	vsData.data = m_shaderManager->GetVertexShader(StringToWstring(shaderName));
-	AddInitialOperation(PipelineOperationType::Device_Init_SetPixelShader, vsData);*/
-
-	// 6. Configurar Input Layout
-	//params.layout.desc = { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 };
-	PipelineLayoutData lData = {};
-	lData.numElements = 1;
-	AddInitialOperation(PipelineOperationType::Device_Init_SetLayout, lData);
-
-	// 7. Bind Constants buffers.
-	PipelineMaterialBufferData mData = {};	
-	mData.worldMatrix = XMMatrixIdentity();;
-	mData.lightViewProjectionMatrix = m_shadows->GetLightViewProjectionMatrix();
-	AddInitialOperation(PipelineOperationType::Device_Init_ConstantsBuffers, mData);
+	// 6. Disable blending	
+	Microsoft::WRL::ComPtr<ID3D11BlendState> bData = m_initManager->GetBlendState(config->blendState);
+	PipelineBledingData bdData = {};
+	bdData.state = bData;
+	AddInitialOperation(PipelineOperationType::Device_DisabledBledingState, bdData);
 }
 
 HRESULT ShadowPass::InitManagers() {
-	m_deviceManager = ManagerLocator::GetDeviceManager();
-	if (!m_deviceManager) {
+    m_deviceManager = ManagerLocator::GetDeviceManager();
+    if (!m_deviceManager) {
+        return E_FAIL;
+    }
+    m_shaderManager = ManagerLocator::GetShaderManager();
+    if (!m_shaderManager) {
+        return E_FAIL;
+    }
+	m_cameraManager = ManagerLocator::GetManager<CameraManager>();
+	if (!m_cameraManager) {
 		return E_FAIL;
 	}
-	m_renderTargetManager = ManagerLocator::GetRenderManager();
-	if (!m_renderTargetManager) {
+    m_initManager = ManagerLocator::GetManager<InitManager>();
+    if (!m_initManager) {
+        return E_FAIL;
+    }
+    m_shadows = ServiceLocator::GetService<Shadows>();
+    if (!m_shadows) {
+        return E_FAIL;
+    }
+	m_lighthing = ServiceLocator::GetService<Lighting>();
+	if (!m_lighthing) {
 		return E_FAIL;
 	}
-	m_shaderManager = ManagerLocator::GetShaderManager();
-	if (!m_shaderManager) {
-		return E_FAIL;
-	}
-	m_shadows = ServiceLocator::GetService<Shadows>();
-	if (!m_shadows) {
-		return E_FAIL;
-	}
-	m_initManager = ManagerLocator::GetManager<InitManager>();
-	if (!m_initManager) {
-		return E_FAIL;
-	}
-	return S_OK;
+    return S_OK;
 }
 
 HRESULT ShadowPass::Init() {
-	config = std::make_shared<ShadowPassConfig>(ShadowPassConfig{});
-	if (!config) { return E_FAIL; };
-	HRESULT hr = InitManagers();
-	if (FAILED(hr)) {
-		return hr;
-	}
-	SetInitialOperations();
-	return hr;
+    config = std::make_shared<ShadowPassConfig>(ShadowPassConfig{}); // Asumo ShadowPassConfig
+    if (!config) { return E_FAIL; };
+    HRESULT hr = InitManagers();
+    if (FAILED(hr)) {
+        return hr;
+    }
+    SetInitialOperations();
+    return hr;
+}
+
+std::map<std::string, std::shared_ptr<MeshAsset>> ShadowPass::GetMeshes(GameRenderManager* gameRenderManager) { 
+	//return gameRenderManager->GetCastShadowMeshes();
+	return gameRenderManager->GetMeshesByRenderPass(RenderPassType::ShadowPass);
 }
 
 std::vector<std::shared_ptr<PipelineOperation>> ShadowPass::BeginPass()
 {
-	return GetInitialOperations();
+    // Las operaciones de inicio se obtienen desde SetInitialOperations
+    std::vector<std::shared_ptr<PipelineOperation>> init = GetInitialOperations();
+    return init;
 }
 
 std::vector<std::shared_ptr<PipelineOperation>> ShadowPass::ExecPass(std::shared_ptr<MeshAsset> mesh)
 {
-	int primitiveTopology = config->primitiveTopology;
-
 	ClearOperations();
+
+	Material* material = mesh->GetShadowMaterial();
+	std::wstring shaderName = StringToWstring(config->shader_name);  //StringToWstring(mesh->GetShaderName());
 	
-	PipelineOperationParams params = {};
-	// 1. Constants buffers
-	PipelineMaterialBufferData mData = {};
+	// 0. Vaciar constantes del shader actual
+	AddOperation(PipelineOperationType::Device_ResetConstantsBuffers);
+
+	// 1. Set Constant buffers
+	MatrixDefinitionBase::MatrixParams mData = {};
+
+	//mData.worldMatrix = mesh->GetWorldMatrix();
+	/*mData.worldMatrix = XMMatrixIdentity();
+	mData.viewMatrix = DirectX::XMMatrixTranspose(m_cameraManager->GetCurrentViewMatrix());
+	mData.projectionMatrix = DirectX::XMMatrixTranspose(m_cameraManager->GetCurrentProjectionMatrix());
+	mData.cameraPosition = m_cameraManager->GetCurrentCameraPosition();
+	mData.lightDirection = m_lighthing->GetLightDirection();
+	mData.lightColor = m_lighthing->GetLightColor();
+	mData.materialAO = 0.4f;
+	mData.textureTransform = mesh->GetTextureTransforms();*/
 	mData.worldMatrix = mesh->GetWorldMatrix();
-	AddOperation(PipelineOperationType::Mesh_Render_BindConstantsBuffers, mData);
-	// 2. Vertext buffer
+	/*DirectX::XMFLOAT3 lightDirection = DirectX::XMFLOAT3{ 0.77f, 0.577f, 0.577f };
+	m_shadows->UpdateLightMatrices(lightDirection, m_cameraManager->GetCurrentCameraPosition(), 1000.0f);*/
+	m_shadows->UpdateLightMatrices(m_lighthing->GetLightDirection(), m_cameraManager->GetCurrentCameraPosition(), 1000.0f);
+	mData.lightViewProjectionMatrix = m_shadows->GetLightViewProjectionMatrix();
+
+	PipelineMatrixBufferData matrixData = {};
+	matrixData.data = mData;
+	matrixData.constantsBuffers = material->GetConstantBuffers();
+	matrixData.matrices = m_shaderManager->GetMatrixDefinitions(shaderName);
+	AddOperation(PipelineOperationType::Device_SetConstantsBufferState, matrixData);
+
+	// 2. Set VertexShader
+	PipelineVertexShaderData vsData = {};
+	vsData.data = material->GetVertexShader().Get();
+	AddOperation(PipelineOperationType::Mesh_Render_SetVertexShader, vsData);
+
+	// 3. Set PixelShader --> No necesario en el pase de las sombras
+	/*PipelinePixelShaderData psData = {};
+	psData.data = material->GetPixelShader().Get();
+	AddOperation(PipelineOperationType::Mesh_Render_SetPixelShader, psData);*/
+
+	// 4. Set InputLayout
+	PipelineLayoutData lData = {};
+	lData.data = material->GetInputLayout();
+	AddOperation(PipelineOperationType::Mesh_Render_SetInputLayout, lData);
+
+	// 5. Reset Textures
+	AddOperation(PipelineOperationType::Mesh_Render_Reset_Textures);
+
+	// 6. Reset Samplers
+	AddOperation(PipelineOperationType::Mesh_Render_Reset_Sampler);
+
+	// 7. Set VertexBuffer
 	PipelineSetVertexBufferData vData = {};
-	vData.vertexBuffer = mesh->GetVertexBuffer();
 	vData.stride = mesh->GetVertexTypeSize();
+	vData.vertexBuffer = mesh->GetVertexBuffer();
 	AddOperation(PipelineOperationType::Mesh_Render_SetVertexBuffer, vData);
-	// 3. Index buffer
+
+	// 8. Set IndexBuffer
 	PipelineSetIndexBufferData iData = {};
 	iData.indexBuffer = mesh->GetIndexBuffer();
 	AddOperation(PipelineOperationType::Mesh_Render_SetIndexBuffer, iData);
-	// 4. Primitive topology
+
+	// 9. Primitive topology
 	PipelinePrimitiveTopologyData ptData = {};
-	ptData.data = static_cast<D3D_PRIMITIVE_TOPOLOGY>(primitiveTopology);
+	ptData.data = static_cast<D3D_PRIMITIVE_TOPOLOGY>(config->primitiveTopology);
 	AddOperation(PipelineOperationType::Mesh_Render_SetPrimitiveToplogy, ptData);
-	// 5. Draw indexes
-	PipelineDrawIndexedData drawData = {};
-	drawData.numIndexes = mesh->GetIndexCount();
-	AddOperation(PipelineOperationType::Device_drawIndexed, drawData);
-	//ServiceLocator::
+
+	// 10. DrawIndexed
+	Draw(mesh);
+	//AddOperation(PipelineOperationType::Device_drawIndexed, drawData);º
+
 	return GetOperations();
 }
 
 std::vector<std::shared_ptr<PipelineOperation>> ShadowPass::EndPass()
 {
-	// 1. Desvincular Render Target / Depth-Stencil View del Mapa de Sombras
-	// (Opcional, pero bueno para liberar el recurso para usarlo como SRV): 
-	// Device_SetRenderTargets(Establecer a nullptr para RT y nullptr para DSV).
-
-	// 2. Restaurar Viewport a default / main
-	// (Opcional, pero buena práctica si el siguiente pase tiene un viewport diferente) :
-	// Mesh_Render_SetViewport(Al Viewport de la ventana principal).
-	return {};
-
+    // Limpiar los estados para el siguiente pase
+    return {};
 }

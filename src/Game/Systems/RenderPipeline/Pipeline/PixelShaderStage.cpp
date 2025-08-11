@@ -23,8 +23,25 @@ namespace RenderPipeline
         if (m_context) m_context->PSSetShaderResources(StartSlot, NumViews, ppShaderResourceViews);
     }
 
+    void PixelShaderStage::ResetShaderResources()
+    {
+        if (m_context) {
+            ID3D11ShaderResourceView* nullSRVs[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = {};
+            m_context->PSSetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, nullSRVs);
+        }
+    }
+    
+
     void PixelShaderStage::SetSamplers(UINT StartSlot, UINT NumSamplers, ID3D11SamplerState* const* ppSamplers)
     {
         if (m_context) m_context->PSSetSamplers(StartSlot, NumSamplers, ppSamplers);
+    }
+
+    void PixelShaderStage::ResetSamplers()
+    {
+        if (m_context) {
+            ID3D11SamplerState* nullSamplers[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT] = {};
+            m_context->PSSetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, nullSamplers);
+        }
     }
 }

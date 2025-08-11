@@ -55,7 +55,7 @@ std::shared_ptr<IVertex> DefineLocator::GetVertexDefine(const std::string& name)
     return nullptr;
 }
 
-std::vector<std::shared_ptr<VertexDefinition::VertexVariant>> DefineLocator::GetVertexDefineAsVector(const std::string& name) {
+std::vector<std::shared_ptr<VertexDefinition::VertexVariant>> DefineLocator::GetVertexDefinitionAsVector(const std::string& name) {
     auto& entries = DefineLocator::GetDefineEntries();
     auto it = entries.find(name);
     if (it != entries.end()) {

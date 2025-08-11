@@ -43,6 +43,7 @@ namespace Light {
         void SetMatrixData(MatrixParams params) {
             // Asigna la matriz de vista-proyección de la luz desde MatrixParams
             // DirectX::XMMATRIX ya es de 16 bytes de alineación y tamaño apropiado.
+			this->worldMatrix = params.worldMatrix;
             this->LightViewProjection = params.lightViewProjectionMatrix;
         }
 

@@ -4,13 +4,16 @@
 REGISTER_CONFIG_TYPE(ShadowPassConfig,"ShadowPassConfig");
 
 ShadowPassConfig::ShadowPassConfig(){
+	id = 1;
 	enabled = true;
 	shader_name = "ShadowMapShader";
 	rasterizedState = "RasterizedShadowPass";
 	viewPortState = "ViewportShadow";
-	stencilState = "StencilShadow";
-	blendState = "none";
-	drawType = "DrawIndexed";
+	stencilState = "StencilViewShadow";
+	stencilDef = "StencilStateRegular";
+	shaderViewState = "ShaderViewShadow";
+	shadowTextureView = "none";
+	blendState = "DisabledBlending";
 	primitiveTopology = 4;
 	resolution = 2048;
 };

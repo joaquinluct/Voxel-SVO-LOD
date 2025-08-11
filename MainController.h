@@ -18,7 +18,6 @@
 #include "RenderTargetManager.h"
 #include "ShaderManager.h"
 #include "WorldMatrixManager.h"
-#include <InitManager.h>
 #include <RenderManager/RenderManager.h>
 #include <KeyboardManager.h>
 //#include "RenderObjects/Line/Line.h"
@@ -76,5 +75,4 @@ private:
     std::shared_ptr<GameManager> m_GameManager;
     std::shared_ptr<UIManager> m_UIManager;
     std::shared_ptr<RenderManager> m_renderManager;
-    std::shared_ptr<InitManager> m_initManager;
 };

@@ -17,5 +17,6 @@ public:
 	std::string version;
 	std::vector<float> ambient_light;
 	std::vector<float> directional_light;
+	std::vector<float> directional_light_color;
 	bool shadows;
 };

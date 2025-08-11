@@ -56,10 +56,12 @@ void GameManager::Update(float deltaTime) {
     // Utiliza los managers obtenidos:
     // m_cameraManager->Update(deltaTime);
     // m_keyboardManager->ProcessInput();
+    ServiceLocator::UpdateServices(m_gameConfig->service_update_order, deltaTime);
+
 }
 
 void GameManager::Render() {
-    ServiceLocator::RenderServices(m_gameConfig->services_render_order);
+    //ServiceLocator::RenderServices(m_gameConfig->services_render_order);
 }
 
 void GameManager::Shutdown() {

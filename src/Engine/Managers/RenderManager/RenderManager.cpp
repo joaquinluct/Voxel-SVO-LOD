@@ -30,7 +30,7 @@ HRESULT RenderManager::InitSubManagers() {
 		return E_FAIL;
 	}
 	m_context = m_deviceManager->GetContext();
-	m_serviceConfig = ConfigLocator::GetConfig<ServiceConfig>();
+	m_serviceConfig = ConfigLocator::GetConfig<ServiceConfig>(); 
 	if (!m_serviceConfig) {
 		return E_FAIL;
 	}
@@ -64,10 +64,14 @@ RenderPassType GetRenderPassTypeFromString(const std::string& pass) {
 		return RenderPassType::ShadowPass;
 	} else if (pass == "PostProcessPass") {
 		return RenderPassType::PostProcessPass;
+	} else if (pass == "UIPass") {
+		return RenderPassType::UIPass;
+	} else if (pass == "SkyboxPass") {
+		return RenderPassType::Skybox;
 	} else if (pass == "Debug") {
 		return RenderPassType::Debug;
 	}
-	return RenderPassType::Unknown;
+	return RenderPassType::None;
 }
 
 HRESULT RenderManager::InitPasses() {
@@ -77,7 +81,7 @@ HRESULT RenderManager::InitPasses() {
 	int index = 0;
 	for(std::string pass: m_config->passes) {
 		RenderPassType passType = GetRenderPassTypeFromString(pass);
-		if (passType == RenderPassType::Unknown) {
+		if (passType == RenderPassType::None) {
 			continue; // Skip unknown pass types
 		}
 
@@ -107,7 +111,7 @@ HRESULT RenderManager::Init() {
 	return hr;
 }
 
-void RenderManager::BeginRender() {	
+void RenderManager::BeginRender() {
 }
 
 void RenderManager::Render() {
@@ -131,12 +135,10 @@ void RenderManager::ExecRender() {
 	EndRender();*/
 
 	// CÓDIGO NUEVO
-	ServiceLocator::RenderServices(m_serviceConfig->services_render_order);	
+	ServiceLocator::RenderServices(m_serviceConfig->services_render_order);
 	ManagerLocator::RenderManagers(m_engineConfig->managers_render_order);
 	ClearOperations();
 	BeginRender();
-	/*ExecOperations();
-	ClearOperations();*/
 	for (const auto& passPair : m_renderPasses) {
 		if (passPair.second == nullptr) {
 			continue; // Skip null passes
@@ -146,7 +148,7 @@ void RenderManager::ExecRender() {
 
 		if (pass->IsActive()) {
 			std::vector<std::shared_ptr<PipelineOperation>> operations = pass->BeginPass();
-			std::map<std::string, std::shared_ptr<MeshAsset>> meshes = m_gameRenderManager->GetMeshes();
+			std::map<std::string, std::shared_ptr<MeshAsset>> meshes = pass->GetMeshes(m_gameRenderManager);
 			for (const auto& meshPair : meshes) {
 				auto mesh = meshPair.second;
 				if (mesh) {
@@ -176,8 +178,6 @@ const std::shared_ptr<PipelineStore> RenderManager::GetPipelineStore() {
 	m_pipelineStore = std::make_shared<PipelineStore>(pStore);
 	return m_pipelineStore;
 }
-
-
 
 HRESULT RenderManager::ExecOperations()
 {	

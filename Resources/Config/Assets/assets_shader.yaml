@@ -8,6 +8,9 @@ Config:
         vertex_def: "TextVertex"
         matrix_slots:
             - MatrixBufferTypeOrthographic
+        sampler_slots:
+            - UISampler
+        needs_shadow: false
         name: "ShaderTextUI"
         dependencies:
           - ShaderAsset
@@ -17,6 +20,9 @@ Config:
         vertex_def: "SimpleVertex"
         matrix_slots:
             - MatrixBufferType
+        sampler_slots:
+            - RegularSampler
+        needs_shadow: false
         name: "DefaultShader"
         dependencies:
           - ShaderAsset
@@ -26,6 +32,9 @@ Config:
         vertex_def: "TextureBasicVertex"
         matrix_slots:
             - MatrixBufferType
+        sampler_slots:
+            - RegularSampler
+        needs_shadow: false
         name: "TextureBasicShader"
         dependencies:
           - ShaderAsset
@@ -39,6 +48,9 @@ Config:
             - CameraData
             - MaterialData
             - TextureTransformations
+        sampler_slots:
+            - RegularSampler
+        needs_shadow: false
         name: "TextureMapShader"
         dependencies:
           - ShaderAsset
@@ -52,6 +64,9 @@ Config:
             - CameraData
             - MaterialData
             - TextureTransformations
+        sampler_slots:
+            - RegularSampler
+        needs_shadow: false
         name: "PBRShader"
         dependencies:
           - ShaderAsset
@@ -59,12 +74,17 @@ Config:
         type: "ShaderAsset"
         shader_path: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Shader\\PBRShadowShader.hlsl"
         vertex_def: "TextureMapVertex"
+        needs_shadow: true
         matrix_slots:
             - MatrixBufferType
             - DirectionalLight
             - CameraData
             - MaterialData
+            - TextureTransformations
             - LightSpaceMatrices
+        sampler_slots:
+            - RegularSampler
+            - ShadowMapSampler
         name: "PBRShadowShader"
         dependencies:
           - ShaderAsset
@@ -76,7 +96,10 @@ Config:
         vertex_def: "SimpleVertex"
         matrix_slots:
             - LightSpaceMatrices
+        sampler_slots:
+            - None
         name: "ShadowMapShader"
+        needs_shadow: false
         dependencies:
           - ShaderAsset
       SkyboxShader:
@@ -85,7 +108,26 @@ Config:
         vertex_def: "SkyboxVertex"
         matrix_slots:
             - MatrixBufferTypeSkyBox
+        sampler_slots:
+            - RegularSampler
+        needs_shadow: false
         name: "SkyboxShader"
+        dependencies:
+          - ShaderAsset
+      ProceduralSkyboxShader:
+        type: "ShaderAsset"
+        shader_path: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Shader\\MyProceduralSkyboxShader.hlsl"
+        vertex_def: "SimpleVertex"
+        # vertex_def: "SkyboxVertex"
+        matrix_slots:
+            - MatrixBufferType
+            - ProceduralSkyboxMatrix
+            # - MatrixBufferTypeProceduralSkyBox
+            # - ProceduralSkyboxMatrix
+        sampler_slots:
+            - RegularSampler
+        needs_shadow: false
+        name: "ProceduralSkyboxShader"
         dependencies:
           - ShaderAsset
 Definition:
@@ -104,6 +146,8 @@ Definition:
         - shader_path
         - vertex_def
         - matrix_slots
+        - sampler_slots
+        - needs_shadow
         - name
         - dependencies
     # output_path: 'C:\Users\joaqu\source\repos\DirectX-Voxelado\TestConfig\Assets\'

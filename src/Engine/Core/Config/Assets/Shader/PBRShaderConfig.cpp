@@ -14,6 +14,10 @@ PBRShaderConfig::PBRShaderConfig(){
 		"MaterialData",
 		"TextureTransformations"
 	};
+	sampler_slots = {
+		"RegularSampler"
+	};
+	needs_shadow = false;
 	name = "PBRShader";
 	dependencies = {
 		"ShaderAsset"

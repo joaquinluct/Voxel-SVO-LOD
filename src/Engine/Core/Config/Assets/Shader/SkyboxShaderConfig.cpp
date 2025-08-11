@@ -10,6 +10,10 @@ SkyboxShaderConfig::SkyboxShaderConfig(){
 	matrix_slots = {
 		"MatrixBufferTypeSkyBox"
 	};
+	sampler_slots = {
+		"RegularSampler"
+	};
+	needs_shadow = false;
 	name = "SkyboxShader";
 	dependencies = {
 		"ShaderAsset"

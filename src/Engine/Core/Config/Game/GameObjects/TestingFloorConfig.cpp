@@ -11,6 +11,6 @@ TestingFloorConfig::TestingFloorConfig(){
 	type = "TestingFloor";
 	description = "Un suelo de pruebas.";
 	dependencies = {
-		"FloorMesh"
+		"BoxMesh"
 	};
 };

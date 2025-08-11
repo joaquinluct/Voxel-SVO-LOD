@@ -15,9 +15,18 @@ LightingConfig::LightingConfig(){
 		0.2f
 	};
 	directional_light = {
+		0.5f,
+		0.7f,
+		0.5f
+	};
+	directional_light_color = {
+		1.0f,
 		1.0f,
 		1.0f,
 		1.0f
 	};
 	shadows = true;
+	dependencies = {
+		"KeyboardManager"
+	};
 };

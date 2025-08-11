@@ -7,18 +7,25 @@ InitManagerConfig::InitManagerConfig(){
 	deviceAndSwapChain = "SwapChainMain";
 	rasterizedStates = {
 		"RasterizedMainColorPass",
-		"RasterizedShadowPass"
+		"RasterizedShadowPass",
+		"RasterizedUIPass"
 	};
 	blendingStates = {
-		"BlendingMainColor"
+		"DisabledBlending",
+		"BlendingUI"
+	};
+	stencilViews = {
+		"StencilViewMainColor",
+		"StencilViewShadow"
 	};
 	stencilStates = {
-		"StencilMainColor",
-		"StencilShadow"
+		"StencilStateRegular",
+		"StencilStateUI"
 	};
 	viewPortStates = {
 		"ViewportMainColor",
-		"ViewportShadow"
+		"ViewportShadow",
+		"ViewportUI"
 	};
 	dependencies = {
 		"Shadows"

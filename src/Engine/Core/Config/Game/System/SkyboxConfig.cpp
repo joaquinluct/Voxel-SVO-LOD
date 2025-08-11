@@ -11,6 +11,6 @@ SkyboxConfig::SkyboxConfig(){
 	type = "DefaultSkybox";
 	mesh = "SkyboxMesh";
 	dependencies = {
-		"SkyboxMesh"
+		"ProcSkyboxMesh"
 	};
 };

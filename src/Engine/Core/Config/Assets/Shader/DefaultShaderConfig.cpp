@@ -10,6 +10,10 @@ DefaultShaderConfig::DefaultShaderConfig(){
 	matrix_slots = {
 		"MatrixBufferType"
 	};
+	sampler_slots = {
+		"RegularSampler"
+	};
+	needs_shadow = false;
 	name = "DefaultShader";
 	dependencies = {
 		"ShaderAsset"

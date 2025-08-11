@@ -8,6 +8,6 @@ WorldMatrixManagerConfig::WorldMatrixManagerConfig(){
 	dependencies = {
 		"DeviceManager",
 		"RenderTargetManager",
-		"CameraManager5"
+		"CameraManager"
 	};
 };
