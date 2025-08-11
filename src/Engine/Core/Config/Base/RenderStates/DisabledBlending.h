@@ -5,12 +5,13 @@
 #include <map>
 #include <IPipelineBlendingState.h>
 
-class BlendingMainColor : public IPipelineBlendingState {
+class DisabledBlending : public IPipelineBlendingState {
 public:
-	BlendingMainColor();
+	DisabledBlending();
 	static const std::string& GetStaticPipelineStateName()
 	{
-		static const std::string className = "BlendingMainColor";
+		static const std::string className = "DisabledBlending";
 		return className;
 	}
+	std::string TYPE;
 };

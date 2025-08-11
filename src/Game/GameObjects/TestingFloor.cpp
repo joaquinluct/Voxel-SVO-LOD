@@ -8,7 +8,8 @@ REGISTER_SERVICE_TYPE(TestingFloor, "TestingFloor");
 
 TestingFloor::TestingFloor() :
 	mesh(nullptr),
-	houseMesh(nullptr)
+	houseMesh(nullptr),
+	boxMesh(nullptr)
 {
 }
 
@@ -26,8 +27,6 @@ HRESULT TestingFloor::Init()
 
 	mesh = m_renderManager->GameRenderManagerGet()->RegisterMesh("FloorMesh");
 
-	// mesh = AssetLocator::GetAsset<MeshAsset>("FloorMesh");
-
 	if (!mesh) {
 		OutputDebugStringA("TestingFloor::Init - ERROR: Mesh init.\n");
 	}
@@ -37,9 +36,7 @@ HRESULT TestingFloor::Init()
 		return hr;
 	}
 
-	houseMesh = m_renderManager->GameRenderManagerGet()->RegisterMesh(("House1Mesh"));
-
-	////houseMesh = AssetLocator::GetAsset<MeshAsset>("House1Mesh");
+	/*houseMesh = m_renderManager->GameRenderManagerGet()->RegisterMesh(("House1Mesh"));
 
 	if (!houseMesh) {
 		OutputDebugStringA("TestingFloor::Init - ERROR: House mesh init.\n");
@@ -48,9 +45,27 @@ HRESULT TestingFloor::Init()
 	if (FAILED(hr)) {
 		OutputDebugStringA("TestingFloor::Init - ERROR: House mesh init failed.\n");
 		return hr;
+	}*/
+
+	//houseMesh->SetScale(0.5f, 0.5f, 0.5f);
+
+	boxMesh = m_renderManager->GameRenderManagerGet()->RegisterMesh("BoxMesh");
+	if (boxMesh == nullptr) {
+		OutputDebugStringA("TestingFloor::Init - ERROR: Box mesh init.\n");
+	}
+	hr = boxMesh->Init();
+	if (FAILED(hr)) {
+		OutputDebugStringA("TestingFloor::Init - ERROR: Box mesh init failed.\n");
+		return hr;
 	}
 
-	houseMesh->SetScale(0.5f, 0.5f, 0.5f);
+	//boxMesh->SetPosition(20.0f, 0.0f, 20.0f);
+
+	text = m_renderManager->GameRenderManagerGet()->RegisterTextMesh("UITextMesh");
+	text->SetText("HOLA");
+	hr = text->Init();
+	
+
 
 	return S_OK;
 }

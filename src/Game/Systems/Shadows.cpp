@@ -2,6 +2,7 @@
 
 // Para acceder al contexto del dispositivo
 #include <DeviceManager.h>
+#include <Game/Systems/Lighting.h>
 #include <ManagerLocator/ManagerLocator.h>
 #include <ConfigLocator/ConfigLocator.h> // Si usas configuración para SHADOW_MAP_WIDTH/HEIGHT
 #include <REGISTER_SERVICE_MACRO.h> // Tu macro para registrar servicios
@@ -42,12 +43,13 @@ HRESULT Shadows::Init() {
         OutputDebugStringA("Error: ShaderManager no inicializado en Shadows.\n");
         return E_FAIL;
     }
-
     Microsoft::WRL::ComPtr<ID3D11Device> device = m_deviceManager->GetDevice();
     if (!device) return E_FAIL; // Error check
 
     return S_OK;
 }
+
+void Shadows::Update(float deltaTime) {}
 
 void Shadows::Shutdown() {
     // ComPtrs se liberan automáticamente cuando salen de scope o se reasignan.
@@ -76,26 +78,49 @@ void Shadows::Shutdown() {
     m_shaderManager = nullptr;
 }
 
+//void Shadows::UpdateLightMatrices(const DirectX::XMFLOAT3& lightDirection, const DirectX::XMFLOAT3& sceneCenter, float sceneRadius)
+//{
+//    // Cargar vectores de DirectX::XMFLOAT3
+//    DirectX::XMVECTOR LightDir = DirectX::XMLoadFloat3(&lightDirection);
+//    DirectX::XMVECTOR LightTarget = DirectX::XMLoadFloat3(&sceneCenter);
+//    DirectX::XMVECTOR LightUp = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f); // Típicamente el eje Y es 'up'
+//
+//    // Calcular la posición de la luz: el centro de la escena, pero alejado en la dirección opuesta a la luz
+//    // Multiplicar por sceneRadius * 2.0f asegura que la escena completa esté dentro de la vista ortográfica
+//    DirectX::XMVECTOR LightPos = LightTarget - (DirectX::XMVector3Normalize(LightDir) * sceneRadius * 2.0f);
+//
+//    // Calcular las matrices de vista y proyección de la luz
+//    m_lightViewMatrix = DirectX::XMMatrixLookAtLH(LightPos, LightTarget, LightUp);
+//    // Para una proyección ortográfica, el ancho y alto son sceneRadius * 2.0f para cubrir el diámetro
+//    m_lightProjectionMatrix = DirectX::XMMatrixOrthographicLH(sceneRadius * 2.0f, sceneRadius * 2.0f, 0.1f, sceneRadius * 4.0f);
+//
+//    // Combinar View y Projection
+//    m_lightViewProjectionMatrix = m_lightViewMatrix * m_lightProjectionMatrix;
+//
+//    // Almacenar la matriz de ViewProjection de la luz en la copia CPU del Constant Buffer, transpuesta para HLSL
+//    m_lightSpaceData.lightViewProjectionMatrix = DirectX::XMMatrixTranspose(m_lightViewProjectionMatrix);
+//}
+
 void Shadows::UpdateLightMatrices(const DirectX::XMFLOAT3& lightDirection, const DirectX::XMFLOAT3& sceneCenter, float sceneRadius)
 {
-    // Cargar vectores de DirectX::XMFLOAT3
     DirectX::XMVECTOR LightDir = DirectX::XMLoadFloat3(&lightDirection);
     DirectX::XMVECTOR LightTarget = DirectX::XMLoadFloat3(&sceneCenter);
-    DirectX::XMVECTOR LightUp = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f); // Típicamente el eje Y es 'up'
+    DirectX::XMVECTOR LightUp = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 
-    // Calcular la posición de la luz: el centro de la escena, pero alejado en la dirección opuesta a la luz
-    // Multiplicar por sceneRadius * 2.0f asegura que la escena completa esté dentro de la vista ortográfica
-    DirectX::XMVECTOR LightPos = LightTarget - (DirectX::XMVector3Normalize(LightDir) * sceneRadius * 2.0f);
+    // Ajusta la distancia a la que se mueve la cámara de la luz.
+    // Usar un factor de 3 o 4 asegura que toda la escena está dentro del frustum.
+    float lightDistance = sceneRadius * 3.0f; // <-- Aumentado
 
-    // Calcular las matrices de vista y proyección de la luz
+    DirectX::XMVECTOR LightPos = LightTarget - (DirectX::XMVector3Normalize(LightDir) * lightDistance);
+
     m_lightViewMatrix = DirectX::XMMatrixLookAtLH(LightPos, LightTarget, LightUp);
-    // Para una proyección ortográfica, el ancho y alto son sceneRadius * 2.0f para cubrir el diámetro
-    m_lightProjectionMatrix = DirectX::XMMatrixOrthographicLH(sceneRadius * 2.0f, sceneRadius * 2.0f, 0.1f, sceneRadius * 4.0f);
 
-    // Combinar View y Projection
+    // Ajusta el tamaño del frustum ortográfico.
+    // Un valor más grande garantiza que la escena completa esté cubierta.
+    float orthoSize = sceneRadius * 6.0f; // <-- Aumentado
+    m_lightProjectionMatrix = DirectX::XMMatrixOrthographicLH(orthoSize, orthoSize, 0.1f, sceneRadius * 5.0f); // <-- Ajustado
+
     m_lightViewProjectionMatrix = m_lightViewMatrix * m_lightProjectionMatrix;
-
-    // Almacenar la matriz de ViewProjection de la luz en la copia CPU del Constant Buffer, transpuesta para HLSL
     m_lightSpaceData.lightViewProjectionMatrix = DirectX::XMMatrixTranspose(m_lightViewProjectionMatrix);
 }
 

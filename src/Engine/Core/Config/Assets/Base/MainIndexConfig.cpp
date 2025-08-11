@@ -6,12 +6,14 @@ REGISTER_CONFIG_TYPE(MainIndexConfig,"MainIndexConfig");
 MainIndexConfig::MainIndexConfig(){
 	mainIndex = {
 		"SkyboxShader",
+		"ProceduralSkyboxShader",
 		"DefaultShader",
 		"ShaderTextUI",
 		"TextureBasicShader",
 		"ShadowMapShader",
 		"TextureMapShader",
 		"PBRShader",
+		"PBRShadowShader",
 		"FloorVertex",
 		"FloorMesh",
 		"House1Mesh",
@@ -20,6 +22,9 @@ MainIndexConfig::MainIndexConfig(){
 		"TextureBricks001",
 		"DefaultSkybox",
 		"SkyboxCube",
-		"SkyboxMesh"
+		"SkyboxMesh",
+		"ProcSkyboxMesh",
+		"BoxMesh",
+		"UITextMesh"
 	};
 };

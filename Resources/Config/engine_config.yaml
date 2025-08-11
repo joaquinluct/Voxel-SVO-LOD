@@ -14,20 +14,20 @@ Config:
         - AssetManager
         - ShaderManager
         # - WorldMatrixManager
-        # - UIManager
+        - UIManager
         - GameManager
       managers_render_order:
         - RenderTargetManager
         # - WorldMatrixManager
         - GameManager
-        # - UIManager
+        - UIManager
         - DeviceManager
       managers_update_order:
          - KeyboardManager
          # - WorldMatrixManager
          - CameraManager
          - GameManager
-         # - UIManager
+         - UIManager
       pipeline_states_init:
         - SwapChainMain
         - RasterizedMainColorPass
@@ -35,26 +35,36 @@ Config:
         - BlendingMainColor
         - StencilMainColor
         - ViewportMain
+        - ShaderViewShadow
+
     InitManager:
       deviceAndSwapChain: SwapChainMain
       rasterizedStates:
         - RasterizedMainColorPass
         - RasterizedShadowPass
+        - RasterizedUIPass
       blendingStates:
-        - BlendingMainColor
+        - DisabledBlending
+        - BlendingUI
+      stencilViews:
+        - StencilViewMainColor
+        - StencilViewShadow
       stencilStates:
-        - StencilMainColor
-        - StencilShadow
+        - StencilStateRegular
+        - StencilStateUI
       viewPortStates:
         - ViewportMainColor
         - ViewportShadow
+        - ViewportUI
       dependencies:
         - Shadows
 
     RenderManager:
       passes:
-        # - ShadowPass
+        - ShadowPass
+        - SkyboxPass
         - MainColorPass
+        - UIPass
       dependencies:
         - RenderTargetManager
         - InitManager
@@ -142,14 +152,14 @@ Config:
         - Mouse
         - Keyboard
         - KeyboardManager
-        - RenderTargetManager 
+        - RenderTargetManager
     WorldMatrixManager:
       # Podrías definir el tamaño máximo de objetos, tamaño de lotes para instancing, etc.
       max_instances_per_batch: 1024
       dependencies:
         - DeviceManager
         - RenderTargetManager
-        - CameraManager5
+        - CameraManager
 
     # --- Configuraciones de Subsistemas de Juego ---
     GameManager:
@@ -164,6 +174,7 @@ Config:
 
     UIManager:
       initial_screen: "main_menu.yaml"
+      textMesh: UITextMesh
       font_path: "Assets/Fonts/Roboto-Regular.ttf"
       font_size: 24
       dependencies:

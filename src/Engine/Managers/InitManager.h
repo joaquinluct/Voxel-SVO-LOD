@@ -14,26 +14,27 @@
 #include <InitManager/Pipeline/PipelineConfigurator.h>
 #include <RenderManager/RenderPass.h> // Incluimos la clase RenderPass para usar su forma de añadir operaciones
 #include "Defines/Pipeline.h" // Incluimos las definiciones de operaciones y parámetros
-#include "DeviceManager.h" // Incluimos las definiciones de operaciones y parámetros
+#include "DeviceManager.h"
+#include "ShaderManager.h"
 
-#include <Config/Base/RenderStates/BlendingMainColor.h>
 #include <Config/Base/RenderStates/RasterizedMainColorPass.h>
 #include <Config/Base/RenderStates/RasterizedShadowPass.h>
-#include <Config/Base/RenderStates/StencilMainColor.h>
+#include <Config/Base/RenderStates/StencilViewMainColor.h>
+#include <Config/Base/RenderStates/BlendingUI.h>
 #include <Config/Base/InitManagerConfig.h>
+
+#include <Util/Text/Text.h>
 
 class InitManager : public IManager, public IWindowDependentInitializable
 {
 private:
+    MatrixDefinitionBase::MatrixParams m_constantsBuffers;
 
     std::shared_ptr<DeviceManager> m_deviceManager;
+    std::shared_ptr<ShaderManager> m_shaderManager;
 
     std::shared_ptr<InitManagerConfig> m_config;
-	std::shared_ptr<BlendingMainColor> m_blendingMainColor;
-	std::shared_ptr<RasterizedMainColorPass> m_rasterizedMainColorPass;
-    std::shared_ptr<RasterizedShadowPass> m_rasterizedShadowPass;
-    std::shared_ptr<StencilMainColor> m_stencilMain;
-
+	
     Microsoft::WRL::ComPtr<ID3D11Device> m_device;
     Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_context;
     Microsoft::WRL::ComPtr<IDXGISwapChain> m_swapChain;
@@ -41,9 +42,6 @@ private:
     // Instancia del executor del pipeline
     //std::unique_ptr<RenderPipeline::RenderPipelineExecutor> m_pipelineExecutor;
     std::unique_ptr<PipelineConfigurator> m_pipelineInitiator;
-
-    // Parámetros de las operaciones contra la GPU
-    PipelineOperationParams m_params;
 
     // Un "pase" de inicialización para almacenar las operaciones
     // Aunque no es un pase de renderizado real, nos sirve para agrupar las operaciones de la misma manera que un RenderPass lo haría.
@@ -104,6 +102,10 @@ public:
         return nullptr;
     }
 
+    MatrixDefinitionBase::MatrixParams GetConstantsBuffers() const {
+        return m_constantsBuffers;
+	}
+
     Microsoft::WRL::ComPtr<ID3D11RasterizerState> GetRasterizerState(std::string stateName) {
         auto it = m_pipelineStates.find(stateName);
         if (it != m_pipelineStates.end()) {
@@ -118,10 +120,34 @@ public:
         }
         return nullptr;
     }
+    Microsoft::WRL::ComPtr<ID3D11DepthStencilState> GetStencilState(std::string stateName) {
+        auto it = m_pipelineStates.find(stateName);
+        if (it != m_pipelineStates.end()) {
+            return std::get<Microsoft::WRL::ComPtr<ID3D11DepthStencilState>>(it->second);
+        }
+        return nullptr;
+    }
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> GetDepthStencilView(std::string viewName) {
         auto it = m_pipelineStates.find(viewName);
         if (it != m_pipelineStates.end()) {
-            return std::get<Microsoft::WRL::ComPtr<ID3D11DepthStencilView>>(it->second);
+            PipelineDepthStencilData data = std::get<PipelineDepthStencilData>(it->second);
+            return data.stencilViewData;
+        }
+        return nullptr;
+    }
+    ID3D11Texture2D* GetTextureViewResource(std::string viewName) {
+        auto it = m_pipelineStates.find(viewName);
+        if (it != m_pipelineStates.end()) {
+            PipelineDepthStencilData data = std::get<PipelineDepthStencilData>(it->second);
+            return data.viewTextureData;
+        }
+        return nullptr;
+    }
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> GetShaderResourceView(std::string viewName) {
+        auto it = m_pipelineStates.find(viewName);
+        if (it != m_pipelineStates.end()) {
+            PipelineDepthStencilData data = std::get<PipelineDepthStencilData>(it->second);
+            return data.shaderViewData;
         }
         return nullptr;
     }
@@ -138,7 +164,14 @@ public:
             return std::get<Microsoft::WRL::ComPtr<ID3D11SamplerState>>(it->second);
         }
         return nullptr;
-    }    
+    }
+    SamplerStates GetSamplerStates(std::string shaderName) {
+        const std::string pipelineStateName = "samplers";
+        PipelineData data = m_pipelineStates[pipelineStateName];
+        SamplerStates pipelineSamplers = std::get<SamplerStates>(data);
+        return m_shaderManager->GetSamplersStates(StringToWstring(shaderName), pipelineSamplers);
+        return std::get<SamplerStates>(data);
+    }
     Microsoft::WRL::ComPtr<ID3D11Texture2D> GetTexture2D(std::string textureName) {
         auto it = m_pipelineStates.find(textureName);
         if (it != m_pipelineStates.end()) {

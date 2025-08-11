@@ -174,12 +174,16 @@
     <ClCompile Include="src\Engine\Core\Config\Assets\Base\TextureAssetConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Base\VertexAssetConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Material\DefaultSkyboxMaterialConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Assets\Mesh\BoxMeshConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Mesh\FloorMeshConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Mesh\House1MeshConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Assets\Mesh\ProcSkyboxMeshConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Mesh\SkyboxMeshConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Assets\Mesh\UITextMeshConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\DefaultShaderConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\PBRShaderConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\PBRShadowShaderConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Assets\Shader\ProceduralSkyboxShaderConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\ShaderTextUIConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\ShadowMapShaderConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\SkyboxShaderConfig.cpp" />
@@ -205,14 +209,22 @@
     <ClCompile Include="src\Engine\Core\Config\Base\RenderManagerConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\RenderPass\MainColorPassConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\RenderPass\ShadowPassConfig.cpp" />
-    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\BlendingMainColor.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderPass\SkyboxPassConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderPass\UIPassConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\BlendingUI.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\DisabledBlending.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\RasterizedMainColorPass.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\RasterizedShadowPass.cpp" />
-    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\StencilMainColor.cpp" />
-    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\StencilShadow.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\RasterizedUIPass.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\ShaderViewShadow.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\StencilStateRegular.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\StencilStateUI.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\StencilViewMainColor.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\StencilViewShadow.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\SwapChainMain.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\ViewportMainColor.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\ViewportShadow.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\ViewportUI.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\RenderTargetManagerConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\ShaderManagerConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\UIManagerConfig.cpp" />
@@ -241,10 +253,14 @@
     <ClCompile Include="src\Engine\Core\Config\Services\ServiceConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Services\UIBaseConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Services\UIDebugConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Services\UITextConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Defines\Matrix\MatrixDefinition.cpp" />
+    <ClCompile Include="src\Engine\Core\Defines\ShaderSampler.cpp" />
     <ClCompile Include="src\Engine\Core\Locators\Pipeline\PipelineStateLocator.cpp" />
     <ClCompile Include="src\Engine\Managers\InitManager.cpp" />
     <ClCompile Include="src\Engine\Managers\InitManager\Pipeline\PipelineConfigurator.cpp" />
+    <ClCompile Include="src\Engine\Managers\RenderManager\Passes\SkyboxPass.cpp" />
+    <ClCompile Include="src\Engine\Managers\RenderManager\Passes\UIPass.cpp" />
     <ClCompile Include="src\Engine\Managers\RenderManager\Pipeline\RenderPipelineExecutor.cpp" />
     <ClCompile Include="src\Engine\Core\Defines\VertexDefinition.cpp" />
     <ClCompile Include="src\Engine\Core\Locators\AssetLocator\AssetLocator.cpp" />
@@ -313,6 +329,7 @@
     <ClCompile Include="src\Engine\Util\IGPUCreateCommand.cpp" />
     <ClCompile Include="src\Engine\Managers\UIManager.cpp" />
     <ClCompile Include="src\UI\UIBase.cpp" />
+    <ClCompile Include="src\UI\UIText.cpp" />
     <ClCompile Include="TestManagerName.cpp" />
     <ClCompile Include="src\Engine\Util\LOD.cpp" />
     <ClCompile Include="src\Engine\Util\RayTracing\RayTracing.cpp" />
@@ -384,7 +401,9 @@
     <ClInclude Include="Interfaces\IService.h" />
     <ClInclude Include="Interfaces\Pipeline\IPipelineBlendingState.h" />
     <ClInclude Include="Interfaces\Pipeline\IPipelineRasterizedState.h" />
+    <ClInclude Include="Interfaces\Pipeline\IPipelineShaderViewState.h" />
     <ClInclude Include="Interfaces\Pipeline\IPipelineStencilState.h" />
+    <ClInclude Include="Interfaces\Pipeline\IPipelineStencilView.h" />
     <ClInclude Include="Interfaces\Pipeline\IPipelineSwapChainState.h" />
     <ClInclude Include="Interfaces\Pipeline\IPipelineViewportState.h" />
     <ClInclude Include="Libs\TinyObjLoader\tiny_obj_loader.h" />
@@ -404,12 +423,16 @@
     <ClInclude Include="src\Engine\Core\Config\Assets\Base\TextureAssetConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Base\VertexAssetConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Material\DefaultSkyboxMaterialConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Assets\Mesh\BoxMeshConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Mesh\FloorMeshConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Mesh\House1MeshConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Assets\Mesh\ProcSkyboxMeshConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Mesh\SkyboxMeshConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Assets\Mesh\UITextMeshConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\DefaultShaderConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\PBRShaderConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\PBRShadowShaderConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Assets\Shader\ProceduralSkyboxShaderConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\ShaderTextUIConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\ShadowMapShaderConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\SkyboxShaderConfig.h" />
@@ -435,14 +458,22 @@
     <ClInclude Include="src\Engine\Core\Config\Base\RenderManagerConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\RenderPass\MainColorPassConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\RenderPass\ShadowPassConfig.h" />
-    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\BlendingMainColor.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderPass\SkyboxPassConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderPass\UIPassConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\BlendingUI.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\DisabledBlending.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\RasterizedMainColorPass.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\RasterizedShadowPass.h" />
-    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\StencilMainColor.h" />
-    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\StencilShadow.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\RasterizedUIPass.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\ShaderViewShadow.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\StencilStateRegular.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\StencilStateUI.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\StencilViewMainColor.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\StencilViewShadow.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\SwapChainMain.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\ViewportMainColor.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\ViewportShadow.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\ViewportUI.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\RenderTargetManagerConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\ShaderManagerConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\UIManagerConfig.h" />
@@ -471,6 +502,7 @@
     <ClInclude Include="src\Engine\Core\Config\Services\ServiceConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Services\UIBaseConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Services\UIDebugConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Services\UITextConfig.h" />
     <ClInclude Include="src\Engine\Core\Defines\Asset.h" />
     <ClInclude Include="src\Engine\Core\Defines\Components.h" />
     <ClInclude Include="src\Engine\Core\Defines\Matrix\CameraMatrix.h" />
@@ -478,9 +510,15 @@
     <ClInclude Include="src\Engine\Core\Defines\Matrix\MaterialMatrix.h" />
     <ClInclude Include="src\Engine\Core\Defines\Matrix\MatrixDefinition.h" />
     <ClInclude Include="src\Engine\Core\Defines\Matrix\MatrixDefinitionBase.h" />
+    <ClInclude Include="src\Engine\Core\Defines\Matrix\ProceduralSkybox.h" />
+    <ClInclude Include="src\Engine\Core\Defines\Mesh.h" />
+    <ClInclude Include="src\Engine\Core\Defines\Pass.h" />
     <ClInclude Include="src\Engine\Core\Defines\Pipeline.h" />
     <ClInclude Include="src\Engine\Core\Defines\RenderPass.h" />
+    <ClInclude Include="src\Engine\Core\Defines\ShaderSampler.h" />
     <ClInclude Include="src\Engine\Core\Defines\Texture.h" />
+    <ClInclude Include="src\Engine\Core\Defines\UI.h" />
+    <ClInclude Include="src\Engine\Core\Defines\Vector.h" />
     <ClInclude Include="src\Engine\Core\Locators\AssetLocator\AssetLocator.h" />
     <ClInclude Include="src\Engine\Core\Locators\ConfigLocator\ConfigLocator.h" />
     <ClInclude Include="src\Engine\Core\Config\AssetConfig.h" />
@@ -517,6 +555,8 @@
     <ClInclude Include="src\Engine\Managers\InitManager\Pipeline\PipelineConfigurator.h" />
     <ClInclude Include="src\Engine\Managers\RenderManager\Passes\MainColorPass.h" />
     <ClInclude Include="src\Engine\Managers\RenderManager\Passes\ShadowPass.h" />
+    <ClInclude Include="src\Engine\Managers\RenderManager\Passes\SkyboxPass.h" />
+    <ClInclude Include="src\Engine\Managers\RenderManager\Passes\UIPass.h" />
     <ClInclude Include="src\Engine\Managers\RenderManager\Pipeline\RenderPipelineExecutor.h" />
     <ClInclude Include="src\Engine\Managers\RenderManager\RenderPass.h" />
     <ClInclude Include="src\Game\GameObjects\TestingFloor.h" />
@@ -635,8 +675,16 @@
     <ClInclude Include="src\Engine\Util\Utils.h" />
     <ClInclude Include="src\Engine\Util\VisibleNodeInfo.h" />
     <ClInclude Include="src\UI\UIBase.h" />
+    <ClInclude Include="src\UI\UIText.h" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="Assets\Shader\MyProceduralSkyboxShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
     <FxCompile Include="Assets\Shader\PBRShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       </ShaderType>
@@ -645,6 +693,13 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
     <FxCompile Include="Assets\Shader\PBRShadowShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="Assets\Shader\ProceduralSkyboxShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       </ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
@@ -745,6 +800,7 @@
   <ItemGroup>
     <None Include="Assets\Textures\Brick\Poliigon_BrickWallReclaimed_8320.mtlx" />
     <None Include="Assets\Textures\DefaultSkybox\build_dds.bat" />
+    <None Include="copy_debug_to_root.bat" />
     <None Include="cpp.hint" />
     <None Include="Libs\DirectX\DirectXTex\DirectXTex.inl" />
     <None Include="Libs\DirectX\DirectXTex\Shaders\Compiled\BC6HEncode_EncodeBlockCS.inc" />
@@ -762,6 +818,7 @@
     <None Include="Libs\DirectX\DirectXTex\Shaders\Compiled\BC7Encode_TryMode456CS.inc" />
     <None Include="Libs\DirectX\DirectXTex\Shaders\Compiled\BC7Encode_TryMode456CS_cs40.inc" />
     <None Include="Libs\DirectX\DirectXTex\Shaders\CompileShaders.cmd" />
+    <None Include="md\CUBEMAPS_SKYBOX.md" />
     <None Include="md\PIPE-LINE.md" />
     <None Include="md\SAMPLERS.md" />
     <None Include="md\SAVE_FBX.md" />

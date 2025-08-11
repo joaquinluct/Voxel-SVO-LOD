@@ -3,25 +3,58 @@ Config:
   Base:
     RenderPass:
       ShadowPass:
+        id: 1
         enabled: true
         shader_name: ShadowMapShader
         rasterizedState: RasterizedShadowPass
         viewPortState: ViewportShadow
-        stencilState: StencilShadow
-        blendState: none
-        drawType: "DrawIndexed"
-        primitiveTopology: 4 # D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELISTs
+        stencilState: StencilViewShadow
+        stencilDef: StencilStateRegular
+        shaderViewState: ShaderViewShadow
+        shadowTextureView: none
+        blendState: DisabledBlending
+        primitiveTopology: 4 # D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
         resolution: 2048 # Resolution for shadow map
 
       MainColorPass:
+        id: 2
         enabled: true
         shader_default: PBRShadowShader
         rasterizedState: RasterizedMainColorPass
         viewPortState: ViewportMainColor
-        stencilState: StencilMainColor
+        stencilState: StencilViewMainColor
+        stencilDef: none
+        shaderViewState: none
+        shadowTextureView: StencilViewShadow
         blendState: none
-        drawType: "DrawIndexed"
-        primitiveTopology: 4 # D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELISTs
+        primitiveTopology: 4 # D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
+
+      UIPass:
+        id: 8
+        enabled: true
+        shader_default: ShaderTextUI
+        rasterizedState: RasterizedUIPass
+        viewPortState: ViewportUI
+        stencilState: none
+        stencilDef: StencilStateUI
+        shaderViewState: none
+        shadowTextureView: none
+        blendState: BlendingUI
+        primitiveTopology: 4 # D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
+
+      SkyboxPass:
+        id: 16
+        enabled: true
+        shader_default: PBRShadowShader
+        rasterizedState: RasterizedMainColorPass
+        viewPortState: ViewportMainColor
+        stencilState: StencilViewMainColor
+        stencilDef: none
+        shaderViewState: none
+        shadowTextureView: StencilViewShadow
+        blendState: none
+        primitiveTopology: 4 # D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
+
 Definition:
   Default:
     language: 1 # C++

@@ -9,17 +9,17 @@ ServiceConfig::ServiceConfig(){
 		"KeyBindings",
 		"Mouse",
 		"Material",
-		"UIBase"
+		"UIText"
 	};
 	services_render_order = {
 		"Mouse",
 		"Keyboard",
-		"UIBase"
+		"UIText"
 	};
 	services_update_order = {
 		"Mouse",
 		"Keyboard",
-		"UIBase",
+		"UIText",
 		"Material"
 	};
 };

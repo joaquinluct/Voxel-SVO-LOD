@@ -4,7 +4,11 @@
 #include <vector>
 #include <memory>
 #include <IRenderPass.h>
+#include <Defines/Pass.h>
 #include <Defines/Pipeline.h>
+#include <Managers/RenderManager/GameRenderManager.h>
+
+class MeshAsset;
 
 class RenderPass : public IRenderPass
 {
@@ -35,17 +39,22 @@ public:
     std::vector<std::shared_ptr<PipelineOperation>> BeginPass() override;
     std::vector<std::shared_ptr<PipelineOperation>> ExecPass(std::shared_ptr<MeshAsset> mesh) override;
     std::vector<std::shared_ptr<PipelineOperation>> EndPass() override;
+	std::map<std::string, std::shared_ptr<MeshAsset>> GetMeshes(GameRenderManager* gameRenderManager) override;
 
+    const int GetId() const { return id; }
+     
     bool IsActive() const override { return active; }
 
     void Activate() override { active = true; }
     void Deactivate() override { active = false; }
 
+    void Draw(std::shared_ptr<MeshAsset> mesh);
+
     int AddOperation(const PipelineOperation& operation) {
         m_operations.push_back(std::make_shared<PipelineOperation>(operation));
         return operation.GetPriority();
     }
-    int AddOperation(PipelineOperationType operationType, PipelineParameter operationParam, PipelineData operationOutData =
+    int AddOperation(PipelineOperationType operationType, PipelineParameter operationParam = {}, PipelineData operationOutData =
         {}) {
         PipelineOperation* operation = new PipelineOperation(operationType, operationParam, operationOutData, 0);
 

@@ -10,7 +10,11 @@ ShadowMapShaderConfig::ShadowMapShaderConfig(){
 	matrix_slots = {
 		"LightSpaceMatrices"
 	};
+	sampler_slots = {
+		"None"
+	};
 	name = "ShadowMapShader";
+	needs_shadow = false;
 	dependencies = {
 		"ShaderAsset"
 	};

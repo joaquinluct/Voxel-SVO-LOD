@@ -13,17 +13,20 @@ EngineConfig::EngineConfig(){
 		"CameraManager",
 		"AssetManager",
 		"ShaderManager",
+		"UIManager",
 		"GameManager"
 	};
 	managers_render_order = {
 		"RenderTargetManager",
 		"GameManager",
+		"UIManager",
 		"DeviceManager"
 	};
 	managers_update_order = {
 		"KeyboardManager",
 		"CameraManager",
-		"GameManager"
+		"GameManager",
+		"UIManager"
 	};
 	pipeline_states_init = {
 		"SwapChainMain",
@@ -31,6 +34,7 @@ EngineConfig::EngineConfig(){
 		"RasterizedShadowPass",
 		"BlendingMainColor",
 		"StencilMainColor",
-		"ViewportMain"
+		"ViewportMain",
+		"ShaderViewShadow"
 	};
 };

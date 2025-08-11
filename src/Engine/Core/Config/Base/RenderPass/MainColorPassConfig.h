@@ -13,12 +13,15 @@ public:
 		static const std::string className = "MainColorPassConfig";
 		return className;
 	}
+	int id;
 	bool enabled;
 	std::string shader_default;
 	std::string rasterizedState;
 	std::string viewPortState;
 	std::string stencilState;
+	std::string stencilDef;
+	std::string shaderViewState;
+	std::string shadowTextureView;
 	std::string blendState;
-	std::string drawType;
 	int primitiveTopology;
 };

@@ -9,10 +9,13 @@
 #include "IUpdatable.h"
 #include "IShutdownable.h"
 #include <directxmath.h>
-#include "UI/UIElement.h"
+//#include <UI/UIElement.h>
+#include <UI/UIText.h>
 #include "DeviceManager.h"
 #include "RenderTargetManager.h"
 #include <ManagerLocator/ManagerLocator.h>
+
+class RenderManager;
 
 class UIManager : public IManager, public IInitializable, public IRenderable, public IUpdatable, public IShutdownable
 {
@@ -30,19 +33,24 @@ public:
     }
 
     HRESULT Init() override;
+    UIText* InitText(std::vector<std::shared_ptr<VertexDefinition::VertexVariant>>& vertexDef, std::string text);
     void Render() override;
     void Update(float deltaTime) override {};
     void Shutdown() override;
 
-    void AddElement(UIElement* element);
-    void RemoveElement(UIElement* element);
-    std::vector<UIElement*> uiElements;
+	//void SetText(const std::wstring& text);
+    /*void AddElement(UIElement* element);
+    void RemoveElement(UIElement* element);*/
+    //std::vector<UIElement*> uiElements;
 
     XMMATRIX GetOrthoMatrix() const { return m_orthoMatrix; };
 
 private:
+	std::vector<UIText*> m_textElements;
     std::shared_ptr<DeviceManager> m_deviceManager;
     std::shared_ptr<RenderTargetManager> m_renderTargetManager;
 	std::shared_ptr<WorldMatrixManager> m_worldMatrixManager;
+    std::shared_ptr<RenderManager> m_renderManager;
+	// Matriz ortográfica para UI
 	XMMATRIX m_orthoMatrix; // Matriz ortográfica para UI
 };

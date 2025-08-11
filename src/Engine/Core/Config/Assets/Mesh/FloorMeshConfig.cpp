@@ -6,8 +6,9 @@ REGISTER_CONFIG_TYPE(FloorMeshConfig,"FloorMeshConfig");
 FloorMeshConfig::FloorMeshConfig(){
 	enabled = true;
 	type = "MeshAsset";
+	meshType = 1;
 	name = "FloorMesh";
-	mesh_path = "c:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Mesh\\floor.obj";
+	mesh_path = "c:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Mesh\\floor_plane.obj";
 	texture = "TextureGrassDiffuse";
 	texture_transforms = {
 		3.0f,
@@ -15,7 +16,7 @@ FloorMeshConfig::FloorMeshConfig(){
 		0.0f,
 		0.0f
 	};
-	shader = "PBRShader";
+	shader = "PBRShadowShader";
 	position = {
 		1.0f,
 		100.0f,
@@ -23,6 +24,9 @@ FloorMeshConfig::FloorMeshConfig(){
 	};
 	cast_shadows = true;
 	receive_shadows = true;
+	shader_shadows = "ShadowMapShader";
+	drawType = 1;
+	render_passes = 3;
 	dependencies = {
 		"MeshAsset"
 	};

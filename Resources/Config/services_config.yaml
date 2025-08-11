@@ -6,17 +6,17 @@ Config:
           - KeyBindings
           - Mouse 
           - Material
-          - UIBase 
+          - UIText
           # - UIDebug
       services_render_order:
           - Mouse
           - Keyboard
-          - UIBase
+          - UIText
           # - UIDebug
       services_update_order:
           - Mouse
           - Keyboard
-          - UIBase
+          - UIText
           - Material
           # - UIDebug
 
@@ -38,6 +38,11 @@ Config:
       enabled: true
       dependencies:
         - ShaderManager
+
+    UIText:
+      enabled: true
+      dependencies:
+        - DeviceManager
 
     UIBase:
       enabled: true

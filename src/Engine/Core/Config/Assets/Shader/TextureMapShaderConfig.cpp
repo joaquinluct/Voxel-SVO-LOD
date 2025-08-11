@@ -14,6 +14,10 @@ TextureMapShaderConfig::TextureMapShaderConfig(){
 		"MaterialData",
 		"TextureTransformations"
 	};
+	sampler_slots = {
+		"RegularSampler"
+	};
+	needs_shadow = false;
 	name = "TextureMapShader";
 	dependencies = {
 		"ShaderAsset"

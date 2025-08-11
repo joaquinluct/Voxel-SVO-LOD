@@ -9,6 +9,9 @@
 class MeshAssetConfigBase : public ConfigBase
 {
 public:
+	int meshType = -1; // None
+	int render_passes = 0; // Default render pass
+	int drawType = 1; // DrawIndexed
 	std::string shader;
 	std::string mesh_path;
 	std::string texture;
@@ -17,7 +20,9 @@ public:
 	std::string name;
 	bool cast_shadows = false;
 	bool receive_shadows = false;
+	std::string shader_shadows;
 	std::vector<float> position = {0.0f, 0.0f, 0.0f};
+	std::string textService;
 	DirectX::XMFLOAT4 GetTextureTransform()
 	{
 		if (texture_transforms.size() < 4) {

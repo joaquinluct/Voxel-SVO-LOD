@@ -5,12 +5,13 @@
 #include <map>
 #include <IPipelineStencilState.h>
 
-class StencilShadow : public IPipelineStencilState {
+class StencilStateRegular : public IPipelineStencilState {
 public:
-	StencilShadow();
+	StencilStateRegular();
 	static const std::string& GetStaticPipelineStateName()
 	{
-		static const std::string className = "StencilShadow";
+		static const std::string className = "StencilStateRegular";
 		return className;
 	}
+	std::string Type;
 };

@@ -5,19 +5,24 @@
 #include <wrl/client.h>
 #include <string>
 #include <vector>
+#include <variant>
 #include <memory>
 #include <IDefine/IVertex.h>
 #include <Assets/Base/AssetBase.h>
 #include <ConfigBase.h>
 #include <Config/MeshAssetConfigBase.h>
+#include <Defines/Pass.h>
 #include <Defines/VertexDefinition.h>
+#include <Defines/Mesh.h>
 #include <DeviceManager.h>
 #include <CameraManager.h>
 #include <ShaderManager.h>
 #include <RenderManager/RenderManager.h>
 #include <Services/Material.h>
+#include <UI/UIText.h>
 
 class TextureAsset;
+class UIManager;
 
 class MeshAsset : public AssetBase {
 private:
@@ -31,6 +36,7 @@ private:
     std::shared_ptr<DeviceManager> m_deviceManager;
     std::shared_ptr<CameraManager> m_cameraManager;
     std::shared_ptr <ShaderManager> m_shaderManager;
+    std::shared_ptr <UIManager> m_uiManager;
     std::shared_ptr <RenderManager> m_renderManager;
     std::shared_ptr<TextureAsset> m_textureAsset;
 
@@ -40,6 +46,7 @@ private:
     std::vector<float> m_textureTransforms;
 
     Material* m_material;
+    Material* m_shadowMaterial;
 
     // Evitar copias
     /*MeshAsset(const MeshAsset&) = delete;
@@ -51,7 +58,7 @@ public:
         m_deviceManager(other.m_deviceManager), m_cameraManager(other.m_cameraManager),
         m_shaderManager(other.m_shaderManager), m_textureAsset(other.m_textureAsset),
         m_vertexBuffer(other.m_vertexBuffer), m_indexBuffer(other.m_indexBuffer),
-		m_material(other.m_material) {
+		m_material(other.m_material), m_shadowMaterial(other.m_shadowMaterial) {
 	}
     ~MeshAsset();
     // IAsset overrides
@@ -65,10 +72,25 @@ public:
     HRESULT Init() override;
     HRESULT InitManagers();
     HRESULT InitTexture();
+    HRESULT InitShadows();
     HRESULT InitMesh();
     void Render() override;
     void Update(float deltaTime) override {};
     void Shutdown() override;
+
+    Mesh::DrawType GetDrawType() const {
+        if (!m_meshConfig) {
+            return Mesh::DrawType::None;
+        }
+        return static_cast<Mesh::DrawType>(m_meshConfig->drawType);
+	}
+
+    std::vector<RenderPassType> GetRenderPasses() const {
+		return RenderPasses::GetRenderPasses(m_meshConfig->render_passes);
+    }
+    bool IsRenderPassEnabled(RenderPassType pass) const {
+        return RenderPasses::IsRenderPassEnabled(m_meshConfig->render_passes, pass);
+	}
 
     void SetPosition(const DirectX::XMFLOAT3& position) {
         m_worldMatrix = DirectX::XMMatrixTranslation(position.x, position.y, position.z);
@@ -128,7 +150,22 @@ public:
         return m_meshConfig->shader;
     }
 
+    bool CastShadows() const {
+        if (!m_meshConfig) {
+            return false;
+        }
+        return m_meshConfig->cast_shadows;
+	}
+
+    bool ReceiveShadows() const {
+        if (!m_meshConfig) {
+            return false;
+        }
+        return m_meshConfig->receive_shadows;
+    }
+
     Material* GetMaterial() { return m_material; };
+    Material* GetShadowMaterial() { return m_shadowMaterial; };
 
     XMFLOAT4 GetTextureTransforms() {
 		XMFLOAT4 defaultTransform(1.0f, 1.0f, 0.0f, 0.0f);
@@ -172,8 +209,12 @@ public:
 
 		HRESULT hr = CreateVertexBuffer(pDevice, vertex);
 
-        if (FAILED(hr)) {
+            if (FAILED(hr)) {
             OutputDebugStringA(("ERROR: Failed to create vertex buffer for mesh '" + m_meshConfig->name + "'. HRESULT: " + std::to_string(hr) + "\n").c_str());
+            return hr;
+		}
+
+        if (Mesh::DrawType::Draw == static_cast<Mesh::DrawType>(m_meshConfig->drawType)) {
             return hr;
 		}
 
@@ -185,4 +226,7 @@ public:
     void SetConfig(std::shared_ptr<ConfigBase> config) {
         m_meshConfig = std::dynamic_pointer_cast<MeshAssetConfigBase>(config);
     }
+    std::shared_ptr<MeshAssetConfigBase> GetConfig() const {
+        return m_meshConfig;
+	}
 };

@@ -15,4 +15,8 @@ GameEngineConfig::GameEngineConfig(){
 		"TestingFloor",
 		"Lighting"
 	};
+	service_update_order = {
+		"Skybox",
+		"Lighting"
+	};
 };

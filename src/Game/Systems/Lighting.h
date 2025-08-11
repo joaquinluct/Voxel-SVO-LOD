@@ -3,6 +3,7 @@
 #include <string>
 #include <memory>
 #include <IService.h>
+#include <KeyboardManager.h>
 #include <Defines/Matrix/MatrixDefinitionBase.h>
 #include <Config/Game/System/LightingConfig.h>
 
@@ -33,5 +34,6 @@ public:
 
 private:
 	std::shared_ptr<MatrixDefinitionBase::MatrixParams> matrixParams;
+	std::shared_ptr<KeyboardManager> m_keyboard;
 	std::shared_ptr<LightingConfig> config;	
 };

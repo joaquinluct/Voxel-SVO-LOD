@@ -69,7 +69,7 @@ inline std::string roundFloat(float value, int numDecimals = 2) {
     return ss.str();
 }
 
-inline void StringReplace(std::string& s, const std::string& oldSubstr, const std::string& newSubstr) {
+inline void StringReplace(std::string& s, const std::string& oldSubstr, const std::string newSubstr, bool all = true) {
     // Si la subcadena a buscar está vacía, no tiene sentido hacer nada.
     if (oldSubstr.empty()) {
         return;
@@ -85,6 +85,11 @@ inline void StringReplace(std::string& s, const std::string& oldSubstr, const st
         // Es crucial avanzar por la longitud de newSubstr para evitar bucles infinitos
         // si newSubstr contiene oldSubstr (ej. reemplazar "a" con "aa").
         pos += newSubstr.length();
+
+        if (!all) {
+            // Si no queremos reemplazar todas las ocurrencias, salimos después del primer reemplazo.
+            break;
+		}
     }
 }
 

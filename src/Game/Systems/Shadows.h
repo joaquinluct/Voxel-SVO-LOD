@@ -36,7 +36,7 @@ public:
 
     // Métodos del ciclo de vida del servicio
     HRESULT Init() override;
-    void Update(float deltaTime) override {} // No hay lógica de actualización específica aquí
+    void Update(float deltaTime) override;
 	void Render() override {} // No hay renderizado directo, se hace en el pase de sombras
     void Shutdown() override;
 

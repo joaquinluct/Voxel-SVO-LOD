@@ -7,12 +7,18 @@ PBRShadowShaderConfig::PBRShadowShaderConfig(){
 	type = "ShaderAsset";
 	shader_path = "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Shader\\PBRShadowShader.hlsl";
 	vertex_def = "TextureMapVertex";
+	needs_shadow = true;
 	matrix_slots = {
 		"MatrixBufferType",
 		"DirectionalLight",
 		"CameraData",
 		"MaterialData",
+		"TextureTransformations",
 		"LightSpaceMatrices"
+	};
+	sampler_slots = {
+		"RegularSampler",
+		"ShadowMapSampler"
 	};
 	name = "PBRShadowShader";
 	dependencies = {

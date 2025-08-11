@@ -4,12 +4,15 @@
 REGISTER_CONFIG_TYPE(MainColorPassConfig,"MainColorPassConfig");
 
 MainColorPassConfig::MainColorPassConfig(){
+	id = 2;
 	enabled = true;
 	shader_default = "PBRShadowShader";
 	rasterizedState = "RasterizedMainColorPass";
 	viewPortState = "ViewportMainColor";
-	stencilState = "StencilMainColor";
+	stencilState = "StencilViewMainColor";
+	stencilDef = "none";
+	shaderViewState = "none";
+	shadowTextureView = "StencilViewShadow";
 	blendState = "none";
-	drawType = "DrawIndexed";
 	primitiveTopology = 4;
 };

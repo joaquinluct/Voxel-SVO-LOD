@@ -11,12 +11,14 @@ Config:
       MainIndex:
         mainIndex:
           - SkyboxShader
+          - ProceduralSkyboxShader
           - DefaultShader
           - ShaderTextUI
           - TextureBasicShader
           - ShadowMapShader
           - TextureMapShader
           - PBRShader
+          - PBRShadowShader
           - FloorVertex
           - FloorMesh
           - House1Mesh
@@ -26,6 +28,9 @@ Config:
           - DefaultSkybox
           - SkyboxCube
           - SkyboxMesh
+          - ProcSkyboxMesh
+          - BoxMesh
+          - UITextMesh
       MeshAsset:
         dependencies:
           - ShaderManager

@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 #include <format>
+#include <type_traits>
+#include <iostream>
 #include <variant>
 #include <IDefine/IVertex.h>
 
@@ -176,56 +178,56 @@ namespace VertexDefinition {
         }
     };
 
-    struct TextVertex : public IVertex {
-        float position[3];
-        float texCoord[2];
-        float color[4];
+        struct TextVertex : public IVertex {
+            float position[3];
+            float texCoord[2];
+            float color[4];
 
-        TextVertex() : position{}, texCoord{}, color{} {}
-        TextVertex(DirectX::XMFLOAT3 p, DirectX::XMFLOAT2 t, DirectX::XMFLOAT3 n ,DirectX::XMFLOAT4 c) : position(p.x, p.y, p.z), texCoord(t.x, t.y), color(c.x, c.y, c.z, c.w) {}
-        TextVertex(float x, float y, float z, float u, float v, float r, float g, float b, float a) 
-            : position{ x,y,z }, texCoord{ u,v }, color{ r,g,b,a } {
-        }
+            TextVertex() : position{}, texCoord{}, color{} {}
+            TextVertex(DirectX::XMFLOAT3 p, DirectX::XMFLOAT2 t, DirectX::XMFLOAT4 c) : position(p.x, p.y, p.z), texCoord(t.x, t.y), color(c.x, c.y, c.z, c.w) {}
+            TextVertex(float x, float y, float z, float u, float v, float r, float g, float b, float a) 
+                : position{ x,y,z }, texCoord{ u,v }, color{ r,g,b,a } {
+            }
 
-        std::string ToOBJLine() const {
-            return std::format("v {} {} {}\nvt {} {}\nvc {} {} {} {}",
-                position[0], position[1], position[2],
-                texCoord[0], texCoord[1],
-                color[0], color[1], color[2], color[3]);
-        }
+            std::string ToOBJLine() const {
+                return std::format("v {} {} {}\nvt {} {}\nvc {} {} {} {}",
+                    position[0], position[1], position[2],
+                    texCoord[0], texCoord[1],
+                    color[0], color[1], color[2], color[3]);
+            }
 
-        UINT Size() {
-            return sizeof(position) + sizeof(texCoord) + sizeof(color); // Retorna el tamaño en bytes del vértice
-		}
+            UINT Size() {
+                return sizeof(position) + sizeof(texCoord) + sizeof(color); // Retorna el tamaño en bytes del vértice
+		    }
 
-        UINT GetByteWidth(size_t numVertex) {
-            return sizeof(position) * static_cast<UINT>(numVertex);
+            UINT GetByteWidth(size_t numVertex) {
+                return sizeof(position) * static_cast<UINT>(numVertex);
+            };
+            const void* GetRawData() const noexcept override {
+                return static_cast<const void*>(position); // Devuelve un puntero a sí mismo
+            }
+
+            void SetData(DirectX::XMFLOAT3 pos, DirectX::XMFLOAT2 texCoord, DirectX::XMFLOAT3 normals, DirectX::XMFLOAT4 color, DirectX::XMFLOAT3 tangent) {
+                position[0] = pos.x;
+                position[1] = pos.y;
+			    position[2] = pos.z;
+			    this->texCoord[0] = texCoord.x;
+			    this->texCoord[1] = texCoord.y;
+			    this->color[0] = color.x;
+			    this->color[1] = color.y;
+			    this->color[2] = color.z;
+                this->color[3] = color.w;
+		    }
+
+            D3D11_INPUT_ELEMENT_DESC* GetInputLayout(unsigned int& numElements) {
+                numElements = 3; // Número de elementos en el layout
+                D3D11_INPUT_ELEMENT_DESC* layoutArray = new D3D11_INPUT_ELEMENT_DESC[numElements];
+                layoutArray[0] = { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 };
+                layoutArray[1] = { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 };
+                layoutArray[2] = { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 };
+                return layoutArray; // Devuelve el número de elementos
+            }
         };
-        const void* GetRawData() const noexcept override {
-            return static_cast<const void*>(position); // Devuelve un puntero a sí mismo
-        }
-
-        void SetData(DirectX::XMFLOAT3 pos, DirectX::XMFLOAT2 texCoord, DirectX::XMFLOAT3 normals, DirectX::XMFLOAT4 color, DirectX::XMFLOAT3 tangent) {
-            position[0] = pos.x;
-            position[1] = pos.y;
-			position[2] = pos.z;
-			this->texCoord[0] = texCoord.x;
-			this->texCoord[1] = texCoord.y;
-			this->color[0] = color.x;
-			this->color[1] = color.y;
-			this->color[2] = color.z;
-            this->color[3] = color.w;
-		}
-
-        D3D11_INPUT_ELEMENT_DESC* GetInputLayout(unsigned int& numElements) {
-            numElements = 3; // Número de elementos en el layout
-            D3D11_INPUT_ELEMENT_DESC* layoutArray = new D3D11_INPUT_ELEMENT_DESC[numElements];
-            layoutArray[0] = { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 };
-            layoutArray[1] = { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 };
-            layoutArray[2] = { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 };
-            return layoutArray; // Devuelve el número de elementos
-        }
-    };
 
     struct TextureBasicVertex : public IVertex {
         float position[3];
@@ -330,6 +332,14 @@ namespace VertexDefinition {
     };
 
 	using VertexVariant = std::variant<SimpleVertex, SimpleNormalVertex, SkyboxVertex, TextVertex, TextureBasicVertex, TextureMapVertex>;
+
+    template<typename T, typename... Types>
+    inline constexpr bool is_any_of_v = (std::is_same_v<T, Types> || ...);
+
+    template <typename T>
+    inline constexpr bool IsIVertext() {
+        return is_any_of_v<T, IVertex>;
+    }
 
     class Factory {
     public:

@@ -60,7 +60,7 @@ public:
     }
     static std::shared_ptr<IVertex> GetDefine(const std::string& name);
     static std::shared_ptr<IVertex> GetVertexDefine(const std::string& name);
-    static std::vector < std::shared_ptr<VertexDefinition::VertexVariant>> GetVertexDefineAsVector(const std::string& name);
+    static std::vector < std::shared_ptr<VertexDefinition::VertexVariant>> GetVertexDefinitionAsVector(const std::string& name);
 
     // Función para registrar directamente un servicio ya creado (para casos especiales o tests).
     // También usa T::GetStaticDefineName() como clave para mantener la consistencia.

@@ -43,16 +43,38 @@ namespace RenderPipeline {
         case PipelineOperationType::Device_ClearDepthStencilView: {
             if (m_outputMergerStage) {
                 PipelineDepthStencilData stencilData = operation->GetOperationParam<PipelineDepthStencilData>();
-                if (stencilData.data) {
+                if (stencilData.stencilViewData) {
                     /*m_outputMergerStage->ClearDepthStencilView(
                         stencilData.data, stencilData.clearFlags, 1.0f, 0);*/
                     m_outputMergerStage->ClearDepthStencilView(
-                        stencilData.data, stencilData.clearFlags, stencilData.depth, stencilData.stencil);
+                        stencilData.stencilViewData, stencilData.clearFlags, stencilData.depth, stencilData.stencil);
                     operation->SetResult(S_OK);
                 }
             }
             break;
         }
+        case PipelineOperationType::Device_SetDepthStencilState: {
+            if (m_outputMergerStage) {
+                PipelineSetencilStateData stencilStateData = operation->GetOperationParam<PipelineSetencilStateData>();
+                if (stencilStateData.state) {
+                    m_outputMergerStage->SetDepthStencilState(stencilStateData.state, 1);
+                    operation->SetResult(S_OK);
+                }
+			}
+            break;
+        }
+        case PipelineOperationType::Device_DisabledBledingState:
+        case PipelineOperationType::Device_EnabledBledingState: {
+            if (m_outputMergerStage) {
+                PipelineBledingData blendStateData = operation->GetOperationParam<PipelineBledingData>();
+                if (blendStateData.state) {
+                    m_outputMergerStage->SetBlendState(blendStateData.state, nullptr, 0xFFFFFFFF);
+                    operation->SetResult(S_OK);
+                }
+            }
+            break;
+		}
+         
         case PipelineOperationType::Device_SetViewport: {
             if (m_rasterizerStage) {
                 PipelineViewPortData viewportData = operation->GetOperationParam<PipelineViewPortData>();
@@ -108,7 +130,7 @@ namespace RenderPipeline {
         case PipelineOperationType::Device_Init_SetRenderTargetView: {
             if (m_outputMergerStage) {
                 auto rtvData = operation->GetOperationParam<PipelineSetRenderTargetsData>();
-                if (rtvData.targetView) {
+                if (rtvData.targetView || rtvData.stencilView) {
                     ID3D11RenderTargetView* tView = rtvData.targetView.Get();
                     ID3D11DepthStencilView* sView = rtvData.stencilView.Get();
                     bool isColorPass = rtvData.isColorPass;
@@ -117,6 +139,17 @@ namespace RenderPipeline {
                 }
             }
 			break;
+        }
+        case PipelineOperationType::Device_ResetRenderTargetView: {
+            if (m_outputMergerStage) {
+                auto rtvData = operation->GetOperationParam<PipelineSetRenderTargetsData>();
+                if (rtvData.targetView || rtvData.stencilView) {
+                    ID3D11RenderTargetView* tView = rtvData.targetView.Get();
+                    m_outputMergerStage->SetRenderTargets(1, &tView, nullptr);
+                    operation->SetResult(S_OK);
+                }
+            }
+            break;
         }
         case PipelineOperationType::Device_SetRasterizedState:
         case PipelineOperationType::Device_Init_RasterizedState: {
@@ -169,13 +202,29 @@ namespace RenderPipeline {
             }
             break;
         }
+        case PipelineOperationType::Mesh_Render_Reset_Textures: {
+            if (m_pixelShaderStage) {
+                m_pixelShaderStage->ResetShaderResources();
+            }
+            break;
+        }
         case PipelineOperationType::Mesh_Render_SetSampler: {
             if (m_pixelShaderStage) {
-                auto samplerData = operation->GetOperationParam<PipelineSamplerSateData>();
-                if (samplerData.data) {
-                    ID3D11SamplerState* samplerStates[] = { samplerData.data.Get() };
-                    m_pixelShaderStage->SetSamplers(samplerData.startSlot, samplerData.numSamplers, samplerStates);
+                PipelineSamplerSateData samplerData = operation->GetOperationParam<PipelineSamplerSateData>();
+                if (samplerData.data.size()) {
+                    std::vector<ID3D11SamplerState*> rawSamplers;
+                    rawSamplers.reserve(samplerData.data.size());
+                    for (const auto& comPtr : samplerData.data) {
+                        rawSamplers.push_back(comPtr.second.Get());
+                    }
+                    m_pixelShaderStage->SetSamplers(samplerData.startSlot, static_cast<UINT>(rawSamplers.size()), rawSamplers.data());
                 }
+            }
+            break;
+        }
+        case PipelineOperationType::Mesh_Render_Reset_Sampler: {
+            if (m_pixelShaderStage) {
+                m_pixelShaderStage->ResetSamplers();
             }
             break;
         }
@@ -196,17 +245,25 @@ namespace RenderPipeline {
             }
             break;
         }
+        case PipelineOperationType::Device_draw: {
+            if (m_context) {
+                PipelineDrawData drawData = operation->GetOperationParam<PipelineDrawData>();
+                m_context->Draw(drawData.vertexCount, 0);
+                operation->SetResult(S_OK);
+            }
+			break;
+        }
         case PipelineOperationType::Device_SetConstantsBufferState: {
 
             PipelineMatrixBufferData param = operation->GetOperationParam<PipelineMatrixBufferData>();
 
             std::map<std::string, Microsoft::WRL::ComPtr<ID3D11Buffer>>& constantBuffers = param.constantsBuffers;
-            std::map<std::string, std::pair<int, MatrixDefinition::AnyMatrixBuffer>> matrices = param.matrices;
+            std::map<int, std::pair<std::string, MatrixDefinition::AnyMatrixBuffer>> matrices = param.matrices;
 
             D3D11_MAPPED_SUBRESOURCE mapped = {};
 
-            for (const auto& [matrixName, matrixPair] : param.matrices) {
-				int nSlot = matrixPair.first;
+            for (const auto& [slot, matrixPair] : matrices) {
+				std::string matrixName = matrixPair.first;
 
                 auto bufferComPtrIt = constantBuffers.find(matrixName);
                 if (bufferComPtrIt == constantBuffers.end()) {
@@ -233,21 +290,30 @@ namespace RenderPipeline {
 
                 if (matrixType == MATRIX_TYPE_VERTEX.data() || matrixType == MATRIX_TYPE_MIXED.data()) {
                     // Estos buffers contienen matrices de transformación que suelen usarse en el Vertex Shader.
-                    m_context->VSSetConstantBuffers(nSlot, 1, &pBuffer);
+                    m_context->VSSetConstantBuffers(slot, 1, &pBuffer);
                 }
 
                 if (matrixType == MATRIX_TYPE_PIXEL.data() || matrixType == MATRIX_TYPE_MIXED.data()) {
                     // Estos buffers contienen datos que son cruciales para los cálculos de iluminación
                     // y propiedades de superficie, que se realizan en el Pixel Shader.
-                    m_context->PSSetConstantBuffers(nSlot, 1, &pBuffer);
+                    m_context->PSSetConstantBuffers(slot, 1, &pBuffer);
                 }
             }
-
+            break;
             /*PipelineMatrixBufferData param = operation->GetOperationParam<PipelineMatrixBufferData>();
             Material* material = param.material;
             MatrixDefinitionBase::MatrixParams matrixParams = param.data;
             material->SetConstantBuffers(m_context, matrixParams);
             material->Apply(m_context);*/
+        }
+        case PipelineOperationType::Device_ResetConstantsBuffers: {
+            if (m_context) {
+                ID3D11Buffer* nullConstantBuffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = {};
+                m_context->PSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, nullConstantBuffers);
+                ID3D11Buffer* nullConstantBuffersVS[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = {};
+                m_context->VSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, nullConstantBuffersVS);
+            }
+			break;
         }
         }
             
@@ -452,7 +518,7 @@ namespace RenderPipeline {
             if (m_outputMergerStage) {
                 auto stencilData = operation->GetOperationParam<PipelineDeepStencilData>();
                 if (stencilData && stencilData->data) {
-                    m_outputMergerStage->ClearDepthStencilView(
+                    m_outputMergerStage->ClearDepthºlView(
                         stencilData->data, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
                 }
             }

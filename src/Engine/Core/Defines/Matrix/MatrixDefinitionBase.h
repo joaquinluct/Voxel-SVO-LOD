@@ -8,6 +8,12 @@ constexpr std::string_view MATRIX_TYPE_PIXEL = "M_TYPE_PIXEL";
 constexpr std::string_view MATRIX_TYPE_MIXED = "M_TYPE_MIXED";
 
 namespace MatrixDefinitionBase {
+
+    struct SkyboxData {
+        DirectX::XMFLOAT4 skyColor;
+        DirectX::XMFLOAT4 sunColor;
+	};
+
     // Estructura que contiene todos los parámetros que se pueden pasar a los shaders.
     // Usamos esta como fuente única de datos para rellenar los diferentes constant buffers.
     struct MatrixParams {
@@ -15,9 +21,12 @@ namespace MatrixDefinitionBase {
             : worldMatrix(DirectX::XMMatrixIdentity()),
             viewMatrix(DirectX::XMMatrixIdentity()),
             projectionMatrix(DirectX::XMMatrixIdentity()),
+            viewProjectionMatrix(DirectX::XMMatrixIdentity()),
+            projectionOrthoMatrix(DirectX::XMMatrixIdentity()),
             lightViewProjectionMatrix(DirectX::XMMatrixIdentity()),
+            textureTransform(1.0f, 1.0f, 0.0f, 0.0f), // Escala (1,1) y traslación (0,0)
             cameraPosition(0.0f, 0.0f, 0.0f),
-            lightDirection(0.0f, -1.0f, 0.0f), // Dirección por defecto de la luz (hacia abajo)
+            lightDirection(0.9f, 0.1f, 0.0f), // Dirección por defecto de la luz (hacia abajo)
             lightColor(1.0f, 1.0f, 1.0f, 1.0f), // Color por defecto de la luz (blanco)
             materialAlbedo(0.8f, 0.8f, 0.8f, 1.0f), // Color base del material (si no hay textura)
             materialRoughness(0.5f),           // Rugosidad del material (0.0=liso, 1.0=rugoso)
@@ -27,13 +36,16 @@ namespace MatrixDefinitionBase {
             paddingCamera(.0f),
             paddingLight1(.0f),
             paddingMaterial1(.0f),
-            paddingMaterial2(.0f)
+            paddingMaterial2(.0f),
+            skyboxData()
         {
         }
 
         DirectX::XMMATRIX worldMatrix;
         DirectX::XMMATRIX viewMatrix;
         DirectX::XMMATRIX projectionMatrix;
+        DirectX::XMMATRIX viewProjectionMatrix;
+        DirectX::XMMATRIX projectionOrthoMatrix;
 
         // Datos para CameraData
         DirectX::XMFLOAT3 cameraPosition;
@@ -58,5 +70,8 @@ namespace MatrixDefinitionBase {
 
 		// Datos para matrices de sombras
         DirectX::XMMATRIX lightViewProjectionMatrix;
+
+		// Datos para SkyboxData
+        SkyboxData skyboxData;
     };
 }

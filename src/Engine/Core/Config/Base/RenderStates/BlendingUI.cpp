@@ -1,9 +1,11 @@
-#include "BlendingMainColor.h"
+#include "BlendingUI.h"
 #include <REGISTER_PIPELINE_STATE_MACRO.h>
 
-REGISTER_PIPELINE_STATE_TYPE(BlendingMainColor,"BlendingMainColor");
+REGISTER_PIPELINE_STATE_TYPE(BlendingUI,"BlendingUI");
 
-BlendingMainColor::BlendingMainColor(){
+BlendingUI::BlendingUI(){
+	AlphaToCoverageEnable = false;
+	IndependentBlendEnable = false;
 	BlendEnable = true;
 	SrcBlend = 5;
 	DestBlend = 6;

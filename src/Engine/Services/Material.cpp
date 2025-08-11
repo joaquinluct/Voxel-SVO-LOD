@@ -88,6 +88,9 @@ HRESULT Material::InitPixelAndVertexShaders() {
 }
 
 HRESULT Material::InitSampleState() {
+
+    return S_OK;
+
     m_shaderManager = ManagerLocator::GetShaderManager();
     if (m_shaderManager == nullptr) {
         OutputDebugStringA("Error: ShaderManager no inicializado.\n");
@@ -122,15 +125,15 @@ HRESULT Material::InitMatrixBuffer() {
         return E_FAIL;
 	}
     
-	std::map<std::string, std::pair<int, std::unique_ptr<MatrixDefinition::AnyMatrixBuffer>>>& matrixBuffers = m_shaderManager->GetMatrixBuffers(m_shaderName);
+	std::map<int, std::pair<std::string, std::unique_ptr<MatrixDefinition::AnyMatrixBuffer>>>& matrixBuffers = m_shaderManager->GetMatrixBuffers(m_shaderName);
 
     if (matrixBuffers.empty()) {
         OutputDebugStringA("Error: No se encontraron Matrix Buffers para el shader.\n");
         return E_FAIL;
 	}
 
-    for (const auto& [matrixName, matrix] : matrixBuffers) {
-
+    for (const auto& [slot, matrix] : matrixBuffers) {
+		std::string matrixName = matrix.first;
         UINT buffer_byte_width = 0;
 
         std::visit([&](auto& currentMatrixStruct) {
@@ -190,11 +193,11 @@ HRESULT Material::Init() {
         return hr;
     }
 
-    hr = InitSampleState();
+    /*hr = InitSampleState();
     if (FAILED(hr)) {
         OutputDebugStringA("Material Service Error: Sampler state fail.\n");
         return hr;
-    }
+    }*/
 
     hr = InitMatrixBuffer();
     if (FAILED(hr)) {
@@ -317,12 +320,12 @@ void Material::Apply(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context) {
     
     m_renderManager->ExecuteOperation(oper);
 
-    PipelineSamplerSateData spData = {};
-    spData.data = GetSamplerState();
+    /*PipelineSamplerSateData spData = {};
+    spData.data = GetSamplerState();*/
     
-    oper = new PipelineOperation(PipelineOperationType::Mesh_Render_SetSampler, spData);
+    //oper = new PipelineOperation(PipelineOperationType::Mesh_Render_SetSampler, spData);
     
-    m_renderManager->ExecuteOperation(oper);
+    //m_renderManager->ExecuteOperation(oper);
 
     //context->VSSetShader(vertexShader.Get(), nullptr, 0);
     //context->PSSetShader(pixelShader.Get(), nullptr, 0);
