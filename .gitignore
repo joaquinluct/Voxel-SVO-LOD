@@ -36,8 +36,10 @@ Debug/*
 DirectX-Voxelado/*
 .vs/*
 x64/*
-Assets/*
-
+Assets/Mesh/*
+Assets/Skybox/*
+Assets/Textures/*
+Libs/*
 # Visual Studio Code settings
 .vscode/*
 # Visual Studio Code workspace storage
