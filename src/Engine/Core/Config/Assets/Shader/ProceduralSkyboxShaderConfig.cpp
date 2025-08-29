@@ -12,7 +12,7 @@ ProceduralSkyboxShaderConfig::ProceduralSkyboxShaderConfig(){
 		"ProceduralSkyboxMatrix"
 	};
 	sampler_slots = {
-		"RegularSampler"
+		"baseSampler"
 	};
 	needs_shadow = false;
 	name = "ProceduralSkyboxShader";

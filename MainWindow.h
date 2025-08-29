@@ -15,6 +15,8 @@
 
 #define WM_GAME_UPDATE (WM_USER + 1)
 
+class RenderStateService;
+
 class MainWindow
 {
 public:
@@ -37,8 +39,14 @@ private:
 	//Mouse*							mouse;
 	std::shared_ptr<Keyboard>		g_keyboard;
 	std::shared_ptr<Mouse>			g_mouse;
+	std::shared_ptr<RenderStateService> g_renderStateService;
 	HINSTANCE						g_hInstance;
 	HINSTANCE						g_hPrevInstance;
 	LPWSTR							g_lpCmdLine;
 	int								g_nCmdShow;
+
+	// Variables compartidas
+	std::atomic<bool> isRunning = true;	
+
+	float g_deltaTime = 0.0f; // Tiempo entre frames
 };

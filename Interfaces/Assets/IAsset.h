@@ -11,5 +11,5 @@ public:
     virtual ~IAsset() = default;
 	virtual void Load() = 0; // Método para cargar el asset
 	virtual void Unload() = 0; // Método para descargar el asset
-	virtual const std::string& GetAssetName() = 0; // Método para obtener el nombre del asset
+	virtual const std::string& GetAssetName() = 0; // Método para obtener el nombre del asset	
 };

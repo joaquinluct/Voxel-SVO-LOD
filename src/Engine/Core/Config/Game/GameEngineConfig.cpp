@@ -5,18 +5,31 @@ REGISTER_CONFIG_TYPE(GameEngineConfig,"GameEngineConfig");
 
 GameEngineConfig::GameEngineConfig(){
 	services_init_order = {
+		"Chronos",
 		"Lighting",
 		"Shadows",
 		"Skybox",
-		"TestingFloor"
+		"World",
+		"Cycle",
+		"Terrain",
+		"Water"
+	};
+	services_post_init = {
+		"World",
+		"Water"
 	};
 	services_render_order = {
 		"Skybox",
-		"TestingFloor",
+		"Terrain",
+		"Water",
 		"Lighting"
 	};
 	service_update_order = {
+		"Chronos",
 		"Skybox",
-		"Lighting"
+		"Lighting",
+		"World",
+		"Water",
+		"Cycle"
 	};
 };

@@ -3,6 +3,6 @@
 class IUpdatable
 {
 public:
-	virtual ~IUpdatable() = default;
-	virtual void Update(float deltaTime) = 0;
+	virtual ~IUpdatable() {};
+	virtual void Update(float deltaTime) {};
 };

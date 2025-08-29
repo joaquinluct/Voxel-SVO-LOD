@@ -24,6 +24,24 @@ Config:
         texture_type: "CUBEMAP"
         # albedo: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Skybox\\skybox_sun.dds"
         albedo: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Skybox\\defaultSkybox.dds"
+      ProceduralTerrainTextureMap:
+        texture_type: "JPG_ARRAY"
+        texture2DArray: 
+            - "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Grass\\GrassPatchyGround\\Poliigon_GrassPatchyGround_4585_BaseColor.jpg"
+            - "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Dirt\\GroundDirtWeedsPatchy\\GroundDirtWeedsPatchy004_COL_2K.jpg"
+            - "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\Coast_sand_rock\\coast_sand_rocks_02_diff_2k.jpg"
+            - "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Sand\\GroundSand005\\GroundSand005_COL_2K.jpg"
+            - "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Snow\\IA\\snow_albedo.jpg"
+            - "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Grass\\GrassPatchyGround\\Poliigon_GrassPatchyGround_4585_Normal.png"
+            - "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Dirt\\GroundDirtWeedsPatchy\\GroundDirtWeedsPatchy004_NRM_2K.jpg"
+            - "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\Coast_sand_rock\\coast_sand_rocks_02_nor_dx_2k.jpg"
+            - "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Sand\\GroundSand005\\GroundSand005_NRM_2K.jpg"
+            - "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Snow\\IA\\snow_normal.jpg"
+            - "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Grass\\GrassPatchyGround\\Poliigon_GrassPatchyGround_4585_Roughness.jpg"
+            - "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Dirt\\GroundDirtWeedsPatchy\\GroundDirtWeedsPatchy004_GLOSS_2K.jpg"
+            - "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\Coast_sand_rock\\coast_sand_rocks_02_rough_2k.jpg"
+            - "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Sand\\GroundSand005\\GroundSand005_GLOSS_2K.jpg"
+            - "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Snow\\IA\\snow_roughness.jpg"
 Definition:
   Default:
     language: 1 # C++
@@ -46,6 +64,7 @@ Definition:
         - metallic
         - ao
         - texture_type
+        - texture2DArray
         - dependencies
     # output_path: 'C:\Users\joaqu\source\repos\DirectX-Voxelado\TestConfig\Assets\'
     output_path: 'c:\Users\joaqu\source\repos\DirectX-Voxelado\src\Engine\Core\Config\Assets\'

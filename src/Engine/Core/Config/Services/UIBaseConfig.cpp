@@ -9,7 +9,6 @@ UIBaseConfig::UIBaseConfig(){
 	shader = "ShaderUI";
 	text = "User Interface";
 	dependencies = {
-		"RenderTargetManager",
 		"DeviceManager",
 		"UIManager"
 	};

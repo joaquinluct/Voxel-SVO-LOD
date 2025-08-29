@@ -3,9 +3,16 @@
 #include <Defines/VertexDefinition.h>
 #include <DefineLocator/DefineLocator.h>
 #include <ConfigLocator/ConfigLocator.h>
+#include <Game/Systems/Water.h>
 #include <ServiceLocator/ServiceLocator.h>
+#include <Services/FrameStateService.h>
 #include <Locators/Pipeline/PipelineStateLocator.h>
 #include <Locators/Pipeline/RenderPassLocator.h>
+#include <RenderState/FrameStates/FrameStateBase.h>
+#define TINYOBJLOADER_IMPLEMENTATION
+#include <TinyObjLoader/tiny_obj_loader.h>
+
+int FrameStateBase::__instance = 0;
 
 MainController::MainController(HWND hwnd, int width, int height)
     : m_hwnd(hwnd), m_width(width), m_height(height), m_initController(nullptr) {
@@ -117,6 +124,11 @@ HRESULT MainController::Initialize(HWND hwnd, int width, int height) {
     // 5. Ejecutar la inicilización en el orden establecido por dependencia
 	// --------------------------------------------------------------------
     for(const auto& [componentName, componentType] : initOrder) {
+
+        if (componentName == "InitManager") {
+            bool a = false;
+        }
+
         if (componentType == COMPONENT_MANAGER) 
         {
             // Inicializar el manager
@@ -160,10 +172,28 @@ HRESULT MainController::Initialize(HWND hwnd, int width, int height) {
         }
 	}
 
+	// 6. Ejectutar PostInit (de momento manualmente)
+	std::shared_ptr<CameraManager> m_cameraManager = ManagerLocator::GetManager<CameraManager>();
+    if (m_cameraManager) {
+        m_cameraManager->PostInit();    
+	}
+    std::shared_ptr<World> m_world = ServiceLocator::GetService<World>();
+    if (m_world) {
+        m_world->PostInit();
+    }
+    std::shared_ptr<Water> m_water = ServiceLocator::GetService<Water>();
+    if (m_water) {
+        m_water->PostInit();
+    }
+    m_renderManager = ManagerLocator::GetManager<RenderManager>();
+    if (m_renderManager) {
+        m_renderManager->PostInit();
+	}
+
     // Obtener servicios básicos
     m_keyboard = ServiceLocator::GetService<Keyboard>();
-    m_mouse = ServiceLocator::GetService<Mouse>();
-    m_renderManager = ManagerLocator::GetManager<RenderManager>();
+    m_mouse = ServiceLocator::GetService<Mouse>();    
+	m_updateManager = ManagerLocator::GetManager<UpdateManager>();
 
     if (!m_keyboard || !m_mouse || !m_renderManager) {
         OutputDebugStringA("MainController Init: Failed to get required services or managers.\n");
@@ -173,8 +203,15 @@ HRESULT MainController::Initialize(HWND hwnd, int width, int height) {
 }
 
 void MainController::Update(float deltaTime) {
+	// 1. Actualizar subsistemas en orden de dependencia
 	ServiceLocator::UpdateServices(m_serviceConfig->services_update_order, deltaTime);
     ManagerLocator::UpdateManagers(m_config->managers_update_order, deltaTime);
+
+	// 2. Asegurarse que la FrameStateService sea la última en actualizarse
+    m_updateManager->Update(deltaTime);
+
+	//// 3. Intercambiar buffers --> Ahora en FrameStateService al final de Update()
+    //m_updateManager->SwapBuffers();
 }
 
 void MainController::Render() {

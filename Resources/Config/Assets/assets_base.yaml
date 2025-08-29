@@ -7,9 +7,13 @@ Config:
           - ShaderAsset
           - TextureAsset
           - VertexAsset
+          - TerrainAsset
           - MeshAsset
+        post_init:
+          - none
       MainIndex:
         mainIndex:
+          - ProceduralTerrain
           - SkyboxShader
           - ProceduralSkyboxShader
           - DefaultShader
@@ -31,12 +35,22 @@ Config:
           - ProcSkyboxMesh
           - BoxMesh
           - UITextMesh
+          - TerrainMesh
+          - TerrainShader
+          - Terrain2Shader
+          - ProceduralTerrainTexture          
+          - OceanShader
+          - OceanMesh
+          - BlendingWaterPass
+          # - WaterReflectionShader
+          # - WaterRefractionShader
+        post_init:
+          - none
       MeshAsset:
         dependencies:
           - ShaderManager
           - DeviceManager
-          - CameraManager
-          - WorldMatrixManager
+          - CameraManager          
       ShaderAsset:
         dependencies:
           - DeviceManager
@@ -46,6 +60,11 @@ Config:
       VertexAsset:
         dependencies:
           - DeviceManager
+      TerrainAsset:
+        dependencies:
+          - ShaderManager
+          - DeviceManager
+          - CameraManager          
 
 Definition:
   Default:

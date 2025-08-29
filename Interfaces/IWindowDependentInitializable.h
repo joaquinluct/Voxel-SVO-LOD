@@ -7,5 +7,5 @@
 class IWindowDependentInitializable {
 public:
     virtual ~IWindowDependentInitializable() = default;
-    virtual HRESULT Init(HWND hwnd, int width, int height) = 0;
+    virtual HRESULT Init(HWND* hwnd, int width, int height) = 0;
 };

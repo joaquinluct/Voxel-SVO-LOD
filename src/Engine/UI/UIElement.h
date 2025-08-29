@@ -3,7 +3,6 @@
 #include <directxmath.h>
 #include <DeviceManager.h>
 #include <ShaderManager.h>
-#include <WorldMatrixManager.h>
 #include <IService.h>
 
 using namespace DirectX;
@@ -31,6 +30,5 @@ protected:
     XMFLOAT2 m_size;
 
     std::shared_ptr<DeviceManager> m_device;
-    std::shared_ptr<ShaderManager> m_shaderManager;
-    std::shared_ptr<WorldMatrixManager> m_woldMatrix;
+    std::shared_ptr<ShaderManager> m_shaderManager;    
 };

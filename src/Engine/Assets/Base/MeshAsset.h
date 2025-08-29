@@ -17,15 +17,17 @@
 #include <DeviceManager.h>
 #include <CameraManager.h>
 #include <ShaderManager.h>
-#include <RenderManager/RenderManager.h>
 #include <Services/Material.h>
 #include <UI/UIText.h>
+#include <Defines/AreaMesh.h>
 
 class TextureAsset;
 class UIManager;
+class ShaderAsset;
 
 class MeshAsset : public AssetBase {
 private:
+    std::string m_name;	
 	DirectX::XMMATRIX m_worldMatrix = DirectX::XMMatrixIdentity();
     UINT m_vertexCount = 0;
     UINT m_indexCount = 0;
@@ -36,9 +38,10 @@ private:
     std::shared_ptr<DeviceManager> m_deviceManager;
     std::shared_ptr<CameraManager> m_cameraManager;
     std::shared_ptr <ShaderManager> m_shaderManager;
-    std::shared_ptr <UIManager> m_uiManager;
-    std::shared_ptr <RenderManager> m_renderManager;
+    std::shared_ptr <UIManager> m_uiManager;    
     std::shared_ptr<TextureAsset> m_textureAsset;
+
+    std::shared_ptr<ShaderAsset> m_shaderAsset;
 
     Microsoft::WRL::ComPtr<ID3D11Buffer> m_vertexBuffer;
     Microsoft::WRL::ComPtr<ID3D11Buffer> m_indexBuffer;
@@ -47,6 +50,15 @@ private:
 
     Material* m_material;
     Material* m_shadowMaterial;
+
+    UIText* m_uiText;
+
+    std::string m_meshObj;
+    std::string m_shaderAssetName;
+    std::string m_vertexDef;
+    Mesh::Type m_meshType;
+
+	std::string m_textureType;
 
     // Evitar copias
     /*MeshAsset(const MeshAsset&) = delete;
@@ -60,23 +72,49 @@ public:
         m_vertexBuffer(other.m_vertexBuffer), m_indexBuffer(other.m_indexBuffer),
 		m_material(other.m_material), m_shadowMaterial(other.m_shadowMaterial) {
 	}
+    MeshAsset(const MeshAsset* other) : m_vertexCount(other->m_vertexCount), m_indexCount(other->m_indexCount),
+        m_vertexTypeSize(other->m_vertexTypeSize), m_meshConfig(other->m_meshConfig),
+        m_deviceManager(other->m_deviceManager), m_cameraManager(other->m_cameraManager),
+        m_shaderManager(other->m_shaderManager), m_textureAsset(other->m_textureAsset),
+        m_vertexBuffer(other->m_vertexBuffer), m_indexBuffer(other->m_indexBuffer),
+        m_material(other->m_material), m_shadowMaterial(other->m_shadowMaterial) {
+    }
     ~MeshAsset();
     // IAsset overrides
-    virtual std::shared_ptr<AssetBase> Clone() const override {
+    std::shared_ptr<AssetBase> Clone() const override {
         // Crea una nueva instancia utilizando el constructor de copia
         // y la devuelve como un shared_ptr.
         return std::make_shared<MeshAsset>(*this);
     }
+    std::shared_ptr<MeshAsset> CloneAsMesh() const override {
+        // Crea una nueva instancia utilizando el constructor de copia
+        // y la devuelve como un shared_ptr.
+        return std::make_shared<MeshAsset>(*this);
+    }
+    std::unique_ptr<AssetBase> CloneUnique() const override {
+        // Crea una nueva instancia utilizando el constructor de copia
+        // y la devuelve como un shared_ptr.
+        return std::make_unique<MeshAsset>(*this);
+    }    
     void Load() override {};
     void Unload() override {};
     HRESULT Init() override;
+    HRESULT InitConfig();
     HRESULT InitManagers();
     HRESULT InitTexture();
     HRESULT InitShadows();
     HRESULT InitMesh();
     void Render() override;
     void Update(float deltaTime) override {};
+    void UpdateTextMesh(UIText* uiText, std::string text);
     void Shutdown() override;
+
+    std::string GetName() const {
+        if (m_name.empty() && m_meshConfig) {
+            return m_meshConfig->name;
+		}
+        return m_name;
+	}
 
     Mesh::DrawType GetDrawType() const {
         if (!m_meshConfig) {
@@ -124,19 +162,19 @@ public:
         return name;
     }
 
-    XMMATRIX GetWorldMatrix() {
+    XMMATRIX GetWorldMatrix() const {
         return m_worldMatrix;
     }
 
-    Microsoft::WRL::ComPtr<ID3D11Buffer> GetVertexBuffer() {
+    Microsoft::WRL::ComPtr<ID3D11Buffer> GetVertexBuffer() const{
 		return m_vertexBuffer;
-	}
-    Microsoft::WRL::ComPtr<ID3D11Buffer> GetIndexBuffer() {
+	}    
+    Microsoft::WRL::ComPtr<ID3D11Buffer> GetIndexBuffer() const {
         return m_indexBuffer;
     }
     UINT GetVertexCount() const {
         return m_vertexCount;
-	}
+	}    
     UINT GetIndexCount() const {
         return m_indexCount;
     }
@@ -164,10 +202,19 @@ public:
         return m_meshConfig->receive_shadows;
     }
 
-    Material* GetMaterial() { return m_material; };
+    void SetMaterial(Material* material) {
+        m_material = material;
+	}
+    void SetShadowMaterial(Material* shadowMaterial) {
+        m_shadowMaterial = shadowMaterial;
+    }
+    const Material* GetMaterial() const { return m_material; };
     Material* GetShadowMaterial() { return m_shadowMaterial; };
 
     XMFLOAT4 GetTextureTransforms() {
+        if (!m_material) {
+            return XMFLOAT4(1.0f, 1.0f, 0.0f, 0.0f);
+		}
 		XMFLOAT4 defaultTransform(1.0f, 1.0f, 0.0f, 0.0f);
         if (m_textureTransforms.empty()) {
             // Si no hay transformaciones de textura, obtenemos las del asset de textura

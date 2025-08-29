@@ -3,6 +3,7 @@
 //--------------------------------------------------------------------------------------
 cbuffer MatrixBuffer : register(b0)
 {
+    matrix worldMatrix; //(ignorado)
     matrix view; // Matriz de la cámara (solo la parte de rotación importa)
     matrix projection; // Matriz de proyección
 };
@@ -38,19 +39,17 @@ PSInput VSMain(VSInput input)
     PSInput output;
 
     // Obtener la matriz de vista sin la translación (solo rotación)
-    // Esto asegura que el SkyBox se mueva con la cámara pero no se translade
+    // Se usa la función de HLSL para obtener la matriz de vista sin translación
     matrix viewNoTranslation = view;
-    viewNoTranslation._41 = 0.0f; // Ignorar X translación
-    viewNoTranslation._42 = 0.0f; // Ignorar Y translación
-    viewNoTranslation._43 = 0.0f; // Ignorar Z translación
+    viewNoTranslation[3][0] = 0.0f; // Ignorar X translación
+    viewNoTranslation[3][1] = 0.0f; // Ignorar Y translación
+    viewNoTranslation[3][2] = 0.0f; // Ignorar Z translación
 
     // Transformar la posición del vértice al espacio de la pantalla
     output.position = mul(input.position, viewNoTranslation);
     output.position = mul(output.position, projection);
 
     // El vector de muestreo para el cubemap es la posición original del vértice
-    // (o su posición en espacio de mundo/ojo después de la rotación).
-    // Para un cubo unitario centrado, input.position.xyz es directamente el vector de dirección.
     output.texCoord = input.position.xyz;
 
     return output;

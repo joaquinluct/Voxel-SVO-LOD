@@ -1,0 +1,1 @@
+https://learn.microsoft.com/es-es/windows/win32/dxtecharts/common-techniques-to-improve-shadow-depth-maps

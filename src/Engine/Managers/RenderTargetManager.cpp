@@ -62,7 +62,7 @@ HRESULT RenderTargetManager::Init(HWND hwnd, int width, int height)
 
     // OJO: VOLVER A PONER ESTA LINEA PARA EL MODO ANTIGUO
     //if (!backBuffer) return E_POINTER;
-	backBuffer = m_initManager->GetBackBuffer().Get();
+	//backBuffer = m_initManager->GetBackBuffer().Get();
 
     // Crear Render Target View
     hr = m_deviceManager->GetDevice()->CreateRenderTargetView(backBuffer, nullptr, &m_pRenderTargetView);

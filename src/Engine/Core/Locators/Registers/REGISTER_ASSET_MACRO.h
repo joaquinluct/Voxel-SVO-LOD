@@ -4,7 +4,6 @@
 #include "IWindowDependentInitializable.h"
 #include "IInitializable.h"
 #include "IRenderable.h"
-#include "IManager.h"
 #include <Assets/Base/AssetBase.h>
 
 #define DEFINE_INIT_ASSET_LAMBDA(AssetClassName) \

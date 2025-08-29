@@ -21,13 +21,7 @@
     <ClCompile Include="Main.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="MainWindow.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
     <ClCompile Include="src\Engine\Managers\DeviceManager.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\Managers\RenderTargetManager.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="Interfaces\iController.cpp">
@@ -37,9 +31,6 @@
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Managers\ShaderManager.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\Managers\WorldMatrixManager.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Services\Mouse.cpp">
@@ -129,13 +120,7 @@
     <ClCompile Include="src\Engine\Core\Locators\ServiceLocator\ServiceLocator.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="MainController.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
     <ClCompile Include="src\Engine\Managers\CameraManager.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\Managers\GameManager.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Managers\UIManager.cpp">
@@ -186,7 +171,7 @@
     <ClCompile Include="src\Engine\Assets\Base\MaterialAsset.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="InitController.cpp">
+    <ClCompile Include="src\Engine\Managers\InitManager\InitController.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Assets\Base\VertexAsset.cpp">
@@ -198,7 +183,7 @@
     <ClCompile Include="src\Engine\Managers\RenderManager\RenderManager.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engine\Managers\RenderManager\GameRenderManager.cpp">
+    <ClCompile Include="src\Engine\Managers\SceneManager.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Managers\RenderManager\BaseRenderManager.cpp">
@@ -219,24 +204,6 @@
     <ClCompile Include="src\Game\Systems\Shadows.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="src\Game\Systems\RenderPipeline\Pipeline\InputAssemblyStage.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Game\Systems\RenderPipeline\RenderPipeline.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Game\Systems\RenderPipeline\Pipeline\OutputMergerStage.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Game\Systems\RenderPipeline\Pipeline\RasterizerStage.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Game\Systems\RenderPipeline\Pipeline\PixelShaderStage.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Game\Systems\RenderPipeline\Pipeline\VertexShaderStage.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
     <ClCompile Include="src\Engine\Managers\RenderManager\RenderPass.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
@@ -250,9 +217,6 @@
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Managers\InitManager.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\Managers\InitManager\Pipeline\PipelineConfigurator.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Core\Locators\Pipeline\RenderPassLocator.cpp">
@@ -273,6 +237,66 @@
     <ClCompile Include="src\UI\UIText.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="src\Engine\Managers\RenderManager\Passes\SkyboxPass.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Systems\Cycle\Sun.h">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Systems\World.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Systems\Cycle.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Systems\Terrain.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Systems\Terrain\Chunk\ProceduralSeedTerrain.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Systems\Terrain\Chunk\Chunk.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Systems\Terrain\ChunkService.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Systems\Terrain\ProceduralService.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Systems\Terrain\Procedural\Engines\FastNoiseLiteEngine.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Systems\Terrain\Procedural\Engines\ProceduralEngineBase.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Systems\Chronos.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Managers\RenderManager\Passes\TerrainPass.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\GameObjects\Line.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Assets\Base\TerrainAsset.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Managers\RenderManager\Passes\WaterPass.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Systems\Water.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="Interfaces\IFrameState.h">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Services\FrameStateService.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="Interfaces\IRenderPass.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Assets\Base\BaseIndexConfig.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
@@ -283,6 +307,9 @@
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Assets\Base\ShaderAssetConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Assets\Base\TerrainAssetConfig.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Assets\Base\TextureAssetConfig.cpp">
@@ -303,7 +330,16 @@
     <ClCompile Include="src\Engine\Core\Config\Assets\Mesh\House1MeshConfig.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Assets\Mesh\OceanMeshConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Assets\Mesh\ProcSkyboxMeshConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Assets\Mesh\SkyboxMeshConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Assets\Mesh\TerrainMeshConfig.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Assets\Mesh\UITextMeshConfig.cpp">
@@ -312,10 +348,16 @@
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\DefaultShaderConfig.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Assets\Shader\OceanShaderConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\PBRShaderConfig.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\PBRShadowShaderConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Assets\Shader\ProceduralSkyboxShaderConfig.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\ShaderTextUIConfig.cpp">
@@ -327,13 +369,31 @@
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\SkyboxShaderConfig.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Assets\Shader\Terrain2ShaderConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Assets\Shader\TerrainShaderConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\TextureBasicShaderConfig.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\TextureMapShaderConfig.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Assets\Shader\WaterReflectionShaderConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Assets\Shader\WaterRefractionShaderConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Assets\Terrain\ProceduralTerrainConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Assets\Texture\DefaultSkyboxConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Assets\Texture\ProceduralTerrainTextureConfig.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Assets\Texture\TextureBricks001Config.cpp">
@@ -346,6 +406,9 @@
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Assets\TextureMap\DefaultSkyboxMapConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Assets\TextureMap\ProceduralTerrainTextureMapConfig.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Assets\TextureMap\TextureBricks001MapConfig.cpp">
@@ -363,16 +426,46 @@
     <ClCompile Include="src\Engine\Core\Config\Assets\Vertex\SkyboxCubeConfig.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Base\Pipeline\ShaderMatrixSlotsConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Base\Pipeline\ShaderSamplerSlotsConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Base\Pipeline\TextureSlotsConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderPass\LinePassConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Base\RenderPass\MainColorPassConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderPass\ReflectionConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderPass\RefractionConfig.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Base\RenderPass\ShadowPassConfig.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderPass\SkyboxPassConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderPass\TerrainPassConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Base\RenderPass\UIPassConfig.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderPass\WaterPassConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\BlendingUI.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\BlendingWaterPass.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\DisabledBlending.cpp">
@@ -387,7 +480,19 @@
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\RasterizedUIPass.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\ShaderViewReflection.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\ShaderViewRefraction.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\ShaderViewShadow.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\ShaderViewTexture2D.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\ShaderViewTextureArray2D.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\StencilStateRegular.cpp">
@@ -402,7 +507,22 @@
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\StencilViewShadow.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\StencilViewTerrain.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\SwapChainMain.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\Texture2D_Array_Jpg.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\Texture2D_Simple_Jpg.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\Texture2D_WaterReflection.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\Texture2D_WaterRefraction.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\ViewportMainColor.cpp">
@@ -411,40 +531,10 @@
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\ViewportShadow.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engine\Core\Config\Base\AssetManagerConfig.cpp">
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\ViewportUI.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engine\Core\Config\Base\CameraManagerConfig.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\Core\Config\Base\DeviceManagerConfig.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\Core\Config\Base\EngineConfig.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\Core\Config\Base\GameManagerConfig.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\Core\Config\Base\InitManagerConfig.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\Core\Config\Base\KeyboardManagerConfig.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\Core\Config\Base\RenderManagerConfig.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\Core\Config\Base\RenderTargetManagerConfig.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\Core\Config\Base\ShaderManagerConfig.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\Core\Config\Base\UIManagerConfig.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\Core\Config\Base\WorldMatrixManagerConfig.cpp">
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\ViewportWater.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Camera\DebugCamConfig.cpp">
@@ -468,6 +558,9 @@
     <ClCompile Include="src\Engine\Core\Config\Game\System\BiomeConfig.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Game\System\ChronosConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Game\System\CycleConfig.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
@@ -489,6 +582,9 @@
     <ClCompile Include="src\Engine\Core\Config\Game\System\TerrainConfig.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Game\System\WaterConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Game\System\WheatherConfig.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
@@ -496,6 +592,12 @@
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Game\GameEngineConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Services\ChunkServiceConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Services\FrameStateServiceConfig.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Services\KeyBindingsConfig.cpp">
@@ -510,6 +612,9 @@
     <ClCompile Include="src\Engine\Core\Config\Services\MouseConfig.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Services\ProceduralServiceConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Services\ServiceConfig.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
@@ -522,26 +627,101 @@
     <ClCompile Include="src\Engine\Core\Config\Services\UITextConfig.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\ViewportUI.cpp">
+    <ClCompile Include="src\Engine\Managers\RenderManager\Pipeline\Stages\InputAssemblyStage.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engine\Core\Config\Assets\Shader\ProceduralSkyboxShaderConfig.cpp">
+    <ClCompile Include="src\Engine\Managers\RenderManager\Pipeline\Stages\OutputMergerStage.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engine\Core\Config\Assets\Mesh\ProcSkyboxMeshConfig.cpp">
+    <ClCompile Include="src\Engine\Managers\RenderManager\Pipeline\Stages\PixelShaderStage.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engine\Core\Config\Base\RenderPass\SkyboxPassConfig.cpp">
+    <ClCompile Include="src\Engine\Managers\RenderManager\Pipeline\Stages\RasterizerStage.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engine\Managers\RenderManager\Passes\SkyboxPass.cpp">
+    <ClCompile Include="src\Engine\Managers\RenderManager\Pipeline\Stages\VertexShaderStage.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Base\Pipeline\ShaderTextureSlotsConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Base\Pipeline\PipelineConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Managers\RenderManager\Pipeline\Data\PipelineBuffer.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Services\ThreadPool.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Managers\UpdateManager.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Engine.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Main\MainWindow.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Managers\MainManagers\InputManager.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Managers\MouseManager.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Managers\InitPipelineManager.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Managers\ManagerBase.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Services\ThreadPoolConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Base\Managers\AssetManagerConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Base\Managers\CameraManagerConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Base\Managers\DeviceManagerConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Base\Managers\EngineConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Base\Managers\InitManagerConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Base\Managers\InitPipelineManagerConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Base\Managers\InputManagerConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Base\Managers\KeyboardManagerConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Base\Managers\MouseManagerConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Base\Managers\RenderManagerConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Base\Managers\SceneManagerConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Base\Managers\ShaderManagerConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Base\Managers\UIManagerConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Base\Managers\UpdateManagerConfig.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="MainWindow.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
     <ClInclude Include="Interfaces\IManager.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
@@ -552,9 +732,6 @@
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Managers\DeviceManager.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Managers\RenderTargetManager.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="Interfaces\iRenderizable.h">
@@ -573,9 +750,6 @@
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Managers\ShaderManager.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Managers\WorldMatrixManager.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Services\Mouse.h">
@@ -644,9 +818,6 @@
     <ClInclude Include="src\Engine\Core\Locators\ServiceLocator\ServiceLocator.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="MainController.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
     <ClInclude Include="Interfaces\ISubsystem.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
@@ -666,12 +837,6 @@
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="Interfaces\IShutdownable.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="Interfaces\LifeCycle.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Managers\GameManager.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Managers\UIManager.h">
@@ -1088,7 +1253,7 @@
     <ClInclude Include="src\Engine\Core\Defines\Asset.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="InitController.h">
+    <ClInclude Include="src\Engine\Managers\InitManager\InitController.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Core\Defines\Components.h">
@@ -1124,7 +1289,7 @@
     <ClInclude Include="src\Engine\Managers\RenderManager\RenderManager.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Managers\RenderManager\GameRenderManager.h">
+    <ClInclude Include="src\Engine\Managers\SceneManager.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Managers\RenderManager\BaseRenderManager.h">
@@ -1175,24 +1340,6 @@
     <ClInclude Include="src\Engine\Core\Defines\Pipeline.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="src\Game\Systems\RenderPipeline\Pipeline\InputAssemblyStage.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Game\Systems\RenderPipeline\RenderPipeline.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Game\Systems\RenderPipeline\Pipeline\VertexShaderStage.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Game\Systems\RenderPipeline\Pipeline\PixelShaderStage.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Game\Systems\RenderPipeline\Pipeline\RasterizerStage.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Game\Systems\RenderPipeline\Pipeline\OutputMergerStage.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
     <ClInclude Include="src\Engine\Managers\RenderManager\RenderPass.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
@@ -1211,13 +1358,10 @@
     <ClInclude Include="src\Engine\Managers\RenderManager\Pipeline\RenderPipelineExecutor.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Core\Defines\RenderPass.h">
+    <ClInclude Include="src\Engine\Core\Defines\AreaMesh.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Managers\InitManager.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Managers\InitManager\Pipeline\PipelineConfigurator.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Core\Locators\Pipeline\RenderPassLocator.h">
@@ -1274,6 +1418,192 @@
     <ClInclude Include="src\UI\UIText.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="src\Engine\Core\Defines\Vector.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Defines\UI.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Defines\Matrix\ProceduralSkybox.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Defines\Pass.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Managers\RenderManager\Passes\SkyboxPass.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Systems\World.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Defines\WorldDefinition.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Util\DateTime.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Systems\Cycle.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="Interfaces\IChunk.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Systems\Terrain\Chunk\Chunk.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Systems\Terrain.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Systems\Terrain\Chunk\ProceduralSeedTerrain.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="Interfaces\ITerrain.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Defines\WorldTerrain.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Defines\Procedural.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Systems\Terrain\ChunkService.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Defines\TerrainChunk.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Systems\Terrain\ProceduralService.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Systems\Terrain\Procedural\Engines\FastNoiseLiteEngine.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="Interfaces\IProceduralEngine.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Systems\Terrain\Procedural\Engines\ProceduralEngineBase.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Helpers\FrustumCullingHelper.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Systems\Chronos.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Helpers\ChunkHelper.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="Interfaces\IEventListener.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="Interfaces\IEvent.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="Interfaces\Pipeline\IPipelineTexture2DDesc.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Managers\RenderManager\Passes\TerrainPass.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\GameObjects\Line.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Assets\Base\TerrainAsset.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="Interfaces\Config\TerrainAssetConfigBase.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="Interfaces\IDebug.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Defines\Matrix\WaterMatrices.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Defines\WaterDefinition.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Defines\Matrix\TimeMatrices.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Managers\RenderManager\Passes\WaterPass.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Defines\TimeDefinition.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Systems\Water.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Defines\CameraDefinition.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Managers\RenderState\FrameStates\FrameStateBase.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Managers\RenderState\FrameStates\CommonFrameState.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Managers\RenderState\FrameStates\LightFrameState.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Managers\RenderState\FrameStates\TerrainFrameState.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Managers\RenderState\FrameStates\MaterialFrameState.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Managers\RenderState\FrameStates\CameraFrameState.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Managers\RenderState\FrameStates\WaterFrameState.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Managers\RenderState\FrameStates\SkyboxFrameState.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Services\FrameStateService.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Defines\FrameStateDefinition.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Managers\RenderState\FrameStates\TimeFrameState.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Managers\RenderState\FrameStates\MeshFrameState.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Managers\RenderState\FrameStates\DeviceFrameState.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="Includes\FrameStates.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Managers\RenderState\FrameStates\PassFrameState.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="Interfaces\Config\PassConfigBase.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Managers\RenderState\FrameStates\ViewportFrameState.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="Interfaces\IMesh.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Managers\RenderState\FrameStates\ShaderFrameState.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Managers\RenderState\FrameStates\PipelineFrameState.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="Includes\FrameStateForward.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Managers\RenderManager\Pipeline\PipelineState.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Assets\Base\BaseIndexConfig.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
@@ -1284,6 +1614,9 @@
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Assets\Base\ShaderAssetConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Assets\Base\TerrainAssetConfig.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Assets\Base\TextureAssetConfig.h">
@@ -1304,7 +1637,16 @@
     <ClInclude Include="src\Engine\Core\Config\Assets\Mesh\House1MeshConfig.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Assets\Mesh\OceanMeshConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Assets\Mesh\ProcSkyboxMeshConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Assets\Mesh\SkyboxMeshConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Assets\Mesh\TerrainMeshConfig.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Assets\Mesh\UITextMeshConfig.h">
@@ -1313,10 +1655,16 @@
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\DefaultShaderConfig.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Assets\Shader\OceanShaderConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\PBRShaderConfig.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\PBRShadowShaderConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Assets\Shader\ProceduralSkyboxShaderConfig.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\ShaderTextUIConfig.h">
@@ -1328,13 +1676,31 @@
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\SkyboxShaderConfig.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Assets\Shader\Terrain2ShaderConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Assets\Shader\TerrainShaderConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\TextureBasicShaderConfig.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\TextureMapShaderConfig.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Assets\Shader\WaterReflectionShaderConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Assets\Shader\WaterRefractionShaderConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Assets\Terrain\ProceduralTerrainConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Assets\Texture\DefaultSkyboxConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Assets\Texture\ProceduralTerrainTextureConfig.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Assets\Texture\TextureBricks001Config.h">
@@ -1347,6 +1713,9 @@
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Assets\TextureMap\DefaultSkyboxMapConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Assets\TextureMap\ProceduralTerrainTextureMapConfig.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Assets\TextureMap\TextureBricks001MapConfig.h">
@@ -1364,16 +1733,46 @@
     <ClInclude Include="src\Engine\Core\Config\Assets\Vertex\SkyboxCubeConfig.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Base\Pipeline\ShaderMatrixSlotsConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Base\Pipeline\ShaderSamplerSlotsConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Base\Pipeline\TextureSlotsConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderPass\LinePassConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Base\RenderPass\MainColorPassConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderPass\ReflectionConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderPass\RefractionConfig.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Base\RenderPass\ShadowPassConfig.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderPass\SkyboxPassConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderPass\TerrainPassConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Base\RenderPass\UIPassConfig.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderPass\WaterPassConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\BlendingUI.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\BlendingWaterPass.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\DisabledBlending.h">
@@ -1388,7 +1787,19 @@
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\RasterizedUIPass.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\ShaderViewReflection.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\ShaderViewRefraction.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\ShaderViewShadow.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\ShaderViewTexture2D.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\ShaderViewTextureArray2D.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\StencilStateRegular.h">
@@ -1403,7 +1814,22 @@
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\StencilViewShadow.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\StencilViewTerrain.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\SwapChainMain.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\Texture2D_Array_Jpg.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\Texture2D_Simple_Jpg.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\Texture2D_WaterReflection.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\Texture2D_WaterRefraction.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\ViewportMainColor.h">
@@ -1412,40 +1838,10 @@
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\ViewportShadow.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Core\Config\Base\AssetManagerConfig.h">
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\ViewportUI.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Core\Config\Base\CameraManagerConfig.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Core\Config\Base\DeviceManagerConfig.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Core\Config\Base\EngineConfig.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Core\Config\Base\GameManagerConfig.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Core\Config\Base\InitManagerConfig.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Core\Config\Base\KeyboardManagerConfig.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Core\Config\Base\RenderManagerConfig.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Core\Config\Base\RenderTargetManagerConfig.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Core\Config\Base\ShaderManagerConfig.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Core\Config\Base\UIManagerConfig.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Core\Config\Base\WorldMatrixManagerConfig.h">
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\ViewportWater.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Camera\DebugCamConfig.h">
@@ -1469,6 +1865,9 @@
     <ClInclude Include="src\Engine\Core\Config\Game\System\BiomeConfig.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Game\System\ChronosConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Game\System\CycleConfig.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
@@ -1490,6 +1889,9 @@
     <ClInclude Include="src\Engine\Core\Config\Game\System\TerrainConfig.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Game\System\WaterConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Game\System\WheatherConfig.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
@@ -1497,6 +1899,12 @@
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Game\GameEngineConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Services\ChunkServiceConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Services\FrameStateServiceConfig.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Services\KeyBindingsConfig.h">
@@ -1511,6 +1919,9 @@
     <ClInclude Include="src\Engine\Core\Config\Services\MouseConfig.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Services\ProceduralServiceConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Services\ServiceConfig.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
@@ -1520,34 +1931,115 @@
     <ClInclude Include="src\Engine\Core\Config\Services\UIDebugConfig.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Core\Defines\Vector.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Services\UITextConfig.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Core\Defines\UI.h">
+    <ClInclude Include="src\Engine\Managers\RenderManager\Pipeline\Stages\InputAssemblyStage.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\ViewportUI.h">
+    <ClInclude Include="src\Engine\Managers\RenderManager\Pipeline\Stages\OutputMergerStage.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Core\Defines\Matrix\ProceduralSkybox.h">
+    <ClInclude Include="src\Engine\Managers\RenderManager\Pipeline\Stages\PixelShaderStage.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Core\Config\Assets\Shader\ProceduralSkyboxShaderConfig.h">
+    <ClInclude Include="src\Engine\Managers\RenderManager\Pipeline\Stages\RasterizerStage.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Core\Defines\Pass.h">
+    <ClInclude Include="src\Engine\Managers\RenderManager\Pipeline\Stages\VertexShaderStage.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Core\Config\Assets\Mesh\ProcSkyboxMeshConfig.h">
+    <ClInclude Include="src\Engine\Core\Config\Base\Pipeline\ShaderTextureSlotsConfig.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Core\Config\Base\RenderPass\SkyboxPassConfig.h">
+    <ClInclude Include="src\Engine\Helpers\PipelineHelper.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Managers\RenderManager\Passes\SkyboxPass.h">
+    <ClInclude Include="src\Engine\Core\Config\Base\Pipeline\PipelineConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Managers\RenderManager\Pipeline\Data\PipelineBuffer.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Services\ThreadPool.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Managers\UpdateManager.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Main\MainWindow.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Engine.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Managers\MainManagers\InputManager.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Managers\MouseManager.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Managers\InitPipelineManager.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Defines\Threading.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Managers\ManagerBase.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Services\ThreadPoolConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="Interfaces\IPostInitalizable.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="Interfaces\LifeCycle.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Defines\Types.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Base\Managers\AssetManagerConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Base\Managers\CameraManagerConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Base\Managers\DeviceManagerConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Base\Managers\EngineConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Base\Managers\InitManagerConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Base\Managers\InitPipelineManagerConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Base\Managers\InputManagerConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Base\Managers\KeyboardManagerConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Base\Managers\MouseManagerConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Base\Managers\RenderManagerConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Base\Managers\SceneManagerConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Base\Managers\ShaderManagerConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Base\Managers\UIManagerConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Base\Managers\UpdateManagerConfig.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
   </ItemGroup>
@@ -1565,6 +2057,9 @@
     <FxCompile Include="Assets\Shader\ShadowMapShader.hlsl" />
     <FxCompile Include="Assets\Shader\ProceduralSkyboxShader.hlsl" />
     <FxCompile Include="Assets\Shader\MyProceduralSkyboxShader.hlsl" />
+    <FxCompile Include="Assets\Shader\TerrainShader.hlsl" />
+    <FxCompile Include="Assets\Shader\Terrain2Shader.hlsl" />
+    <FxCompile Include="Assets\Shader\OceanShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\DejaVuSansMono.png">
@@ -1644,12 +2139,6 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <None Include="VOXEL-CHUNKS.md" />
-    <None Include="SVO.md" />
-    <None Include="SVO-BASE.md" />
-    <None Include="SVO_TRIÁNGULOS.md" />
-    <None Include="SVO con LOD.md" />
-    <None Include="SVO Generar Octree.md" />
     <None Include="READ.md" />
     <None Include="Libs\DirectX\DirectXTex\DirectXTex.inl">
       <Filter>Archivos de encabezado</Filter>
@@ -1703,7 +2192,6 @@
       <Filter>Archivos de origen</Filter>
     </None>
     <None Include="Resources\Config\camera_config.yaml" />
-    <None Include="SHADER_REGISTROS.md" />
     <None Include="Resources\Config\services_config.yaml" />
     <None Include="Resources\Config\index_config.yaml" />
     <None Include="Resources\Config\Assets\assets_shader.yaml" />
@@ -1715,7 +2203,7 @@
     <None Include="Resources\Config\Game\game_base.yaml" />
     <None Include="Resources\Config\engine_config.yaml" />
     <None Include="Resources\Config\Game\game_object.yaml" />
-    <None Include="src\Engine\Assets\Base\ObjFormat\MUCHOS OBJECTOS.md" />
+    <None Include="src\Engine\Assets\Base\ObjFormat\MUCHOS OBJETOS.md" />
     <None Include="Resources\Config\Game\game_system.yaml" />
     <None Include="Resources\Config\Game\game_object_base.yaml" />
     <None Include="Resources\Config\Assets\assets_texture_map.yaml" />
@@ -1737,9 +2225,14 @@
       <Filter>Archivos de origen</Filter>
     </None>
     <None Include="md\CUBEMAPS_SKYBOX.md" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="SAVE_FBX.md" />
+    <None Include="md\SHADOW-MAP.md" />
+    <None Include="Resources\Config\Assets\assets_terrain.yaml" />
+    <None Include="md\Pipeline\ETAPAS DEL PIPELINE - DIRECTX-11.md" />
+    <None Include="md\Teselación\TESELACIÓN.md" />
+    <None Include="md\Terrain\DawIndexedIndirect.md" />
+    <None Include="md\Pipeline\OPERACIONES POR FRAME.md" />
+    <None Include="Resources\Config\Engine\Pipeline\pipeline_slots_contract.yaml" />
+    <None Include="Resources\Config\Engine\engine_jobs.yaml" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="C:\Users\joaqu\Downloads\yaml-cpp-master-original\yaml-cpp-master\build\Debug\yaml-cppd.lib" />

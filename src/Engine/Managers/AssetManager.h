@@ -1,10 +1,6 @@
 // AssetManager.h
 #pragma once
-#include "IManager.h"
-#include "IWindowDependentInitializable.h"
-#include "IRenderable.h"
-#include "IUpdatable.h"
-#include "IShutdownable.h"
+#include <ManagerBase.h>
 #include "AssetType.h"
 #include <Assets/IAsset.h>
 #include "AssetLoadContext.h"
@@ -29,13 +25,15 @@
 // AssetManager
 // ====================================================================
 
-class AssetManager : public IManager, public IWindowDependentInitializable, public IRenderable, public IUpdatable, public IShutdownable {
+class AssetManager : public ManagerBase {
 public:
     AssetManager();
     ~AssetManager() override;
 
-    HRESULT Init(HWND hwnd, int width, int height) override;
-    HRESULT InitShaders(HWND hwnd, int width, int height);
+    bool IsWindowDependent() const override { return true; }
+
+    HRESULT Init(HWND* hwnd, int width, int height) override;
+    HRESULT InitShaders(HWND* hwnd, int width, int height);
 
     void Render() override;
     void Update(float deltaTime) override; // CRÍTICO: procesa cargas asíncronas y comandos GPU

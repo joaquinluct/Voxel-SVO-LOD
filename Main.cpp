@@ -9,12 +9,9 @@
 #include <d3dcompiler.h>
 #include <directxmath.h>
 #include <directxcolors.h>
-#include "MainWindow.h"
-//#include "AssetManager.h"
-//#include "MarchingCubes.h"
-//#include "Camera.h"
-//#include "Common.h"
-//#include "UIManager.h"
+//#include "MainWindow.h"
+#include <Main/MainWindow.h>
+
 
 using namespace DirectX;
 

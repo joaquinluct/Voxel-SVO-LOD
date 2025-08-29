@@ -3,9 +3,9 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <ConfigBase.h>
+#include <PassConfigBase.h>
 
-class SkyboxPassConfig : public ConfigBase {
+class SkyboxPassConfig : public PassConfigBase {
 public:
 	SkyboxPassConfig();
 	static const std::string& GetStaticConfigName()
@@ -16,12 +16,4 @@ public:
 	int id;
 	bool enabled;
 	std::string shader_default;
-	std::string rasterizedState;
-	std::string viewPortState;
-	std::string stencilState;
-	std::string stencilDef;
-	std::string shaderViewState;
-	std::string shadowTextureView;
-	std::string blendState;
-	int primitiveTopology;
 };

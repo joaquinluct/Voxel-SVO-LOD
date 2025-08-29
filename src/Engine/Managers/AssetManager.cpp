@@ -22,14 +22,14 @@ AssetManager::AssetManager() {
     // Sus miembros (pDevice, pImmediateContext, etc.) se inicializarán a nullptr si son punteros
     // o shared_ptr vacíos si son smart pointers.
     // Los valores correctos se asignan en Init().
-	m_config = new MainIndexConfig();
+	m_config = new MainIndexConfig();    
 }
 
 AssetManager::~AssetManager() {
     Shutdown();
 }
 
-HRESULT AssetManager::InitShaders(HWND hwnd, int width, int height) {
+HRESULT AssetManager::InitShaders(HWND* hwnd, int width, int height) {
     if (!m_config) {
         OutputDebugStringA("AssetManager InitShaders: m_config is null.\n");
 		return E_FAIL; // Error si m_config no está inicializado
@@ -38,7 +38,7 @@ HRESULT AssetManager::InitShaders(HWND hwnd, int width, int height) {
     return S_OK;
 }
 
-HRESULT AssetManager::Init(HWND hwnd, int width, int height) {
+HRESULT AssetManager::Init(HWND* hwnd, int width, int height) {
     /*OutputDebugStringA("Incializando AssetManager...\n");
 
     m_configBase = new BaseIndexConfig();

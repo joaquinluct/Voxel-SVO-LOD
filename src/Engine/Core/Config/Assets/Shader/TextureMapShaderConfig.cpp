@@ -15,7 +15,7 @@ TextureMapShaderConfig::TextureMapShaderConfig(){
 		"TextureTransformations"
 	};
 	sampler_slots = {
-		"RegularSampler"
+		"baseSampler"
 	};
 	needs_shadow = false;
 	name = "TextureMapShader";

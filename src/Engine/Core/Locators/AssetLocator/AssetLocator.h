@@ -3,10 +3,6 @@
 
 #include <Core/Defines/Asset.h>
 #include <Assets/Base/AssetBase.h>
-#include <Assets/Base/MeshAsset.h>
-#include <Assets/Base/ShaderAsset.h>
-#include <Assets/Base/MaterialAsset.h>
-#include <Assets/Base/VertexAsset.h>
 //#include <Assets/Base/TextureAsset.h>
 #include <string>
 #include <memory>
@@ -21,9 +17,13 @@
 
 
 // Si no está en un namespace:
-class TextureAsset; 
-class ShaderAsset;
 class IAsset;
+class MaterialAsset;
+class MeshAsset;
+class ShaderAsset;
+class TerrainAsset;
+class TextureAsset; 
+class VertexAsset;
 class IInitializable;
 class IWindowDependentInitializable;
 
@@ -66,8 +66,11 @@ public:
     //static void ShutdownAssets(const std::vector<std::string>& orderList); // Shutdown suele ser void
 
     static std::shared_ptr<AssetBase> GetAsset(const std::string& name);
+    static std::unique_ptr<MeshAsset> GetMeshAssetPointer(const std::string& name);
+    static std::shared_ptr<MeshAsset> GetMeshAsset(const std::string& name);
     static std::shared_ptr<VertexAsset> GetVertexAsset(const std::string& name);
     static std::shared_ptr<TextureAsset> GetTextureAsset(const std::string& name);
+    static std::shared_ptr<TerrainAsset> GetTerrainAsset(const std::string& name);
     static std::shared_ptr<ShaderAsset> GetShaderAsset(const std::string& name);
     static std::shared_ptr<AssetBase> GetAssetBase(const std::string& name);
 
@@ -103,25 +106,7 @@ public:
         return nullptr;
     }
 
-    static std::vector<std::shared_ptr<ShaderAsset>> GetShaders() {
-        auto& s_assetEntries = GetAssetEntries();
-		// Itera y develve todos los s_assetEntries de tipo ShaderAsset
-        std::vector<std::shared_ptr<ShaderAsset>> shaders;
-        for (const auto& entry : s_assetEntries) {
-            auto shader = std::dynamic_pointer_cast<ShaderAsset>(entry.second);
-            if (shader) {
-                const std::string configName = entry.first + "Config";
-                std::shared_ptr<IAssetShaderConfig> config = ConfigLocator::GetConfig<IAssetShaderConfig>(configName);
-                if (config.get()) {
-                    shader->SetName(config->name);
-                    shader->SetConfig(config);
-                }
-                //std::shared_ptr<ShaderAsset> m_shader = std::make_shared<ShaderAsset>(shader);
-                shaders.push_back(shader->CloneShader());
-            }
-        }
-		return shaders;
-    }
+    static std::vector<std::shared_ptr<ShaderAsset>> GetShaders();
 
     // Función para registrar directamente un servicio ya creado (para casos especiales o tests).
     // También usa T::GetStaticAssetName() como clave para mantener la consistencia.

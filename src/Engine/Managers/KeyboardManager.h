@@ -1,15 +1,11 @@
 #pragma once
 
-#include "IManager.h"
+#include <ManagerBase.h>
 #include <Services/Keyboard.h>
-#include "IInitializable.h"
-#include "IUpdatable.h"
-#include "IRenderable.h"
-#include "IShutdownable.h"
-#include <Config/Base/KeyboardManagerConfig.h>
+#include <Config/Base/Managers/KeyboardManagerConfig.h>
 #include <Services/KeyBindings.h>
 
-class KeyboardManager : public IManager, public IInitializable, public IUpdatable, public IRenderable, public IShutdownable
+class KeyboardManager : public ManagerBase
 {
 public:
 	KeyboardManager();
@@ -39,6 +35,7 @@ public:
 	bool IsKeyPressed(KeyMoves keyMove) const;
 	bool IsKeyReleased(KeyMoves keyMove) const;
 
+	void HandleMessage(UINT message, WPARAM wParam, LPARAM lParam);
 	
 private:
 	std::shared_ptr<Keyboard> m_keyboard;

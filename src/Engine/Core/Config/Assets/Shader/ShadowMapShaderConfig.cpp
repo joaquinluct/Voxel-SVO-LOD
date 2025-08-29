@@ -8,7 +8,7 @@ ShadowMapShaderConfig::ShadowMapShaderConfig(){
 	shader_path = "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Shader\\ShadowMapShader.hlsl";
 	vertex_def = "SimpleVertex";
 	matrix_slots = {
-		"LightSpaceMatrices"
+		"ShadowMapMatrices"
 	};
 	sampler_slots = {
 		"None"

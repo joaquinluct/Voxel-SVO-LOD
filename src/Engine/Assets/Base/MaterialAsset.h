@@ -8,7 +8,6 @@
 #include <string>
 #include <wrl/client.h> // Para Microsoft::WRL::ComPtr
 #include <memory> // Para std::shared_ptr
-#include <RenderTargetManager.h> 
 
 // Define un tipo de alias para ComPtr para mayor comodidad
 template <typename T>
@@ -24,6 +23,14 @@ public:
         // Crea una nueva instancia utilizando el constructor de copia
         // y la devuelve como un shared_ptr.
         return std::make_shared<MaterialAsset>(*this);
+    }
+    virtual std::shared_ptr<MeshAsset> CloneAsMesh() const override {
+        return nullptr;
+    }
+    virtual std::unique_ptr<AssetBase> CloneUnique() const override {
+        // Crea una nueva instancia utilizando el constructor de copia
+        // y la devuelve como un shared_ptr.
+        return std::make_unique<MaterialAsset>(*this);
     }
     void Load() override {};
     void Unload() override {};
@@ -49,8 +56,8 @@ public:
 
     };
 
-    ID3D11ShaderResourceView* GetTextureView() const;
-    ID3D11ShaderResourceView* GetCubemapTextureView() const;
+    //ID3D11ShaderResourceView* GetTextureView() const;
+    //ID3D11ShaderResourceView* GetCubemapTextureView() const;
 
     // Métodos específicos de Texture
     ID3D11Resource* GetTexture2D() const { return m_texture2D; }

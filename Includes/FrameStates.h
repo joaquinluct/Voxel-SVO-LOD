@@ -1,0 +1,23 @@
+#pragma once
+
+//#include <IFrameState.h>
+
+#include <Defines/FrameStateDefinition.h> 
+
+#include <Services/FrameStateService.h>
+#include <RenderState/FrameStates/FrameStateBase.h>
+
+#include <RenderState/FrameStates/CameraFrameState.h>
+#include <RenderState/FrameStates/CommonFrameState.h>
+#include <RenderState/FrameStates/DeviceFrameState.h>
+#include <RenderState/FrameStates/LightFrameState.h>
+#include <RenderState/FrameStates/MaterialFrameState.h>
+#include <RenderState/FrameStates/MeshFrameState.h>
+#include <RenderState/FrameStates/SkyboxFrameState.h>
+#include <RenderState/FrameStates/TerrainFrameState.h>
+#include <RenderState/FrameStates/TimeFrameState.h>
+#include <RenderState/FrameStates/WaterFrameState.h>
+#include <RenderState/FrameStates/PassFrameState.h>
+#include <RenderState/FrameStates/ViewportFrameState.h>
+#include <RenderState/FrameStates/ShaderFrameState.h>
+#include <RenderState/FrameStates/PipelineFrameState.h>

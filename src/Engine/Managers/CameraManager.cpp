@@ -18,7 +18,7 @@ CameraManager::~CameraManager() {
     m_currentCamera = nullptr;
 }
 
-HRESULT CameraManager::Init(HWND hwnd, int width, int height) {
+HRESULT CameraManager::Init(HWND* hwnd, int width, int height) {
     OutputDebugStringA("Incializando CameraManager...\n");
     m_hwnd = hwnd;
     m_width = width;
@@ -64,6 +64,11 @@ HRESULT CameraManager::Init(HWND hwnd, int width, int height) {
     hr = S_OK;
     OutputDebugStringA(("Resultado Init " + std::to_string(hr) + " en CameraManager\n").c_str());
     return hr;
+}
+
+HRESULT CameraManager::PostInit() {
+    m_currentCamera->PostInit();
+    return S_OK;
 }
 
 void CameraManager::Update(float deltaTime) {
@@ -117,16 +122,16 @@ std::shared_ptr<ICamera> CameraManager::GetCurrentCamera() const {
 }
 
 // Métodos delegados a la cámara activa
-DirectX::XMMATRIX CameraManager::GetCurrentViewMatrix() const {
+DirectX::XMMATRIX CameraManager::GetCurrentViewMatrix(bool onUpdate) const {
     if (m_currentCamera) {
-        return m_currentCamera->GetViewMatrix();
+        return m_currentCamera->GetViewMatrix(onUpdate);
     }
     return XMMatrixIdentity();
 }
 
-DirectX::XMMATRIX CameraManager::GetCurrentProjectionMatrix() const {
+DirectX::XMMATRIX CameraManager::GetCurrentProjectionMatrix(bool onUpdate) const {
     if (m_currentCamera) {
-        return m_currentCamera->GetProjectionMatrix();
+        return m_currentCamera->GetProjectionMatrix(onUpdate);
     }
     return XMMatrixIdentity();
 }
@@ -145,14 +150,21 @@ DirectX::XMFLOAT3 CameraManager::GetCurrentCameraRotation() const {
     return XMFLOAT3(0.0f, 0.0f, 0.0f);
 }
 
-void CameraManager::ExtractCurrentFrustumPlanes(DirectX::XMFLOAT4 planes[6]) const {
+DirectX::XMFLOAT3 CameraManager::GetCurrentLookAt() const {
     if (m_currentCamera) {
-        m_currentCamera->ExtractFrustumPlanes(planes);
+        return m_currentCamera->GetLookAt();
+    }
+    return XMFLOAT3(0.0f, 0.0f, 0.0f);
+}
+
+void CameraManager::ExtractCurrentFrustumPlanes(std::vector<CameraDefinition::FrustumPlane>& frustumPlanes) const {
+    if (m_currentCamera) {
+        m_currentCamera->ExtractFrustumPlanes(frustumPlanes);
     }
     else {
         // Opcional: inicializar planos a valores inválidos o identidad
         for (int i = 0; i < 6; ++i) {
-            planes[i] = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
+            frustumPlanes[i].coefficients = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
         }
     }
 }
@@ -162,4 +174,10 @@ Util::Triangle* CameraManager::GetTriangleLookingAt(const std::vector<Util::Tria
         return m_currentCamera->GetTriangleLookingAt(triangles);
     }
     return nullptr;
+}
+
+std::string CameraManager::GetDebugInfo() const {
+    std::string info = "\nCameraManager Debug Info:\n";
+    info += "Debug Camera: " + (m_currentCamera ? m_currentCamera->GetDebugInfo() : "None") + "\n";    
+    return info;
 }

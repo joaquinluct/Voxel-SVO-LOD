@@ -19,8 +19,7 @@ Config:
           type: "TestingBasic2"
           description: "Un triángulo de pruebas básicas."
           dependencies:
-            - DeviceManager
-            - WorldMatrixManager
+            - DeviceManager            
             - ShaderManager
             - CameraManager
 

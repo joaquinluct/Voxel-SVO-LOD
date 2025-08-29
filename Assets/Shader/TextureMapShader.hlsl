@@ -43,9 +43,10 @@ cbuffer MaterialBuffer : register(b3) // Otro nuevo slot, por ejemplo, b3
 Texture2D albedoTexture : register(t0); // Color base
 Texture2D normalTexture : register(t1); // Detalle de superficie (baches)
 Texture2D roughnessTexture : register(t2); // Rugosidad (dispersión de la luz)
-Texture2D aoTexture : register(t3); // Oclusión ambiental (sombras de contacto)
+// metallic falta
+Texture2D aoTexture : register(t4); // Oclusión ambiental (sombras de contacto)
 
-SamplerState SamplerType : register(s0); // Sampler para todas las texturas PBR
+SamplerState baseSampler : register(s0); // Sampler para todas las texturas PBR
 
 //--------------------------------------------------------------------------------------
 // Vertex Shader Input & Output Structures
@@ -58,6 +59,7 @@ struct VSInput
     float2 tex : TEXCOORD; // Coordenadas de textura UV
     // --- IMPORTANTE: Si usas Normal Mapping, NECESITAS la tangente del vértice ---
     float3 tangent : TANGENT; // Añadir si necesitas tangentes para normal mapping avanzado
+    float4 debugColor : COLOR; // Color para debug (si lo necesitas)
 };
 
 // VSOutput / PSInput: Lo que el VS envía al PS (interpolado automáticamente)
@@ -106,10 +108,10 @@ PSInput VSMain(VSInput input)
 float4 PSMain(PSInput input) : SV_TARGET
 {
     // 1. Muestrear las texturas PBR
-    float4 albedoColor = albedoTexture.Sample(SamplerType, input.tex);
-    float3 sampledNormal = normalTexture.Sample(SamplerType, input.tex).rgb; // Rango [0,1]
-    float roughness = roughnessTexture.Sample(SamplerType, input.tex).r;
-    float ambientOcclusion = aoTexture.Sample(SamplerType, input.tex).r;
+    float4 albedoColor = albedoTexture.Sample(baseSampler, input.tex);
+    float3 sampledNormal = normalTexture.Sample(baseSampler, input.tex).rgb; // Rango [0,1]
+    float roughness = roughnessTexture.Sample(baseSampler, input.tex).r;
+    float ambientOcclusion = aoTexture.Sample(baseSampler, input.tex).r;
 
     // 2. Calcular la normal final del píxel (usando el normal map)
     // Remapear la normal muestreada de [0,1] a [-1,1]

@@ -3,21 +3,16 @@
 #include <Windows.h>
 #include <string>
 #include <vector>
-#include "IManager.h"
-#include "IInitializable.h"
-#include "IRenderable.h"
-#include "IUpdatable.h"
-#include "IShutdownable.h"
+#include <ManagerBase.h>
 #include <directxmath.h>
-//#include <UI/UIElement.h>
 #include <UI/UIText.h>
-#include "DeviceManager.h"
-#include "RenderTargetManager.h"
 #include <ManagerLocator/ManagerLocator.h>
 
+class DeviceManager;
 class RenderManager;
+class MeshAsset;
 
-class UIManager : public IManager, public IInitializable, public IRenderable, public IUpdatable, public IShutdownable
+class UIManager : public ManagerBase
 {
 public:
     UIManager();
@@ -33,9 +28,10 @@ public:
     }
 
     HRESULT Init() override;
-    UIText* InitText(std::vector<std::shared_ptr<VertexDefinition::VertexVariant>>& vertexDef, std::string text);
+    UIText* InitText(std::shared_ptr<MeshAsset> mesh, std::vector<std::shared_ptr<VertexDefinition::VertexVariant>>& vertexDef);
     void Render() override;
     void Update(float deltaTime) override {};
+    UIText* UpdateText(std::string meshName, std::string text);
     void Shutdown() override;
 
 	//void SetText(const std::wstring& text);
@@ -46,10 +42,8 @@ public:
     XMMATRIX GetOrthoMatrix() const { return m_orthoMatrix; };
 
 private:
-	std::vector<UIText*> m_textElements;
-    std::shared_ptr<DeviceManager> m_deviceManager;
-    std::shared_ptr<RenderTargetManager> m_renderTargetManager;
-	std::shared_ptr<WorldMatrixManager> m_worldMatrixManager;
+	std::map<std::string, UIText*> m_textElements;
+    std::shared_ptr<DeviceManager> m_deviceManager;    
     std::shared_ptr<RenderManager> m_renderManager;
 	// Matriz ortográfica para UI
 	XMMATRIX m_orthoMatrix; // Matriz ortográfica para UI

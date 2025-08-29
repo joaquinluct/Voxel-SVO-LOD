@@ -14,6 +14,7 @@ public:
 		return className;
 	}
 	std::vector<std::string> services_init_order;
+	std::vector<std::string> services_post_init;
 	std::vector<std::string> services_render_order;
 	std::vector<std::string> service_update_order;
 };

@@ -6,6 +6,7 @@ REGISTER_CONFIG_TYPE(TextureBricks001Config,"TextureBricks001Config");
 TextureBricks001Config::TextureBricks001Config(){
 	type = "TextureAsset";
 	map = "TextureBricks001Map";
+	texture_desc = "Texture2D_Simple_Jpg";
 	x_scale = 1.0f;
 	y_scale = 1.0f;
 	x_offset = 0.0f;

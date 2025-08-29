@@ -52,6 +52,19 @@ Config:
           DepthClipEnable: false
           ScissorEnable: false
           MultisampleEnable: false
+        # Nuevo estado de rasterización para el reflejo del agua
+        # RasterizedReflectedPass:
+        #   name: "RasterizedReflectedPass"
+        #   FillMode: 3
+        #   CullMode: 2
+        #   FrontCounterClockwise: false
+        #   DepthBias: 0
+        #   DepthBiasClamp: 0.0
+        #   SlopeScaledDepthBias: 0.0
+        #   AntialiasedLineEnable: true
+        #   DepthClipEnable: true
+        #   ScissorEnable: true
+        #   MultisampleEnable: true
 
         DisabledBlending:
           TYPE: D3D11_BLEND_DESC
@@ -76,6 +89,18 @@ Config:
           DestBlendAlpha: 1 #D3D11_BLEND_ZERO;
           BlendOpAlpha: 1 #D3D11_BLEND_OP_ADD;
           RenderTargetWriteMask: 15 #D3D11_COLOR_WRITE_ENABLE_ALL;
+        # Nuevo estado de blending para el agua (transparencia)
+        BlendingWaterPass:
+          AlphaToCoverageEnable: false
+          IndependentBlendEnable: false
+          BlendEnable: true
+          SrcBlend: 5 #D3D11_BLEND_SRC_ALPHA;
+          DestBlend: 6 #D3D11_BLEND_INV_SRC_ALPHA;
+          BlendOp: 1 #D3D11_BLEND_OP_ADD;
+          SrcBlendAlpha: 5 #D3D11_BLEND_SRC_ALPHA;
+          DestBlendAlpha: 6 #D3D11_BLEND_INV_SRC_ALPHA;
+          BlendOpAlpha: 1 #D3D11_BLEND_OP_ADD;
+          RenderTargetWriteMask: 15 #D3D11_COLOR_WRITE_ENABLE_ALL;
 
         StencilViewMainColor:
           Type: D3D11_DEPTH_STENCIL_VIEW_DESC
@@ -92,8 +117,24 @@ Config:
           Depth: 1.0
           Stencil: 0.0
           ViewDesc: false
+        StencilViewTerrain:
+          Type: D3D11_DEPTH_STENCIL_VIEW_DESC
+          StencilEnable: true
+          DepthEnable: true
+          DepthWriteMask: 1 #D3D11_DEPTH_WRITE_MASK_ALL;
+          MipLevels: 1
+          ArraySize: 1
+          Format: 45 #DXGI_FORMAT_D24_UNORM_S8_UINT;
+          SampleCount: 1
+          SampleQuality: 0
+          Usage: 0 #D3D11_USAGE_DEFAULT;
+          BindFlags: 64 #D3D11_BIND_DEPTH_STENCIL;
+          Depth: 1.0
+          Stencil: 0.0
+          ViewDesc: false
         StencilViewShadow:
           Type: D3D11_DEPTH_STENCIL_VIEW_DESC
+          ClearFlags: 3 #D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL;
           StencilEnable: true
           DepthEnable: true
           DepthWriteMask: 1 #D3D11_DEPTH_WRITE_MASK_ALL;
@@ -136,6 +177,34 @@ Config:
           ViewDimension: 4 #D3D11_SRV_DIMENSION_TEXTURE2D
           MipLevels: 1
           MostDetailedMip: 0
+        ShaderViewTexture2D:
+          Type: D3D11_SHADER_RESOURCE_VIEW_DESC
+          Format:  46 #DXGI_FORMAT_R24_UNORM_X8_TYPELESS
+          ViewDimension: 4 #D3D11_SRV_DIMENSION_TEXTURE2D
+          MipLevels: 1
+          MostDetailedMip: 0
+        ShaderViewTextureArray2D:
+          Type: D3D11_SHADER_RESOURCE_VIEW_DESC
+          Format: 28 #DXGI_FORMAT_R8G8B8A8_UNORM
+          ViewDimension: 5 #D3D11_SRV_DIMENSION_TEXTURE2DARRAY
+          Texture2DArrayMostDetailedMip: 0
+          Texture2DArrayMipLevels: -1
+          Texture2DArrayFirstArraySlice: 0
+          Texture2DArrayArraySize: 12
+        # Nueva vista de shader para la textura de reflejo
+        ShaderViewReflection:
+          Type: D3D11_SHADER_RESOURCE_VIEW_DESC
+          Format: 28 #DXGI_FORMAT_R8G8B8A8_UNORM
+          ViewDimension: 4 #D3D11_SRV_DIMENSION_TEXTURE2D
+          MipLevels: 1
+          MostDetailedMip: 0
+        # Nueva vista de shader para la textura de refracción
+        ShaderViewRefraction:
+          Type: D3D11_SHADER_RESOURCE_VIEW_DESC
+          Format: 28 #DXGI_FORMAT_R8G8B8A8_UNORM
+          ViewDimension: 4 #D3D11_SRV_DIMENSION_TEXTURE2D
+          MipLevels: 1
+          MostDetailedMip: 0
 
         ViewportMainColor:
           MinDepth: 0.0
@@ -158,6 +227,57 @@ Config:
           TopLeftY: 0.0
           Width: 2048.0
           Height: 2048.0
+        # Nuevo viewport para reflejos/refracciones (normalmente a la resolución de la pantalla)
+        ViewportWater:
+          MinDepth: 0.0
+          MaxDepth: 1.0
+          TopLeftX: 0.0
+          TopLeftY: 0.0
+          Width: 0.0
+          Height: 0.0
+
+        Texture2D_Simple_Jpg:
+          MipLevels: 1
+          ArraySize: 1
+          Format: 28 # DXGI_FORMAT_R8G8B8A8_UNORM // Assuming RGB
+          SampleDescCount: 1
+          SampleDescQuality: 0
+          Usage: 1 # D3D11_USAGE_IMMUTABLE
+          BindFlags: 8 # D3D11_BIND_SHADER_RESOURCE
+          CPUAccessFlags: 0
+          MiscFlags: 0
+        Texture2D_Array_Jpg:
+          MipLevels: 0          
+          Format: 28 # DXGI_FORMAT_R8G8B8A8_UNORM // Assuming RGB
+          SampleDescCount: 1
+          SampleDescQuality: 0
+          Usage: 0 # D3D11_USAGE_DEFAULT
+          BindFlags: 40 # D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET
+          CPUAccessFlags: 0
+          MiscFlags: 1 # D3D11_RESOURCE_MISC_GENERATE_MIPS
+        # Nueva textura 2D para la escena de reflejos
+        Texture2D_WaterReflection:
+          MipLevels: 1
+          ArraySize: 1
+          Format: 28 # DXGI_FORMAT_R8G8B8A8_UNORM
+          SampleDescCount: 1
+          SampleDescQuality: 0
+          Usage: 0
+          BindFlags: 104 # D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET
+          CPUAccessFlags: 0
+          MiscFlags: 0
+        # Nueva textura 2D para la escena de refracción
+        Texture2D_WaterRefraction:
+          MipLevels: 1
+          ArraySize: 1
+          Format: 28 # DXGI_FORMAT_R8G8B8A8_UNORM
+          SampleDescCount: 1
+          SampleDescQuality: 0
+          Usage: 0
+          BindFlags: 104 # D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET
+          CPUAccessFlags: 0
+          MiscFlags: 0
+
 Definition:
   Default:
     language: 1 # C++
@@ -171,71 +291,76 @@ Definition:
     class_suffix: ""
     class_prefix: ""
     inherits_properties:
-        - type
-        - BufferCount
-        - Width
-        - Height
-        - Format
-        - Numerator
-        - Denominator
-        - BufferUsage
-        - SampleCount
-        - SampleQuality
-        - Windowed
-        - SwapEffect
-        - FillMode
-        - CullMode
-        - FrontCounterClockwise
-        - DepthBias
-        - DepthBiasClamp
-        - SlopeScaledDepthBias
-        - AntialiasedLineEnable
-        - DepthClipEnable
-        - ScissorEnable
-        - MultisampleEnable
-        - AlphaToCoverageEnable
-        - IndependentBlendEnable
-        - BlendEnable
-        - SrcBlend
-        - DestBlend
-        - BlendOp
-        - SrcBlendAlpha
-        - DestBlendAlpha
-        - BlendOpAlpha
-        - RenderTargetWriteMask
-        - StencilEnable
-        - DepthEnable
-        - DepthWriteMask
-        - MipLevels
-        - ArraySize
-        - Format
-        - SampleCount
-        - SampleQuality
-        - Usage
-        - BindFlags
-        - Depth
-        - Stencil
-        - TopLeftX
-        - TopLeftY
-        - MinDepth
-        - MaxDepth
-        - Width
-        - Height
-        - ViewDesc
-        - ViewFormat
-        - ViewDimension
-        - ViewMipSlice
-        - ShaderView
-        - type
-        - format
-        - ViewDimension
-        - MipLevels
-        - MostDetailedMip
-        - DepthWriteMask
-        - DepthFunc
-        - StencilEnable
-        - StencilReadMask
-        - dependencies
+      - type
+      - BufferCount
+      - Width
+      - Height
+      - Format
+      - Numerator
+      - Denominator
+      - BufferUsage
+      - SampleCount
+      - SampleQuality
+      - Windowed
+      - SwapEffect
+      - FillMode
+      - CullMode
+      - FrontCounterClockwise
+      - DepthBias
+      - DepthBiasClamp
+      - SlopeScaledDepthBias
+      - AntialiasedLineEnable
+      - DepthClipEnable
+      - ScissorEnable
+      - MultisampleEnable
+      - AlphaToCoverageEnable
+      - IndependentBlendEnable
+      - BlendEnable
+      - SrcBlend
+      - DestBlend
+      - BlendOp
+      - SrcBlendAlpha
+      - DestBlendAlpha
+      - BlendOpAlpha
+      - RenderTargetWriteMask
+      - StencilEnable
+      - DepthEnable
+      - DepthWriteMask
+      - MipLevels
+      - ArraySize
+      - Format
+      - SampleCount
+      - SampleQuality
+      - Usage
+      - BindFlags
+      - Depth
+      - Stencil
+      - TopLeftX
+      - TopLeftY
+      - MinDepth
+      - MaxDepth
+      - Width
+      - Height
+      - ViewDesc
+      - ViewFormat
+      - ViewDimension
+      - ViewMipSlice
+      - ShaderView
+      - type
+      - format
+      - ViewDimension
+      - MipLevels
+      - MostDetailedMip
+      - DepthWriteMask
+      - DepthFunc
+      - ClearFlags
+      - StencilEnable
+      - StencilReadMask      
+      - SampleDescCount
+      - SampleDescQuality      
+      - CPUAccessFlags
+      - MiscFlags      
+      - dependencies
     output_path: 'c:\Users\joaqu\source\repos\DirectX-Voxelado\src\Engine\Core\Config\Base\'
     #output_path: 'C:\Users\joaqu\source\repos\DirectX-Voxelado\TestConfig\Game\'
   Classes:
@@ -248,15 +373,21 @@ Definition:
       interface_name: "IPipelineRasterizedState"
     RasterizedUIPass:
       interface_name: "IPipelineRasterizedState"
+    RasterizedReflectedPass:
+      interface_name: "IPipelineRasterizedState"
 
     DisabledBlending:
       interface_name: "IPipelineBlendingState"
     BlendingUI:
       interface_name: "IPipelineBlendingState"
+    BlendingWaterPass:
+      interface_name: "IPipelineBlendingState"
 
     StencilViewMainColor:
       interface_name: "IPipelineStencilView"
     StencilViewShadow:
+      interface_name: "IPipelineStencilView"
+    StencilViewTerrain:
       interface_name: "IPipelineStencilView"
 
     StencilStateRegular:
@@ -266,6 +397,14 @@ Definition:
 
     ShaderViewShadow:
       interface_name: "IPipelineShaderViewState"
+    ShaderViewTexture2D:
+      interface_name: "IPipelineShaderViewState"
+    ShaderViewTextureArray2D:
+      interface_name: "IPipelineShaderViewState"
+    ShaderViewReflection:
+      interface_name: "IPipelineShaderViewState"
+    ShaderViewRefraction:
+      interface_name: "IPipelineShaderViewState"
 
     ViewportMainColor:
       interface_name: "IPipelineViewportState"
@@ -273,4 +412,14 @@ Definition:
       interface_name: "IPipelineViewportState"
     ViewportUI:
       interface_name: "IPipelineViewportState"
+    ViewportWater:
+      interface_name: "IPipelineViewportState"
 
+    Texture2D_Simple_Jpg:
+      interface_name: "IPipelineTexture2DDesc"
+    Texture2D_Array_Jpg:
+      interface_name: "IPipelineTexture2DDesc"
+    Texture2D_WaterReflection:
+      interface_name: "IPipelineTexture2DDesc"
+    Texture2D_WaterRefraction:
+      interface_name: "IPipelineTexture2DDesc"

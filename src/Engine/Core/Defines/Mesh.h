@@ -8,6 +8,7 @@ namespace Mesh
 		Simple = 0,
 		File_Obj = 1,
 		Text = 2,
+		Terrain = 3,
 	};
 	enum class RenderType
 	{
@@ -21,5 +22,6 @@ namespace Mesh
 		None = 0,
 		DrawIndexed = 1,
 		Draw = 2,
+		DrawInstanced = 3,
 	};
 }

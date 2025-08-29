@@ -5,23 +5,19 @@
 #include <memory>
 #include <map>
 #include <wrl/client.h>
-#include "IManager.h"
-#include "DeviceManager.h"
-#include "IInitializable.h"
-#include "IUpdatable.h"
-#include "IRenderable.h"
-#include "IShutdownable.h"
-#include <Util/Text/Text.h>
+#include <ManagerBase.h>
 #include <Defines/Matrix/MatrixDefinition.h>
 #include <Defines/ShaderSampler.h>
 #include <Defines/Pipeline.h>
 
-class ShaderManager : public IManager, public IInitializable, public IUpdatable, public IRenderable, public IShutdownable
+class DeviceManager;
+
+class ShaderManager : public ManagerBase
 {
 public:
 	ShaderManager();
 	~ShaderManager();
-	
+
     HRESULT Init() override;
     HRESULT InitManagers();
     HRESULT InitShaders();
@@ -40,12 +36,13 @@ public:
 
     HRESULT LoadShader(Microsoft::WRL::ComPtr<ID3D11Device> device, std::wstring shaderName, std::wstring vsPath, std::wstring psPath, D3D11_INPUT_ELEMENT_DESC layoutDesc[], UINT numElements);
 
-    void SetConstantsBuffers(std::wstring shaderName, const MatrixDefinitionBase::MatrixParams& matrixParams, std::map<std::string, Microsoft::WRL::ComPtr<ID3D11Buffer>>&  constantBuffers, Microsoft::WRL::ComPtr<ID3D11DeviceContext> context);
+    /*void SetConstantsBuffers(std::wstring shaderName, MatrixDefinitionBase::MatrixParams& matrixParams, std::map<std::string, Microsoft::WRL::ComPtr<ID3D11Buffer>>&  constantBuffers, Microsoft::WRL::ComPtr<ID3D11DeviceContext> context);*/
 
-    std::map<int, std::pair<std::string, MatrixDefinition::AnyMatrixBuffer>> GetMatrixDefinitions(std::wstring shaderName);
+    void GetMatrixDefinitions(std::wstring shaderName, std::map<int, std::pair<std::string, MatrixDefinition::AnyMatrixBuffer>>& matrixDefs);
 
-    /*MatrixDefinition::AnyMatrixBuffer* GetMatrixBuffer(std::wstring shaderName);*/
-    std::map<int, std::pair<std::string, std::unique_ptr<MatrixDefinition::AnyMatrixBuffer>>>& GetMatrixBuffers(std::wstring shaderName);
+    std::shared_ptr<MatrixDefinition::AnyMatrixBuffer> GetConstantsBuffer(std::string matrixName);
+    std::map<std::string, std::shared_ptr<MatrixDefinition::AnyMatrixBuffer>> GetConstantsBuffers();
+    std::map<int, std::pair<std::string, std::shared_ptr<MatrixDefinition::AnyMatrixBuffer>>>& GetMatrixBuffers(std::wstring shaderName);
     Microsoft::WRL::ComPtr<ID3D11VertexShader> GetVertexShader(std::wstring shaderName);
     Microsoft::WRL::ComPtr<ID3D11PixelShader> GetPixelShader(std::wstring shaderName);
     ID3D11InputLayout* GetInputLayout(std::wstring shaderName);
@@ -62,7 +59,8 @@ public:
 
     std::map<std::wstring, ShaderSampler::SamplerDefinition> samplers;
     std::map<std::wstring, std::vector<ShaderSampler::SamplerDefinition>> samplersDesc;
-    std::map<std::wstring, std::map<int, std::pair<std::string, std::unique_ptr<MatrixDefinition::AnyMatrixBuffer>>>> matrixShaders;
+    std::map<std::wstring, std::map<int, std::pair<std::string, std::shared_ptr<MatrixDefinition::AnyMatrixBuffer>>>> matrixShaders;
+    std::map<std::string, std::shared_ptr<MatrixDefinition::AnyMatrixBuffer>> constantsBuffers;
     std::map<std::wstring, ID3D11VertexShader*> vertexShaders;
     std::map<std::wstring, ID3D11PixelShader*> pixelShaders;
     std::map<std::wstring, ID3D11InputLayout*> inputLayouts;

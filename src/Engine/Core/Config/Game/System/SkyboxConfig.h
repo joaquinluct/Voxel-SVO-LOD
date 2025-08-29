@@ -15,4 +15,6 @@ public:
 	}
 	std::string name;
 	std::string version;
+	std::vector<float> sky_color;
+	std::vector<float> sun_color;
 };

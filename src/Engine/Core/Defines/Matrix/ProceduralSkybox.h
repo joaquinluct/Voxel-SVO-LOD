@@ -3,6 +3,7 @@
 #include <d3d11.h>
 #include <DirectXMath.h>
 #include <string>
+#include <map>
 #include "MatrixDefinitionBase.h" // Incluimos la base para MatrixParamsss
 
 using namespace MatrixDefinitionBase;
@@ -22,11 +23,14 @@ namespace SkyboxMatrix {
         {
 		}
 
-        void SetMatrixData(MatrixParams params) {
-            this->skyColor = params.skyboxData.skyColor;
-			this->sunColor = params.skyboxData.sunColor;
-            this->lightDirection = DirectX::XMFLOAT4{ params.lightDirection.x, params.lightDirection.y, params.lightDirection.z, 1.0f };
-			this->lightColor = params.lightColor;
+        void SetMatrixData(std::map<std::string, std::shared_ptr<IMatrixParams>>& params) {
+            std::shared_ptr<MatrixParams> baseParams = GetMatrixParams<MatrixParams>(params["BaseParams"]);
+            std::shared_ptr<LightMatrixParams> lightParams = GetMatrixParams<LightMatrixParams>(params["LightParams"]);
+            
+			this->skyColor = baseParams->skyboxData.skyColor;
+			this->sunColor = baseParams->skyboxData.sunColor;
+            this->lightDirection = DirectX::XMFLOAT4{ lightParams->lightDirection.x, lightParams->lightDirection.y, lightParams->lightDirection.z, 1.0f };
+            this->lightColor = lightParams->lightColor;
         }
 
         UINT Size() {

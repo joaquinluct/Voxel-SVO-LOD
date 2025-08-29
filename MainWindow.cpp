@@ -1,5 +1,8 @@
 #include "MainWindow.h"
 #include <winerror.h>
+#include <Services/FrameStateService.h>
+
+const float MAX_DELTA_TIME = 0.05f;
 
 MainWindow::MainWindow(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
 	: g_hInstance(hInstance), g_hPrevInstance(hPrevInstance), g_lpCmdLine(lpCmdLine), g_nCmdShow(nCmdShow), g_hWnd(nullptr), g_controller(nullptr), g_mouse(nullptr), g_keyboard(nullptr) 
@@ -9,6 +12,92 @@ MainWindow::MainWindow(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstanc
 MainWindow::~MainWindow() {
 	SafeShutDown(g_controller);
 }
+
+//void MainWindow::UpdateLoop() {
+//    using namespace std::chrono;
+//    const auto fixedDeltaTime = 16ms;
+//    auto lastUpdateTime = high_resolution_clock::now();
+//
+//    // Obtener el servicio una sola vez
+//    auto renderStateService = ServiceLocator::GetService<RenderStateService>();
+//
+//    while (isRunning) {
+//        auto currentTime = high_resolution_clock::now();
+//        auto deltaTime = currentTime - lastUpdateTime;
+//        if (deltaTime >= fixedDeltaTime) {
+//            // 1. Llama al método Update del controlador (lógica de juego)
+//            float dt = static_cast<float>(duration_cast<milliseconds>(fixedDeltaTime).count()) / 1000.0f;
+//            g_controller->Update(dt);
+//
+//            // 4. Intercambia los buffers, sincronizando ambos hilos
+//            //g_renderStateService->SwapBuffers);
+//
+//            lastUpdateTime = currentTime;
+//        }
+//    }
+//}
+
+// La lógica de tu bucle de renderizado
+//void MainWindow::RenderLoop() {
+//    while (isRunning) {
+//        // Llama al método Render del controlador, pasando el estado
+//        g_controller->Render();
+//    }
+//}
+
+//int MainWindow::Create(int width, int height)
+//{
+//    UNREFERENCED_PARAMETER(g_hPrevInstance);
+//    UNREFERENCED_PARAMETER(g_lpCmdLine);
+//
+//    if (FAILED(Init(g_hInstance, g_nCmdShow, width, height)))
+//        return 0;
+//
+//    g_controller = new MainController(g_hWnd, width, height);
+//    g_controller->Initialize(g_hWnd, width, height);
+//
+//    g_keyboard = g_controller->GetKeyboard();
+//    g_mouse = g_controller->GetMouse();
+//
+//    SetKeyboard(g_keyboard);
+//    SetMouse(g_mouse);
+//
+//    // Inicia el hilo de Update
+//    std::thread updateThread(&MainWindow::UpdateLoop, this);
+//
+//    // Inicia el hilo de Render
+//    std::thread renderThread(&MainWindow::RenderLoop, this);
+//
+//    MSG msg = { 0 };
+//    // El bucle del hilo principal solo procesa mensajes.
+//    while (WM_QUIT != msg.message)
+//    {
+//        // El hilo principal solo tiene la tarea de procesar eventos de Windows
+//        if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+//        {
+//            TranslateMessage(&msg);
+//            DispatchMessage(&msg);
+//        }
+//        else
+//        {
+//            // Opcional: Puedes usar Sleep o Yield para no consumir recursos de CPU
+//            // cuando no hay mensajes.
+//            Sleep(1);
+//        }
+//    }
+//
+//    // Detiene los hilos cuando la ventana se cierra
+//    isRunning = false;
+//    updateThread.join();
+//    renderThread.join();
+//
+//
+//    // Limpieza final
+//    SafeShutDown(g_controller);
+//
+//    return (int)msg.wParam;
+//}
+    
 
 int MainWindow::Create(int width, int height)
 {
@@ -42,7 +131,7 @@ int MainWindow::Create(int width, int height)
         SafeRelease(g_controller);
         return 0;
     }*/
-    SetTimer(g_hWnd, 1, 16, nullptr); // Configura el temporizador (16ms ~ 60 FPS)
+    //SetTimer(g_hWnd, 1, 16, nullptr); // Configura el temporizador (16ms ~ 60 FPS)
 
     LARGE_INTEGER frequency;
     LARGE_INTEGER previousTime;
@@ -62,10 +151,17 @@ int MainWindow::Create(int width, int height)
             LARGE_INTEGER currentTime;
             QueryPerformanceCounter(&currentTime);
             float deltaTime = (float)(currentTime.QuadPart - previousTime.QuadPart) / frequency.QuadPart;
+            if (deltaTime > MAX_DELTA_TIME) {
+                deltaTime = MAX_DELTA_TIME;
+            }
+
             previousTime = currentTime;
 
+            
             g_controller->Update(deltaTime); // Llama a Update
             g_controller->Render();
+
+
             //InvalidateRect(g_hWnd, NULL, TRUE); // Fuerza a repintar toda la ventana
             //UpdateWindow(g_hWnd); // Sincroniza el repintado
         }
@@ -122,7 +218,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             return 0;
         }
         if (pMainWindow) {
-            pMainWindow->GetKeyboard()->Update(0);
+            pMainWindow->GetKeyboard()->SetKey(static_cast<unsigned char>(wParam), true);
+            //pMainWindow->GetKeyboard()->Update(wParam);
 			if (wParam == VK_F11) {
 				pMainWindow->ToggleFullscreen();
 			}
@@ -130,7 +227,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     case WM_KEYUP:
         if (pMainWindow) {
-            pMainWindow->GetKeyboard()->Update(0);
+            pMainWindow->GetKeyboard()->SetKey(static_cast<unsigned char>(wParam), false);
+            //pMainWindow->GetKeyboard()->Update(wParam);
         }
 		break;
     case WM_MOUSEMOVE:

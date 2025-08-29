@@ -2,6 +2,7 @@
 #include "TestingFloor.h"
 #include <ManagerLocator/ManagerLocator.h>
 #include <AssetLocator/AssetLocator.h>
+#include <ServiceLocator/ServiceLocator.h>
 #include <REGISTER_SERVICE_MACRO.h>
 
 REGISTER_SERVICE_TYPE(TestingFloor, "TestingFloor");
@@ -9,7 +10,8 @@ REGISTER_SERVICE_TYPE(TestingFloor, "TestingFloor");
 TestingFloor::TestingFloor() :
 	mesh(nullptr),
 	houseMesh(nullptr),
-	boxMesh(nullptr)
+	boxMesh(nullptr),
+	m_light(nullptr)
 {
 }
 
@@ -24,8 +26,9 @@ HRESULT TestingFloor::Init()
 		OutputDebugStringA("TestingFloor::Init - ERROR: RenderManager not found.\n");
 		return E_FAIL;
 	}
+	m_light = ServiceLocator::GetService<Lighting>();
 
-	mesh = m_renderManager->GameRenderManagerGet()->RegisterMesh("FloorMesh");
+	mesh = m_renderManager->SceneManagerGet()->RegisterMesh("FloorMesh");
 
 	if (!mesh) {
 		OutputDebugStringA("TestingFloor::Init - ERROR: Mesh init.\n");
@@ -36,7 +39,7 @@ HRESULT TestingFloor::Init()
 		return hr;
 	}
 
-	/*houseMesh = m_renderManager->GameRenderManagerGet()->RegisterMesh(("House1Mesh"));
+	/*houseMesh = m_renderManager->SceneManagerGet()->RegisterMesh(("House1Mesh"));
 
 	if (!houseMesh) {
 		OutputDebugStringA("TestingFloor::Init - ERROR: House mesh init.\n");
@@ -49,7 +52,7 @@ HRESULT TestingFloor::Init()
 
 	//houseMesh->SetScale(0.5f, 0.5f, 0.5f);
 
-	boxMesh = m_renderManager->GameRenderManagerGet()->RegisterMesh("BoxMesh");
+	boxMesh = m_renderManager->SceneManagerGet()->RegisterMesh("BoxMesh");
 	if (boxMesh == nullptr) {
 		OutputDebugStringA("TestingFloor::Init - ERROR: Box mesh init.\n");
 	}
@@ -61,13 +64,19 @@ HRESULT TestingFloor::Init()
 
 	//boxMesh->SetPosition(20.0f, 0.0f, 20.0f);
 
-	text = m_renderManager->GameRenderManagerGet()->RegisterTextMesh("UITextMesh");
+	text = m_renderManager->SceneManagerGet()->RegisterTextMeshAsUnique("UITextMesh", "AlturaSol");
 	text->SetText("HOLA");
 	hr = text->Init();
 	
 
 
 	return S_OK;
+}
+
+void TestingFloor::Update(float) {
+	float y = m_light->GetLightDirection().y;
+	text->SetPosition(10, 20);
+	text->SetText("ALTURA SOL " + std::to_string(y));
 }
 
 void TestingFloor::Render() {

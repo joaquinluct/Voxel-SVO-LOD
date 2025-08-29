@@ -9,7 +9,6 @@
 #include <string>
 #include <wrl/client.h> // Para Microsoft::WRL::ComPtr
 #include <memory> // Para std::shared_ptr
-#include <RenderTargetManager.h> 
 
 // Define un tipo de alias para ComPtr para mayor comodidad
 template <typename T>
@@ -25,6 +24,14 @@ public:
         // Crea una nueva instancia utilizando el constructor de copia
         // y la devuelve como un shared_ptr.
         return std::make_shared<TextureAsset>(*this);
+    }
+    virtual std::shared_ptr<MeshAsset> CloneAsMesh() const override {
+        return nullptr;
+    }
+    virtual std::unique_ptr<AssetBase> CloneUnique() const override {
+        // Crea una nueva instancia utilizando el constructor de copia
+        // y la devuelve como un shared_ptr.
+        return std::make_unique<TextureAsset>(*this);
     }
 	void Load() override {};
 	void Unload() override {};
@@ -49,11 +56,16 @@ public:
         m_textureConfig = config;
 
     };
-    void SetTexture(Material* material, std::string textureType, std::string textureMap);
+    void SetTexture(Material* material, std::string textureType, std::string textureName, std::vector<std::string> textureMap);
     void SetTextureView(Material* material);
-    ID3D11ShaderResourceView* GetTextureView(std::string textureType, std::string mapType);
-    ID3D11ShaderResourceView* GetFileTextureView(std::string mapType);
+    ID3D11ShaderResourceView* GetTextureView(std::string textureType, std::string mapType, std::vector<std::string> textureMap = {});
+    ID3D11ShaderResourceView* GetFileTextureView(std::string mapType, D3D11_TEXTURE2D_DESC textureDesc);
+    ID3D11ShaderResourceView* GetFileTextureArrayView(std::vector<std::string> textureMap, D3D11_TEXTURE2D_DESC textureDesc);
     ID3D11ShaderResourceView* GetCubemapTextureView() const;
+
+    D3D11_TEXTURE2D_DESC GetTextureDesc() const;
+
+	std::string GetTextureType() const { return m_textureType; }
 
     // Métodos específicos de Texture
     ID3D11Resource* GetTexture2D() const { return m_textureAlbedo2D; }
@@ -72,6 +84,7 @@ public:
 
     std::shared_ptr<ITextureConfig> m_textureConfig = nullptr; // Configuración de textura
 private:	
+    std::string m_textureType;
     /*ComPtr<ID3D11Texture2D> m_texture2D;
     ComPtr<ID3D11ShaderResourceView> m_shaderResourceView;*/
 

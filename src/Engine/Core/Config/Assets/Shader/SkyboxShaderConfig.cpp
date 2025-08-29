@@ -8,10 +8,10 @@ SkyboxShaderConfig::SkyboxShaderConfig(){
 	shader_path = "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Shader\\SkyboxShader.hlsl";
 	vertex_def = "SkyboxVertex";
 	matrix_slots = {
-		"MatrixBufferTypeSkyBox"
+		"MatrixBufferType"
 	};
 	sampler_slots = {
-		"RegularSampler"
+		"baseSampler"
 	};
 	needs_shadow = false;
 	name = "SkyboxShader";

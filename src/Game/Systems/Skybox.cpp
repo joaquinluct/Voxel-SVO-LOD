@@ -19,7 +19,17 @@ Skybox::~Skybox()
 {
 }
 
-HRESULT Skybox::Init() 
+HRESULT Skybox::InitConfig()
+{
+	std::vector<float> sunColor = m_config.sky_color;
+	m_sunColor = XMFLOAT4(sunColor[0], sunColor[1], sunColor[2], sunColor[3]);
+	std::vector<float> skyColor = m_config.sky_color;
+	m_skyColor = XMFLOAT4(skyColor[0], skyColor[1], skyColor[2], skyColor[3]);
+
+	return S_OK;
+}
+
+HRESULT Skybox::InitManagers()
 {
 	m_renderManager = ManagerLocator::GetManager<RenderManager>();
 	if (!m_renderManager) {
@@ -34,21 +44,38 @@ HRESULT Skybox::Init()
 	if (!lighting) {
 		return E_FAIL;
 	}
+	return S_OK;
+}
 
-	mesh = m_renderManager->GameRenderManagerGet()->RegisterMesh("ProcSkyboxMesh");
-	/*mesh = AssetLocator::GetAsset<MeshAsset>("SkyboxMesh");*/
+HRESULT Skybox::InitMesh()
+{
+	mesh = m_renderManager->SceneManagerGet()->RegisterMesh("ProcSkyboxMesh");
 
 	if (!mesh) {
 		return E_FAIL;
 	}
 
-	HRESULT hr = mesh->Init();
+	return mesh->Init();
+}
 
+HRESULT Skybox::Init() 
+{
+	HRESULT hr = InitConfig();
 	if (FAILED(hr)) {
 		return hr;
 	}
 
-	return S_OK; 
+	hr = InitManagers();
+	if (FAILED(hr)) {
+		return hr;
+	}
+
+	hr = InitMesh();
+	if (FAILED(hr)) {
+		return hr;
+	}
+
+	return hr; 
 }
 
 DirectX::XMMATRIX Skybox::GetRotationMatrix() const
@@ -87,28 +114,22 @@ void Skybox::UpdateSunPosition(float deltaTime)
 
 void Skybox::Update(float deltaTime)
 {
-	UpdateSunPosition(deltaTime);
-	//m_eventTimer += deltaTime;
-
-	//if (m_eventTimer >= m_eventInterval) {
-	//	m_eventTimer = 0.0f;
-		XMFLOAT3 dir = lighting->GetLightDirection();
-	//	dir.x += deltaTime * m_rotationSpeed * sign;
-	//	if (dir.x < -100.0f || dir.x > 100.0f) {
-	//		sign = !sign; // Toggle the sign
-	//	}
-	//	dir.y += (m_rotationSpeed * sign ? 1.0f : -1.0f);
-	//	if (dir.y < - 100.0f || dir.y > 100.0f) {
-	//		sign = !sign; // Toggle the sign
-	//	}
-		lighting->SetLightDirection(dir);
-	//}	
+	
 }
 
 void Skybox::Render()
 {	
 	// Comentar esto para el nuevo sistema de renderizado
 	mesh->Render();
+}
+
+XMFLOAT4 Skybox::GetSunColor() const
+{
+	return m_sunColor;
+}
+XMFLOAT4 Skybox::GetSkyColor() const
+{
+	return m_skyColor;
 }
 
 void Skybox::Shutdown(){}

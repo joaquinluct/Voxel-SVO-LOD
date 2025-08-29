@@ -15,7 +15,7 @@ public:
     HRESULT Init() override;
     void Render() override;
     void Shutdown() override {};
-    void Update(float) override {}
+    void Update(float) override;
 
     const std::string& GetServiceName() const override {
         static const std::string name = "TestingBasic";
@@ -29,9 +29,10 @@ public:
 private:
     std::shared_ptr<RenderManager> m_renderManager;
     std::shared_ptr<UIManager> m_uiManager;
+    std::shared_ptr<Lighting> m_light;
     std::shared_ptr<MeshAsset> mesh;
     std::shared_ptr<MeshAsset> houseMesh;
     std::shared_ptr<MeshAsset> boxMesh;
 
-    std::shared_ptr<UIText> text;
+    std::unique_ptr<UIText> text;
 };

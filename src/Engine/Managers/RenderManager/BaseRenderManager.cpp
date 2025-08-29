@@ -14,15 +14,16 @@ HRESULT BaseRenderManager::Init() {
 	if (!m_deviceManager) {
 		return E_FAIL; // Device manager not found
 	}
-	m_renderTargetManager = ManagerLocator::GetManager<RenderTargetManager>();
-	if (!m_renderTargetManager) {
-		return E_FAIL; // Render target manager not found
-	}
+	//m_renderTargetManager = ManagerLocator::GetManager<RenderTargetManager>();
+	//if (!m_renderTargetManager) {
+	//	return E_FAIL; // Render target manager not found
+	//}
 	return S_OK;
 }
 
 void BaseRenderManager::BeginRender() {
-	m_renderTargetManager->Render();
+	// OJO: COMENTADO ANTES DE LA REFACTORIAZIÓN
+	//m_renderTargetManager->Render();
 }
 
 void BaseRenderManager::Render() {

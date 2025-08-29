@@ -1,7 +1,7 @@
 // ShadowMapShader.hlsl
 
 // Constant Buffer para las matrices de la luz
-cbuffer LightSpaceMatrices : register(b0)
+cbuffer LightSpaceMatrices : register(b10)
 {
     float4x4 worldMatrix; // Matriz de mundo del objeto
     float4x4 lightViewProjectionMatrix; // Matriz (View de Luz * Proyección de Luz)

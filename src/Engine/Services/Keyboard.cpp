@@ -1,16 +1,13 @@
 #include "Keyboard.h"
 #include <REGISTER_SERVICE_MACRO.h>
+#include <WinUser.h>
 
 REGISTER_SERVICE_TYPE(Keyboard, "Keyboard")
 
-Keyboard::Keyboard():
-    m_keys(),
-	m_previousKeys()
+Keyboard::Keyboard()
 {
-    for (int i = 0; i < 256; ++i)
-    {
-        m_keys[i] = 0;
-    }
+    m_keys.fill(false);
+    m_previousKeys.fill(false);
 }
 
 Keyboard::~Keyboard()
@@ -19,43 +16,69 @@ Keyboard::~Keyboard()
 
 HRESULT Keyboard::Init()
 {
-    // No hay nada específico que inicializar para el teclado
+    // No se necesita inicialización especial
     return S_OK;
 }
 
-void Keyboard::Update(float deltaTime)
-{
-    // Copia el estado actual al estado anterior
-    memcpy(m_previousKeys, m_keys, sizeof(m_keys));
-
-    // Obtener el estado actual
-    BOOL resul = GetKeyboardState(m_keys);
-}
-
-void Keyboard::Render() {};
 void Keyboard::Shutdown()
 {
-    // No hay nada específico que liberar para el teclado
+    // No se necesita liberación especial
 }
 
+void Keyboard::Render() {}
+
+// NUEVA LÓGICA: Ahora este método solo se encarga de actualizar el estado anterior
+void Keyboard::Update(float deltaTime)
+{
+    // Bloquea el mutex para copiar el estado actual al anterior
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_previousKeys = m_keys;
+}
+
+// NUEVO: Método para que WndProc actualice el estado de las teclas
+void Keyboard::SetKey(unsigned char key, bool isDown)
+{
+    // Protege la escritura en el array de teclas con un mutex
+    std::lock_guard<std::mutex> lock(m_mutex);
+    if (key == VK_UP) {
+        bool a = false;
+    }
+    m_keys[key] = isDown;
+}
+
+// Lógica para detectar los estados
 bool Keyboard::IsKeyDown(unsigned char key) const
 {
-    return (m_keys[key] & 0x80) != 0;
-}
-bool Keyboard::IsKeyUp(unsigned char key) const
-{
-    return (m_keys[key] & 0x80) == 0;
-}
-bool Keyboard::IsKeyPressed(unsigned char key) const
-{
-    return (m_keys[key] & 0x80) != 0 && (m_keys[key] & 0x01) != 0;
-}
-bool Keyboard::IsKeyReleased(unsigned char key) const
-{
-    return (m_previousKeys[key] & 0x80) != 0 && (m_keys[key] & 0x80) == 0;
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_keys[key];
 }
 
-bool Keyboard::IsCtrlPressed() const
+bool Keyboard::IsKeyUp(unsigned char key) const
 {
-    return (GetKeyState(VK_CONTROL) & 0x8000) != 0;
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return !m_keys[key];
+}
+
+bool Keyboard::IsKeyPressed(unsigned char key) const
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_keys[key] && !m_previousKeys[key];
+}
+
+bool Keyboard::IsKeyReleased(unsigned char key) const
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return !m_keys[key] && m_previousKeys[key];
+}
+
+const std::string& Keyboard::GetServiceName() const
+{
+    static const std::string name = "Keyboard";
+    return name;
+}
+
+const std::string& Keyboard::GetStaticServiceName()
+{
+    static const std::string name = "Keyboard";
+    return name;
 }

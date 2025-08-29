@@ -40,7 +40,7 @@ HRESULT Line::Init(Microsoft::WRL::ComPtr<ID3D11Device>  device) {
 
 void Line::Render(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context) {
     // Aplicar shaders y estados del material
-    m_material->Apply(context);
+    //m_material->Apply(context);
 
 	/*XMMATRIX worldMatrix = XMMatrixIdentity();
 	XMMATRIX viewMatrix = m_cameraManager->GetCurrentViewMatrix();

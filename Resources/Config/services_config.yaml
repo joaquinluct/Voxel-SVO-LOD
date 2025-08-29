@@ -6,18 +6,30 @@ Config:
           - KeyBindings
           - Mouse 
           - Material
+          - ChunkService
+          - ProceduralService
           - UIText
-          # - UIDebug
+          - FrameStateService
+          - ThreadPool
+          # - UIDebug      
+      services_post_init:
+          - none
       services_render_order:
           - Mouse
           - Keyboard
           - UIText
+          - ChunkService
+          - ProceduralService
+          - FrameStateService
           # - UIDebug
       services_update_order:
           - Mouse
           - Keyboard
           - UIText
           - Material
+          - ChunkService
+          - FrameStateService
+          - ProceduralService
           # - UIDebug
 
     KeyBindings:
@@ -50,7 +62,6 @@ Config:
       shader: "ShaderUI"
       text: "User Interface"
       dependencies:
-        - RenderTargetManager
         - DeviceManager
         - UIManager
 
@@ -61,6 +72,26 @@ Config:
       text: "Debug Information"
       dependencies:
         - UIManager
+
+    ChunkService:
+      enabled: true
+      dependencies:
+        - CameraManager
+
+    ProceduralService:
+      enabled: true
+      dependencies:
+        - None
+
+    FrameStateService:
+      enabled: true
+      dependencies:
+        - None
+
+    ThreadPool:
+      enabled: true
+      dependencies:
+        - None
 
 Definition:
   Default:

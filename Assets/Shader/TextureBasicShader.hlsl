@@ -8,7 +8,7 @@
 // 1. Añadimos un registro para la textura (t0) y el sampler (s0)
 Texture2D shaderTexture : register(t0);
 
-SamplerState SamplerType : register(s0);
+SamplerState baseSampler : register(s0);
 
 struct VSInput
 {
@@ -37,5 +37,5 @@ float4 PSMain(VSOutput input) : SV_TARGET
 {
     // return input.color;
     // 5. Muestrear la textura usando las coordenadas de textura interpoladas
-    return shaderTexture.Sample(SamplerType, input.tex);
+    return shaderTexture.Sample(baseSampler, input.tex);
 }

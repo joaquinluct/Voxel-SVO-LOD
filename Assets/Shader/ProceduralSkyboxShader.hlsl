@@ -30,7 +30,7 @@ cbuffer MatrixBuffer : register(b0)
 
 // Buffer para la luz y el color del cielo
 // Se utiliza en el Pixel Shader para la iluminación
-cbuffer LightBuffer : register(b1)
+cbuffer LightBuffer : register(b6)
 {
     float4 skyColor;
     float4 lightDirection;

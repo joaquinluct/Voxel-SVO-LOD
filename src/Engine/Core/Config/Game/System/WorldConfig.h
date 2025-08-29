@@ -16,5 +16,7 @@ public:
 	std::string name;
 	std::string version;
 	std::string description;
+	int gameType;
+	int gameFlags;
 	int respawnTime;
 };

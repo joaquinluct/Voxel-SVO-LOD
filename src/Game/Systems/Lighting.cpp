@@ -17,7 +17,7 @@ Lighting::~Lighting()
 HRESULT Lighting::Init()
 {
 	config = ConfigLocator::GetConfig<LightingConfig>();
-	matrixParams = std::make_unique<MatrixDefinitionBase::MatrixParams>();
+	matrixParams = std::make_unique<MatrixDefinitionBase::LightMatrixParams>();
 
 	m_keyboard = ManagerLocator::GetKeyboardManager();
 
@@ -42,7 +42,7 @@ HRESULT Lighting::Init()
 
 void Lighting::Update(float deltaTime)
 {
-	float speed = 1.5f;
+	float speed = 0.5f;
 	XMFLOAT3 lightDirection = matrixParams->lightDirection;
 	// Update logic for the Lighting manager
 	if (m_keyboard->IsKeyDown('T')) {

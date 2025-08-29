@@ -7,15 +7,15 @@ cbuffer MatrixBuffer : register(b0)
     float4x4 projectionMatrix;
 };
 
-cbuffer DirectionalLightBuffer : register(b1)
+cbuffer CameraBuffer : register(b1)
+{
+    float3 cameraPosition;
+};
+
+cbuffer DirectionalLightBuffer : register(b2)
 {
     float3 lightDirection;
     float3 lightColor;
-};
-
-cbuffer CameraBuffer : register(b2)
-{
-    float3 cameraPosition;
 };
 
 cbuffer MaterialBuffer : register(b3)
@@ -44,8 +44,8 @@ Texture2D metallicTexture : register(t3);
 Texture2D aoTexture : register(t4);
 Texture2D shadowMap : register(t5);
 
-SamplerState SamplerType : register(s0);
-SamplerComparisonState ShadowSampler : register(s1);
+SamplerState baseSampler : register(s0);
+SamplerComparisonState shadowMapSampler : register(s1);
 
 struct VSInput
 {
@@ -53,6 +53,7 @@ struct VSInput
     float2 tex : TEXCOORD;
     float3 norm : NORMAL;
     float3 tang : TANGENT;
+    float4 debugColor : COLOR;
 };
 
 struct PSInput
@@ -63,6 +64,7 @@ struct PSInput
     float2 tex : TEXCOORD2;
     float3 worldTangent : TEXCOORD3;
     float4 lightSpacePosition : TEXCOORD4;
+    float4 debugColor : COLOR;
 };
 
 PSInput VSMain(VSInput input)
@@ -79,6 +81,7 @@ PSInput VSMain(VSInput input)
 
     output.worldNorm = normalize(mul(input.norm, (float3x3) worldMatrix));
     output.worldTangent = normalize(mul(input.tang, (float3x3) worldMatrix));
+    output.debugColor = input.debugColor;
 
     float U_scale = textureTransform.x;
     float V_scale = textureTransform.y;
@@ -94,8 +97,8 @@ PSInput VSMain(VSInput input)
 float4 PSMain(PSInput input) : SV_TARGET
 {
     // Muestrea el color base del albedo desde la textura
-    // float4 baseColor1 = albedoTexture.Sample(SamplerType, input.tex);
-    // return baseColor1;
+    //float4 baseColor1 = albedoTexture.Sample(baseSampler, input.tex);
+    //return baseColor1;
     
     // Normaliza la normal y el tangente en espacio mundial
     float3 N = normalize(input.worldNorm);
@@ -108,10 +111,10 @@ float4 PSMain(PSInput input) : SV_TARGET
     float3x3 TBN = float3x3(T, B, N);
 
     // Muestrea las texturas de materiales
-    float4 baseColor = albedoTexture.Sample(SamplerType, input.tex);
-    float roughness = roughnessTexture.Sample(SamplerType, input.tex).r;
-    float metallic = metallicTexture.Sample(SamplerType, input.tex).r;
-    float ao = aoTexture.Sample(SamplerType, input.tex).r;
+    float4 baseColor = albedoTexture.Sample(baseSampler, input.tex);
+    float roughness = roughnessTexture.Sample(baseSampler, input.tex).r;
+    float metallic = metallicTexture.Sample(baseSampler, input.tex).r;
+    float ao = aoTexture.Sample(baseSampler, input.tex).r;
     float3 F0 = materialF0;
 
     // Si el color base es transparente o negro, usa el albedo por defecto del material
@@ -121,7 +124,7 @@ float4 PSMain(PSInput input) : SV_TARGET
     }
 
     // Muestrea la textura de normales y la transforma al espacio mundial
-    float3 sampledNormal = normalTexture.Sample(SamplerType, input.tex).rgb;
+    float3 sampledNormal = normalTexture.Sample(baseSampler, input.tex).rgb;
     sampledNormal = sampledNormal * 2.0f - 1.0f;
     N = normalize(mul(sampledNormal, TBN));
 
@@ -164,14 +167,17 @@ float4 PSMain(PSInput input) : SV_TARGET
 
     // Verifica si la coordenada de sombra está dentro del rango válido
     if (shadowTexCoord.x >= 0.0f && shadowTexCoord.x <= 1.0f &&
-        shadowTexCoord.y >= 0.0f && shadowTexCoord.y <= 1.0f)
+         shadowTexCoord.y >= 0.0f && shadowTexCoord.y <= 1.0f)
     {
         // Muestrea el mapa de sombras usando comparación de profundidad
-        shadowFactor = shadowMap.SampleCmp(ShadowSampler, shadowTexCoord, currentDepth - bias);
+         shadowFactor = shadowMap.SampleCmp(shadowMapSampler, shadowTexCoord, currentDepth - bias);
     }
 
     // Combina los componentes difuso, especular y ambiental, aplicando el factor de sombra
     float3 finalColor = (diffuse + specular) * shadowFactor + ambient;
+    
+    // Mezclar con el color de debug si es distinto de 0
+    finalColor = finalColor + input.debugColor.rgb;
 
     // Devuelve el color final con el canal alfa del albedo
     return float4(finalColor, baseColor.a);

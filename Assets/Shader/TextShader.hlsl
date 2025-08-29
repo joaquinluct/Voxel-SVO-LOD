@@ -14,14 +14,14 @@ struct PSINPUT
     float4 Color : COLOR0; // Color del vértice
 };
 
-cbuffer MatrixBuffer : register(b0)
+cbuffer MatrixBuffer : register(b13)
 {
     matrix projectionMatrix; // Esta será tu matriz ortográfica
 };
 
 // Declaración de la textura de la fuente y el sampler
-Texture2D fontTexture : register(t0); // Asume que la textura está en el slot t0
-SamplerState fontSampler : register(s0); // Asume que el sampler está en el slot s0
+Texture2D fontTexture : register(t7); // Asume que la textura está en el slot t0
+SamplerState fontSampler : register(s3); // Asume que el sampler está en el slot s0
 
 PSINPUT VSMain(VSINPUT input)
 {

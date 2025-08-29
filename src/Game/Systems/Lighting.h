@@ -33,7 +33,7 @@ public:
 	DirectX::XMFLOAT4 GetLightColor() const;
 
 private:
-	std::shared_ptr<MatrixDefinitionBase::MatrixParams> matrixParams;
+	std::shared_ptr<MatrixDefinitionBase::LightMatrixParams> matrixParams;
 	std::shared_ptr<KeyboardManager> m_keyboard;
 	std::shared_ptr<LightingConfig> config;	
 };

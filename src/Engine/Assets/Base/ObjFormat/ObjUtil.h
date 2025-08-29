@@ -232,9 +232,10 @@ public:
             DirectX::XMFLOAT3 position(pVert.x, pVert.y, pVert.z);
             DirectX::XMFLOAT3 normal(pVert.nx, pVert.ny, pVert.nz);
             DirectX::XMFLOAT2 texCoord(pVert.u, pVert.v);
+			DirectX::XMFLOAT4 debugColor(0.0f, 0.0f, 0.0f, 0.0f); // Color negro como valor por desactivado
 
             // Utiliza la estructura TextureMapVertex
-            VertexDefinition::TextureMapVertex vtt = { position, texCoord, normal, finalTangent };
+            VertexDefinition::TextureMapVertex vtt = { position, texCoord, normal, finalTangent, debugColor };
             
             outVertices.push_back(std::make_shared<VertexDefinition::VertexVariant>(vtt));
         }

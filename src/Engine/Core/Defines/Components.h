@@ -2,8 +2,8 @@
 
 #include <string_view>
 
-constexpr std::string_view COMPONENT_MANAGER = "Manager";
-constexpr std::string_view COMPONENT_SERVICE = "Service";
-constexpr std::string_view COMPONENT_ASSET = "Asset";
-constexpr std::string_view COMPONENT_ASSET_BASE = "AssetBase";
-constexpr std::string_view COMPONENT_GAME_SERVICE = "GameService";
+inline constexpr std::string_view COMPONENT_MANAGER = "Manager";
+inline constexpr std::string_view COMPONENT_SERVICE = "Service";
+inline constexpr std::string_view COMPONENT_ASSET = "Asset";
+inline constexpr std::string_view COMPONENT_ASSET_BASE = "AssetBase";
+inline constexpr std::string_view COMPONENT_GAME_SERVICE = "GameService";

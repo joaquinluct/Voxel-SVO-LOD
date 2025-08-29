@@ -5,9 +5,18 @@ Config:
             name: "WorldMananger"
             enabled: true
             version: "1.0.0"
-            description: "Un juego de aventura en un mundo voxelizado."
+            description: "Un mundo abierto."
+            gameType: 1 # Overworld
+            gameFlags: 3 # Chronos | Terrain
+            # gameFlags: 1 # Chronos
             type: "VoxelWorld"
             respawnTime: 5
+            dependencies:
+              - Chronos
+              - Terrain
+              # - RenderManager
+              - UITextMesh
+
         Renderer:
             name: "Renderer"
             enabled: true
@@ -15,12 +24,41 @@ Config:
             type: "DeferredRendering"
             dependencies:
               - DeviceManager
+
         Terrain:
-            name: "TerrainService"
+            name: "Terrain"
             enabled: true
             version: "1.0.0"
-            type: "ProceduralTerrain"
+            flags: 7 # Infinite | Procedural | Chunk
             seed: 1234567890
+            procedural_engine: 1 # FastNoiseLite
+            chunk_size: 128
+            initialRenderDistanceChunks: 30
+            worldWidth: 2048.0
+            worldHeight: 2048.0
+            # worldWidth: 4096.0
+            # worldHeight: 4096.0
+            # worldWidth: 16384.0
+            # worldHeight: 16384.0
+            terrainHeight: 2.0
+            waterLevel: -2.0
+            dependencies:
+              - ChunkService
+              - CameraManager
+              - ShaderManager
+              - TerrainAsset
+              - ProceduralTerrain
+              - MeshAsset               
+        Water:
+            name: "Water"
+            enabled: true
+            version: "1.0.0"
+            type: "BasicWater"
+            waterLevel: -2.0
+            waveIntensity: 0.5
+            waveSpeed: 1.0
+            dependencies:              
+              - Terrain
         Skybox:
             name: "Skybox"
             enabled: true
@@ -28,8 +66,11 @@ Config:
             version: "1.0.0"
             type: "DefaultSkybox"
             mesh: "SkyboxMesh"
+            sky_color: [0.4, 0.4, 0.9, 1.0] # RGBA
+            sun_color: [1.0, 0.9, 0.6, 1.0] # RGBA
             dependencies:
               - ProcSkyboxMesh
+              - RenderManager
         Physics:
             name: "PhysicService"
             enabled: true
@@ -73,6 +114,17 @@ Config:
             type: "DayNightCycle"
             day_night_cycle: true
             day_night_cycle_speed: 0.1
+            dependencies:
+                - World
+
+        Chronos:
+            name: "ChronosService"
+            enabled: true
+            version: "1.0.0"
+            startDate: "01/08/2025 10:00:00"
+            dependencies:
+                - None
+
         Wheather:
             name: "WheatherService"
             enabled: true

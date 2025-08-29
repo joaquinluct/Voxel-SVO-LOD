@@ -1,4 +1,7 @@
 #include "DirectXUtils.h"
+#include <string>
+#include <algorithm>
+#include <random>
 
 namespace DirectXUtils
 {
@@ -63,6 +66,15 @@ namespace DirectXUtils
         XMVECTOR resultVec = XMVectorMultiply(vecA, scalarVec);
         XMFLOAT3 result;
         XMStoreFloat3(&result, resultVec);
+        return result;
+    }
+
+    XMFLOAT4 Multiply(const XMFLOAT4& a, float scalar) {
+        XMVECTOR vecA = XMLoadFloat4(&a);
+        XMVECTOR scalarVec = XMVectorReplicate(scalar); // Crear un XMVECTOR con el escalar en todas las componentes
+        XMVECTOR resultVec = XMVectorMultiply(vecA, scalarVec);
+        XMFLOAT4 result;
+        XMStoreFloat4(&result, resultVec);
         return result;
     }
 
@@ -137,5 +149,74 @@ namespace DirectXUtils
         // Si apuntan en la misma dirección, el coseno es 1.
         // Usamos un umbral para la tolerancia.
         return XMVectorGetX(XMVector3Dot(n, dir)) > dotThreshold;
+    }
+
+    float Smoothstep(float edge0, float edge1, float x) {
+        // Escala x para que esté en el rango [0, 1]
+        x = std::clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
+
+        // Aplica la curva de interpolación (fórmula de smoothstep)
+        return x * x * (3 - 2 * x);
+    }
+
+    float Distance(const XMFLOAT3& v1, const XMFLOAT3& v2)
+    {
+        // 1. Cargar los XMFLOAT3 a XMVECTOR
+        XMVECTOR vecA = XMLoadFloat3(&v1);
+        XMVECTOR vecB = XMLoadFloat3(&v2);
+
+        // 2. Calcular la diferencia entre los vectores
+        XMVECTOR diff = XMVectorSubtract(vecA, vecB);
+
+        // 3. Calcular la longitud (magnitud) del vector diferencia
+        XMVECTOR length = XMVector3Length(diff);
+
+        // 4. Devolver la longitud como un flotante
+        return XMVectorGetX(length);
+    }
+
+    float DistanceSq(const XMFLOAT3& v1, const XMFLOAT3& v2)
+    {
+        // 1. Cargar los XMFLOAT3 a XMVECTOR
+        XMVECTOR vecA = XMLoadFloat3(&v1);
+        XMVECTOR vecB = XMLoadFloat3(&v2);
+
+        // 2. Calcular la diferencia entre los vectores
+        XMVECTOR diff = XMVectorSubtract(vecA, vecB);
+
+        // 3. Calcular la longitud al cuadrado del vector diferencia
+        XMVECTOR lengthSq = XMVector3LengthSq(diff);
+
+        // 4. Devolver la longitud al cuadrado como un flotante
+        return XMVectorGetX(lengthSq);
+    }
+
+    std::string ToString(const XMFLOAT3& v)
+    {
+        // Convertir cada componente a string y concatenar
+        return "X: " + std::to_string(v.x) + ", Y: " + std::to_string(v.y) + ", Z: " + std::to_string(v.z);
+	}
+
+    DirectX::XMFLOAT4 GenerateRandomColor()
+    {
+        static std::random_device rd;
+        static std::mt19937 gen(rd());
+        static std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+
+        return DirectX::XMFLOAT4{
+            dist(gen), // R
+            dist(gen), // G
+            dist(gen), // B
+            dist(gen)  // A
+        };
+    }
+
+    DirectX::XMFLOAT4 SaturateColor(const DirectX::XMFLOAT4& color) {
+        return DirectX::XMFLOAT4{
+            Saturate(color.x),
+            Saturate(color.y),
+            Saturate(color.z),
+            Saturate(color.w)
+        };
     }
 }
