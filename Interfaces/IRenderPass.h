@@ -1,25 +1,39 @@
 #pragma once
 
 #include <Windows.h>
+#include <string>
 #include <vector>
 #include <map>
 #include <memory>
 #include <IInitializable.h>
 #include <Defines/Pipeline.h>
-//#include <Managers/RenderManager/GameRenderManager.h>
+#include <Defines/Pass.h>
+#include <Config/PassConfigBase.h>
+//#include <SceneManager.h>
 
-class GameRenderManager;
+class FrameStateService;
+class SceneManager;
 class MeshAsset;
+class PassConfigBase;
 
 class IRenderPass : public IInitializable
 {
+private:
+	std::string m_name;
 public:
 	virtual ~IRenderPass() = default;
-	virtual std::vector<std::shared_ptr<PipelineOperation>> BeginPass() = 0;
-	virtual std::vector<std::shared_ptr<PipelineOperation>> ExecPass(std::shared_ptr<MeshAsset> mesh) = 0;
-	virtual std::vector<std::shared_ptr<PipelineOperation>> EndPass() = 0;
-	virtual std::map<std::string, std::shared_ptr<MeshAsset>> GetMeshes(GameRenderManager* gameRenderManager) = 0;
+	virtual std::vector<PipelineOperationType> BeginPass(const MeshAsset* mesh, FrameStateService* renderState) = 0;
+	virtual std::vector<PipelineOperationType> ExecPass(const MeshAsset* mesh, FrameStateService* renderState) = 0;
+	virtual std::vector<PipelineOperationType> EndPass() = 0;
+	virtual std::map<std::string, std::shared_ptr<MeshAsset>> GetMeshes(const SceneManager* SceneManager, FrameStateService* renderState) = 0;
 	virtual void Activate() = 0;
 	virtual void Deactivate() = 0;
 	virtual bool IsActive() const = 0;
+	virtual std::string GetName() const { return m_name; }
+	virtual void SetName(const std::string& name) { m_name = name; }
+
+	// Mesh
+
+
+	virtual std::shared_ptr<PassConfigBase> GetConfig() const = 0;
 };

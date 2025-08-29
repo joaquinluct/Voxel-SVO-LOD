@@ -26,8 +26,7 @@ HRESULT KeyBindings::Init() {
 }
 
 static KeyMoves MapAction(const std::string& action) {
-	std::string lowerAction = action;
-	StrToLower(lowerAction);
+	std::string lowerAction = StrToLower(action);
 	if (lowerAction == "move_forward") return KeyMoves::Forward;
 	if (lowerAction == "move_backward") return KeyMoves::Backward;
 	if (lowerAction == "move_left") return KeyMoves::Left;
@@ -72,7 +71,7 @@ bool KeyBindings::IsKeyPressed(KeyMoves keyMove) {
 
 bool KeyBindings::IsKeyDown(KeyMoves keyMove) {
 	// Verificar si alguna de las teclas asociadas a keyMove está presionada
-	m_keyboard = ServiceLocator::GetService<Keyboard>();
+	m_keyboard = ServiceLocator::GetService<Keyboard>();	
 	auto it = m_keyBindings.find(keyMove);
 	if (it != m_keyBindings.end()) {
 		for (unsigned char keyCode : it->second) {
@@ -118,9 +117,10 @@ unsigned char KeyBindings::TranslateKeyStringToCode(const std::string& key) cons
 	if (key == "KEY_LEFT") return VK_LEFT;
 	if (key == "KEY_RIGHT") return VK_RIGHT;
 	if (key == "KEY_SPACE") return VK_SPACE;
-	if (key == "KEY_CTRL_LEFT") return VK_LCONTROL;
-	if (key == "KEY_SHIFT_LEFT") return VK_LSHIFT;
-	if (key == "KEY_SHIFT_RIGHT") return VK_RSHIFT;
+	if (key == "KEY_CTRL_LEFT") return 17;
+	if (key == "KEY_CTRL_RIGHT") return 16;
+	if (key == "KEY_SHIFT_LEFT") return 17;
+	if (key == "KEY_SHIFT_RIGHT") return 16;
 	if (key == "KEY_TAB") return VK_TAB;
 	
 	return 0; // Código de tecla inválido

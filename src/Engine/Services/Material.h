@@ -1,4 +1,5 @@
 #pragma once
+#include "Texture.h" 
 #include <DirectXMath.h> // Para XMMATRIX
 #include <d3d11.h>
 #include <DirectX/DirectXTex/DirectXTex.h>
@@ -6,17 +7,15 @@
 #include <wrl.h>
 #include <iostream>
 #include <type_traits> // Para std::is_same y std::is_same_v
-#include "IMaterial.h"
-#include "DeviceManager.h"
-#include "ShaderManager.h"
-#include "CameraManager.h"
-#include "KeyboardManager.h"
-#include "RenderManager/RenderManager.h"
+#include <IMaterial.h>
+#include <DeviceManager.h>
+#include <ShaderManager.h>
+#include <CameraManager.h>
+#include <KeyboardManager.h>
 #include <Game/Systems/Lighting.h>
 #include <Game/Systems/Shadows.h>
 #include <Util/Text/Text.h>
-#include "Texture.h"
-#include "ITextureInitializer.h"
+#include <ITextureInitializer.h>
 #include <Defines/VertexDefinition.h>
 #include <Defines/Matrix/MatrixDefinitionBase.h>
 #include <IService.h>
@@ -29,15 +28,13 @@ struct ID3D11ShaderResourceViewReleaser {
     }
 };
 
-
 class Material : public IMaterial, public IService {
 public:
     Material();
     ~Material() override {};
-    void SetTexture(ID3D11ShaderResourceView* texture, std::string textureMap) override;
+    void SetTexture(ID3D11ShaderResourceView* texture, std::string textureMap = "") override;
 	void SetTextureTranforms(float scaleX, float scaleY, float offsetX, float offsetY);
-    void SetTextureTranforms(XMFLOAT4 tranforms);
-    void Apply(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context) override;
+    void SetTextureTranforms(XMFLOAT4 tranforms);    
     HRESULT Init() override;
     HRESULT InitManagers();
     HRESULT InitPixelAndVertexShaders();
@@ -58,7 +55,7 @@ public:
         return name;
     }
 
-    Microsoft::WRL::ComPtr<ID3D11InputLayout> GetInputLayout() {
+    Microsoft::WRL::ComPtr<ID3D11InputLayout> GetInputLayout() const {
         return inputLayout;
     }
 
@@ -69,8 +66,11 @@ public:
     void SetShaderName(const std::wstring& shaderName) {
         m_shaderName = shaderName;
 	}
+    const std::wstring& GetShaderName() const {
+        return m_shaderName;
+    }
 
-    XMFLOAT4 GetTextureTranforms() const {
+    const XMFLOAT4 GetTextureTranforms() const {
         return m_textureTranforms;
 	}
     
@@ -80,7 +80,15 @@ public:
     Microsoft::WRL::ComPtr<ID3D11VertexShader> GetVertexShader() const { return vertexShader; }
     Microsoft::WRL::ComPtr<ID3D11PixelShader> GetPixelShader() const { return pixelShader; }
 
-    UINT GetNumTextures() {
+    // --------------------------------------------------------
+	// GetNUmTextures
+    // --------------------------------------------------------
+    const UINT GetNumTextures() const {
+
+        if (m_textureType == TEXTURE_TYPE_JPG_ARRAY) {
+            return 1; // Si es un array de texturas JPG, consideramos que es una sola textura
+		}
+
         UINT count = 0;
         count += (m_texture_albedo != nullptr); // Asumiendo que m_texture_albedo es un puntero o similar
         count += (m_texture_normal != nullptr);
@@ -91,6 +99,9 @@ public:
         return count;
     }
 
+    // --------------------------------------------------------
+	// GetTextureMap
+    // --------------------------------------------------------
     std::map<std::string, ID3D11ShaderResourceView*> GetTextureMap() {
         std::map<std::string, ID3D11ShaderResourceView*> textures = {};
         if (m_texture_albedo) {
@@ -111,8 +122,17 @@ public:
         return textures;
     }
 
-    std::vector<ID3D11ShaderResourceView*> GetTextures() {
+	// --------------------------------------------------------
+	// GetTextures
+	// --------------------------------------------------------
+    std::vector<ID3D11ShaderResourceView*> GetTextures() const {        
         std::vector<ID3D11ShaderResourceView*> textures = {};
+
+        if (m_textureType == TEXTURE_TYPE_JPG_ARRAY) {
+            textures.push_back(m_textureMapViews);
+            return textures;
+        }
+
         if (m_texture_albedo) {
             textures.push_back(m_texture_albedo);
         }
@@ -131,10 +151,28 @@ public:
         return textures;
     }
 
-    void SetConstantBuffers(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context, MatrixDefinitionBase::MatrixParams matrixParams, int slot = 0);
+	// --------------------------------------------------------
+	// SetTextureType y GetTextureType
+	// --------------------------------------------------------
+    void SetTextureType(const std::string& type) {
+        m_textureType = type;
+    }
+    const std::string GetTextureType() const {
+        return m_textureType;;
+    }
 
+	// --------------------------------------------------------
+	// GetConstantBuffers
+	// --------------------------------------------------------
     std::map<std::string, Microsoft::WRL::ComPtr<ID3D11Buffer>> GetConstantBuffers() const {
         return m_constantBuffers;
+	}
+    std::vector<std::string> GetConstantBufferNames() const {
+        std::vector<std::string> names;
+        for (const auto& pair : m_constantBuffers) {
+            names.push_back(pair.first);
+        }
+        return names;
 	}
 
     ID3D11ShaderResourceView* LoadTextureFromFile(std::shared_ptr<ID3D11Device> device, const std::wstring& filename);
@@ -143,11 +181,12 @@ public:
 
     ID3D11Buffer* m_matrixBuffer; // Miembro para el buffer de matrices
 private:
+    std::string m_textureType;
+
     std::shared_ptr<KeyboardManager> m_keyboard; 
     std::shared_ptr<DeviceManager> m_deviceManager; 
     std::shared_ptr<ShaderManager> m_shaderManager; 
     std::shared_ptr<CameraManager> m_cameraManager;
-    std::shared_ptr<RenderManager> m_renderManager;
     std::shared_ptr<Lighting> m_lighting;
     std::shared_ptr<Shadows> m_shadows;
     std::wstring m_shaderName;
@@ -158,6 +197,8 @@ private:
     ID3D11ShaderResourceView* m_texture_metallic;
     ID3D11ShaderResourceView* m_texture_ao;
     ID3D11ShaderResourceView* m_texture;
+
+	ID3D11ShaderResourceView* m_textureMapViews; // Vector para almacenar múltiples texturas
 
     Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
     Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShader;

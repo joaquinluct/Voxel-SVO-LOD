@@ -4,13 +4,15 @@
 #include <DDSTextureLoader.h> // Para CreateDDSTextureFromFile
 #include <windows.h> // Para OutputDebugStringA
 #include <Assets/Base/VertexAsset.h>
+#include <Assets/Base/ShaderAsset.h>
 #include <AssetLocator/AssetLocator.h>
 #include <DefineLocator/DefineLocator.h>
 #include <ManagerLocator/ManagerLocator.h>
 #include <REGISTER_ASSET_MACRO.h>
 #include <Util/Text/Text.h>
 #include <Assets/Base/TextureAsset.h>
-#define TINYOBJLOADER_IMPLEMENTATION
+//#define TINYOBJLOADER_IMPLEMENTATION
+#include <TinyObjLoader/tiny_obj_loader.h>
 #include <Assets/Base/ObjFormat/ObjUtil.h>
 #include <Defines/Mesh.h>
 #include <Defines/Vector.h>
@@ -46,12 +48,7 @@ HRESULT MeshAsset::InitManagers() {
     if (!m_shaderManager) {
         OutputDebugStringA("MeshAsset::Init - ERROR: ShaderManager not found.\n");
         return E_FAIL;
-    }
-	m_renderManager = ManagerLocator::GetManager<RenderManager>();
-    if (!m_renderManager) {
-        OutputDebugStringA("MeshAsset::Init - ERROR: RenderManager not found.\n");
-        return E_FAIL;
-	}
+    }	
 	m_uiManager = ManagerLocator::GetManager<UIManager>();
     if (!m_uiManager) {
         OutputDebugStringA("MeshAsset::Init - ERROR: UIManager not found.\n");
@@ -60,30 +57,48 @@ HRESULT MeshAsset::InitManagers() {
     return S_OK;
 }
 
-HRESULT MeshAsset::InitTexture() {
-    std::string shaderAssetName = m_meshConfig->shader;
-    std::string meshObj = m_meshConfig->mesh_path;
-    std::string textureAssetName = m_meshConfig->texture;
-	m_textureTransforms = m_meshConfig->texture_transforms;
-    bool castShadows = m_meshConfig->cast_shadows;
+HRESULT MeshAsset::InitConfig() {
+    // Obtener el vertexDefinition del shader
+    m_name = m_meshConfig->name;
+    m_shaderAssetName = m_meshConfig->shader;
+    m_meshType = static_cast<Mesh::Type>(m_meshConfig->meshType);
 
-    m_material = new Material();
-    if (!m_material) {
-        OutputDebugStringA(("MeshAsset::Init - ERROR: Failed to create Material resource for mesh '" + meshObj + "'.\n").c_str());
+    m_shaderAsset = AssetLocator::GetShaderAsset(m_shaderAssetName);
+    if (!m_shaderAsset) {
+        OutputDebugStringA(("MeshAsset::Init - ERROR: Failed to get ShaderAsset for mesh '" + m_name + "'.\n").c_str());
         return E_FAIL;
     }
 
-    m_material->SetShaderName(StringToWstring(shaderAssetName));
+    m_vertexDef = m_shaderAsset->GetConfig()->vertex_def;
+    if (m_vertexDef.empty()) {
+        OutputDebugStringA(("MeshAsset::Init - ERROR: No vertex definition found for mesh '" + m_name + "'.\n").c_str());
+        return E_FAIL;
+	}
+    return S_OK;
+}
+
+HRESULT MeshAsset::InitTexture() {
+    std::string textureAssetName = m_meshConfig->texture;
+    
+    m_material = new Material();
+    if (!m_material) {
+        OutputDebugStringA(("MeshAsset::Init - ERROR: Failed to create Material resource for mesh '" + m_name + "'.\n").c_str());
+        return E_FAIL;
+    }
+
+    m_material->SetShaderName(StringToWstring(m_shaderAssetName));
     
     HRESULT hr = m_material->Init();
     if (FAILED(hr)) {
-        OutputDebugStringA(("MeshAsset::Init - ERROR: Failed to initialize Material resource for mesh '" + meshObj + "'.\n").c_str());
+        OutputDebugStringA(("MeshAsset::Init - ERROR: Failed to initialize Material resource for mesh '" + m_name + "'.\n").c_str());
         return E_FAIL;
     }
 
     if (!textureAssetName.empty() && textureAssetName != "none") {
+	    m_textureTransforms = m_meshConfig->texture_transforms;
         m_textureAsset = AssetLocator::GetTextureAsset(textureAssetName);
         m_textureAsset->SetTextureView(m_material);
+		m_material->SetTextureType(m_textureAsset->GetTextureType());
         if (m_textureTransforms.size() == 4) {
             XMFLOAT4 textureTransforms = XMFLOAT4(m_textureTransforms[0], m_textureTransforms[1], m_textureTransforms[2], m_textureTransforms[3]);
             m_material->SetTextureTranforms(textureTransforms);
@@ -111,55 +126,60 @@ HRESULT MeshAsset::InitShadows()
 
 HRESULT MeshAsset::InitMesh() {
 
-    // Obtener el vertexDefinition del shader
-    std::string meshObj = m_meshConfig->mesh_path;
-    std::string shaderAssetName = m_meshConfig->shader;
-	Mesh::Type meshType = static_cast<Mesh::Type>(m_meshConfig->meshType);
-
-    std::shared_ptr<ShaderAsset> shaderAsset = AssetLocator::GetShaderAsset(shaderAssetName);
-    if (!shaderAsset) {
-        OutputDebugStringA(("MeshAsset::Init - ERROR: Failed to get ShaderAsset for mesh '" + meshObj + "'.\n").c_str());
-        return E_FAIL;
-    }
-
     // Crear el array de vértices e índices
-    std::string vertexDef = shaderAsset->GetConfig()->vertex_def;
     std::vector<uint16_t> indexes = {};
-    bool result = false;
     HRESULT hr = S_OK;
-   auto vertex = DefineLocator::GetVertexDefinitionAsVector(vertexDef);
+   auto vertex = DefineLocator::GetVertexDefinitionAsVector(m_vertexDef);
 
 	// PROCESASR EL ARCHIVO OBJ O TEXTO
-    if (meshType == Mesh::Type::File_Obj) {
-        result = ObjUtil::LoadObj(meshObj, vertex, indexes);
+    if (m_meshType == Mesh::Type::File_Obj) {
+        std::string meshObj = m_meshConfig->mesh_path;
+        hr = ObjUtil::LoadObj(meshObj, vertex, indexes) ? S_OK : E_FAIL;
         if (vertex.empty()) {
             OutputDebugStringA(("MeshAsset::Init - ERROR: No vertex data found in mesh file '" + meshObj + "'.\n").c_str());
             return E_FAIL;
         }
 	}
     // PROCESAR TIPO TEXTO
-    else if (meshType == Mesh::Type::Text) {
-        result = m_uiManager->InitText(vertex, "Texto de prueba");
+    else if (m_meshType == Mesh::Type::Text) {
+        //UIText* text = m_uiManager->InitText(std::make_shared<MeshAsset>(*this), vertex);
+        m_uiText = new UIText(std::make_shared<MeshAsset>(*this));
+        m_uiText->CreateMesh(vertex);
         if (vertex.empty()) {
-            OutputDebugStringA(("MeshAsset::Init - ERROR: No vertex data found in mesh file '" + meshObj + "'.\n").c_str());
+            OutputDebugStringA(("MeshAsset::Init - ERROR: No vertex data found in mesh file '" + m_name + "'.\n").c_str());
             return E_FAIL;
         }
+    }
+    // PROCESAR TIPO TERRENO
+    else if (m_meshType == Mesh::Type::Terrain) {
+        return S_OK;
     }
 
     // Crear el vetex & index buffer
     hr = InitD3D11ResourcesVertex(m_deviceManager->GetDevice().Get(), vertex, indexes);
 
-    if (!result) {
-        OutputDebugStringA(("MeshAsset::Init - ERROR: Failed to load mesh file '" + meshObj + "'.\n").c_str());
-        return E_FAIL;
-    }
-
     if (FAILED(hr)) {
-        OutputDebugStringA(("MeshAsset::Init - ERROR: Failed to initialize D3D11 resources for mesh '" + meshObj + "'.\n").c_str());
+        OutputDebugStringA(("MeshAsset::Init - ERROR: Failed to initialize D3D11 resources for mesh '" + m_name + "'.\n").c_str());
         return hr;
     }
 
     return hr;
+}
+
+void MeshAsset::UpdateTextMesh(UIText* uiText, std::string text) {
+    std::vector<uint16_t> indexes = {};
+    auto vertex = DefineLocator::GetVertexDefinitionAsVector(m_vertexDef);
+    uiText->CreateMesh(vertex);
+
+    // Crear el vetex & index buffer
+    HRESULT hr = InitD3D11ResourcesVertex(m_deviceManager->GetDevice().Get(), vertex, indexes);
+
+    if (FAILED(hr)) {
+        OutputDebugStringA(("MeshAsset::Init - ERROR: Failed to initialize D3D11 resources for mesh '" + m_name + "'.\n").c_str());
+        return;
+    }
+
+    return;
 }
 
 HRESULT MeshAsset::Init() {
@@ -167,11 +187,19 @@ HRESULT MeshAsset::Init() {
         return S_OK;
     }
 
+	m_name = m_meshConfig->name;
+
     HRESULT hr = InitManagers();
     if (FAILED(hr)) {
         OutputDebugStringA("MeshAsset::Init - ERROR: Managers init.\n");
         return E_FAIL;
     }
+
+    hr = InitConfig();
+    if (FAILED(hr)) {
+        OutputDebugStringA("MeshAsset::Init - ERROR: Config init.\n");
+        return E_FAIL;
+	}
 
     hr = InitTexture();
     if (FAILED(hr)) {
@@ -195,6 +223,23 @@ HRESULT MeshAsset::Init() {
 }
 
 void MeshAsset::Shutdown() {
+    if (m_vertexBuffer) {
+        m_vertexBuffer->Release();
+        m_vertexBuffer = nullptr;
+    }
+    if (m_indexBuffer) {
+        m_indexBuffer->Release();
+        m_indexBuffer = nullptr;
+    }
+    if (m_material) {
+		SafeShutDown(m_material);        
+    }
+    if (m_shadowMaterial) {
+        SafeShutDown(m_shadowMaterial);        
+    }
+    if (m_uiText) {        
+		SafeShutDown(m_uiText);
+	}
 }
 
 void MeshAsset::Render() {
@@ -217,7 +262,7 @@ void MeshAsset::Render() {
 HRESULT MeshAsset::CreateVertexBuffer(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, const std::vector<std::shared_ptr<VertexDefinition::VertexVariant>> vertices) {
     if (m_vertexBuffer) {
         m_vertexBuffer->Release();
-        m_vertexBuffer = nullptr;
+        //m_vertexBuffer = nullptr;
     }
     m_vertexCount = 0;
     m_vertexTypeSize = 0; // Se inicializa aquí para asegurar que siempre está limpia
@@ -233,7 +278,7 @@ HRESULT MeshAsset::CreateVertexBuffer(Microsoft::WRL::ComPtr<ID3D11Device> pDevi
     // para este búfer.
     std::visit([&](auto& currentVertex) {
         using T = std::decay_t<decltype(currentVertex)>;
-        //if constexpr (is_vector_v<T>) {
+        //if inline constexpr (is_vector_v<T>) {
             m_vertexTypeSize = currentVertex.Size();
         //}
         }, * vertices[0]); // Visita el primer elemento del vector de variants

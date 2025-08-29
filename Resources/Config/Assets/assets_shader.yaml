@@ -14,6 +14,7 @@ Config:
         name: "ShaderTextUI"
         dependencies:
           - ShaderAsset
+
       DefaultShader:
         type: "ShaderAsset"
         shader_path: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Shader\\BaseShader.hlsl"
@@ -21,11 +22,12 @@ Config:
         matrix_slots:
             - MatrixBufferType
         sampler_slots:
-            - RegularSampler
+            - baseSampler
         needs_shadow: false
         name: "DefaultShader"
         dependencies:
           - ShaderAsset
+
       TextureBasicShader:
         type: "ShaderAsset"
         shader_path: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Shader\\TextureBasicShader.hlsl"
@@ -33,11 +35,12 @@ Config:
         matrix_slots:
             - MatrixBufferType
         sampler_slots:
-            - RegularSampler
+            - baseSampler
         needs_shadow: false
         name: "TextureBasicShader"
         dependencies:
           - ShaderAsset
+
       TextureMapShader:
         type: "ShaderAsset"
         shader_path: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Shader\\TextureMapShader.hlsl"
@@ -49,11 +52,12 @@ Config:
             - MaterialData
             - TextureTransformations
         sampler_slots:
-            - RegularSampler
+            - baseSampler
         needs_shadow: false
         name: "TextureMapShader"
         dependencies:
           - ShaderAsset
+
       PBRShader:
         type: "ShaderAsset"
         shader_path: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Shader\\PBRShader.hlsl"
@@ -65,11 +69,12 @@ Config:
             - MaterialData
             - TextureTransformations
         sampler_slots:
-            - RegularSampler
+            - baseSampler
         needs_shadow: false
         name: "PBRShader"
         dependencies:
           - ShaderAsset
+
       PBRShadowShader:
         type: "ShaderAsset"
         shader_path: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Shader\\PBRShadowShader.hlsl"
@@ -83,37 +88,40 @@ Config:
             - TextureTransformations
             - LightSpaceMatrices
         sampler_slots:
-            - RegularSampler
+            - baseSampler
             - ShadowMapSampler
         name: "PBRShadowShader"
         dependencies:
           - ShaderAsset
+
       ShadowMapShader:
-        # Shader para la generación de mapas de sombras. No se usa directamente en la escena, 
+        # Shader para la generación de mapas de sombras. No se usa directamente en la escena,  
         # sino que se utiliza para generar mapas de sombras que luego son usados por otros shaders.
         type: "ShaderAsset"
         shader_path: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Shader\\ShadowMapShader.hlsl"
         vertex_def: "SimpleVertex"
         matrix_slots:
-            - LightSpaceMatrices
+            - ShadowMapMatrices
         sampler_slots:
             - None
         name: "ShadowMapShader"
         needs_shadow: false
         dependencies:
           - ShaderAsset
+
       SkyboxShader:
         type: "ShaderAsset"
         shader_path: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Shader\\SkyboxShader.hlsl"
         vertex_def: "SkyboxVertex"
         matrix_slots:
-            - MatrixBufferTypeSkyBox
+            - MatrixBufferType
         sampler_slots:
-            - RegularSampler
+            - baseSampler
         needs_shadow: false
         name: "SkyboxShader"
         dependencies:
           - ShaderAsset
+
       ProceduralSkyboxShader:
         type: "ShaderAsset"
         shader_path: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Shader\\MyProceduralSkyboxShader.hlsl"
@@ -125,9 +133,112 @@ Config:
             # - MatrixBufferTypeProceduralSkyBox
             # - ProceduralSkyboxMatrix
         sampler_slots:
-            - RegularSampler
+            - baseSampler
         needs_shadow: false
         name: "ProceduralSkyboxShader"
+        dependencies:
+          - ShaderAsset
+
+      TerrainShader:
+        type: "ShaderAsset"
+        shader_path: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Shader\\TerrainShader.hlsl"
+        vertex_def: "TextureMapVertex"
+        needs_shadow: true
+        matrix_slots:
+            - MatrixBufferType
+            - DirectionalLight
+            - CameraData
+            - MaterialData
+            - TextureTransformations
+            - LightSpaceMatrices
+            - TerrainBlendBuffer
+        sampler_slots:
+            - baseSampler
+            - ShadowMapSampler
+        name: "TerrainShader"
+        dependencies:
+          - ShaderAsset
+
+      Terrain2Shader:
+        type: "ShaderAsset"
+        shader_path: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Shader\\Terrain2Shader.hlsl"
+        vertex_def: "TextureMapVertex"
+        needs_shadow: true
+        matrix_slots:
+            - MatrixBufferType
+            - DirectionalLight
+            - CameraData
+            - MaterialData
+            - TextureTransformations
+            - LightSpaceMatrices
+            - Terrain2BlendBuffer
+        sampler_slots:
+            - baseSampler
+            - ShadowMapSampler
+        name: "Terrain2Shader"
+        dependencies:
+          - ShaderAsset
+
+      # Nuevo: Shader del agua (reflejos, refracción)
+      OceanShader:
+        type: "ShaderAsset"
+        shader_path: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Shader\\OceanShader.hlsl"
+        vertex_def: "SimpleVertex"
+        needs_shadow: false
+        matrix_slots:
+            - MatrixBufferType
+            - DirectionalLight
+            - CameraData            
+            - WaterData
+            - TimeData
+            - WaterInstance
+        sampler_slots:
+            - baseSampler
+            # - ShadowMapSampler
+            # - WaterSampler # Nuevo sampler para reflejo/refracción
+        name: "OceanShader"
+        dependencies:
+            - ShaderAsset
+
+      # Nuevo: Shader para el pase de reflejos
+      WaterReflectionShader:
+        type: "ShaderAsset"
+        shader_path: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Shader\\WaterReflectionShader.hlsl"
+        vertex_def: "TextureMapVertex"
+        needs_shadow: true
+        matrix_slots:
+            - MatrixBufferType
+            - DirectionalLight
+            - CameraData
+            - MaterialData
+            - TextureTransformations
+            - LightSpaceMatrices
+            - TerrainBlendBuffer
+        sampler_slots:
+            - baseSampler
+            - ShadowMapSampler
+        name: "WaterReflectionShader"
+        dependencies:
+          - ShaderAsset
+
+      # Nuevo: Shader para el pase de refracción
+      WaterRefractionShader:
+        type: "ShaderAsset"
+        shader_path: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Shader\\WaterRefractionShader.hlsl"
+        vertex_def: "TextureMapVertex"
+        needs_shadow: true
+        matrix_slots:
+            - MatrixBufferType
+            - DirectionalLight
+            - CameraData
+            - MaterialData
+            - TextureTransformations
+            - LightSpaceMatrices
+            - TerrainBlendBuffer
+        sampler_slots:
+            - baseSampler
+            - ShadowMapSampler
+        name: "WaterRefractionShader"
         dependencies:
           - ShaderAsset
 Definition:
@@ -151,4 +262,4 @@ Definition:
         - name
         - dependencies
     # output_path: 'C:\Users\joaqu\source\repos\DirectX-Voxelado\TestConfig\Assets\'
-    output_path: 'c:\Users\joaqu\source\repos\DirectX-Voxelado\src\Engine\Core\Config\Assets\'
+    output_path: 'c:\Users\joaqu\source\repos\DirectX-Voxelado\src\Engine\Core\Config\Assets\' 

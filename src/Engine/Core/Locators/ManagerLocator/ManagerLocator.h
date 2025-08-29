@@ -1,39 +1,38 @@
 // ManagerLocator.h
 #pragma once
 
-#include <UIManager.h>
 #include <string>
 #include <memory>
 #include <functional>
 #include <map>
 #include "yaml-cpp/yaml.h"
 #include <windows.h> // Para HWND, HRESULT
+#include <RenderManager/RenderManager.h>
 #include <AssetManager.h>
 #include <CameraManager.h>
 #include <DeviceManager.h>
-#include <GameManager.h>
 #include <KeyboardManager.h>
-#include <RenderTargetManager.h>
 #include <ShaderManager.h>
-#include <WorldMatrixManager.h>
+#include <ManagerBase.h>
 
 // #include <typeindex> // No es estrictamente necesario si usamos nombres de string para s_managers
 
-// Forward declarations para asegurar que IManager, IInitializable, IWindowDependentInitializable
+// Forward declarations para asegurar que ManagerBase, IInitializable, IWindowDependentInitializable
 // estén declaradas antes de ser usadas en std::shared_ptr en las lambdas.
 // Si estas interfaces están definidas en sus propios archivos .h y esos archivos
 // ya se incluyen antes de ManagerLocator.h en algunos .cpp, podrías no necesitar
 // estas forward declarations aquí, pero es una buena práctica para prevenir
 // dependencias circulares o problemas de orden de inclusión.
-class IManager;
+//class ManagerBase;
 class IInitializable;
 class IWindowDependentInitializable;
 
 // Define el tipo para la lambda de creación.
-using CreateManagerLambda = std::function<std::shared_ptr<IManager>()>;
-using InitializeManagerLambda = std::function<HRESULT(std::shared_ptr<IManager>, HWND, int, int)>;
-using RenderManagerLambda = std::function<void(std::shared_ptr<IManager>)>;
-using UpdateManagerLambda = std::function<void(std::shared_ptr<IManager>, float)>;
+using CreateManagerLambda = std::function<std::shared_ptr<ManagerBase>()>;
+using InitializeManagerLambda = std::function<HRESULT(std::shared_ptr<ManagerBase>)>;
+using InitializeWithParamasManagerLambda = std::function<HRESULT(std::shared_ptr<ManagerBase>, HWND*, int, int)>;
+using RenderManagerLambda = std::function<void(std::shared_ptr<ManagerBase>)>;
+using UpdateManagerLambda = std::function<void(std::shared_ptr<ManagerBase>, float)>;
 
 class ManagerLocator {
 public:
@@ -50,18 +49,19 @@ public:
         const std::string& name,
         CreateManagerLambda createFn,
         InitializeManagerLambda initFn,
+		InitializeWithParamasManagerLambda initWithParamsFn,
 		RenderManagerLambda renderFn,
 		UpdateManagerLambda updateFn
     );
     
-    static HRESULT InitializeManagers(const std::vector<std::string>& orderList, HWND hwnd, int width, int height);
+    static HRESULT InitializeManagers(const std::vector<std::string>& orderList, HWND* hwnd, int width, int height);
     static HRESULT RenderManagers(const std::vector<std::string>& orderList);
     static HRESULT UpdateManagers(const std::vector<std::string>& orderList, float delta);
     //static HRESULT UpdateManagers(const std::vector<std::string>& orderList, float deltaTime);
     //static void ShutdownManagers(const std::vector<std::string>& orderList); // Shutdown suele ser void
 
     // Función para obtener un servicio ya inicializado por su tipo C++.
-    // Ahora usa dynamic_pointer_cast internamente, ya que s_managers almacena IManager.
+    // Ahora usa dynamic_pointer_cast internamente, ya que s_managers almacena ManagerBase.
     template<typename T>
     static std::shared_ptr<T> GetManager() {
         const std::string name1 = typeid(T).name();
@@ -73,17 +73,17 @@ public:
         }
         return nullptr;
     }
-    static std::shared_ptr<IManager> GetManager(const std::string& name);
+    static std::shared_ptr<ManagerBase> GetManager(const std::string& name);
 
     // Función para registrar directamente un servicio ya creado (para casos especiales o tests).
     // También usa T::GetStaticManagerName() como clave para mantener la consistencia.
-    // Ahora acepta std::shared_ptr<IManager> o un tipo que herede de IManager.
+    // Ahora acepta std::shared_ptr<ManagerBase> o un tipo que herede de ManagerBase.
     template<typename T>
-    // T debe ser un IManager o heredar de IManager
+    // T debe ser un ManagerBase o heredar de ManagerBase
     static void RegisterManager(std::shared_ptr<T> manager) {
         // Asume que la clase T tiene un método estático 'GetStaticManagerName()'.
-        // La conversión implícita de std::shared_ptr<T> a std::shared_ptr<IManager> es segura.
-        static_assert(std::is_base_of<IManager, T>::value, "T must derive from IManager for ManagerLocator::RegisterManager");
+        // La conversión implícita de std::shared_ptr<T> a std::shared_ptr<ManagerBase> es segura.
+        static_assert(std::is_base_of<ManagerBase, T>::value, "T must derive from ManagerBase for ManagerLocator::RegisterManager");
         auto& s_managerEntries = GetManagerEntries();
         s_managerEntries[manager->GetStaticManagerName()] = manager;
         //s_managers[T::GetStaticManagerName()] = manager; 
@@ -98,33 +98,28 @@ public:
     static const std::shared_ptr<DeviceManager> GetDeviceManager() {
 		return GetManager<DeviceManager>();
     };
-    static const std::shared_ptr<RenderTargetManager> GetRenderManager() {
+    /*static const std::shared_ptr<RenderTargetManager> GetRenderManager() {
         return GetManager<RenderTargetManager>();
-	};
+	};*/
     /*static const std::shared_ptr<AssetManager> GetAssetManager() {
         return GetManager<AssetManager>();
 	};*/
     static const std::shared_ptr<CameraManager> GetCameraManager() {
 		return GetManager<CameraManager>();
-	};
-    static const std::shared_ptr<GameManager> GetGameManager() {
-		return GetManager<GameManager>();
-	};
+	};    
     static const std::shared_ptr<KeyboardManager> GetKeyboardManager() {
 		return GetManager<KeyboardManager>();
 	};    
-    static const std::shared_ptr<WorldMatrixManager> GetWorldMatrixManager() {
-		return GetManager<WorldMatrixManager>();
-	};
     static const std::shared_ptr<ShaderManager> GetShaderManager() {
         return GetManager<ShaderManager>();
     };
 
 
     struct ManagerEntry {
-        std::shared_ptr<IManager> instance; // La instancia real del manager
+        std::shared_ptr<ManagerBase> instance; // La instancia real del manager
         CreateManagerLambda creator;
         InitializeManagerLambda initializer;
+        InitializeWithParamasManagerLambda initializerWithParams;
         RenderManagerLambda renderer; // La lambda de render que definiste en la macro
 		UpdateManagerLambda updater; // La lambda de actualización que definiste en la macro
         // ... otras lambdas (Update, Shutdown)

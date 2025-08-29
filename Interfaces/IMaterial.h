@@ -4,7 +4,6 @@
 class IMaterial {
 public:
 	virtual ~IMaterial() = default;
-    virtual void SetTexture(ID3D11ShaderResourceView* texture, std::string textureType) = 0;
-    virtual void Apply(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context) = 0;
+    virtual void SetTexture(ID3D11ShaderResourceView* texture, std::string textureType = "") = 0;    
 	virtual void Shutdown() = 0;
 };

@@ -3,34 +3,46 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include <IManager.h>
+#include <ManagerBase.h>
 #include <ILifeCycle.h>
 #include <DeviceManager.h>
+#include <CameraManager.h>
 #include <Config/Services/ServiceConfig.h>
-#include <Config/Base/RenderManagerConfig.h>
-#include <Config/Base/EngineConfig.h>
+#include <Config/Base/Managers/RenderManagerConfig.h>
+#include <Config/Base/Managers/EngineConfig.h>
+#include <Config/PassConfigBase.h>
 #include "BaseRenderManager.h"
-#include "GameRenderManager.h"
-#include "InitManager.h"
-#include <Managers/RenderTargetManager.h>
+#include "SceneManager.h"
+#include <Services/FrameStateService.h>
 #include "RenderPass.h"
 #include <IRenderPass.h>
-#include <Defines/RenderPass.h>
+#include <Defines/AreaMesh.h>
 #include <RenderManager/Pipeline/RenderPipelineExecutor.h>
+#include <RenderManager/Pipeline/PipelineState.h>
 
-class RenderManager : public IManager, public ILifeCycle {
+class World;
+class Terrain;
+
+class RenderManager : public ManagerBase {
 public:
 	RenderManager();
 	~RenderManager() override;
 	HRESULT Init() override;
 	HRESULT InitSubManagers();
 	HRESULT InitPasses();
+	std::shared_ptr<RenderPass> InitPass(std::string passName);
+	HRESULT InitPipelineState();
+	void BeginPass(std::string passName);
+	void BeginMesh(MeshAsset* mesh);
+	void InitViewport();
+	void InitShader();
 	void Shutdown() override;
-	void ExecRender();
+	//void ExecRender();
 	void Render() override;
 	void BeginRender();
 	void EndRender();
 	void Update(float deltaTime) override;
+	void UpdatePass(std::string passName);
 
 	HRESULT ExecOperations();
 
@@ -44,47 +56,43 @@ public:
 		return name;
 	}
 
-	GameRenderManager* GameRenderManagerGet() const { return m_gameRenderManager; };
+	SceneManager* SceneManagerGet() const { return m_SceneManager; };
 
 	bool IsRenderColourPassActive() const;
 	bool IsRenderShadowsPassActive() const;
 
-	int AddOperation(const PipelineOperation& operation) {
-		m_renderOperations.push_back(std::make_shared<PipelineOperation>(operation));
-		return operation.GetPriority();
-	}
-	int AddOperation(PipelineOperationType operationType, PipelineParameter operationParam = {}) {
-		PipelineOperation* operation = new PipelineOperation(operationType, operationParam);
-		std::shared_ptr<PipelineOperation> oper = std::make_shared<PipelineOperation>(operation);
-		m_renderOperations.push_back(std::make_shared<PipelineOperation>(operation));
-		return operation->GetPriority();
-	}
-
-	void ExecuteOperation(PipelineOperation& operation);
+	void AddOperation(PipelineOperationType operationType);
+		
 	void ClearOperations();
 
-private:
-	std::vector<std::shared_ptr<PipelineOperation>> m_renderOperations = {};
-	std::map<int, std::shared_ptr<IRenderPass>> m_renderPasses;
-	BaseRenderManager* m_baseRenderManager;
-	GameRenderManager* m_gameRenderManager;
+	void SetPassConfig(PassConfigBase passConfig);	
+
+private:	
+	// Servicios y managers espeficíficos
+	std::shared_ptr<PipelineState> m_pipelineState;         // Estado del pipeline de renderizado
+	std::shared_ptr<FrameStateService> m_frameStateService; // Servicio para gestionar el estado de frame
+	RenderPipeline::RenderPipelineExecutor* m_executor;     // Ejecutor del pipeline de renderizado
+
+	// Servios y managers generales
 	std::shared_ptr<DeviceManager> m_deviceManager;
-	std::shared_ptr<RenderTargetManager> m_renderTargetManager;
-	std::shared_ptr<InitManager> m_initManager;
+	std::shared_ptr<CameraManager> m_cameraManager;
+	std::shared_ptr<World> m_world;
+	std::shared_ptr<Terrain> m_terrain;	
+
+	// Configuraciones
 	std::shared_ptr<ServiceConfig> m_serviceConfig;
 	std::shared_ptr<EngineConfig> m_engineConfig;
 	std::shared_ptr<RenderManagerConfig> m_config;
+
+	std::vector<PipelineOperationType> m_renderOperations = {};
+	std::map<int, std::shared_ptr<IRenderPass>> m_renderPasses;
+	BaseRenderManager* m_baseRenderManager;
+	SceneManager* m_SceneManager;
+	
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_context;
 
-	std::shared_ptr<PipelineStore> m_pipelineStore;
-	RenderPipeline::RenderPipelineExecutor* m_executor = nullptr;
 
-	const std::shared_ptr<PipelineStore> GetPipelineStore();
-	void InitPipelineExecutor() { 
-		if (!m_executor) {
-			const std::shared_ptr<PipelineStore> pipelineStore = GetPipelineStore();
-			m_executor = new RenderPipeline::RenderPipelineExecutor(m_context, pipelineStore);
-		}
-	}
+	// Métodos privados
+	void InitPipelineExecutor();
 	RenderPipeline::RenderPipelineExecutor* GetPipelineExecutor() { return m_executor; }
 };

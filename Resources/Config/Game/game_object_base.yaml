@@ -6,8 +6,7 @@ Config:
           enabled: true
           type: "Line"
           dependencies:
-            - DeviceManager
-            - WorldMatrixManager
+            - DeviceManager            
             - ShaderManager
             - CameraManager
 
@@ -16,8 +15,7 @@ Config:
           enabled: false
           type: "AxisXYZ"
           dependencies:
-            - DeviceManager
-            - WorldMatrixManager
+            - DeviceManager            
             - ShaderManager
             - CameraManager
 Definition:

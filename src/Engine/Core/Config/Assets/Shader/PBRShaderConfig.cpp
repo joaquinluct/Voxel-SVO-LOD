@@ -15,7 +15,7 @@ PBRShaderConfig::PBRShaderConfig(){
 		"TextureTransformations"
 	};
 	sampler_slots = {
-		"RegularSampler"
+		"baseSampler"
 	};
 	needs_shadow = false;
 	name = "PBRShader";

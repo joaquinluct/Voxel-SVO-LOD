@@ -1,25 +1,44 @@
 // UIManager.cpp
 #include "UIManager.h"
-#include "UI/UIElement.h"
+#include <Assets/Base/MeshAsset.h>
+#include <DeviceManager.h>
+#include <UI/UIElement.h>
+
 #include <REGISTER_MANAGER_MACRO.h>
 
 REGISTER_MANAGER_TYPE(UIManager, "UIManager")
 
-UIManager::UIManager() : m_deviceManager(nullptr), m_renderTargetManager(nullptr), m_orthoMatrix{}, m_worldMatrixManager(nullptr) {	
+UIManager::UIManager() : m_deviceManager(nullptr), m_orthoMatrix{} {	
 }
 
 UIManager::~UIManager()
 {
     Shutdown();
 }
-UIText* UIManager::InitText(std::vector<std::shared_ptr<VertexDefinition::VertexVariant>>& vertexDef, std::string text) {
-	UIText* textElement = new UIText();
+UIText* UIManager::InitText(std::shared_ptr<MeshAsset> mesh, std::vector<std::shared_ptr<VertexDefinition::VertexVariant>>& vertexDef) {
+	std::string meshName = mesh->GetName();
+    UIText* textElement;
+    if (m_textElements.find(meshName) != m_textElements.end()) {
+		return m_textElements[meshName];
+    }
+	textElement = new UIText();
+	textElement->SetMesh(mesh);
     textElement->Init();
-	textElement->SetText(text);
+    textElement->SetText("Texto inicial.");
     textElement->SetFontSize(24.0f);
 	textElement->SetPosition(10.0f, 10.0f); // Posición inicial del texto
     textElement->CreateMesh(vertexDef);
-    m_textElements.push_back(textElement);
+    m_textElements[meshName] = textElement;
+    return textElement;
+}
+
+UIText* UIManager::UpdateText(std::string meshName, std::string text) {
+	auto it = m_textElements.find(meshName);
+    if (it == m_textElements.end()) {
+        return nullptr;
+    }
+	UIText* textElement = it->second;
+    textElement->SetText(text);
     return textElement;
 }
 
@@ -27,7 +46,7 @@ HRESULT UIManager::Init()
 {
     OutputDebugStringA("Incializando UIManager...\n");
     m_deviceManager = ManagerLocator::GetManager<DeviceManager>();
-    m_renderTargetManager = ManagerLocator::GetManager<RenderTargetManager>();
+    //m_renderTargetManager = ManagerLocator::GetManager<RenderTargetManager>();
 	m_renderManager = ManagerLocator::GetManager<RenderManager>();
     
     //// Crear matriz de proyección ortográfica
@@ -53,7 +72,7 @@ HRESULT UIManager::Init()
 
 //HRESULT UIManager::InitText(std::vector<std::shared_ptr<VertexDefinition::VertexVariant>> vertexDef)
 //{
-//    std::shared_ptr<UIText> textMesh = m_renderManager->GameRenderManagerGet()->RegisterTextMesh("UITextMesh");
+//    std::shared_ptr<UIText> textMesh = m_renderManager->SceneManagerGet()->RegisterTextMesh("UITextMesh");
 //    if (!textMesh)
 //    {
 //		OutputDebugStringA("Error al registrar el mesh de texto.\n");
@@ -86,9 +105,9 @@ void UIManager::Shutdown()
 		SafeRelease(element);
     }
     uiElements.clear();*/
-    for (UIText* textElement : m_textElements)
+    for (auto textElement : m_textElements)
     {
-        SafeShutDown(textElement);
+        SafeShutDown(textElement.second);
 	}
 }
 

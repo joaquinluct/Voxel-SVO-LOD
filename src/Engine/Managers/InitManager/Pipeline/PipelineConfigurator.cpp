@@ -144,6 +144,7 @@ HRESULT PipelineConfigurator::ExecuteInitOperation(PipelineOperation& operation)
         hr = m_device->CreateRenderTargetView(backBuffer, nullptr, &state);
 
         operation.SetOperationData(state);
+        break;
     }
     // Me he quedado aquí.
 	// Antes pasaba params y ahora lo he reducido a un solo parmámetro.

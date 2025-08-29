@@ -1,5 +1,7 @@
 #pragma once
 
+#include <map>
+#include <memory>
 #include <DirectXMath.h>
 #include "MatrixDefinitionBase.h" // Incluimos la base para MatrixParams
 
@@ -15,10 +17,11 @@ namespace Light {
         // No se necesitan colores ambiente/difuso/especular separados para la luz en PBR,
         // ya que estos son atributos del material y cómo interactúa con la luz.
 
-        void SetMatrixData(MatrixParams params) {
+        void SetMatrixData(std::map<std::string, std::shared_ptr<IMatrixParams>>& params) {
+            std::shared_ptr<LightMatrixParams> lightParams = GetMatrixParams<LightMatrixParams>(params["LightParams"]);
             // Asigna los datos de luz desde MatrixParams
-            this->Direction = params.lightDirection;
-            this->Color = params.lightColor;
+            this->Direction = lightParams->lightDirection;
+            this->Color = lightParams->lightColor;
             // Asegurarse de que la dirección esté normalizada
             DirectX::XMVECTOR dir = DirectX::XMLoadFloat3(&this->Direction);
             dir = DirectX::XMVector3Normalize(dir);
@@ -35,16 +38,36 @@ namespace Light {
         }
     };
 
-    // Necesario para el cálculo de sombras en el shader principal.
     struct LightSpaceMatrices {
+        DirectX::XMMATRIX LightViewProjection; // Matriz de vista*proyección de la luz
+
+        void SetMatrixData(std::map<std::string, std::shared_ptr<IMatrixParams>>& params) {
+            std::shared_ptr<MatrixParams> baseParams = GetMatrixParams<MatrixParams>(params["BaseParams"]);
+            this->LightViewProjection = baseParams->lightViewProjectionMatrix;
+        }
+
+        UINT Size() {
+            return 1 * sizeof(DirectX::XMMATRIX);
+        }
+
+        std::string MatrixType() {
+            return MATRIX_TYPE_VERTEX.data();
+        }
+    };
+
+    // Necesario para el cálculo de sombras en el shader principal.
+	// Esta matriz transforma las posiciones del mundo a espacio de la luz.
+	// Y genera otra matriz para ser usada en el resto de shaders. (es 
+    struct ShadowMapMatrices {
 		DirectX::XMMATRIX worldMatrix; // Matriz de transformación del objeto en espacio mundo
         DirectX::XMMATRIX LightViewProjection; // Matriz de vista*proyección de la luz
 
-        void SetMatrixData(MatrixParams params) {
+        void SetMatrixData(std::map<std::string, std::shared_ptr<IMatrixParams>>& params) {
+            std::shared_ptr<MatrixParams> baseParams = GetMatrixParams<MatrixParams>(params["BaseParams"]);
             // Asigna la matriz de vista-proyección de la luz desde MatrixParams
             // DirectX::XMMATRIX ya es de 16 bytes de alineación y tamaño apropiado.
-			this->worldMatrix = params.worldMatrix;
-            this->LightViewProjection = params.lightViewProjectionMatrix;
+			this->worldMatrix = baseParams->worldMatrix;
+            this->LightViewProjection = baseParams->lightViewProjectionMatrix;
         }
 
         UINT Size() {

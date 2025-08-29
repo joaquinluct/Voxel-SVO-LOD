@@ -10,4 +10,7 @@ CycleConfig::CycleConfig(){
 	type = "DayNightCycle";
 	day_night_cycle = true;
 	day_night_cycle_speed = 0.1f;
+	dependencies = {
+		"World"
+	};
 };

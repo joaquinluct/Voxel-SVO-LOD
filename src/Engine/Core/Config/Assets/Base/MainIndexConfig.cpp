@@ -5,6 +5,7 @@ REGISTER_CONFIG_TYPE(MainIndexConfig,"MainIndexConfig");
 
 MainIndexConfig::MainIndexConfig(){
 	mainIndex = {
+		"ProceduralTerrain",
 		"SkyboxShader",
 		"ProceduralSkyboxShader",
 		"DefaultShader",
@@ -25,6 +26,16 @@ MainIndexConfig::MainIndexConfig(){
 		"SkyboxMesh",
 		"ProcSkyboxMesh",
 		"BoxMesh",
-		"UITextMesh"
+		"UITextMesh",
+		"TerrainMesh",
+		"TerrainShader",
+		"Terrain2Shader",
+		"ProceduralTerrainTexture",
+		"OceanShader",
+		"OceanMesh",
+		"BlendingWaterPass"
+	};
+	post_init = {
+		"none"
 	};
 };

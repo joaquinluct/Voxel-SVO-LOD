@@ -8,6 +8,7 @@ private:
 	bool active = false;
 public:
 	std::string Type;
+	int ClearFlags;
 	int MipLevels;
 	int ArraySize;
 	int Format;

@@ -2,13 +2,13 @@
 
 #include <string>
 #include <vector>
-#include <IManager.h>
+#include <ManagerBase.h>
 #include <ILifeCycle.h>
-#include "GameRenderManager.h"
+#include "SceneManager.h"
 #include <DeviceManager.h>
-#include <RenderTargetManager.h>
+//#include <RenderTargetManager.h>
 
-class BaseRenderManager : public IManager, public ILifeCycle {
+class BaseRenderManager : public ManagerBase {
 public:
 	BaseRenderManager();
 	~BaseRenderManager() override;
@@ -30,5 +30,5 @@ public:
 	}
 private:
 	std::shared_ptr<DeviceManager> m_deviceManager;
-	std::shared_ptr<RenderTargetManager> m_renderTargetManager;
+	//std::shared_ptr<RenderTargetManager> m_renderTargetManager;
 };

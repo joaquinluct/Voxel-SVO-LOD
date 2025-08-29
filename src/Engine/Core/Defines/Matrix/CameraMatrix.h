@@ -14,9 +14,10 @@ namespace CameraMatrix {
         DirectX::XMFLOAT3 CameraPosition; // Posición de la cámara en espacio mundo
         float Padding1;                   // Relleno para alinear a 16 bytes
 
-        void SetMatrixData(MatrixParams params) {
+        void SetMatrixData(std::map<std::string, std::shared_ptr<IMatrixParams>>& params) {
+            std::shared_ptr<MatrixParams> baseParams = GetMatrixParams<MatrixParams>(params["BaseParams"]);
             // Asigna la posición de la cámara desde MatrixParams
-            this->CameraPosition = params.cameraPosition;
+            this->CameraPosition = baseParams->cameraPosition;
         }
 
         UINT Size() {

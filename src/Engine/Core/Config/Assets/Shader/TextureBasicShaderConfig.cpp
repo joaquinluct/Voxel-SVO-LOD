@@ -11,7 +11,7 @@ TextureBasicShaderConfig::TextureBasicShaderConfig(){
 		"MatrixBufferType"
 	};
 	sampler_slots = {
-		"RegularSampler"
+		"baseSampler"
 	};
 	needs_shadow = false;
 	name = "TextureBasicShader";

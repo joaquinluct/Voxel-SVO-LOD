@@ -100,6 +100,48 @@ Config:
         render_passes: 8 # ui
         dependencies:
           - MeshAsset
+
+      TerrainMesh:
+        enabled: true
+        type: "MeshAsset"
+        meshType: 3 # Terrain
+        name: "TerrainMesh"
+        texture: "ProceduralTerrainTexture"        
+        texture_transforms: [3.0, 3.0, 0.0, 0.0] # scale_x, scale_y, offset_x, offset_y
+        # texture: "TextureGrassDiffuse"
+        # shader: "TerrainShader"
+        shader: "Terrain2Shader"
+        # shader: "PBRShader"
+        position: [0.0, 100.0, 0.0]
+        cast_shadows: true
+        receive_shadows: true
+        shader_shadows: "ShadowMapShader"
+        drawType: 1 # DrawIndexed
+        # El terreno debe aparecer en el pase de sombras, reflejos, refracción y su propio pase
+        render_passes: 417 # 1 | 128 | 256 | 32
+        #render_passes: 2 # color
+        dependencies:
+          - MeshAsset
+
+      OceanMesh:
+        enabled: true
+        type: "MeshAsset"
+        meshType: 1 # File_Obj
+        name: "WaterMesh"
+        mesh_path: 'C:\Users\joaqu\source\repos\DirectX-Voxelado\Assets\Mesh\water.obj'
+        texture: none        
+        shader: "OceanShader"
+        position: [0.0, 0.0, 0.0]
+        cast_shadows: false
+        receive_shadows: false
+        shader_shadows: none
+        drawType: 3 # DrawInstanced
+        # Se usan IDs en el bitmask: ShadowPass (1), ReflectionPass (128), RefractionPass (256), WaterPass (512)
+        #render_passes: 897 # 1 | 128 | 256 | 512        
+        # Se usan IDs en el bitmask: ReflectionPass (128), RefractionPass (256), WaterPass (512)
+        render_passes: 896 # 128 | 256 | 512        
+        dependencies:
+          - MeshAsset
 Definition:
   Default:
     language: 1 # C++

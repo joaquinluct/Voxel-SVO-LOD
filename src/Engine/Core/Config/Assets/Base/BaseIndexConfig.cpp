@@ -8,6 +8,10 @@ BaseIndexConfig::BaseIndexConfig(){
 		"ShaderAsset",
 		"TextureAsset",
 		"VertexAsset",
+		"TerrainAsset",
 		"MeshAsset"
+	};
+	post_init = {
+		"none"
 	};
 };

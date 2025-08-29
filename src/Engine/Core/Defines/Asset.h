@@ -2,10 +2,11 @@
 
 #include <string_view>
 
-constexpr std::string_view TEXTURE_ASSET = "TextureAsset";
-constexpr std::string_view MESH_ASSET = "MeshAsset";
-constexpr std::string_view SHADER_ASSET = "ShaderAsset";
-constexpr std::string_view VERTEX_ASSET = "VertexAsset";
-constexpr std::string_view MATERIAL_ASSET = "MaterialAsset";
+inline constexpr std::string_view TEXTURE_ASSET = "TextureAsset";
+inline constexpr std::string_view MESH_ASSET = "MeshAsset";
+inline constexpr std::string_view TERRAIN_ASSET = "TerrainAsset";
+inline constexpr std::string_view SHADER_ASSET = "ShaderAsset";
+inline constexpr std::string_view VERTEX_ASSET = "VertexAsset";
+inline constexpr std::string_view MATERIAL_ASSET = "MaterialAsset";
 
-constexpr std::wstring_view SHADER_SHADOW_MAP = L"ShadowMapShader";
+inline constexpr std::wstring_view SHADER_SHADOW_MAP = L"ShadowMapShader";

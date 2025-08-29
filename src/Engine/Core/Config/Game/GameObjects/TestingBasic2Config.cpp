@@ -12,7 +12,6 @@ TestingBasic2Config::TestingBasic2Config(){
 	description = "Un triángulo de pruebas básicas.";
 	dependencies = {
 		"DeviceManager",
-		"WorldMatrixManager",
 		"ShaderManager",
 		"CameraManager"
 	};

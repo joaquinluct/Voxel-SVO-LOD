@@ -72,11 +72,11 @@ public:
         return nullptr;
     }
 
-    static std::shared_ptr<IRenderPass> GetRenderPass(const std::string& name) {
+    static std::shared_ptr<RenderPass> GetRenderPass(const std::string& name) {
         auto& entries = RenderPassLocator::GetRenderPassEntries();
         auto it = entries.find(name);
         if (it != entries.end()) {
-            auto instance = std::dynamic_pointer_cast<IRenderPass>(it->second.instance);
+            auto instance = std::dynamic_pointer_cast<RenderPass>(it->second.instance);
             return instance ? instance : nullptr;
         }
         return nullptr;

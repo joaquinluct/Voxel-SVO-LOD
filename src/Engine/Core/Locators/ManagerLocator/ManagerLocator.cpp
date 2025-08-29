@@ -18,6 +18,7 @@ void ManagerLocator::RegisterManagerCreator(
     const std::string& name,
     CreateManagerLambda createFn,
     InitializeManagerLambda initFn,
+	InitializeWithParamasManagerLambda initWithParamsFn,    
     RenderManagerLambda renderFn,
     UpdateManagerLambda updateFn) {
     auto& entries = ManagerLocator::GetManagerEntries();
@@ -25,13 +26,14 @@ void ManagerLocator::RegisterManagerCreator(
         OutputDebugStringA(("WARNING: Manager creator for '" + name + "' already registered. Overwriting.\n").c_str());
     }
     //s_managerCreators[name] = { createFn, initFn };
-    entries[name] = {nullptr, createFn, initFn, renderFn, updateFn};
+    entries[name] = {nullptr, createFn, initFn, initWithParamsFn, renderFn, updateFn};
 }
 
-HRESULT ManagerLocator::InitializeManagers(const std::vector<std::string>& orderList, HWND hwnd, int width, int height) {
+HRESULT ManagerLocator::InitializeManagers(const std::vector<std::string>& orderList, HWND* hwnd, int width, int height) {
     auto& entries = ManagerLocator::GetManagerEntries();
     for (const std::string& managerName : orderList) {
-        if (managerName == "UIManager") {
+        OutputDebugStringA(("[ManagerLocator] Comenzando la inicialización de " + managerName + " ...\n").c_str());
+        if (managerName == "UpdateManager") {
             bool a = false;
         }
         auto it = entries.find(managerName);
@@ -39,27 +41,35 @@ HRESULT ManagerLocator::InitializeManagers(const std::vector<std::string>& order
             // 1. Crear la instancia del manager
             it->second.instance = it->second.creator();
             if (!it->second.instance) {
-                OutputDebugStringA(("ERROR: Failed to create instance for manager '" + managerName + "'\n").c_str());
+                OutputDebugStringA(("[ManagerLocator] ERROR: Failed to create instance for manager '" + managerName + "'\n").c_str());
                 return E_FAIL;
             }
 
             // 2. Inicializar la instancia (pasando la sub-nodo de configuración específica si existe)
             // configRoot[managerName] asegura que se le pasa solo la configuración relevante a ese manager.
-            HRESULT hr = it->second.initializer(it->second.instance, hwnd, width, height);
+            HRESULT hr = S_OK;
+			bool isWindowDependent = it->second.instance->IsWindowDependent();
+            if (isWindowDependent) {
+                hr = it->second.initializerWithParams(it->second.instance, hwnd, width, height);
+            }
+            else {
+				hr = it->second.initializer(it->second.instance);                
+            }
             if (FAILED(hr)) {
-                OutputDebugStringA(("ERROR: Failed to initialize manager '" + managerName + "'\n").c_str());
+                OutputDebugStringA(("[ManagerLocator] ERROR: Failed to initialize manager '" + managerName + "'\n").c_str());
                 return hr;
             }
+            OutputDebugStringA(("[ManagerLocator] Inicialización de " + managerName + " - OK\n").c_str());
         }
         else {
-            OutputDebugStringA(("ERROR: Manager '" + managerName + "' in init order list but not registered.\n").c_str());
+            OutputDebugStringA(("[ManagerLocator] ERROR: Manager '" + managerName + "' in init order list but not registered.\n").c_str());
             return E_FAIL;
         }
     }
     return S_OK;
 }
 
-std::shared_ptr<IManager> ManagerLocator::GetManager(const std::string& name) {
+std::shared_ptr<ManagerBase> ManagerLocator::GetManager(const std::string& name) {
     auto& entries = ManagerLocator::GetManagerEntries();
     auto it = entries.find(name);
     if (it != entries.end()) {

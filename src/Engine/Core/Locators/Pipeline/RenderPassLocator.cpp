@@ -16,13 +16,14 @@ RenderPassLocator& RenderPassLocator::GetInstance() {
 
 void RenderPassLocator::RegisterRenderPassCreator(
     const std::string& name,
-    CreateRenderPassLambda createFn) {
+    CreateRenderPassLambda createFn) {    
     auto& entries = RenderPassLocator::GetRenderPassEntries();
     if (entries.count(name)) {
-        OutputDebugStringA(("WARNING: RenderPass creator for '" + name + "' already registered. Overwriting.\n").c_str());
+        OutputDebugStringA(("[RenderPassLocator] WARNING: '" + name + "' already registered. Overwriting.\n").c_str());
     }
     //s_serviceCreators[name] = { createFn, initFn };
     entries[name] = {nullptr, createFn};
+    OutputDebugStringA(("[RenderPassLocator] " + name + " registrado - OK\n").c_str());
 }
 
 HRESULT RenderPassLocator::CreateRenderPasss() {

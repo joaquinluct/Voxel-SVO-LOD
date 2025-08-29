@@ -3,3 +3,5 @@
 // Para obtener más información, consulte https://go.microsoft.com/fwlink/?linkid=865984
 #define REGISTER_MANAGER_TYPE(ManagerClassName, ManagerNameString) namespace { class Manager##ManagerClassName##Registrar { public: Manager##ManagerClassName##Registrar() { ServiceLocator::RegisterServiceCreator( ManagerNameString, []() { return std::make_shared<ManagerClassName>(); }, [](std::shared_ptr<void> rawService, const YAML::Node& configNode, HWND hwnd, int width, int height) { if (auto windowDependent = std::dynamic_pointer_cast<IWindowDependentInitializable>(rawService)) { return windowDependent->Init(configNode, hwnd, width, height); } if (auto simpleInitializable = std::dynamic_pointer_cast<IInitializable>(rawService)) { return simpleInitializable->Init(configNode); } OutputDebugStringA(("ERROR: Manager '" ManagerNameString "' no implementa una interfaz de inicialización válida.\n")); return E_FAIL; } ); } }; static Manager##ManagerClassName##Registrar s_register_##ManagerClassName; }
 #define S_OK ((HRESULT)0L)
+#define E_FAIL _HRESULT_TYPEDEF_(0x80004005L)
+#define E_FAIL _HRESULT_TYPEDEF_(0x80000008L)

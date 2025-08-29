@@ -17,7 +17,7 @@ PBRShadowShaderConfig::PBRShadowShaderConfig(){
 		"LightSpaceMatrices"
 	};
 	sampler_slots = {
-		"RegularSampler",
+		"baseSampler",
 		"ShadowMapSampler"
 	};
 	name = "PBRShadowShader";

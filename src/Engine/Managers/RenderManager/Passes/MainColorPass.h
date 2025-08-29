@@ -3,14 +3,16 @@
 #include <d3d11.h>
 #include <vector>
 #include <memory>
+#include <Defines/Pass.h>
 #include <Managers/ShaderManager.h>
 #include <Managers/CameraManager.h>
 #include <Managers/DeviceManager.h>
 #include <Managers/InitManager.h>
-#include <Managers/RenderTargetManager.h>
+//#include <Managers/RenderTargetManager.h>
 #include <Managers/RenderManager/RenderPass.h>
-#include <Managers/RenderManager/GameRenderManager.h>
+#include <SceneManager.h>
 #include <Config/Base/RenderPass/MainColorPassConfig.h>
+#include <Game/Systems/World.h>
 
 class Shadows;
 class Lighting;
@@ -22,11 +24,12 @@ private:
     std::shared_ptr<DeviceManager> m_deviceManager;
     std::shared_ptr<CameraManager> m_cameraManager;
     std::shared_ptr<ShaderManager> m_shaderManager;
-    std::shared_ptr<RenderTargetManager> m_renderTargetManager;
+    //std::shared_ptr<RenderTargetManager> m_renderTargetManager;
     std::shared_ptr<InitManager> m_initManager;
 
     std::shared_ptr<Lighting> m_lighthing;
     std::shared_ptr<Shadows> m_shadows;
+    std::shared_ptr<World> m_world;
 
     std::shared_ptr<MainColorPassConfig> config;
 
@@ -35,11 +38,13 @@ public:
     HRESULT Init() override;
     HRESULT InitManagers();
 
-    std::vector<std::shared_ptr<PipelineOperation>> BeginPass() override;
-    std::vector<std::shared_ptr<PipelineOperation>> ExecPass(std::shared_ptr<MeshAsset> mesh) override;
-    std::vector<std::shared_ptr<PipelineOperation>> EndPass() override;
+    std::vector<PipelineOperationType> BeginPass(const MeshAsset* mesh, FrameStateService* renderState) override;
+    std::vector<PipelineOperationType> ExecPass(const MeshAsset* mesh, FrameStateService* renderState) override;
+    std::vector<PipelineOperationType> EndPass() override;
 
-    std::map<std::string, std::shared_ptr<MeshAsset>> GetMeshes(GameRenderManager* gameRenderManager) override;
+    std::map<std::string, std::shared_ptr<MeshAsset>> GetMeshes(const SceneManager* SceneManager, FrameStateService* renderState) override;
+
+    std::shared_ptr<PassConfigBase> GetConfig() const override { return config; };
 
     void SetInitialOperations();
 };

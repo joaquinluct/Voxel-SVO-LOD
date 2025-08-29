@@ -11,5 +11,6 @@ struct ITextureMapConfig : public ConfigBase
 	std::string roughness;
 	std::string metallic;
 	std::string ao;
+	std::vector<std::string> texture2DArray;
 };
 

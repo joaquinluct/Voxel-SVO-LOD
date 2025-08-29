@@ -4,7 +4,7 @@ cbuffer MatrixBuffer : register(b0)
     matrix view;
     matrix projection;
 };
-cbuffer LightBuffer : register(b1)
+cbuffer LightBuffer : register(b6)
 {
     float4 skyColor;
     float4 sunColor;
@@ -56,25 +56,39 @@ float4 PSMain(VSOutput input) : SV_TARGET
     
     float sunY = lightDirection.y;
     
+    // Generar el Sol
     if (dotProduct > 0.98f && dotProduct < 1.02f)
     {
-        //return float4(1.0f, 1.0f, 1.0f, 1.0f); // white color for the sun
-        // Calculate the color based on the light direction and sky color
         float3 color = skyColor.rgb * dotProduct;
-        // float4 result = sunColor * saturate(dotProduct);
         float sunDisk = smoothstep(0.998, 1.0, dotProduct);
-        float4 result = lerp(skyColor, sunColor, sunDisk);
+        float4 result = lerp(skyColor, lightColor, sunDisk);
         return result;
     }
     
+    // Calcular el gradiente a oscuro por distancia al Sol
     float ceilDisk = smoothstep(-1, 1.0, dotProduct);
-    float lightIntensity = saturate(ceilDisk + .1f);
+    float lightIntensity = saturate(ceilDisk + .01f);
     
     float4 finalColor =  skyColor * lightIntensity;
     
     
     float attenuation = 1.0f - saturate(length(input.worldPos) / 1000.0f);
+    
+    
+    // Oscurecer cuando el Sol está oculto
+    /*
+    float4 nightColor = float4(0, 0, .1, 0);
 
+    if (sunY > .5f)
+    {
+        return nightColor;
+    } 
+    else if (sunY > .39999f) {
+        float4 result = lerp(finalColor, nightColor, sunY);
+        return result * .6f;
+    }
+    */
+    
     /*
     if (sunY > .5f)
     {
@@ -84,7 +98,7 @@ float4 PSMain(VSOutput input) : SV_TARGET
     }
     */
     
-        return finalColor;
+    return finalColor;
     
     float sunHigh = smoothstep(-2, 2, dotProduct);
     

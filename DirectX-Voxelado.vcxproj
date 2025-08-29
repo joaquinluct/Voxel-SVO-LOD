@@ -105,7 +105,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;YAML_CPP_STATIC_DEFINE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\Users\joaqu\source\repos oficiales\DirectXTK-main\Inc;C:\Users\joaqu\Downloads\yaml-cpp-master-original\yaml-cpp-master\include;$(ProjectDir)Libs;$(ProjectDir)src;$(ProjectDir)Assets;$(ProjectDir)Interfaces;$(ProjectDir)Interfaces/Pipeline;$(ProjectDir)Interfaces/Config;$(ProjectDir)Interfaces/Assets;$(ProjectDir)src/Engine;$(ProjectDir)src/Engine/Managers;$(ProjectDir)src/Engine/Core;$(ProjectDir)src/Engine/Util;$(Projectdir)src/Engine/Core/Locators/Registers;$(Projectdir)src/Engine/Core/Locators;$(Projectdir)src/Engine/Core/Config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VcpkgRoot)\include;C:\Users\joaqu\source\repos oficiales\DirectXTK-main\Inc;C:\Users\joaqu\Downloads\yaml-cpp-master-original\yaml-cpp-master\include;$(ProjectDir)Includes;$(ProjectDir)Libs;$(ProjectDir)src;$(ProjectDir)Assets;$(ProjectDir)Interfaces;$(ProjectDir)Interfaces/Pipeline;$(ProjectDir)Interfaces/Config;$(ProjectDir)Interfaces/Assets;$(ProjectDir)src/Engine;$(ProjectDir)src/Engine/Managers;$(ProjectDir)src/Engine/Core;$(ProjectDir)src/Engine/Util;$(Projectdir)src/Engine/Core/Locators/Registers;$(Projectdir)src/Engine/Core/Locators;$(Projectdir)src/Engine/Core/Config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -162,73 +162,111 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="InitController.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\Managers\AssetManagerConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\Managers\CameraManagerConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\Managers\DeviceManagerConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\Managers\EngineConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\Managers\InitManagerConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\Managers\InitPipelineManagerConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\Managers\InputManagerConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\Managers\KeyboardManagerConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\Managers\MouseManagerConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\Managers\RenderManagerConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\Managers\SceneManagerConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\Managers\ShaderManagerConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\Managers\UIManagerConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\Managers\UpdateManagerConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Services\ThreadPoolConfig.cpp" />
+    <ClCompile Include="src\Engine\Managers\InitManager\InitController.cpp" />
+    <ClCompile Include="Interfaces\IFrameState.h" />
+    <ClCompile Include="Interfaces\IRenderPass.cpp" />
     <ClCompile Include="src\Engine\Assets\Base\AssetBase.cpp" />
     <ClCompile Include="src\Engine\Assets\Base\MaterialAsset.cpp" />
     <ClCompile Include="src\Engine\Assets\Base\ShaderAsset.cpp" />
+    <ClCompile Include="src\Engine\Assets\Base\TerrainAsset.cpp" />
     <ClCompile Include="src\Engine\Assets\Base\VertexAsset.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Base\BaseIndexConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Base\MainIndexConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Base\MeshAssetConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Base\ShaderAssetConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Assets\Base\TerrainAssetConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Base\TextureAssetConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Base\VertexAssetConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Material\DefaultSkyboxMaterialConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Mesh\BoxMeshConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Mesh\FloorMeshConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Mesh\House1MeshConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Assets\Mesh\OceanMeshConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Mesh\ProcSkyboxMeshConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Mesh\SkyboxMeshConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Assets\Mesh\TerrainMeshConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Mesh\UITextMeshConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\DefaultShaderConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Assets\Shader\OceanShaderConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\PBRShaderConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\PBRShadowShaderConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\ProceduralSkyboxShaderConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\ShaderTextUIConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\ShadowMapShaderConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\SkyboxShaderConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Assets\Shader\Terrain2ShaderConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Assets\Shader\TerrainShaderConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\TextureBasicShaderConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\TextureMapShaderConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Assets\Shader\WaterReflectionShaderConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Assets\Shader\WaterRefractionShaderConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Assets\Terrain\ProceduralTerrainConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\TextureMap\DefaultSkyboxMapConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Assets\TextureMap\ProceduralTerrainTextureMapConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\TextureMap\TextureBricks001MapConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\TextureMap\TextureGrassDiffuseMapConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\TextureMap\TextureTextUIMapConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Texture\DefaultSkyboxConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Assets\Texture\ProceduralTerrainTextureConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Texture\TextureBricks001Config.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Texture\TextureGrassDiffuseConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Texture\TextureTextUIConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Vertex\FloorVertexConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Vertex\SkyboxCubeConfig.cpp" />
-    <ClCompile Include="src\Engine\Core\Config\Base\AssetManagerConfig.cpp" />
-    <ClCompile Include="src\Engine\Core\Config\Base\CameraManagerConfig.cpp" />
-    <ClCompile Include="src\Engine\Core\Config\Base\DeviceManagerConfig.cpp" />
-    <ClCompile Include="src\Engine\Core\Config\Base\EngineConfig.cpp" />
-    <ClCompile Include="src\Engine\Core\Config\Base\GameManagerConfig.cpp" />
-    <ClCompile Include="src\Engine\Core\Config\Base\InitManagerConfig.cpp" />
-    <ClCompile Include="src\Engine\Core\Config\Base\KeyboardManagerConfig.cpp" />
-    <ClCompile Include="src\Engine\Core\Config\Base\RenderManagerConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\Pipeline\PipelineConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\Pipeline\ShaderMatrixSlotsConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\Pipeline\ShaderSamplerSlotsConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\Pipeline\ShaderTextureSlotsConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\Pipeline\TextureSlotsConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderPass\LinePassConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\RenderPass\MainColorPassConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderPass\ReflectionConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderPass\RefractionConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\RenderPass\ShadowPassConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\RenderPass\SkyboxPassConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderPass\TerrainPassConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\RenderPass\UIPassConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderPass\WaterPassConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\BlendingUI.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\BlendingWaterPass.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\DisabledBlending.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\RasterizedMainColorPass.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\RasterizedShadowPass.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\RasterizedUIPass.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\ShaderViewReflection.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\ShaderViewRefraction.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\ShaderViewShadow.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\ShaderViewTexture2D.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\ShaderViewTextureArray2D.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\StencilStateRegular.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\StencilStateUI.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\StencilViewMainColor.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\StencilViewShadow.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\StencilViewTerrain.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\SwapChainMain.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\Texture2D_Array_Jpg.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\Texture2D_Simple_Jpg.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\Texture2D_WaterReflection.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\Texture2D_WaterRefraction.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\ViewportMainColor.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\ViewportShadow.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\ViewportUI.cpp" />
-    <ClCompile Include="src\Engine\Core\Config\Base\RenderTargetManagerConfig.cpp" />
-    <ClCompile Include="src\Engine\Core\Config\Base\ShaderManagerConfig.cpp" />
-    <ClCompile Include="src\Engine\Core\Config\Base\UIManagerConfig.cpp" />
-    <ClCompile Include="src\Engine\Core\Config\Base\WorldMatrixManagerConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\ViewportWater.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Camera\DebugCamConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Camera\MainCamConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Game\GameEngineConfig.cpp" />
@@ -237,6 +275,7 @@
     <ClCompile Include="src\Engine\Core\Config\Game\GameObjects\TestingBasic2Config.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Game\GameObjects\TestingFloorConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Game\System\BiomeConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Game\System\ChronosConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Game\System\CycleConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Game\System\LightingConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Game\System\PhysicsConfig.cpp" />
@@ -244,12 +283,16 @@
     <ClCompile Include="src\Engine\Core\Config\Game\System\ShadowsConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Game\System\SkyboxConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Game\System\TerrainConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Game\System\WaterConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Game\System\WheatherConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Game\System\WorldConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Services\ChunkServiceConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Services\FrameStateServiceConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Services\KeyBindingsConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Services\KeyboardConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Services\MaterialConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Services\MouseConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Services\ProceduralServiceConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Services\ServiceConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Services\UIBaseConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Services\UIDebugConfig.cpp" />
@@ -257,10 +300,18 @@
     <ClCompile Include="src\Engine\Core\Defines\Matrix\MatrixDefinition.cpp" />
     <ClCompile Include="src\Engine\Core\Defines\ShaderSampler.cpp" />
     <ClCompile Include="src\Engine\Core\Locators\Pipeline\PipelineStateLocator.cpp" />
+    <ClCompile Include="src\Engine\Managers\ManagerBase.cpp" />
+    <ClCompile Include="src\Engine\Services\ThreadPool.cpp" />
+    <ClCompile Include="src\Engine\Engine.cpp" />
+    <ClCompile Include="src\Engine\Managers\MainManagers\InputManager.cpp" />
     <ClCompile Include="src\Engine\Managers\InitManager.cpp" />
-    <ClCompile Include="src\Engine\Managers\InitManager\Pipeline\PipelineConfigurator.cpp" />
+    <ClCompile Include="src\Engine\Managers\InitPipelineManager.cpp" />
+    <ClCompile Include="src\Engine\Managers\MouseManager.cpp" />
     <ClCompile Include="src\Engine\Managers\RenderManager\Passes\SkyboxPass.cpp" />
+    <ClCompile Include="src\Engine\Managers\RenderManager\Passes\TerrainPass.cpp" />
     <ClCompile Include="src\Engine\Managers\RenderManager\Passes\UIPass.cpp" />
+    <ClCompile Include="src\Engine\Managers\RenderManager\Passes\WaterPass.cpp" />
+    <ClCompile Include="src\Engine\Managers\RenderManager\Pipeline\Data\PipelineBuffer.cpp" />
     <ClCompile Include="src\Engine\Managers\RenderManager\Pipeline\RenderPipelineExecutor.cpp" />
     <ClCompile Include="src\Engine\Core\Defines\VertexDefinition.cpp" />
     <ClCompile Include="src\Engine\Core\Locators\AssetLocator\AssetLocator.cpp" />
@@ -270,21 +321,26 @@
     <ClCompile Include="src\Engine\Core\Locators\Pipeline\RenderPassLocator.cpp" />
     <ClCompile Include="src\Engine\Managers\RenderManager\Passes\MainColorPass.cpp" />
     <ClCompile Include="src\Engine\Managers\RenderManager\Passes\ShadowPass.cpp" />
+    <ClCompile Include="src\Engine\Managers\RenderManager\Pipeline\Stages\InputAssemblyStage.cpp" />
+    <ClCompile Include="src\Engine\Managers\RenderManager\Pipeline\Stages\OutputMergerStage.cpp" />
+    <ClCompile Include="src\Engine\Managers\RenderManager\Pipeline\Stages\PixelShaderStage.cpp" />
+    <ClCompile Include="src\Engine\Managers\RenderManager\Pipeline\Stages\RasterizerStage.cpp" />
+    <ClCompile Include="src\Engine\Managers\RenderManager\Pipeline\Stages\VertexShaderStage.cpp" />
     <ClCompile Include="src\Engine\Managers\RenderManager\RenderPass.cpp" />
+    <ClCompile Include="src\Engine\Managers\UpdateManager.cpp" />
+    <ClCompile Include="src\Engine\Services\FrameStateService.cpp" />
+    <ClCompile Include="src\Game\GameObjects\Line.cpp" />
     <ClCompile Include="src\Game\GameObjects\TestingFloor.cpp" />
-    <ClCompile Include="src\Game\Systems\RenderPipeline\Pipeline\InputAssemblyStage.cpp" />
-    <ClCompile Include="src\Game\Systems\RenderPipeline\Pipeline\OutputMergerStage.cpp" />
-    <ClCompile Include="src\Game\Systems\RenderPipeline\Pipeline\PixelShaderStage.cpp" />
-    <ClCompile Include="src\Game\Systems\RenderPipeline\Pipeline\RasterizerStage.cpp" />
-    <ClCompile Include="src\Game\Systems\RenderPipeline\Pipeline\VertexShaderStage.cpp" />
-    <ClCompile Include="src\Game\Systems\RenderPipeline\RenderPipeline.cpp" />
+    <ClCompile Include="src\Game\Systems\Chronos.cpp" />
+    <ClCompile Include="src\Game\Systems\Cycle.cpp" />
+    <ClCompile Include="src\Game\Systems\Cycle\Sun.h" />
     <ClCompile Include="src\Engine\Managers\AssetManager.cpp" />
     <ClCompile Include="src\Engine\Assets\Base\MeshAsset.cpp" />
     <ClCompile Include="src\Engine\Assets\Base\TextureAsset.cpp" />
     <ClCompile Include="src\Engine\Camera\FirstPersonCamera.cpp" />
     <ClCompile Include="src\Engine\Core\Locators\ServiceLocator\ServiceLocator.cpp" />
     <ClCompile Include="src\Engine\Managers\RenderManager\BaseRenderManager.cpp" />
-    <ClCompile Include="src\Engine\Managers\RenderManager\GameRenderManager.cpp" />
+    <ClCompile Include="src\Engine\Managers\SceneManager.cpp" />
     <ClCompile Include="src\Engine\Managers\RenderManager\RenderManager.cpp" />
     <ClCompile Include="src\Engine\Services\KeyBindings.cpp" />
     <ClCompile Include="src\Engine\Services\Mouse.cpp" />
@@ -312,22 +368,27 @@
     <ClCompile Include="Libs\DirectX\WICTextureLoader\WICTextureLoader11.cpp" />
     <ClCompile Include="Libs\DirectX\WICTextureLoader\WICTextureLoader9.cpp" />
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="MainController.cpp" />
-    <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="src\Engine\Managers\CameraManager.cpp" />
     <ClCompile Include="src\Engine\Managers\DeviceManager.cpp" />
     <ClCompile Include="src\Engine\Managers\KeyboardManager.cpp" />
-    <ClCompile Include="src\Engine\Managers\RenderTargetManager.cpp" />
     <ClCompile Include="src\Engine\Services\Keyboard.cpp" />
     <ClCompile Include="src\Game\Systems\Lighting.cpp" />
     <ClCompile Include="src\Game\Systems\Shadows.cpp" />
     <ClCompile Include="src\Game\Systems\Skybox.cpp" />
-    <ClCompile Include="src\Engine\Managers\WorldMatrixManager.cpp" />
     <ClCompile Include="src\Engine\Services\Material.cpp" />
-    <ClCompile Include="src\Engine\Managers\GameManager.cpp" />
     <ClCompile Include="src\Engine\Managers\ShaderManager.cpp" />
     <ClCompile Include="src\Engine\Util\IGPUCreateCommand.cpp" />
     <ClCompile Include="src\Engine\Managers\UIManager.cpp" />
+    <ClCompile Include="src\Game\Systems\Terrain.cpp" />
+    <ClCompile Include="src\Game\Systems\Terrain\ChunkService.cpp" />
+    <ClCompile Include="src\Game\Systems\Terrain\Chunk\ProceduralSeedTerrain.cpp" />
+    <ClCompile Include="src\Game\Systems\Terrain\Chunk\Chunk.cpp" />
+    <ClCompile Include="src\Game\Systems\Terrain\ProceduralService.cpp" />
+    <ClCompile Include="src\Game\Systems\Terrain\Procedural\Engines\FastNoiseLiteEngine.cpp" />
+    <ClCompile Include="src\Game\Systems\Terrain\Procedural\Engines\ProceduralEngineBase.cpp" />
+    <ClCompile Include="src\Game\Systems\Water.cpp" />
+    <ClCompile Include="src\Game\Systems\World.cpp" />
+    <ClCompile Include="src\Main\MainWindow.cpp" />
     <ClCompile Include="src\UI\UIBase.cpp" />
     <ClCompile Include="src\UI\UIText.cpp" />
     <ClCompile Include="TestManagerName.cpp" />
@@ -377,8 +438,26 @@
     <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\yaml.h" />
     <ClInclude Include="Assets\VertexDef\FloorVertexDef.h" />
     <ClInclude Include="Assets\VertexDef\SkyboxCube.h" />
+    <ClInclude Include="Includes\FrameStateForward.h" />
     <ClInclude Include="Interfaces\Assets\IAssetVertexConfigBase.h" />
-    <ClInclude Include="InitController.h" />
+    <ClInclude Include="Interfaces\IPostInitalizable.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\Managers\AssetManagerConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\Managers\CameraManagerConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\Managers\DeviceManagerConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\Managers\EngineConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\Managers\InitManagerConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\Managers\InitPipelineManagerConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\Managers\InputManagerConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\Managers\KeyboardManagerConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\Managers\MouseManagerConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\Managers\RenderManagerConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\Managers\SceneManagerConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\Managers\ShaderManagerConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\Managers\UIManagerConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\Managers\UpdateManagerConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Services\ThreadPoolConfig.h" />
+    <ClInclude Include="src\Engine\Core\Defines\Types.h" />
+    <ClInclude Include="src\Engine\Managers\InitManager\InitController.h" />
     <ClInclude Include="Interfaces\Assets\IAssetMesh.h" />
     <ClInclude Include="Interfaces\Assets\IAssetMeshConfig.h" />
     <ClInclude Include="Interfaces\Assets\IAssetMeshConfigBase.h" />
@@ -390,21 +469,30 @@
     <ClInclude Include="Interfaces\Config\ITextureMapConfig.h" />
     <ClInclude Include="Interfaces\Config\MeshAssetConfigBase.h" />
     <ClInclude Include="Interfaces\Config\ITextureConfig.h" />
+    <ClInclude Include="Interfaces\Config\PassConfigBase.h" />
+    <ClInclude Include="Interfaces\Config\TerrainAssetConfigBase.h" />
     <ClInclude Include="Interfaces\Config\VertexAssetConfigBase.h" />
     <ClInclude Include="Interfaces\IClonable.h" />
     <ClInclude Include="Interfaces\IClonableAsset.h" />
     <ClInclude Include="Interfaces\IConfig.h" />
+    <ClInclude Include="Interfaces\IDebug.h" />
     <ClInclude Include="Interfaces\IDefine.h" />
     <ClInclude Include="Interfaces\IDefine\IVertex.h" />
+    <ClInclude Include="Interfaces\IEvent.h" />
+    <ClInclude Include="Interfaces\IEventListener.h" />
+    <ClInclude Include="Interfaces\IMesh.h" />
     <ClInclude Include="Interfaces\IPipelineState.h" />
+    <ClInclude Include="Interfaces\IProceduralEngine.h" />
     <ClInclude Include="Interfaces\IRenderPass.h" />
     <ClInclude Include="Interfaces\IService.h" />
+    <ClInclude Include="Interfaces\ITerrain.h" />
     <ClInclude Include="Interfaces\Pipeline\IPipelineBlendingState.h" />
     <ClInclude Include="Interfaces\Pipeline\IPipelineRasterizedState.h" />
     <ClInclude Include="Interfaces\Pipeline\IPipelineShaderViewState.h" />
     <ClInclude Include="Interfaces\Pipeline\IPipelineStencilState.h" />
     <ClInclude Include="Interfaces\Pipeline\IPipelineStencilView.h" />
     <ClInclude Include="Interfaces\Pipeline\IPipelineSwapChainState.h" />
+    <ClInclude Include="Interfaces\Pipeline\IPipelineTexture2DDesc.h" />
     <ClInclude Include="Interfaces\Pipeline\IPipelineViewportState.h" />
     <ClInclude Include="Libs\TinyObjLoader\tiny_obj_loader.h" />
     <ClInclude Include="src\Engine\Assets\Base\AssetBase.h" />
@@ -412,6 +500,7 @@
     <ClInclude Include="src\Engine\Assets\Base\MeshAssset\MeshData.h" />
     <ClInclude Include="src\Engine\Assets\Base\ObjFormat\ObjUtil.h" />
     <ClInclude Include="src\Engine\Assets\Base\ShaderAsset.h" />
+    <ClInclude Include="src\Engine\Assets\Base\TerrainAsset.h" />
     <ClInclude Include="src\Engine\Assets\Base\VertexAsset.h" />
     <ClInclude Include="Interfaces\Config\ConfigService.h">
       <DeploymentContent>true</DeploymentContent>
@@ -420,64 +509,84 @@
     <ClInclude Include="src\Engine\Core\Config\Assets\Base\MainIndexConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Base\MeshAssetConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Base\ShaderAssetConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Assets\Base\TerrainAssetConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Base\TextureAssetConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Base\VertexAssetConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Material\DefaultSkyboxMaterialConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Mesh\BoxMeshConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Mesh\FloorMeshConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Mesh\House1MeshConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Assets\Mesh\OceanMeshConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Mesh\ProcSkyboxMeshConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Mesh\SkyboxMeshConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Assets\Mesh\TerrainMeshConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Mesh\UITextMeshConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\DefaultShaderConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Assets\Shader\OceanShaderConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\PBRShaderConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\PBRShadowShaderConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\ProceduralSkyboxShaderConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\ShaderTextUIConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\ShadowMapShaderConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\SkyboxShaderConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Assets\Shader\Terrain2ShaderConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Assets\Shader\TerrainShaderConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\TextureBasicShaderConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\TextureMapShaderConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Assets\Shader\WaterReflectionShaderConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Assets\Shader\WaterRefractionShaderConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Assets\Terrain\ProceduralTerrainConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\TextureMap\DefaultSkyboxMapConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Assets\TextureMap\ProceduralTerrainTextureMapConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\TextureMap\TextureBricks001MapConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\TextureMap\TextureGrassDiffuseMapConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\TextureMap\TextureTextUIMapConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Texture\DefaultSkyboxConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Assets\Texture\ProceduralTerrainTextureConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Texture\TextureBricks001Config.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Texture\TextureGrassDiffuseConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Texture\TextureTextUIConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Vertex\FloorVertexConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Vertex\SkyboxCubeConfig.h" />
-    <ClInclude Include="src\Engine\Core\Config\Base\AssetManagerConfig.h" />
-    <ClInclude Include="src\Engine\Core\Config\Base\CameraManagerConfig.h" />
-    <ClInclude Include="src\Engine\Core\Config\Base\DeviceManagerConfig.h" />
-    <ClInclude Include="src\Engine\Core\Config\Base\EngineConfig.h" />
-    <ClInclude Include="src\Engine\Core\Config\Base\GameManagerConfig.h" />
-    <ClInclude Include="src\Engine\Core\Config\Base\InitManagerConfig.h" />
-    <ClInclude Include="src\Engine\Core\Config\Base\KeyboardManagerConfig.h" />
-    <ClInclude Include="src\Engine\Core\Config\Base\RenderManagerConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\Pipeline\PipelineConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\Pipeline\ShaderMatrixSlotsConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\Pipeline\ShaderSamplerSlotsConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\Pipeline\ShaderTextureSlotsConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\Pipeline\TextureSlotsConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderPass\LinePassConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\RenderPass\MainColorPassConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderPass\ReflectionConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderPass\RefractionConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\RenderPass\ShadowPassConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\RenderPass\SkyboxPassConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderPass\TerrainPassConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\RenderPass\UIPassConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderPass\WaterPassConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\BlendingUI.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\BlendingWaterPass.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\DisabledBlending.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\RasterizedMainColorPass.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\RasterizedShadowPass.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\RasterizedUIPass.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\ShaderViewReflection.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\ShaderViewRefraction.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\ShaderViewShadow.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\ShaderViewTexture2D.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\ShaderViewTextureArray2D.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\StencilStateRegular.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\StencilStateUI.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\StencilViewMainColor.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\StencilViewShadow.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\StencilViewTerrain.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\SwapChainMain.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\Texture2D_Array_Jpg.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\Texture2D_Simple_Jpg.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\Texture2D_WaterReflection.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\Texture2D_WaterRefraction.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\ViewportMainColor.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\ViewportShadow.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\ViewportUI.h" />
-    <ClInclude Include="src\Engine\Core\Config\Base\RenderTargetManagerConfig.h" />
-    <ClInclude Include="src\Engine\Core\Config\Base\ShaderManagerConfig.h" />
-    <ClInclude Include="src\Engine\Core\Config\Base\UIManagerConfig.h" />
-    <ClInclude Include="src\Engine\Core\Config\Base\WorldMatrixManagerConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\ViewportWater.h" />
     <ClInclude Include="src\Engine\Core\Config\Camera\DebugCamConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Camera\MainCamConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Game\GameEngineConfig.h" />
@@ -486,6 +595,7 @@
     <ClInclude Include="src\Engine\Core\Config\Game\GameObjects\TestingBasic2Config.h" />
     <ClInclude Include="src\Engine\Core\Config\Game\GameObjects\TestingFloorConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Game\System\BiomeConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Game\System\ChronosConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Game\System\CycleConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Game\System\LightingConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Game\System\PhysicsConfig.h" />
@@ -493,17 +603,26 @@
     <ClInclude Include="src\Engine\Core\Config\Game\System\ShadowsConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Game\System\SkyboxConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Game\System\TerrainConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Game\System\WaterConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Game\System\WheatherConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Game\System\WorldConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Services\ChunkServiceConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Services\FrameStateServiceConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Services\KeyBindingsConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Services\KeyboardConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Services\MaterialConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Services\MouseConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Services\ProceduralServiceConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Services\ServiceConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Services\UIBaseConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Services\UIDebugConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Services\UITextConfig.h" />
     <ClInclude Include="src\Engine\Core\Defines\Asset.h" />
+    <ClInclude Include="src\Engine\Core\Defines\CameraDefinition.h" />
+    <ClInclude Include="src\Engine\Core\Defines\FrameStateDefinition.h" />
+    <ClInclude Include="src\Engine\Core\Defines\Matrix\TimeMatrices.h" />
+    <ClInclude Include="src\Engine\Core\Defines\Matrix\WaterMatrices.h" />
+    <ClInclude Include="src\Engine\Core\Defines\TerrainChunk.h" />
     <ClInclude Include="src\Engine\Core\Defines\Components.h" />
     <ClInclude Include="src\Engine\Core\Defines\Matrix\CameraMatrix.h" />
     <ClInclude Include="src\Engine\Core\Defines\Matrix\Light.h" />
@@ -514,11 +633,16 @@
     <ClInclude Include="src\Engine\Core\Defines\Mesh.h" />
     <ClInclude Include="src\Engine\Core\Defines\Pass.h" />
     <ClInclude Include="src\Engine\Core\Defines\Pipeline.h" />
-    <ClInclude Include="src\Engine\Core\Defines\RenderPass.h" />
+    <ClInclude Include="src\Engine\Core\Defines\Procedural.h" />
+    <ClInclude Include="src\Engine\Core\Defines\AreaMesh.h" />
     <ClInclude Include="src\Engine\Core\Defines\ShaderSampler.h" />
+    <ClInclude Include="src\Engine\Core\Defines\TimeDefinition.h" />
+    <ClInclude Include="src\Engine\Core\Defines\WaterDefinition.h" />
+    <ClInclude Include="src\Engine\Core\Defines\WorldTerrain.h" />
     <ClInclude Include="src\Engine\Core\Defines\Texture.h" />
     <ClInclude Include="src\Engine\Core\Defines\UI.h" />
     <ClInclude Include="src\Engine\Core\Defines\Vector.h" />
+    <ClInclude Include="src\Engine\Core\Defines\WorldDefinition.h" />
     <ClInclude Include="src\Engine\Core\Locators\AssetLocator\AssetLocator.h" />
     <ClInclude Include="src\Engine\Core\Locators\ConfigLocator\ConfigLocator.h" />
     <ClInclude Include="src\Engine\Core\Config\AssetConfig.h" />
@@ -551,21 +675,55 @@
     <ClInclude Include="src\Engine\Core\Locators\Registers\REGISTER_RENDER_PASS_MACRO.h" />
     <ClInclude Include="src\Engine\Core\Locators\Pipeline\RenderPassLocator.h" />
     <ClInclude Include="src\Engine\Core\Locators\Registers\REGISTER_DEFINE_MACRO.h" />
+    <ClInclude Include="src\Engine\Core\Defines\Threading.h" />
+    <ClInclude Include="src\Engine\Managers\ManagerBase.h" />
+    <ClInclude Include="src\Engine\Services\ThreadPool.h" />
+    <ClInclude Include="src\Engine\Engine.h" />
+    <ClInclude Include="src\Engine\Helpers\ChunkHelper.h" />
+    <ClInclude Include="src\Engine\Helpers\FrustumCullingHelper.h" />
+    <ClInclude Include="src\Engine\Helpers\PipelineHelper.h" />
+    <ClInclude Include="src\Engine\Managers\MainManagers\InputManager.h" />
     <ClInclude Include="src\Engine\Managers\InitManager.h" />
-    <ClInclude Include="src\Engine\Managers\InitManager\Pipeline\PipelineConfigurator.h" />
+    <ClInclude Include="src\Engine\Managers\InitPipelineManager.h" />
+    <ClInclude Include="src\Engine\Managers\MouseManager.h" />
     <ClInclude Include="src\Engine\Managers\RenderManager\Passes\MainColorPass.h" />
     <ClInclude Include="src\Engine\Managers\RenderManager\Passes\ShadowPass.h" />
     <ClInclude Include="src\Engine\Managers\RenderManager\Passes\SkyboxPass.h" />
+    <ClInclude Include="src\Engine\Managers\RenderManager\Passes\TerrainPass.h" />
     <ClInclude Include="src\Engine\Managers\RenderManager\Passes\UIPass.h" />
+    <ClInclude Include="src\Engine\Managers\RenderManager\Passes\WaterPass.h" />
+    <ClInclude Include="src\Engine\Managers\RenderManager\Pipeline\Data\PipelineBuffer.h" />
+    <ClInclude Include="src\Engine\Managers\RenderManager\Pipeline\PipelineState.h" />
     <ClInclude Include="src\Engine\Managers\RenderManager\Pipeline\RenderPipelineExecutor.h" />
+    <ClInclude Include="src\Engine\Managers\RenderManager\Pipeline\Stages\InputAssemblyStage.h" />
+    <ClInclude Include="src\Engine\Managers\RenderManager\Pipeline\Stages\OutputMergerStage.h" />
+    <ClInclude Include="src\Engine\Managers\RenderManager\Pipeline\Stages\PixelShaderStage.h" />
+    <ClInclude Include="src\Engine\Managers\RenderManager\Pipeline\Stages\RasterizerStage.h" />
+    <ClInclude Include="src\Engine\Managers\RenderManager\Pipeline\Stages\VertexShaderStage.h" />
     <ClInclude Include="src\Engine\Managers\RenderManager\RenderPass.h" />
+    <ClInclude Include="src\Engine\Managers\RenderState\FrameStates\CameraFrameState.h" />
+    <ClInclude Include="src\Engine\Managers\RenderState\FrameStates\CommonFrameState.h" />
+    <ClInclude Include="src\Engine\Managers\RenderState\FrameStates\DeviceFrameState.h" />
+    <ClInclude Include="src\Engine\Managers\RenderState\FrameStates\FrameStateBase.h" />
+    <ClInclude Include="Includes\FrameStates.h" />
+    <ClInclude Include="src\Engine\Managers\RenderState\FrameStates\LightFrameState.h" />
+    <ClInclude Include="src\Engine\Managers\RenderState\FrameStates\MaterialFrameState.h" />
+    <ClInclude Include="src\Engine\Managers\RenderState\FrameStates\MeshFrameState.h" />
+    <ClInclude Include="src\Engine\Managers\RenderState\FrameStates\PassFrameState.h" />
+    <ClInclude Include="src\Engine\Managers\RenderState\FrameStates\PipelineFrameState.h" />
+    <ClInclude Include="src\Engine\Managers\RenderState\FrameStates\ShaderFrameState.h" />
+    <ClInclude Include="src\Engine\Managers\RenderState\FrameStates\SkyboxFrameState.h" />
+    <ClInclude Include="src\Engine\Managers\RenderState\FrameStates\TerrainFrameState.h" />
+    <ClInclude Include="src\Engine\Managers\RenderState\FrameStates\TimeFrameState.h" />
+    <ClInclude Include="src\Engine\Managers\RenderState\FrameStates\ViewportFrameState.h" />
+    <ClInclude Include="src\Engine\Managers\RenderState\FrameStates\WaterFrameState.h" />
+    <ClInclude Include="src\Engine\Managers\UpdateManager.h" />
+    <ClInclude Include="src\Engine\Services\FrameStateService.h" />
+    <ClInclude Include="src\Engine\Util\DateTime.h" />
+    <ClInclude Include="src\Game\GameObjects\Line.h" />
     <ClInclude Include="src\Game\GameObjects\TestingFloor.h" />
-    <ClInclude Include="src\Game\Systems\RenderPipeline\Pipeline\InputAssemblyStage.h" />
-    <ClInclude Include="src\Game\Systems\RenderPipeline\Pipeline\OutputMergerStage.h" />
-    <ClInclude Include="src\Game\Systems\RenderPipeline\Pipeline\PixelShaderStage.h" />
-    <ClInclude Include="src\Game\Systems\RenderPipeline\Pipeline\RasterizerStage.h" />
-    <ClInclude Include="src\Game\Systems\RenderPipeline\Pipeline\VertexShaderStage.h" />
-    <ClInclude Include="src\Game\Systems\RenderPipeline\RenderPipeline.h" />
+    <ClInclude Include="src\Game\Systems\Chronos.h" />
+    <ClInclude Include="src\Game\Systems\Cycle.h" />
     <ClInclude Include="src\Engine\Helpers\Assets.h" />
     <ClInclude Include="src\Engine\Managers\AssetLoadContext.h" />
     <ClInclude Include="src\Engine\Managers\AssetManager.h" />
@@ -574,7 +732,7 @@
     <ClInclude Include="src\Engine\Camera\FirstPersonCamera.h" />
     <ClInclude Include="src\Engine\Core\Locators\ServiceLocator\ServiceLocator.h" />
     <ClInclude Include="src\Engine\Managers\RenderManager\BaseRenderManager.h" />
-    <ClInclude Include="src\Engine\Managers\RenderManager\GameRenderManager.h" />
+    <ClInclude Include="src\Engine\Managers\SceneManager.h" />
     <ClInclude Include="src\Engine\Managers\RenderManager\RenderManager.h" />
     <ClInclude Include="src\Engine\Services\KeyBindings.h" />
     <ClInclude Include="src\Engine\Services\Mouse.h" />
@@ -642,8 +800,6 @@
     <ClInclude Include="Libs\Yaml-cpp\includes\stlemitter.h" />
     <ClInclude Include="Libs\Yaml-cpp\includes\traits.h" />
     <ClInclude Include="Libs\Yaml-cpp\includes\yaml.h" />
-    <ClInclude Include="MainController.h" />
-    <ClInclude Include="MainWindow.h" />
     <ClInclude Include="Interfaces\iController.h" />
     <ClInclude Include="src\Engine\Managers\CameraManager.h" />
     <ClInclude Include="src\Engine\Managers\DeviceManager.h" />
@@ -652,14 +808,11 @@
     <ClInclude Include="src\Engine\Core\Locators\Registers\REGISTER_CONFIG_MACRO.h" />
     <ClInclude Include="src\Engine\Core\Locators\Registers\REGISTER_MANAGER_MACRO.h" />
     <ClInclude Include="src\Engine\Core\Locators\Registers\REGISTER_SERVICE_MACRO.h" />
-    <ClInclude Include="src\Engine\Managers\RenderTargetManager.h" />
     <ClInclude Include="src\Engine\Services\Keyboard.h" />
     <ClInclude Include="src\Game\Systems\Lighting.h" />
     <ClInclude Include="src\Game\Systems\Shadows.h" />
     <ClInclude Include="src\Game\Systems\Skybox.h" />
-    <ClInclude Include="src\Engine\Managers\WorldMatrixManager.h" />
     <ClInclude Include="src\Engine\Services\Material.h" />
-    <ClInclude Include="src\Engine\Managers\GameManager.h" />
     <ClInclude Include="Resources\resource.h" />
     <ClInclude Include="src\Engine\Managers\ShaderManager.h" />
     <ClInclude Include="src\Engine\Util\AssetType.h" />
@@ -674,6 +827,17 @@
     <ClInclude Include="src\Engine\Util\TextureLoader\TextureLoader.h" />
     <ClInclude Include="src\Engine\Util\Utils.h" />
     <ClInclude Include="src\Engine\Util\VisibleNodeInfo.h" />
+    <ClInclude Include="src\Game\Systems\Terrain.h" />
+    <ClInclude Include="src\Game\Systems\Terrain\ChunkService.h" />
+    <ClInclude Include="src\Game\Systems\Terrain\Chunk\ProceduralSeedTerrain.h" />
+    <ClInclude Include="src\Game\Systems\Terrain\Chunk\Chunk.h" />
+    <ClInclude Include="src\Game\Systems\Terrain\ProceduralService.h" />
+    <ClInclude Include="src\Game\Systems\Terrain\Procedural\Engines\FastNoiseLiteEngine.h" />
+    <ClInclude Include="src\Game\Systems\Terrain\Procedural\Engines\ProceduralEngineBase.h" />
+    <ClInclude Include="src\Game\Systems\Water.h" />
+    <ClInclude Include="src\Game\Systems\World.h" />
+    <ClInclude Include="Interfaces\IChunk.h" />
+    <ClInclude Include="src\Main\MainWindow.h" />
     <ClInclude Include="src\UI\UIBase.h" />
     <ClInclude Include="src\UI\UIText.h" />
   </ItemGroup>
@@ -681,6 +845,12 @@
     <FxCompile Include="Assets\Shader\MyProceduralSkyboxShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       </ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="Assets\Shader\OceanShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
@@ -718,6 +888,20 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="Assets\Shader\Terrain2Shader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="Assets\Shader\TerrainShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
     <FxCompile Include="Assets\Shader\TextShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
@@ -819,15 +1003,20 @@
     <None Include="Libs\DirectX\DirectXTex\Shaders\Compiled\BC7Encode_TryMode456CS_cs40.inc" />
     <None Include="Libs\DirectX\DirectXTex\Shaders\CompileShaders.cmd" />
     <None Include="md\CUBEMAPS_SKYBOX.md" />
+    <None Include="md\Pipeline\ETAPAS DEL PIPELINE - DIRECTX-11.md" />
     <None Include="md\PIPE-LINE.md" />
+    <None Include="md\Pipeline\OPERACIONES POR FRAME.md" />
     <None Include="md\SAMPLERS.md" />
     <None Include="md\SAVE_FBX.md" />
     <None Include="md\SHADER_REGISTROS.md" />
+    <None Include="md\SHADOW-MAP.md" />
     <None Include="md\SVO con LOD.md" />
     <None Include="md\SVO Generar Octree.md" />
     <None Include="md\SVO-BASE.md" />
     <None Include="md\SVO.md" />
     <None Include="md\SVO_TRIÁNGULOS.md" />
+    <None Include="md\Terrain\DawIndexedIndirect.md" />
+    <None Include="md\Teselación\TESELACIÓN.md" />
     <None Include="md\VOXEL-CHUNKS.md" />
     <None Include="READ.md" />
     <None Include="Resources\Config\Assets\assets_base.yaml" />
@@ -835,14 +1024,17 @@
     <None Include="Resources\Config\Assets\assets_mesh.yaml">
       <DeploymentContent>true</DeploymentContent>
     </None>
+    <None Include="Resources\Config\Assets\assets_terrain.yaml" />
     <None Include="Resources\Config\Assets\assets_texture_map.yaml" />
     <None Include="Resources\Config\Assets\assets_vertex.yaml" />
     <None Include="Resources\Config\Assets\assets_shader.yaml" />
     <None Include="Resources\Config\Assets\assets_texture.yaml" />
     <None Include="EstructuraProyecto.md" />
     <None Include="Resources\Config\camera_config.yaml" />
+    <None Include="Resources\Config\Engine\engine_jobs.yaml" />
     <None Include="Resources\Config\Engine\engine_render_pass.yaml" />
     <None Include="Resources\Config\Engine\Pipeline\engine_render_state.yaml" />
+    <None Include="Resources\Config\Engine\Pipeline\pipeline_slots_contract.yaml" />
     <None Include="Resources\Config\engine_config.yaml" />
     <None Include="Resources\Config\Game\game_base.yaml" />
     <None Include="Resources\Config\Game\game_object.yaml" />
@@ -851,19 +1043,7 @@
     <None Include="Resources\Config\index_config.yaml" />
     <None Include="Resources\Config\services_config.yaml" />
     <None Include="Resources\Config\UI\ui_item_config.yaml" />
-    <None Include="SHADER_REGISTROS.md" />
-    <None Include="src\Engine\Assets\Base\ObjFormat\MUCHOS OBJECTOS.md" />
-    <None Include="VOXEL-CHUNKS.md">
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
-    </None>
-    <None Include="SVO con LOD.md" />
-    <None Include="SVO Generar Octree.md" />
-    <None Include="SVO-BASE.md" />
-    <None Include="SVO.md" />
-    <None Include="SVO_TRIÁNGULOS.md" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="SAVE_FBX.md" />
+    <None Include="src\Engine\Assets\Base\ObjFormat\MUCHOS OBJETOS.md" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="C:\Users\joaqu\Downloads\yaml-cpp-master-original\yaml-cpp-master\build\Debug\yaml-cppd.lib" />

@@ -7,7 +7,14 @@ WorldConfig::WorldConfig(){
 	name = "WorldMananger";
 	enabled = true;
 	version = "1.0.0";
-	description = "Un juego de aventura en un mundo voxelizado.";
+	description = "Un mundo abierto.";
+	gameType = 1;
+	gameFlags = 3;
 	type = "VoxelWorld";
 	respawnTime = 5;
+	dependencies = {
+		"Chronos",
+		"Terrain",
+		"UITextMesh"
+	};
 };

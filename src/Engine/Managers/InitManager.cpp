@@ -1,26 +1,21 @@
+﻿#include <Windows.h>
 #include "InitManager.h"
-#include <RenderManager/Pipeline/RenderPipelineExecutor.h>
-#include <InitManager/Pipeline/PipelineConfigurator.h>
-#include <AssetLocator/AssetLocator.h>
-#include <ManagerLocator/ManagerLocator.h>
-#include <ConfigLocator/ConfigLocator.h>
-#include <Pipeline/PipelineStateLocator.h>
-#include <IPipelineState.h>
+#include <Locators/DefineLocator/DefineLocator.h>
+#include <Locators/ManagerLocator/ManagerLocator.h>
+#include <Locators/ConfigLocator/ConfigLocator.h>
+#include <Locators/ServiceLocator/ServiceLocator.h>
+#include <Locators/Pipeline/RenderPassLocator.h>
+#include <Locators/Pipeline/PipelineStateLocator.h>
+#include <Config/Base/Managers/EngineConfig.h>
+#include <Config/Services/ServiceConfig.h>
+#include <Config/Assets/Base/BaseIndexConfig.h>
+#include <Config/Assets/Base/MainIndexConfig.h>
+#include <Defines/Components.h>
+#include <InitManager/InitController.h>
+#include <InitPipelineManager.h>
 
-#include <Defines/Pass.h>
-
-#include <Pipeline/IPipelineBlendingState.h>
-#include <Pipeline/IPipelineRasterizedState.h>
-#include <Pipeline/IPipelineStencilState.h>
-#include <Pipeline/IPipelineStencilView.h>
-#include <Pipeline/IPipelineShaderViewState.h>
-#include <Pipeline/IPipelineViewportState.h>
-
-#include <Game/Systems/RenderPipeline/Pipeline/InputAssemblyStage.h>
-#include <Game/Systems/RenderPipeline/Pipeline/RasterizerStage.h>
-#include <Game/Systems/RenderPipeline/Pipeline/VertexShaderStage.h>
-#include <Game/Systems/RenderPipeline/Pipeline/PixelShaderStage.h>
-#include <Game/Systems/RenderPipeline/Pipeline/OutputMergerStage.h>
+#define TINYOBJLOADER_IMPLEMENTATION
+#include <TinyObjLoader/tiny_obj_loader.h>
 
 #include "REGISTER_MANAGER_MACRO.h"
 
@@ -34,325 +29,296 @@ InitManager::~InitManager()
 {
 }
 
-HRESULT InitManager::InitManagers() {
-    m_deviceManager = ManagerLocator::GetDeviceManager();
-    if(!m_deviceManager) {
-        return E_FAIL;
-	}
-	m_shaderManager = ManagerLocator::GetShaderManager();
-    if (!m_shaderManager) {
-        return E_FAIL;
-	}
+
+HRESULT InitManager::InitBase() {
+    // 1. Inicializar básicas
+    // ----------------------
+	m_initController = std::make_shared<InitController>();
+
+    // 1.1 Inicializar defines
+    HRESULT hr = DefineLocator::InitializeDefines();
+    if (FAILED(hr)) {
+        OutputDebugStringA("[InitManager] Init: Failed to initialize defines.\n");
+        return hr;
+    }
+
+    // 1.2 Inicializar render passes
+    hr = RenderPassLocator::CreateRenderPasss();
+    if (FAILED(hr)) {
+        OutputDebugStringA("[InitManager] Init: Failed to initialize render passes.\n");
+        return hr;
+    }
+
+    // 1.3 Inicializar pipeline states  
+    hr = PipelineStateLocator::CreatePipelineStates();
+    if (FAILED(hr)) {
+        OutputDebugStringA("[InitManager] Init: Failed to initialize pipeline states.\n");
+        return hr;
+    }
+
+    // 1.4 Inicializar render passes
+    hr = ConfigLocator::CreateConfigs();
+    if (FAILED(hr)) {
+        OutputDebugStringA("[InitManager] Init: Failed to initialize services.\n");
+        return hr;
+    }
 	return S_OK;
 }
 
 HRESULT InitManager::InitConfigs() {
-    m_config = ConfigLocator::GetConfig<InitManagerConfig>();
+    // 2. Clases de configuración
+    // --------------------------
+
+    // 2.1 EngineConfig
+    m_config = ConfigLocator::GetConfig<EngineConfig>();
     if (!m_config) {
         return E_FAIL;
     }
-    return S_OK;
+    // 2.2 ServiceConfig
+    m_serviceConfig = ConfigLocator::GetConfig<ServiceConfig>();
+    if (!m_serviceConfig) {
+        return E_FAIL;
+    }
+    // 2.3 AssetBaseConfig
+    m_assetBaseConfig = ConfigLocator::GetConfig<BaseIndexConfig>();
+    if (!m_assetBaseConfig) {
+        OutputDebugStringA("[InitManager] Init: Failed to get BaseIndexConfig.\n");
+        return E_FAIL;
+    }
+    // 2.4 AssetConfig
+    m_assetConfig = ConfigLocator::GetConfig<MainIndexConfig>();
+    if (!m_assetConfig) {
+        OutputDebugStringA("[InitManager] Init: Failed to get BaseIndexConfig.\n");
+        return E_FAIL;
+    }
+    // 2.5 GameEngineConfig
+    m_gameEngineConfig = ConfigLocator::GetConfig<GameEngineConfig>();
+    if (!m_gameEngineConfig) {
+        OutputDebugStringA("[InitManager] Init: Failed to get GameEngineConfig.\n");
+        return E_FAIL;
+    }
+	return S_OK;
 }
 
-HRESULT InitManager::InitPipelineStates(int width, int height) {
-    if (!m_config) {
-        return E_FAIL;
-    }
+HRESULT InitManager::ExtractComponents() {
+    // 3. Obtener todos los commponentes para determinar el orden de dependencia
+    // -------------------------------------------------------------------------
+    std::map<std::string, std::vector<std::string>> components = {};
+    components[COMPONENT_MANAGER.data()] = m_config->managers_init_order;
+    components[COMPONENT_SERVICE.data()] = m_serviceConfig->services_init;
+    components[COMPONENT_ASSET.data()] = m_assetConfig->mainIndex;
+    components[COMPONENT_ASSET_BASE.data()].append_range(m_assetBaseConfig->index);
+    components[COMPONENT_GAME_SERVICE.data()] = m_gameEngineConfig->services_init_order;
 
-	// RASTERIZER STATE
-    for (const std::string& stateName : m_config->rasterizedStates) {
-        std::shared_ptr<IPipelineRasterizedState> state = PipelineStateLocator::GetPipelineState<IPipelineRasterizedState>(stateName);
+    for (const auto& component : components) {
+        const std::string& componentTypeName = component.first;
+        const std::vector<std::string>& componentsNames = component.second;
 
-		D3D11_RASTERIZER_DESC desc = {};
-        
-        desc.FillMode = static_cast<D3D11_FILL_MODE>(state->FillMode);
-        desc.CullMode = static_cast<D3D11_CULL_MODE>(state->CullMode);
-        desc.FrontCounterClockwise = static_cast<BOOL>(state->FrontCounterClockwise);
-        desc.AntialiasedLineEnable = static_cast<BOOL>(state->AntialiasedLineEnable);
-        desc.DepthClipEnable = static_cast<BOOL>(state->DepthClipEnable);
-
-        PipelineRasteriezeData m_param = {};
-		m_param.desc = desc;
-		m_param.name = stateName;
-
-        Microsoft::WRL::ComPtr<ID3D11RasterizerState> data = nullptr;
-        /*m_pipelineStates[stateName] = data;*/
-
-
-        m_initPass->AddOperation(PipelineOperationType::Device_Init_RasterizedState, m_param, data);
-    }
-
-	// BLENDING STATE
-    for (const std::string& stateName : m_config->blendingStates) {
-        std::shared_ptr<IPipelineBlendingState> state = PipelineStateLocator::GetPipelineState<IPipelineBlendingState>(stateName);
-
-		D3D11_BLEND_DESC desc = {};
-
-        if (stateName != "DisabledBlending") {
-            desc.AlphaToCoverageEnable = static_cast<BOOL>(state->AlphaToCoverageEnable);
-            desc.IndependentBlendEnable = static_cast<BOOL>(state->IndependentBlendEnable);
-            desc.RenderTarget[0].BlendEnable = static_cast<BOOL>(state->BlendEnable);
-            desc.RenderTarget[0].SrcBlend = static_cast<D3D11_BLEND>(state->SrcBlend);
-            desc.RenderTarget[0].DestBlend = static_cast<D3D11_BLEND>(state->DestBlend);
-            desc.RenderTarget[0].BlendOp = static_cast<D3D11_BLEND_OP>(state->BlendOp);
-            desc.RenderTarget[0].SrcBlendAlpha = static_cast<D3D11_BLEND>(state->SrcBlendAlpha);
-            desc.RenderTarget[0].DestBlendAlpha = static_cast<D3D11_BLEND>(state->DestBlendAlpha);
-            desc.RenderTarget[0].BlendOpAlpha = static_cast<D3D11_BLEND_OP>(state->BlendOpAlpha);
+        for (const auto& componentName : componentsNames) {
+            // Obtener el nombre del componente y su configuración
+            const std::string& componentConfig = componentName + "Config";
+            auto config = ConfigLocator::GetConfig<ConfigBase>(componentConfig);
+            if (!config) {
+                OutputDebugStringA(("**InitManager::ExtractComponents: No se ha podido obtener la configuración de " + componentName + "\n").c_str());
+                continue;
+            }
+            // Registrar el componente en InitController
+            m_initController->RegisterComponent(componentTypeName, componentName, config->dependencies);
         }
-        else {
+    }
+	return S_OK;    
+}
+
+HRESULT InitManager::InitComponents(HWND* hwnd, int width, int height)
+{
+    // 4. Establecer el orden de inicilización por dependencia
+    // -------------------------------------------------------
+    std::vector<std::pair<std::string, std::string>> initOrder = m_initController->GetInitializationOrder();
+
+    // 5. Ejecutar la inicilización en el orden establecido por dependencia
+    // --------------------------------------------------------------------
+    for (const auto& [componentName, componentType] : initOrder) {
+
+        if (componentName == "SceneManager") {
             bool a = false;
         }
-	    desc.RenderTarget[0].RenderTargetWriteMask = static_cast<UINT8>(state->RenderTargetWriteMask);
 
-        PipelineBledingData m_param = {};
-		m_param.desc = desc;
-        m_param.name = stateName;
-
-        Microsoft::WRL::ComPtr<ID3D11BlendState> data = nullptr;
-        //m_pipelineStates[stateName] = data;
-
-        m_initPass->AddOperation(PipelineOperationType::Device_Init_BledingState, m_param, data);
-    }
-
-	// STENCIL STATES
-    for (const std::string& stateName : m_config->stencilStates) {
-        std::shared_ptr<IPipelineStencilState> state = PipelineStateLocator::GetPipelineState<IPipelineStencilState>(stateName);
-        PipelineSetencilStateData data = {};
-        D3D11_DEPTH_STENCIL_DESC desc = {};
-        desc.DepthEnable = static_cast<BOOL>(state->DepthEnable);
-        desc.DepthWriteMask = static_cast<D3D11_DEPTH_WRITE_MASK>(state->DepthWriteMask);
-        desc.DepthFunc = static_cast<D3D11_COMPARISON_FUNC>(state->DepthFunc);
-        desc.StencilEnable = static_cast<BOOL>(state->StencilEnable);
-        desc.StencilReadMask = static_cast<UINT8>(state->StencilReadMask);
-        desc.StencilWriteMask = static_cast<UINT8>(state->StencilWriteMask);
-
-		data.desc = desc;
-		data.name = stateName;
-
-        m_initPass->AddOperation(PipelineOperationType::Device_Init_SetSencilState, data);
-    }
-
-	// STENCIL VIEWS
-    for (const std::string& stateName : m_config->stencilViews) {
-        std::shared_ptr<IPipelineStencilView> state = PipelineStateLocator::GetPipelineState<IPipelineStencilView>(stateName);
-
-		D3D11_TEXTURE2D_DESC desc = {};
-
-        desc.ArraySize = static_cast<UINT>(state->ArraySize);
-        desc.BindFlags = static_cast<UINT>(state->BindFlags);
-        desc.Format = static_cast<DXGI_FORMAT>(state->Format);
-        desc.MipLevels = static_cast<UINT>(state->MipLevels);
-        desc.SampleDesc.Count = static_cast<UINT>(state->SampleCount);
-        desc.SampleDesc.Quality = static_cast<UINT>(state->SampleQuality);
-        desc.Usage = static_cast<D3D11_USAGE>(state->Usage);
-        desc.Width = static_cast<UINT>(state->Width > 0 ? state->Width : width);
-		desc.Height = static_cast<UINT>(state->Height > 0 ? state->Height : height);
-
-        PipelineDepthStencilData m_param = {};
-
-        m_param.hasViewDesc = state->ViewDesc;
-
-        if (state->ViewDesc) {
-            m_param.viewDesc = {};
-			m_param.viewDesc.Format = static_cast<DXGI_FORMAT>(state->ViewFormat);
-			m_param.viewDesc.ViewDimension = static_cast<D3D11_DSV_DIMENSION>(state->ViewDimension);
-			m_param.viewDesc.Texture2D.MipSlice = static_cast<UINT>(state->ViewMipSlice);
-        }
-
-        if (state->ShaderView.size()) {
-            std::shared_ptr<IPipelineShaderViewState> shaderViewState = PipelineStateLocator::GetPipelineState<IPipelineShaderViewState>(state->ShaderView);
-
-            if (shaderViewState != nullptr) {
-                m_param.shaderViewDesc = {};
-                m_param.shaderViewDesc.Format = static_cast<DXGI_FORMAT>(shaderViewState->Format);
-                m_param.shaderViewDesc.ViewDimension = static_cast<D3D11_SRV_DIMENSION>(shaderViewState->ViewDimension);
-                m_param.shaderViewDesc.Texture2D.MipLevels = static_cast<UINT>(shaderViewState->MipLevels);
-                m_param.shaderViewDesc.Texture2D.MostDetailedMip = static_cast<UINT>(shaderViewState->MostDetailedMip);
+        if (componentType == COMPONENT_MANAGER)
+        {
+            // Inicializar el manager
+            HRESULT hr = ManagerLocator::InitializeManagers({ componentName }, hwnd, width, height);
+            if (FAILED(hr)) {
+                OutputDebugStringA(("[InitManager] Init: Failed to initialize manager " + componentName + "\n").c_str());
+                return hr;
             }
         }
-		m_param.desc = desc;
-        m_param.name = stateName;
-        m_param.depth = static_cast<FLOAT>(state->Depth);
-        m_param.stencil = static_cast<UINT8>(state->Stencil);
-
-
-        m_stencilDesc[stateName] = m_param;
-
-        Microsoft::WRL::ComPtr<ID3D11DepthStencilView> data = nullptr;
-        //m_pipelineStates[stateName] = data;
-
-		m_initPass->AddOperation(PipelineOperationType::Device_Init_SetSencilView, m_param, data);
-    }
-
-	// VIEWPORT STATE
-    for (const std::string& stateName : m_config->viewPortStates) {
-        std::shared_ptr<IPipelineViewportState> state = PipelineStateLocator::GetPipelineState< IPipelineViewportState>(stateName);
-
-		D3D11_VIEWPORT viewport = {};
-
-		FLOAT width = static_cast<FLOAT>(state->Width);
-		FLOAT height = static_cast<FLOAT>(state->Height);
-
-        if (width <= 0 || height <= 0) {
-            width = static_cast<FLOAT>(m_deviceManager->GetWidth());
-            height = static_cast<FLOAT>(m_deviceManager->GetHeight());
-		}
-
-        viewport.TopLeftX = state->TopLeftX;
-        viewport.TopLeftY = state->TopLeftY;
-        viewport.Width = width;
-		viewport.Height = height;
-        viewport.MinDepth = state->MinDepth;
-        viewport.MaxDepth = state->MaxDepth;
-
-		m_viewports[stateName].desc = viewport;
-
-        PipelineViewPortData m_param = {};
-		m_param.desc = viewport;
-        m_param.name = stateName;
-
-        m_initPass->AddOperation(PipelineOperationType::Device_Init_Viewport, m_param);
-	}
-
-    // SAMPLERS
-    std::vector<ShaderSampler::SamplerDefinition> samplersDesc = m_shaderManager->GetAllSamplersDesc();
-
-    if (samplersDesc.size()) {
-        PipelineSamplerSateData m_param = {};
-        m_param.desc = samplersDesc;
-        m_param.data = {};
-        m_param.numSamplers = static_cast<UINT>(samplersDesc.size());
-        m_param.name = "samplers";
-        m_initPass->AddOperation(PipelineOperationType::Device_Init_Samplers, m_param);
-    }
-
-    // CONSTANTS BUFFERS
-    m_constantsBuffers = {};
-    m_constantsBuffers.projectionOrthoMatrix = DirectX::XMMatrixOrthographicOffCenterLH(
-        0.0f,                                  // left
-        static_cast<float>(width),             // right
-        static_cast<float>(height),            // top
-        0.0f,                                  // bottom
-        0.0f,                                  // nearZ
-        1.0f
-    );
-
+        else if (componentType == COMPONENT_SERVICE) {
+            // Inicializar el servicio
+            HRESULT hr = ServiceLocator::InitializeServices({ componentName });
+            if (FAILED(hr)) {
+                OutputDebugStringA(("[InitManager] Init: Failed to initialize service " + componentName + "\n").c_str());
+                return hr;
+            }
+        }
+        else if (componentType == COMPONENT_ASSET_BASE) {
+            // Inicializar el asset
+            HRESULT hr = AssetLocator::InitializeBaseAssets({ componentName });
+            if (FAILED(hr)) {
+                OutputDebugStringA(("[InitManager] Init: Failed to initialize asset " + componentName + "\n").c_str());
+                return hr;
+            }
+        }
+        else if (componentType == COMPONENT_ASSET) {
+            // Inicializar el asset
+            HRESULT hr = AssetLocator::InitializeAssets({ componentName });
+            if (FAILED(hr)) {
+                OutputDebugStringA(("[InitManager] Init: Failed to initialize asset " + componentName + "\n").c_str());
+                return hr;
+            }
+        }
+        else if (componentType == COMPONENT_GAME_SERVICE) {
+            // Inicializar el asset
+            HRESULT hr = ServiceLocator::InitializeServices({ componentName });
+            if (FAILED(hr)) {
+                OutputDebugStringA(("[InitManager] Init: Failed to initialize game service " + componentName + "\n").c_str());
+                return hr;
+            }
+        }
+    }	    
     return S_OK;
 }
 
-HRESULT InitManager::InitMainPipelineOperations(int width, int height)
+HRESULT InitManager::InitPipeline(HWND* hwnd, int width, int height)
 {
-    m_device = m_deviceManager->GetDevice();
-    m_context = m_deviceManager->GetContext();
-    m_swapChain = m_deviceManager->GetSwapChain();
-
-    if (!m_device || !m_context || !m_swapChain) {
+    OutputDebugStringA("[InitManager] Inicialización del Pipeline...\n");
+    HRESULT hr = ManagerLocator::InitializeManagers({ "InitPipelineManager"}, hwnd, width, height);
+    if (FAILED(hr)) {
+        return hr;
+    }
+    std::shared_ptr<InitPipelineManager> initPipelineManager = ManagerLocator::GetManager<InitPipelineManager>(); 
+    if (!initPipelineManager) {
         return E_FAIL;
-    }
-
-    PipelineBackBufferData bbParam = {};
-    bbParam.name = "Backbuffer";
-    Microsoft::WRL::ComPtr<ID3D11Texture2D> data = nullptr;
-    m_initPass->AddOperation(PipelineOperationType::Device_Init_CreateBackBuffer, bbParam, data);
-
-    return S_OK;
-}
-
-HRESULT InitManager::InitFinalOperations() {
-    PipelineRenderTargetViewData rtParam = {};
-    rtParam.backBuffer = GetBackBuffer();
-    //rtParam.name = "RenderTargetView";
-    std::map<std::string, D3D11_VIEWPORT> views = GetRenderTargetViewPorts();
-    for (const auto& pView : views) {
-		std::string name = pView.first;
-        rtParam.name = name;
-        Microsoft::WRL::ComPtr<ID3D11RenderTargetView> rtData = nullptr;
-        m_initPass->AddOperation(PipelineOperationType::Device_Init_CreateRenderTargetView, rtParam, rtData);
 	}
-
+    initPipelineManager->Init(hwnd, width, height);
     return S_OK;
 }
 
-HRESULT InitManager::Init(HWND hwnd, int width, int height)
+HRESULT InitManager::Init(HWND* hwnd, int width, int height)
 {
-    m_initPass = std::make_shared<RenderPass>(RenderPassType::None, 0, "InitPass");
-
-    HRESULT hr = InitManagers();
+    HRESULT hr = InitBase();
     if (FAILED(hr)) {
         return hr;
 	}
+
+    OutputDebugStringA("[InitManager] inicialización base - OK.\n");
+
     hr = InitConfigs();
     if (FAILED(hr)) {
         return hr;
     }
 
-    hr = InitPipelineStates(width, height);
+    OutputDebugStringA("[InitManager] inicialización de Configuración - OK.\n");
+
+	hr = ExtractComponents();
     if (FAILED(hr)) {
         return hr;
     }
 
-	hr = InitMainPipelineOperations(width, height);
+	hr = InitComponents(hwnd, width, height);
     if (FAILED(hr)) {
-		return hr;
-	}
-	
-    m_pipelineInitiator = std::make_unique<PipelineConfigurator>(PipelineConfigurator{ m_device, m_context, m_swapChain});
-
-	std::vector<std::shared_ptr<PipelineOperation>> operations = m_initPass->GetOperations();
-
-    for (auto& operation : operations) {
-        m_pipelineInitiator->ExecuteInitOperation(*operation);
+        return hr;
     }
 
-    operations = m_initPass->GetOperations();
+    OutputDebugStringA("[InitManager] inicialización de Componentes - OK.\n");
 
-    for (auto& operation : operations) {
-        PipelineParameter param = operation->GetOperationParam();
-        PipelineData data = operation->GetOperationData();
-        
-        std::visit([&](auto& p) {
-            std::string name = p.name;
-            if (!name.empty()) {
-                m_pipelineStates[name] = data;
-			}
-        }, param);
+    hr = PostInit();
+    if (FAILED(hr)) {
+        return hr;
     }
 
-    operations.clear();
-    m_initPass = std::make_shared<RenderPass>(RenderPassType::None, 0, "InitPass");
+    OutputDebugStringA("[InitManager] Post-inicialización - OK.\n");
 
-    hr = InitFinalOperations();
-
-    m_pipelineInitiator = std::make_unique<PipelineConfigurator>(PipelineConfigurator{ m_device, m_context, m_swapChain });
-
-    std::vector<std::shared_ptr<PipelineOperation>> operationsFinal = m_initPass->GetOperations();
-
-    for (auto& operation : operationsFinal) {
-        m_pipelineInitiator->ExecuteInitOperation(*operation);
+    hr = InitPipeline(hwnd, width, height);
+    if (FAILED(hr)) {
+        return hr;
     }
 
-    operations = m_initPass->GetOperations();
-
-    for (auto& operation : operations) {
-        PipelineParameter param = operation->GetOperationParam();
-        PipelineData data = operation->GetOperationData();
-
-        std::visit([&](auto& p) {
-            std::string name = p.name;
-            m_pipelineStates[name] = data;
-            }, param);
-    }
+    OutputDebugStringA("[InitManager] Inicialización del pipeline - OK.\n");
 
     return S_OK;
 }
 
-std::map<std::string, D3D11_VIEWPORT> InitManager::GetRenderTargetViewPorts()
+HRESULT InitManager::PostInit()
 {
-    std::map<std::string, D3D11_VIEWPORT> result;
-    for (auto& pair : m_viewports) {
-        // Comprobamos si el PipelineData contiene un ID3D11RenderTargetView
-		std::string name = pair.first;
-        result[name] = pair.second.desc;
-    }
-    return result;
+    OutputDebugStringA("[InitManager] Comenzando la Post-inicialización...\n");
+    // 3. Obtener todos los commponentes para determinar el orden de dependencia
+    // -------------------------------------------------------------------------
+    std::map<std::string, std::vector<std::string>> components = {};
+    components[COMPONENT_MANAGER.data()] = m_config->managers_post_init;
+    components[COMPONENT_SERVICE.data()] = m_serviceConfig->services_post_init;
+    components[COMPONENT_ASSET.data()] = m_assetConfig->post_init;
+    components[COMPONENT_ASSET_BASE.data()].append_range(m_assetBaseConfig->post_init);
+    components[COMPONENT_GAME_SERVICE.data()] = m_gameEngineConfig->services_post_init;
+
+    for (const auto& component : components) {
+        const std::string& componentTypeName = component.first;
+        const std::vector<std::string>& componentsNames = component.second;
+        for (const auto& componentName : componentsNames) {
+            if (componentTypeName == COMPONENT_MANAGER)
+            {
+                std::shared_ptr<ManagerBase> component = ManagerLocator::GetManager(componentName);
+                if (component) {
+                    HRESULT hr = component->PostInit();
+                    if (FAILED(hr)) {
+                        OutputDebugStringA(("[InitManager] PostInit: Failed to post-initialize manager " + componentName + "\n").c_str());
+                        return hr;
+                    }
+				}
+            }
+            else if (componentTypeName == COMPONENT_SERVICE) {
+                std::shared_ptr<IService> component = ServiceLocator::GetService(componentName);
+                if (component) {
+                    HRESULT hr = component->PostInit();
+                    if (FAILED(hr)) {
+                        OutputDebugStringA(("[InitManager] PostInit: Failed to post-initialize service " + componentName + "\n").c_str());
+                        return hr;
+                    }
+				}                
+            }
+            else if (componentTypeName == COMPONENT_ASSET_BASE) {
+                // Inicializar el asset
+                std::shared_ptr<AssetBase> component = AssetLocator::GetAssetBase(componentName);
+                if (component) {
+                    HRESULT hr = component->PostInit();
+                    if (FAILED(hr)) {
+                        OutputDebugStringA(("[InitManager] PostInit: Failed to post-initialize asset " + componentName + "\n").c_str());
+                        return hr;
+                    }
+                }
+            }
+            else if (componentTypeName == COMPONENT_ASSET) {
+                // Inicializar el asset
+                std::shared_ptr<AssetBase> component = AssetLocator::GetAsset(componentName);
+                if (component) {
+                    HRESULT hr = component->PostInit();
+                    if (FAILED(hr)) {
+                        OutputDebugStringA(("[InitManager] PostInit: Failed to post-initialize asset " + componentName + "\n").c_str());
+                        return hr;
+                    }
+                }
+            }
+            else if (componentTypeName == COMPONENT_GAME_SERVICE) {
+                // Inicializar el asset
+                std::shared_ptr<IService> component = ServiceLocator::GetService(componentName);
+                if (component) {
+                    HRESULT hr = component->PostInit();
+                    if (FAILED(hr)) {
+                        OutputDebugStringA(("[InitManager] PostInit: Failed to post-initialize asset " + componentName + "\n").c_str());
+                        return hr;
+                    }
+                }
+            }
+        }
+	}
+    return S_OK;
 }

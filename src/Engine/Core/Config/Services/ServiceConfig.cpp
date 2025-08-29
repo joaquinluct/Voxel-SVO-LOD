@@ -9,17 +9,30 @@ ServiceConfig::ServiceConfig(){
 		"KeyBindings",
 		"Mouse",
 		"Material",
-		"UIText"
+		"ChunkService",
+		"ProceduralService",
+		"UIText",
+		"FrameStateService",
+		"ThreadPool"
+	};
+	services_post_init = {
+		"none"
 	};
 	services_render_order = {
 		"Mouse",
 		"Keyboard",
-		"UIText"
+		"UIText",
+		"ChunkService",
+		"ProceduralService",
+		"FrameStateService"
 	};
 	services_update_order = {
 		"Mouse",
 		"Keyboard",
 		"UIText",
-		"Material"
+		"Material",
+		"ChunkService",
+		"FrameStateService",
+		"ProceduralService"
 	};
 };

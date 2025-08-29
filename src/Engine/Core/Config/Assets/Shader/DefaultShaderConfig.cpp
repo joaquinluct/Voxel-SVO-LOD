@@ -11,7 +11,7 @@ DefaultShaderConfig::DefaultShaderConfig(){
 		"MatrixBufferType"
 	};
 	sampler_slots = {
-		"RegularSampler"
+		"baseSampler"
 	};
 	needs_shadow = false;
 	name = "DefaultShader";

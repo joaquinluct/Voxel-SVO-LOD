@@ -7,6 +7,7 @@
 #include <RenderManager/RenderManager.h>
 #include <Game/Systems/Lighting.h>
 #include <Assets/Base/MeshAsset.h>
+#include <Config/Game/System/SkyboxConfig.h>
 
 class Skybox : public IService
 {
@@ -15,6 +16,9 @@ public:
 	~Skybox() override;
 
 	HRESULT Init() override;
+	HRESULT InitConfig();
+	HRESULT InitManagers();
+	HRESULT InitMesh();
 	void Render() override;
 	void Update(float deltaTime) override;
 	void Shutdown() override;
@@ -29,7 +33,15 @@ public:
 		return name;
 	}
 
+	DirectX::XMFLOAT4 GetSunColor() const;
+	DirectX::XMFLOAT4 GetSkyColor() const;
+
 private:
+	SkyboxConfig m_config = {};
+
+	DirectX::XMFLOAT4 m_sunColor;
+	DirectX::XMFLOAT4 m_skyColor;
+
 	std::shared_ptr<RenderManager> m_renderManager;
 	std::shared_ptr<CameraManager> m_cameraManager;
 	std::shared_ptr<Lighting> lighting;

@@ -8,6 +8,7 @@
 #include <wrl/client.h>
 #include <Util/Utils.h>
 #include <IService.h>
+#include <UIManager.h>
 #include <Defines/VertexDefinition.h>
 #include <Defines/UI.h>
 
@@ -16,7 +17,7 @@
 class UIManager;
 class DeviceManager;
 class Material;
-class WorldMatrixManager;
+class MeshAsset;
 
 // Estructura de vértice (asegúrate de que coincide con tu shader)
 struct UIVertex {
@@ -31,13 +32,11 @@ public:
     UIText() : m_color{}, m_fontSize{}, m_position{}, m_vertexBuffer{} {
         m_font = new Font(32, DirectX::XMFLOAT4{1.0f, 1.0f, 1.0f, 1.0f});
     };
-    UIText(std::shared_ptr<DeviceManager> deviceManager,
-        std::shared_ptr<WorldMatrixManager> worldMatrixManager,
-        Material* material);
+    UIText(std::shared_ptr<MeshAsset> mesh);
     ~UIText();
 
     HRESULT Init() override;
-    HRESULT Init(float width, float height);
+    //HRESULT Init(float width, float height);
     void Render() override {};
     //void Render(const DirectX::XMMATRIX& orthoMatrix);
     void Update(float deltaTime) override {};
@@ -54,6 +53,14 @@ public:
         return name;
     }
 
+    virtual std::unique_ptr<UIText> Clone() const {
+        // Crea una nueva instancia utilizando el constructor de copia
+        // y la devuelve como un shared_ptr.
+        return std::make_unique<UIText>(*this);
+    }
+
+	std::shared_ptr<MeshAsset> GetMesh() { return m_mesh; }
+
     // Setters para configurar el texto y su apariencia
     void SetText(const std::string& text);
     void SetPosition(float x, float y);
@@ -61,12 +68,15 @@ public:
     void SetColor(float r, float g, float b, float a);
     void SetFontSize(float size);
 
+	void SetMesh(std::shared_ptr<MeshAsset> mesh) { m_mesh = mesh; }
     void CreateMesh(std::vector<std::shared_ptr<VertexDefinition::VertexVariant>>& pVertexData);
 
     // Render ahora solo toma la matriz ortográfica global (o específica para esta capa de UI)
     // Usará los miembros internos (m_text, m_position, etc.) para dibujar.
 
 private:
+	std::shared_ptr<MeshAsset> m_mesh;
+
 	float m_screenWidth;
 	float m_screenHeight;
 
@@ -78,8 +88,7 @@ private:
     DirectX::XMFLOAT4 m_color;
     float m_fontSize;
 
-    std::shared_ptr<DeviceManager> m_device;
-    //std::shared_ptr<WorldMatrixManager> m_worldMatrixManager;
+    std::shared_ptr<DeviceManager> m_device;    
     //std::shared_ptr<Material> m_material;
     std::shared_ptr<UIManager> m_uiManager;
 

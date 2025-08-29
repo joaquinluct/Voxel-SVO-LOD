@@ -21,12 +21,13 @@ namespace MaterialMatrix {
         float Padding2;
         float Padding1;                 // Relleno para alinear a 16 bytes
 
-        void SetMatrixData(MatrixParams params) {
+        void SetMatrixData(std::map<std::string, std::shared_ptr<IMatrixParams>>& params) {
+            std::shared_ptr<MaterialMatrixParams> materialParams = GetMatrixParams<MaterialMatrixParams>(params["MaterialParams"]);
             // Asigna los datos de material desde MatrixParams
-            this->Albedo = params.materialAlbedo;
-            this->Roughness = params.materialRoughness;
-            this->Metallic = params.materialMetallic;
-            this->marerialF0 = params.materialF0;
+            this->Albedo = materialParams->materialAlbedo;
+            this->Roughness = materialParams->materialRoughness;
+            this->Metallic = materialParams->materialMetallic;
+            this->marerialF0 = materialParams->materialF0;
             this->AO = 0.7f;
         }
 
@@ -49,8 +50,9 @@ namespace MaterialMatrix {
         // 16 bytes
         DirectX::XMFLOAT4 TextureTransform;
 
-        void SetMatrixData(MatrixParams params) {
-            this->TextureTransform = params.textureTransform;
+        void SetMatrixData(std::map<std::string, std::shared_ptr<IMatrixParams>>& params) {
+            std::shared_ptr<MaterialMatrixParams> materialParams = GetMatrixParams<MaterialMatrixParams>(params["MaterialParams"]);
+            this->TextureTransform = materialParams->textureTransform;
         }
 
         UINT Size() {
@@ -65,6 +67,81 @@ namespace MaterialMatrix {
         std::string MatrixType() {
             return MATRIX_TYPE_VERTEX.data();
         }
+    };
+
+    struct TerrainBlendBuffer {
+        float grassHeight;
+        float dirtHeight;
+        float snowHeight;
+        float slopeStart;
+        float slopeEnd;
+        float terrainScale;
+		float padding1; // Relleno para alinear a 16 bytes
+        float padding2; // Relleno para alinear a 16 bytes
+
+        void SetMatrixData(std::map<std::string, std::shared_ptr<IMatrixParams>>& params) {
+            std::shared_ptr<MaterialMatrixParams> materialParams = GetMatrixParams<MaterialMatrixParams>(params["MaterialParams"]);
+            this->grassHeight = materialParams->terrainBlenderData.grassHeight;
+            this->dirtHeight = materialParams->terrainBlenderData.dirtHeight;
+            this->snowHeight = materialParams->terrainBlenderData.snowHeight;
+            this->slopeStart = materialParams->terrainBlenderData.slopeStart;
+            this->slopeEnd = materialParams->terrainBlenderData.slopeEnd;
+            this->terrainScale = materialParams->terrainBlenderData.terrainScale;
+        }
+        UINT Size() {
+            // Asegurarse de que el tamaño total sea un múltiplo de 16 bytes.
+            return (sizeof(grassHeight) + sizeof(dirtHeight) + sizeof(snowHeight) + sizeof(slopeStart) + sizeof(slopeEnd) + sizeof(terrainScale) + sizeof(padding1) + sizeof(padding2));
+        }
+        std::string MatrixType() {
+            return MATRIX_TYPE_PIXEL.data();
+		}
+
+    };
+
+    struct Terrain2BlendBuffer {
+        float grassTransitionHeight;
+        float grassTransitionSlope;
+        float dirtTransitionHeight;
+        float dirtTransitionSlope;
+
+        float rockTransitionHeight;
+        float rockTransitionSlope;
+        float snowTransitionHeight;
+        float snowTransitionSlope;
+
+        float beachTransitionHeight;
+		float beachTransitionSlope;
+        float terrainScale;
+		float padding1; // Relleno para alinear a 16 bytes
+		        
+        void SetMatrixData(std::map<std::string, std::shared_ptr<IMatrixParams>>& params) {
+            std::shared_ptr<MaterialMatrixParams> materialParams = GetMatrixParams<MaterialMatrixParams>(params["MaterialParams"]);
+            this->grassTransitionHeight = materialParams->terrain2BlenderData.dirtTransitionHeight;
+            this->grassTransitionSlope = materialParams->terrain2BlenderData.dirtTransitionSlope;
+            this->dirtTransitionHeight = materialParams->terrain2BlenderData.grassTransitionHeight;
+            this->dirtTransitionSlope = materialParams->terrain2BlenderData.grassTransitionSlope;
+            this->rockTransitionHeight = materialParams->terrain2BlenderData.rockTransitionHeight;
+            this->rockTransitionSlope = materialParams->terrain2BlenderData.rockTransitionSlope;
+            this->snowTransitionHeight = materialParams->terrain2BlenderData.snowTransitionHeight;
+            this->snowTransitionSlope = materialParams->terrain2BlenderData.snowTransitionSlope;
+            this->beachTransitionHeight = materialParams->terrain2BlenderData.beachTransitionHeight;
+            this->beachTransitionSlope = materialParams->terrain2BlenderData.beachTransitionSlope;
+            this->terrainScale = materialParams->terrain2BlenderData.terrainScale;
+        }
+        UINT Size() {
+            // Asegurarse de que el tamaño total sea un múltiplo de 16 bytes.
+            return (
+                sizeof(grassTransitionHeight) + sizeof(grassTransitionSlope) +
+                sizeof(dirtTransitionHeight) + sizeof(dirtTransitionSlope) +
+                sizeof(rockTransitionHeight) + sizeof(rockTransitionSlope) +
+                sizeof(snowTransitionHeight) + sizeof(snowTransitionSlope) +
+                sizeof(beachTransitionHeight) + sizeof(beachTransitionSlope) +
+                sizeof(terrainScale) + sizeof(padding1));
+        }
+        std::string MatrixType() {
+            return MATRIX_TYPE_PIXEL.data();
+        }
+
     };
 
     

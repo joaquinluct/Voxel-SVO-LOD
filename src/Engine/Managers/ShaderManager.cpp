@@ -1,18 +1,18 @@
 #include "ShaderManager.h"
-#include "REGISTER_MANAGER_MACRO.h"
 #include <d3dcompiler.h>
-#include <d3d11.h>
-#include <vector>
 #include <algorithm>
 #include <variant>
 #include "../Resources/resource.h"
 #include <ManagerLocator/ManagerLocator.h>
+#include <DeviceManager.h>
 #include <AssetLocator/AssetLocator.h>
 #include <DefineLocator/DefineLocator.h>
 #include <Assets/Base/ShaderAsset.h>
 #include <Util/Text/Text.h>
 #include <Defines/Matrix/MatrixDefinitionBase.h>
 #include <Defines/ShaderSampler.h>
+
+#include "REGISTER_MANAGER_MACRO.h"
 
 REGISTER_MANAGER_TYPE(ShaderManager, "ShaderManager")
 
@@ -130,25 +130,37 @@ UINT ShaderManager::GetVertexShaderBytecodeLength(std::wstring shaderName) {
     return 0; // Or another appropriate value to indicate "not found" or error
 }
 
-std::map<int, std::pair<std::string, MatrixDefinition::AnyMatrixBuffer>> ShaderManager::GetMatrixDefinitions(std::wstring shaderName) {
-    std::map<int, std::pair<std::string, MatrixDefinition::AnyMatrixBuffer>> matrixDefs;
+void ShaderManager::GetMatrixDefinitions(std::wstring shaderName, std::map<int, std::pair<std::string, MatrixDefinition::AnyMatrixBuffer>>& matrixDefs) {
     auto it = matrixShaders.find(shaderName);
     if (it != matrixShaders.end()) {
         for (const auto& [slot, matrixPair] : it->second) {
-			std::string matrixName  = matrixPair.first;
-            matrixDefs[slot] = { matrixName, *matrixPair.second };
-            //matrixDefs.push_back(*matrixPair.second); // Añadimos el contenido del unique_ptr
+            std::string matrixName = matrixPair.first;
+            auto matrixBuffer = std::make_unique<MatrixDefinition::AnyMatrixBuffer>(*matrixPair.second);
+            matrixDefs[slot] = { matrixName, std::move(*matrixBuffer) };
         }
-    } else {
+    }
+    else {
         std::string msg = "Error: No se encontraron definiciones de matrices para el shader: " + WstringToString(shaderName) + ".\n";
+        OutputDebugStringA(msg.c_str());
+        throw std::runtime_error(msg);
+    }
+}
+
+std::shared_ptr<MatrixDefinition::AnyMatrixBuffer> ShaderManager::GetConstantsBuffer(std::string matrixName) {
+    auto it = constantsBuffers.find(matrixName);
+    if (it == constantsBuffers.end()) {
+        std::string msg = "Error: No se encontró el buffer de constantes para la matriz: " + matrixName + ".\n";
         OutputDebugStringA(msg.c_str());
         // Lanzar una excepción es la forma idiomática de indicar un fallo en este caso
         throw std::runtime_error(msg);
     }
-    return matrixDefs;
+	return it->second; // Devuelve una referencia constante al mapa interno
+}
+std::map<std::string, std::shared_ptr<MatrixDefinition::AnyMatrixBuffer>> ShaderManager::GetConstantsBuffers() {
+	return constantsBuffers;
 }
 
-std::map<int, std::pair<std::string, std::unique_ptr<MatrixDefinition::AnyMatrixBuffer>>>& ShaderManager::GetMatrixBuffers(std::wstring shaderName) {
+std::map<int, std::pair<std::string, std::shared_ptr<MatrixDefinition::AnyMatrixBuffer>>>& ShaderManager::GetMatrixBuffers(std::wstring shaderName) {
     auto it = matrixShaders.find(shaderName);
     if (it == matrixShaders.end()) {
         std::string msg = "Error: No se encontraron buffers de matrices para el shader: " + WstringToString(shaderName) + ".\n";
@@ -159,74 +171,74 @@ std::map<int, std::pair<std::string, std::unique_ptr<MatrixDefinition::AnyMatrix
     return it->second; // Devuelve una referencia constante al mapa interno
 }
 
-void ShaderManager::SetConstantsBuffers(std::wstring shaderName, const MatrixDefinitionBase::MatrixParams& matrixParams, std::map<std::string, Microsoft::WRL::ComPtr<ID3D11Buffer>>& constantBuffers, Microsoft::WRL::ComPtr<ID3D11DeviceContext> context) {
-
-    D3D11_MAPPED_SUBRESOURCE mapped = {};
-    // Accedemos al mapa de matrices específico para este shader
-    std::map<int, std::pair<std::string, std::unique_ptr<MatrixDefinition::AnyMatrixBuffer>>>& matrices = matrixShaders[shaderName];
-
-    // Iteramos sobre cada tipo de buffer de constante que este shader requiere
-    for (const auto& [slot, matrix] : matrices) {
-		std::string matrixName = matrix.first; // Nombre del buffer de constante (ej. "WorldMatrix", "ViewMatrix", etc.) 
-        // Buscamos el ID3D11Buffer correspondiente en nuestro mapa de buffers globales
-        auto bufferComPtrIt = constantBuffers.find(matrixName);
-        if (bufferComPtrIt == constantBuffers.end()) {
-            // Si no se encuentra el buffer (por ejemplo, no se creó durante la inicialización),
-            // lo saltamos y continuamos con el siguiente.
-            continue;
-        }
-
-        // Obtenemos el puntero raw del ComPtr para usarlo con los métodos de DirectX
-        ID3D11Buffer* pBuffer = bufferComPtrIt->second.Get();
-
-        // Mapeamos el buffer de constante para escritura.
-        // D3D11_MAP_WRITE_DISCARD es eficiente si el buffer se actualiza cada frame.
-        HRESULT hr = context->Map(pBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
-        if (FAILED(hr)) {
-            // Manejar error de mapeo, quizás con un log o assert.
-            continue;
-        }
-
-        std::string matrixType = "";
-
-        // Usamos std::visit para aplicar el método SetMatrixData correcto
-        // a la estructura de buffer de constante específica (MatrixBufferType, DirectionalLight, etc.).
-        std::visit([&](auto& currentMatrixStruct) {
-            // Llamamos a SetMatrixData para rellenar la estructura con los datos actuales
-            // de MatrixParams. Cada estructura sabe qué datos de MatrixParams necesita.
-            currentMatrixStruct.SetMatrixData(matrixParams);
-            matrixType = currentMatrixStruct.MatrixType();
-            size_t size = currentMatrixStruct.Size();
-            //size_t size = sizeof(currentMatrixStruct);
-            // Copiamos los datos de nuestra estructura C++ a la memoria mapeada de la GPU.
-            // Asegúrate de que el tamaño de la estructura coincida con el tamaño del buffer en la GPU.
-            //memcpy(mapped.pData, &currentMatrixStruct, sizeof(std::decay_t<decltype(currentMatrixStruct)>));
-            memcpy(mapped.pData, &currentMatrixStruct, size);
-            }, *matrix.second); // Accedemos al contenido del unique_ptr<AnyMatrixBuffer>
-
-        // Desmapeamos el buffer para que la GPU pueda acceder a los datos actualizados.
-        context->Unmap(pBuffer, 0);
-
-        // --- ENLACE DE LOS CONSTANT BUFFERS A LOS SHADERS ---
-        // Aquí decidimos a qué estadio del pipeline se enlaza cada buffer.
-        // Lo más común es:
-        // - Matrices de transformación (World, View, Projection): Vertex Shader.
-        // - Datos de cámara, luz, material: Pixel Shader (para cálculos de iluminación).
-
-        if (matrixType == MATRIX_TYPE_VERTEX.data() || matrixType == MATRIX_TYPE_MIXED.data()) {
-            // Estos buffers contienen matrices de transformación que suelen usarse en el Vertex Shader.
-            context->VSSetConstantBuffers(slot, 1, &pBuffer);
-        }
-
-        if (matrixType == MATRIX_TYPE_PIXEL.data() || matrixType == MATRIX_TYPE_MIXED.data()) {
-            // Estos buffers contienen datos que son cruciales para los cálculos de iluminación
-            // y propiedades de superficie, que se realizan en el Pixel Shader.
-            context->PSSetConstantBuffers(slot, 1, &pBuffer);
-        }
-        // Nota: Si un buffer como "CameraData" también se necesitara en el Vertex Shader (ej. para billboarding),
-        // podrías añadir otra línea: context->VSSetConstantBuffers(nSlot, 1, &pBuffer);
-    }
-}
+//void ShaderManager::SetConstantsBuffers(std::wstring shaderName, MatrixDefinitionBase::MatrixParams& matrixParams, std::map<std::string, Microsoft::WRL::ComPtr<ID3D11Buffer>>& constantBuffers, Microsoft::WRL::ComPtr<ID3D11DeviceContext> context) {
+//
+//    D3D11_MAPPED_SUBRESOURCE mapped = {};
+//    // Accedemos al mapa de matrices específico para este shader
+//    std::map<int, std::pair<std::string, std::shared_ptr<MatrixDefinition::AnyMatrixBuffer>>>& matrices = matrixShaders[shaderName];
+//
+//    // Iteramos sobre cada tipo de buffer de constante que este shader requiere
+//    for (const auto& [slot, matrix] : matrices) {
+//		std::string matrixName = matrix.first; // Nombre del buffer de constante (ej. "WorldMatrix", "ViewMatrix", etc.) 
+//        // Buscamos el ID3D11Buffer correspondiente en nuestro mapa de buffers globales
+//        auto bufferComPtrIt = constantBuffers.find(matrixName);
+//        if (bufferComPtrIt == constantBuffers.end()) {
+//            // Si no se encuentra el buffer (por ejemplo, no se creó durante la inicialización),
+//            // lo saltamos y continuamos con el siguiente.
+//            continue;
+//        }
+//
+//        // Obtenemos el puntero raw del ComPtr para usarlo con los métodos de DirectX
+//        ID3D11Buffer* pBuffer = bufferComPtrIt->second.Get();
+//
+//        // Mapeamos el buffer de constante para escritura.
+//        // D3D11_MAP_WRITE_DISCARD es eficiente si el buffer se actualiza cada frame.
+//        HRESULT hr = context->Map(pBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+//        if (FAILED(hr)) {
+//            // Manejar error de mapeo, quizás con un log o assert.
+//            continue;
+//        }
+//
+//        std::string matrixType = "";
+//
+//        // Usamos std::visit para aplicar el método SetMatrixData correcto
+//        // a la estructura de buffer de constante específica (MatrixBufferType, DirectionalLight, etc.).
+//        std::visit([&](auto& currentMatrixStruct) {
+//            // Llamamos a SetMatrixData para rellenar la estructura con los datos actuales
+//            // de MatrixParams. Cada estructura sabe qué datos de MatrixParams necesita.
+//            //currentMatrixStruct.SetMatrixData(matrixParams);
+//            matrixType = currentMatrixStruct.MatrixType();
+//            size_t size = currentMatrixStruct.Size();
+//            //size_t size = sizeof(currentMatrixStruct);
+//            // Copiamos los datos de nuestra estructura C++ a la memoria mapeada de la GPU.
+//            // Asegúrate de que el tamaño de la estructura coincida con el tamaño del buffer en la GPU.
+//            //memcpy(mapped.pData, &currentMatrixStruct, sizeof(std::decay_t<decltype(currentMatrixStruct)>));
+//            memcpy(mapped.pData, &currentMatrixStruct, size);
+//            }, *matrix.second); // Accedemos al contenido del shared_ptr<AnyMatrixBuffer>
+//
+//        // Desmapeamos el buffer para que la GPU pueda acceder a los datos actualizados.
+//        context->Unmap(pBuffer, 0);
+//
+//        // --- ENLACE DE LOS CONSTANT BUFFERS A LOS SHADERS ---
+//        // Aquí decidimos a qué estadio del pipeline se enlaza cada buffer.
+//        // Lo más común es:
+//        // - Matrices de transformación (World, View, Projection): Vertex Shader.
+//        // - Datos de cámara, luz, material: Pixel Shader (para cálculos de iluminación).
+//
+//        if (matrixType == MATRIX_TYPE_VERTEX.data() || matrixType == MATRIX_TYPE_MIXED.data()) {
+//            // Estos buffers contienen matrices de transformación que suelen usarse en el Vertex Shader.
+//            context->VSSetConstantBuffers(slot, 1, &pBuffer);
+//        }
+//
+//        if (matrixType == MATRIX_TYPE_PIXEL.data() || matrixType == MATRIX_TYPE_MIXED.data()) {
+//            // Estos buffers contienen datos que son cruciales para los cálculos de iluminación
+//            // y propiedades de superficie, que se realizan en el Pixel Shader.
+//            context->PSSetConstantBuffers(slot, 1, &pBuffer);
+//        }
+//        // Nota: Si un buffer como "CameraData" también se necesitara en el Vertex Shader (ej. para billboarding),
+//        // podrías añadir otra línea: context->VSSetConstantBuffers(nSlot, 1, &pBuffer);
+//    }
+//}
 
 HRESULT ShaderManager::InitManagers() {
     deviceManager = ManagerLocator::GetManager<DeviceManager>();
@@ -286,10 +298,12 @@ HRESULT ShaderManager::InitShaders() {
             // Guardar las constants matrix del shader
             int slot = 0;
             for (const std::string& matrixName : matrixDef) {
-                MatrixDefinition::AnyMatrixBuffer matrix = MatrixDefinition::Get(matrixName);
+                MatrixDefinition::AnyMatrixBuffer matrixDef = MatrixDefinition::Get(matrixName);
                 //const std::string matrixSlotName = ParseInt(idx) + matrixName;
                 //matrixShaders[name][matrixSlotName] = { idx, (std::make_unique<MatrixDefinition::AnyMatrixBuffer>(std::move(matrix))) };
-                matrixShaders[name][slot] = { matrixName, (std::make_unique<MatrixDefinition::AnyMatrixBuffer>(std::move(matrix))) };
+                std::shared_ptr<MatrixDefinition::AnyMatrixBuffer> matrix = std::make_shared<MatrixDefinition::AnyMatrixBuffer>(std::move(matrixDef));
+				constantsBuffers[matrixName] = matrix;
+                matrixShaders[name][slot] = { matrixName, matrix };
                 slot++;
             }
         }
@@ -298,6 +312,9 @@ HRESULT ShaderManager::InitShaders() {
 			// Guardar los samplers desc del shader
             int slot = 0;
             for (std::string samplerName : samplerDef) {
+                if (StrToLower(samplerName) == "none") {
+                    continue;
+                }
                 const std::string samplerSlotName = ParseInt(slot) + samplerName;
                 ShaderSampler::SamplerVariant sampler = ShaderSampler::GetSampler(samplerName);
                 std::visit([&](auto&& sampler) {

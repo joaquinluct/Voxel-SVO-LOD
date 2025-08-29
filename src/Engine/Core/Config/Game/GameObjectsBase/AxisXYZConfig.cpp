@@ -9,7 +9,6 @@ AxisXYZConfig::AxisXYZConfig(){
 	type = "AxisXYZ";
 	dependencies = {
 		"DeviceManager",
-		"WorldMatrixManager",
 		"ShaderManager",
 		"CameraManager"
 	};

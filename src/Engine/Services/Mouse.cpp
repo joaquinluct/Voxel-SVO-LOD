@@ -1,5 +1,4 @@
 #include "Mouse.h"
-#include <cmath> // Para std::fmod
 #include <REGISTER_SERVICE_MACRO.h>
 
 REGISTER_SERVICE_TYPE(Mouse, "Mouse")
@@ -17,14 +16,14 @@ Mouse::~Mouse() {
 
 HRESULT Mouse::Init() {
     m_deviceManager = ManagerLocator::GetManager<DeviceManager>();
-    m_renderTargetManager = ManagerLocator::GetManager<RenderTargetManager>();
-
+    
     m_hwnd = m_deviceManager->GetHwnd();
-    m_renderTargetManager->GetViewPortDimensions(m_width, m_height);
+    m_width = m_deviceManager->GetWidth();
+	m_height = m_deviceManager->GetHeight();
 
     // Configurar el cursor
-    // ConfineCursor();
-    SetCenter();
+    /*ConfineCursor();*/
+    /*SetCenter();*/
     ShowCursor(true);
     
     return S_OK;

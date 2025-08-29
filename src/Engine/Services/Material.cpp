@@ -11,6 +11,7 @@
 #include <Defines/Matrix/MatrixDefinition.h>
 #include <Defines/Matrix/Light.h>
 #include <Util/DirectXUtils.h>
+#include <Util/Text/Text.h>
 #include <REGISTER_SERVICE_MACRO.h>
 
 REGISTER_SERVICE_TYPE(Material, "Material")
@@ -27,8 +28,7 @@ Material::Material()
     m_matrixBuffer(nullptr),
     m_deviceManager(nullptr),
     m_cameraManager(nullptr),
-    m_shaderManager(nullptr),
-    m_renderManager(nullptr),
+    m_shaderManager(nullptr),    
 	m_lighting(nullptr),
     m_shadows(nullptr),
     vertexShader(nullptr),
@@ -37,37 +37,30 @@ Material::Material()
 {
 }
 
+// --------------------------------------------------------
+// InitManagers
+// --------------------------------------------------------
 HRESULT Material::InitManagers() {
     m_deviceManager = ManagerLocator::GetDeviceManager();
     if (m_deviceManager == nullptr) {
         OutputDebugStringA("Error: DeviceManager no inicializado.\n");
         return E_FAIL;
     }
-
     m_cameraManager = ManagerLocator::GetCameraManager();
     if (m_cameraManager == nullptr) {
         OutputDebugStringA("Error: CameraManager no inicializado.\n");
         return E_FAIL;
     }
-
     m_shaderManager = ManagerLocator::GetShaderManager();
     if (m_shaderManager == nullptr) {
         OutputDebugStringA("Error: ShaderManager no inicializado.\n");
         return E_FAIL;
     }
-
-	m_renderManager = ManagerLocator::GetManager<RenderManager>();
-    if (m_renderManager == nullptr) {
-        OutputDebugStringA("Error: RenderManager no inicializado.\n");
-        return E_FAIL;
-	}
-
 	m_lighting = ServiceLocator::GetService<Lighting>();
     if (m_lighting == nullptr) {
         OutputDebugStringA("Error: Lighting no inicializado.\n");
         return E_FAIL;
 	}
-
 	m_shadows = ServiceLocator::GetService<Shadows>();
     if (m_shadows == nullptr) {
         OutputDebugStringA("Error: Shadows no inicializado.\n");
@@ -77,16 +70,22 @@ HRESULT Material::InitManagers() {
     return S_OK;
 }
 
+// --------------------------------------------------------
+// InitPixelAndVertexShaders
+// --------------------------------------------------------
 HRESULT Material::InitPixelAndVertexShaders() {
     vertexShader = m_shaderManager->GetVertexShader(m_shaderName);
     pixelShader = m_shaderManager->GetPixelShader(m_shaderName);
 
     if (!vertexShader || !pixelShader) {
-        OutputDebugStringA("Error: No se pudieron cargar los shaders.\n");
+        OutputDebugStringA(("[Material] Init. Error: Error al cargar Vertex y Pixel Shader de " + WstringToString(m_shaderName) + ".\n").c_str());
     }
     return S_OK;
 }
 
+// --------------------------------------------------------
+// InitSampleState
+// --------------------------------------------------------
 HRESULT Material::InitSampleState() {
 
     return S_OK;
@@ -117,6 +116,10 @@ HRESULT Material::InitSampleState() {
     }
     return hr;
 }
+
+// --------------------------------------------------------
+// InitMatrixBuffer
+// --------------------------------------------------------
 HRESULT Material::InitMatrixBuffer() {
 
 	m_shaderManager = ManagerLocator::GetShaderManager();
@@ -125,7 +128,7 @@ HRESULT Material::InitMatrixBuffer() {
         return E_FAIL;
 	}
     
-	std::map<int, std::pair<std::string, std::unique_ptr<MatrixDefinition::AnyMatrixBuffer>>>& matrixBuffers = m_shaderManager->GetMatrixBuffers(m_shaderName);
+	auto& matrixBuffers = m_shaderManager->GetMatrixBuffers(m_shaderName);
 
     if (matrixBuffers.empty()) {
         OutputDebugStringA("Error: No se encontraron Matrix Buffers para el shader.\n");
@@ -142,9 +145,9 @@ HRESULT Material::InitMatrixBuffer() {
             }, * matrix.second);
 
         // Si no es un múltiplo de 16, redondear hacia arriba
-        /*if (buffer_byte_width % 16 != 0) {
+        if (buffer_byte_width % 16 != 0) {
             buffer_byte_width = (buffer_byte_width / 16 + 1) * 16;
-        }*/
+        }
 
         D3D11_BUFFER_DESC cbd = {};
         cbd.Usage = D3D11_USAGE_DYNAMIC;
@@ -166,6 +169,9 @@ HRESULT Material::InitMatrixBuffer() {
     return S_OK;
 }
 
+// --------------------------------------------------------
+// Init
+// --------------------------------------------------------
 HRESULT Material::Init() {
     HRESULT hr = S_OK;
 
@@ -208,35 +214,45 @@ HRESULT Material::Init() {
     return hr;
 }
 
+// --------------------------------------------------------
+// Render
+// --------------------------------------------------------
 void Material::Render() {
 
-    Microsoft::WRL::ComPtr<ID3D11DeviceContext> context = m_deviceManager->GetContext();
+ //   Microsoft::WRL::ComPtr<ID3D11DeviceContext> context = m_deviceManager->GetContext();
 
-    XMMATRIX worldMatrix = XMMatrixIdentity();
-    XMMATRIX viewMatrix = XMMatrixTranspose(m_cameraManager->GetCurrentViewMatrix());
-    XMMATRIX projectionMatrix = XMMatrixTranspose(m_cameraManager->GetCurrentProjectionMatrix());
+ //   XMMATRIX worldMatrix = XMMatrixIdentity();
+ //   XMMATRIX viewMatrix = XMMatrixTranspose(m_cameraManager->GetCurrentViewMatrix());
+ //   XMMATRIX projectionMatrix = XMMatrixTranspose(m_cameraManager->GetCurrentProjectionMatrix());
 
-    MatrixDefinitionBase::MatrixParams matrixParams{};
-    //if (m_renderManager->IsRenderColourPassActive()) {
-        matrixParams.worldMatrix = worldMatrix;
-        matrixParams.viewMatrix = viewMatrix;
-        matrixParams.projectionMatrix = projectionMatrix;
-        matrixParams.cameraPosition = m_cameraManager->GetCurrentCameraPosition();
-        matrixParams.lightDirection = m_lighting->GetLightDirection();
-        matrixParams.lightColor = m_lighting->GetLightColor();
-        matrixParams.materialAO = 0.4f;
-        matrixParams.textureTransform = m_textureTranforms;
-    /*} else if (m_renderManager->IsRenderShadowsPassActive()) {
-        matrixParams.worldMatrix = worldMatrix;
-        matrixParams.lightViewProjectionMatrix = m_shadows->GetLightViewProjectionMatrix();
-    } */
-    
-	SetConstantBuffers(context, matrixParams);
+ //   MatrixDefinitionBase::MatrixParams matrixParams{};
+ //   //if (m_renderManager->IsRenderColourPassActive()) {
+ //       matrixParams.worldMatrix = worldMatrix;
+ //       matrixParams.viewMatrix = viewMatrix;
+ //       matrixParams.projectionMatrix = projectionMatrix;
+ //       matrixParams.cameraPosition = m_cameraManager->GetCurrentCameraPosition();
+ //       matrixParams.lightDirection = m_lighting->GetLightDirection();
+ //       matrixParams.lightColor = m_lighting->GetLightColor();
+ //       matrixParams.materialAO = 0.4f;
+ //       matrixParams.textureTransform = m_textureTranforms;
+ //   /*} else if (m_renderManager->IsRenderShadowsPassActive()) {
+ //       matrixParams.worldMatrix = worldMatrix;
+ //       matrixParams.lightViewProjectionMatrix = m_shadows->GetLightViewProjectionMatrix();
+ //   } */
+ //   
+	////SetConstantBuffers(context, matrixParams);
 
-    Apply(context);
+ //   Apply(context);
 }
 
+// --------------------------------------------------------
+// SetTexture
+// --------------------------------------------------------
 void Material::SetTexture(ID3D11ShaderResourceView* texture, std::string textureMap) {
+    if (textureMap.empty()) {  
+        m_textureMapViews = texture;
+        return;
+	}
     if (textureMap == TEXTURE_MAP_ALBEDO.data()) m_texture_albedo = texture;
     if (textureMap == TEXTURE_MAP_NORMAL.data()) m_texture_normal = texture;
     if (textureMap == TEXTURE_MAP_ROUGHNESS.data()) m_texture_roughness = texture;
@@ -253,116 +269,83 @@ void Material::SetTextureTranforms(XMFLOAT4 tranforms)
     m_textureTranforms = tranforms;
 }
 
-void Material::SetConstantBuffers(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context,
-    MatrixDefinitionBase::MatrixParams matrixParams, int slot) {
-
-    return;
-
-    MatrixDefinitionBase::MatrixParams mData = {};
-
-    //mData.worldMatrix = mesh->GetWorldMatrix();
-    mData.worldMatrix = DirectX::XMMatrixIdentity();
-    mData.viewMatrix = DirectX::XMMatrixTranspose(m_cameraManager->GetCurrentViewMatrix());
-    mData.projectionMatrix = DirectX::XMMatrixTranspose(m_cameraManager->GetCurrentProjectionMatrix());
-    mData.cameraPosition = m_cameraManager->GetCurrentCameraPosition();
-    mData.lightDirection = m_lighting->GetLightDirection();
-    mData.lightColor = m_lighting->GetLightColor();
-    mData.materialAO = 0.4f;
-	mData.textureTransform = m_textureTranforms;
-    /*mesh->GetMaterial()->SetConstantBuffers(m_deviceManager->GetContext(), mData);
-    mesh->GetMaterial()->Apply(m_deviceManager->GetContext());*/
-    /*unsigned int oper = static_cast<unsigned int>(PipelineMatrixBufferType::WorldMatrix) | static_cast<unsigned int>(PipelineMatrixBufferType::ViewMatrix) | static_cast<unsigned int>(PipelineMatrixBufferType::ProjectionMatrix) | static_cast<unsigned int>(PipelineMatrixBufferType::CameraPosition) | static_cast<unsigned int>(PipelineMatrixBufferType::LightDirection) | static_cast<unsigned int>(PipelineMatrixBufferType::LightColor) | static_cast<unsigned int>(PipelineMatrixBufferType::MaterialAO);*/
-    //mData.oper = oper;
-    PipelineMatrixBufferData matrixData = {};
-    matrixData.data = mData;
-    matrixData.constantsBuffers = GetConstantBuffers();
-    matrixData.matrices = m_shaderManager->GetMatrixDefinitions(m_shaderName);
-
-    PipelineOperation oper = new PipelineOperation(PipelineOperationType::Device_SetConstantsBufferState, matrixData);
-
-    m_renderManager->ExecuteOperation(oper);
-
-
-    //m_shaderManager->SetConstantsBuffers(m_shaderName, matrixParams, m_constantBuffers, context);
-}
-
-void Material::Apply(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context) {
-    return;
-    // Establecer shaders
-    if (!vertexShader || !pixelShader) {
-        OutputDebugStringA("Error: Shaders no inicializados correctamente.\n");
-        return;
-    }
-
-    PipelineVertexShaderData vsData = {};
-	vsData.data = vertexShader.Get();
-	PipelineOperation oper = new PipelineOperation(PipelineOperationType::Mesh_Render_SetVertexShader, vsData);
-
-    m_renderManager->ExecuteOperation(oper);
-
-    PipelinePixelShaderData psData = {};
-	psData.data = pixelShader.Get();
-	oper = new PipelineOperation(PipelineOperationType::Mesh_Render_SetPixelShader, psData);
-
-    m_renderManager->ExecuteOperation(oper);
-
-    PipelineLayoutData lData = {};
-    lData.data = GetInputLayout();
-    oper = new PipelineOperation(PipelineOperationType::Mesh_Render_SetInputLayout, lData);
-
-    m_renderManager->ExecuteOperation(oper);
-
-    PipelineTextureData tData = {};
-    tData.data = {};
-    tData.numTextures = GetNumTextures();
-    tData.data = GetTextures();
-    oper = new PipelineOperation(PipelineOperationType::Mesh_Render_SetTexture, tData);
-    
-    m_renderManager->ExecuteOperation(oper);
-
-    /*PipelineSamplerSateData spData = {};
-    spData.data = GetSamplerState();*/
-    
-    //oper = new PipelineOperation(PipelineOperationType::Mesh_Render_SetSampler, spData);
-    
-    //m_renderManager->ExecuteOperation(oper);
-
-    //context->VSSetShader(vertexShader.Get(), nullptr, 0);
-    //context->PSSetShader(pixelShader.Get(), nullptr, 0);
-
-    if (inputLayout) {
-        //context->IASetInputLayout(inputLayout.Get());
-    }
-    else {
-        OutputDebugStringA("Error: Input Layout no inicializado.\n");
-    }
-
-    
-    // Establecer textura
-    /*const int mapSize = 5;
-    ID3D11ShaderResourceView* texturesToBind[mapSize] = { nullptr, nullptr, nullptr, nullptr, nullptr };
-
-    if (m_texture_albedo) {
-        texturesToBind[0] = m_texture_albedo;
-    }
-    if (m_texture_normal) {
-        texturesToBind[1] = m_texture_normal;
-    }
-    if (m_texture_roughness) {
-        texturesToBind[2] = m_texture_roughness;
-    }
-    if (m_texture_metallic) {
-        texturesToBind[3] = m_texture_metallic;
-    }
-    if (m_texture_ao) {
-        texturesToBind[4] = m_texture_ao;
-    }
-
-    context->PSSetShaderResources(0, mapSize, texturesToBind);*/
-
-	/*ID3D11SamplerState* samplerStates[] = { m_samplerState.Get() };
-    context->PSSetSamplers(0, 1, samplerStates);*/
-}
+//void Material::Apply(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context) {
+//    return;
+//    // Establecer shaders
+//    if (!vertexShader || !pixelShader) {
+//        OutputDebugStringA("Error: Shaders no inicializados correctamente.\n");
+//        return;
+//    }
+//
+//    PipelineVertexShaderData vsData = {};
+//	vsData.data = vertexShader.Get();
+//	PipelineOperation oper = new PipelineOperation(PipelineOperationType::Mesh_Render_SetVertexShader, vsData);
+//
+//    m_renderManager->ExecuteOperation(oper);
+//
+//    PipelinePixelShaderData psData = {};
+//	psData.data = pixelShader.Get();
+//	oper = new PipelineOperation(PipelineOperationType::Mesh_Render_SetPixelShader, psData);
+//
+//    m_renderManager->ExecuteOperation(oper);
+//
+//    PipelineLayoutData lData = {};
+//    lData.data = GetInputLayout();
+//    oper = new PipelineOperation(PipelineOperationType::Mesh_Render_SetInputLayout, lData);
+//
+//    m_renderManager->ExecuteOperation(oper);
+//
+//    PipelineTextureData tData = {};
+//    tData.data = {};
+//    tData.numTextures = GetNumTextures();
+//    tData.data = GetTextures();
+//    oper = new PipelineOperation(PipelineOperationType::Mesh_Render_SetTexture, tData);
+//    
+//    m_renderManager->ExecuteOperation(oper);
+//
+//    /*PipelineSamplerSateData spData = {};
+//    spData.data = GetSamplerState();*/
+//    
+//    //oper = new PipelineOperation(PipelineOperationType::Mesh_Render_SetSampler, spData);
+//    
+//    //m_renderManager->ExecuteOperation(oper);
+//
+//    //context->VSSetShader(vertexShader.Get(), nullptr, 0);
+//    //context->PSSetShader(pixelShader.Get(), nullptr, 0);
+//
+//    if (inputLayout) {
+//        //context->IASetInputLayout(inputLayout.Get());
+//    }
+//    else {
+//        OutputDebugStringA("Error: Input Layout no inicializado.\n");
+//    }
+//
+//    
+//    // Establecer textura
+//    /*const int mapSize = 5;
+//    ID3D11ShaderResourceView* texturesToBind[mapSize] = { nullptr, nullptr, nullptr, nullptr, nullptr };
+//
+//    if (m_texture_albedo) {
+//        texturesToBind[0] = m_texture_albedo;
+//    }
+//    if (m_texture_normal) {
+//        texturesToBind[1] = m_texture_normal;
+//    }
+//    if (m_texture_roughness) {
+//        texturesToBind[2] = m_texture_roughness;
+//    }
+//    if (m_texture_metallic) {
+//        texturesToBind[3] = m_texture_metallic;
+//    }
+//    if (m_texture_ao) {
+//        texturesToBind[4] = m_texture_ao;
+//    }
+//
+//    context->PSSetShaderResources(0, mapSize, texturesToBind);*/
+//
+//	/*ID3D11SamplerState* samplerStates[] = { m_samplerState.Get() };
+//    context->PSSetSamplers(0, 1, samplerStates);*/
+//}
 
 ID3D11ShaderResourceView* Material::LoadTextureFromFile(std::shared_ptr<ID3D11Device> device, const std::wstring& filename) {
     ID3D11ShaderResourceView* texture = nullptr;

@@ -9,7 +9,6 @@ LineConfig::LineConfig(){
 	type = "Line";
 	dependencies = {
 		"DeviceManager",
-		"WorldMatrixManager",
 		"ShaderManager",
 		"CameraManager"
 	};

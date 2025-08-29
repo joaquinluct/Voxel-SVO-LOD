@@ -1,9 +1,11 @@
 #pragma once
 #include <d3d11.h>
 #include <string>
+#include <string_view>
 #include <map>
 #include <vector>
 #include <variant>
+#include <functional>
 #include <memory>
 #include <wrl/client.h>
 //#include <Services/Material.h>
@@ -12,7 +14,13 @@
 #include <Defines/Matrix/MatrixDefinitionBase.h>
 #include <Defines/ShaderSampler.h>
 
+class FrameStateService;
 class Material;
+
+inline constexpr std::string_view MATRIX_PARAM_BASE = "BaseParams";
+inline constexpr std::string_view MATRIX_PARAM_LIGHT = "LightParams";
+inline constexpr std::string_view MATRIX_PARAM_MATERIAL = "MaterialParams";
+inline constexpr std::string_view MATRIX_PARAM_WATER = "WaterParams";
 
 using SamplerStates = std::map<std::string, Microsoft::WRL::ComPtr<ID3D11SamplerState>>;
 
@@ -28,20 +36,25 @@ enum class PipelineOperationType {
     Device_Init_SetLayout,
     Device_Init_SetSencilState,
     Device_Init_SetSencilView,
-    Device_Init_SetPixelShader,
     Device_Init_SetRenderTargetView,
+    Device_Unbind_RenderTargetView,
     Device_ResetRenderTargetView,
     Device_Init_SetVertexShader,
     Device_Init_Viewport,
     Device_draw,
+    Device_drawIndexedShared,
     Device_drawIndexed,
+    Device_drawInstanced,
     Device_ClearRenderTargetView,
     Device_ClearDepthStencilView,
+    Device_ClearStencilView,
+    Device_ClearDepthView,
     Device_EnabledBledingState,
     Device_DisabledBledingState,
     Device_PresentSwapChain,
     Device_SetConstantsBufferState,
-    Device_ResetConstantsBuffers,
+    Device_UpdateConstantsBufferResource,
+    Device_ResetConstantsBuffers,    
     Device_SetDepthStencilState,
     Device_SetRasterizedState,
     Device_SetViewport,
@@ -54,6 +67,7 @@ enum class PipelineOperationType {
     Mesh_Render_RestoreState,
     Mesh_Render_SaveState,
     Mesh_Render_SetIndexBuffer,
+    Mesh_Render_ResetIndexBuffer,
     Mesh_Render_SetInputLayout,
     Mesh_Render_SetPrimitiveToplogy,
     Mesh_Render_SetPixelShader,
@@ -62,7 +76,9 @@ enum class PipelineOperationType {
     Mesh_Render_SetTexture,
     Mesh_Render_Reset_Textures,
     Mesh_Render_SetVertexBuffer,
+    Mesh_Render_ResetVertexBuffer,
     Mesh_Render_SetVertexShader,
+    Mesh_Render_ResetVertexShader,
     Count // Para iterar o saber el número de operaciones
 };
 
@@ -202,12 +218,22 @@ struct PipelineDrawIndexedData : public PipelineOperBase
 {
     D3D11_INPUT_ELEMENT_DESC data;
     UINT numIndexes;
+    UINT indexOffset;
+    UINT vertexOffset;
 };
 
 struct PipelineDrawData : public PipelineOperBase
 {
     D3D11_INPUT_ELEMENT_DESC data;
     UINT vertexCount;
+};
+
+struct PipelineDrawInstancedData : public PipelineOperBase
+{
+    D3D11_INPUT_ELEMENT_DESC data;
+    UINT instanceCount;
+    UINT vertexCountPerInstance;
+    UINT indexCountPerInstance;
 };
 
 struct PipelineLayoutData : public PipelineOperBase
@@ -231,6 +257,26 @@ struct PipelinePixelShaderData : public PipelineOperBase
 
 struct PipelineDepthStencilData : public PipelineOperBase
 {
+    PipelineDepthStencilData Clone() {
+        PipelineDepthStencilData copy = *this;
+        if (hasViewDesc) {
+            copy.viewDesc = viewDesc;
+        }
+        if (shaderViewDesc.Format != DXGI_FORMAT_UNKNOWN) {
+            copy.shaderViewDesc = shaderViewDesc;
+        }
+        if (viewTextureData) {
+            viewTextureData->AddRef(); // Incrementar el recuento de referencias
+            copy.viewTextureData = viewTextureData;
+        }
+        if (stencilViewData) {
+            copy.stencilViewData = stencilViewData;
+		}
+        if (shaderViewData) {
+            copy.shaderViewData = shaderViewData;
+		}
+		return copy;        
+	}
     Microsoft::WRL::ComPtr <ID3D11DepthStencilView> stencilViewData;
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> shaderViewData;
 	ID3D11Texture2D* viewTextureData = nullptr;
@@ -276,18 +322,28 @@ struct PipelineMatrixBufferData : public PipelineOperBase
 {
     // Entrada:
     Material* material;
-    MatrixDefinitionBase::MatrixParams data;
+    //MatrixDefinitionBase::MatrixParams data;
+	std::map<std::string, std::shared_ptr<IMatrixParams>> params;
     std::map<int, std::pair<std::string, MatrixDefinition::AnyMatrixBuffer>> matrices;
 
 	// Salida:
 	std::map<std::string, Microsoft::WRL::ComPtr<ID3D11Buffer>> constantsBuffers; // Mapa de buffers de constantes
+};
 
-
-
+struct PipelineUpdateMatrixBufferData : public PipelineOperBase
+{
+    // Entrada:
+    std::shared_ptr<MatrixDefinitionBase::WaterMatrixParams> data;
+	//MatrixDefinitionBase::MatrixBufferType oper = MatrixDefinitionBase::MatrixBufferType::None;
+    std::map<int, std::pair<std::string, MatrixDefinition::AnyMatrixBuffer>> matrices;
+    
+    // Salida:
+	Microsoft::WRL::ComPtr<ID3D11Buffer> constantsBuffer; // buffer a actualizar
 };
 
 using PipelineParameter = std::variant<
 	PipelineMatrixBufferData,
+	PipelineUpdateMatrixBufferData,
     PipelineMaterialBufferData,
     PipelineRasteriezeData,
     PipelineBledingData,
@@ -299,6 +355,7 @@ using PipelineParameter = std::variant<
     PipelineLayoutData,
     PipelineDrawData,
     PipelineDrawIndexedData,
+    PipelineDrawInstancedData,
     PipelinePrimitiveTopologyData,
     PipelineSetVertexBufferData,
     PipelineSetIndexBufferData,
@@ -310,85 +367,37 @@ using PipelineParameter = std::variant<
     PipelineSetRenderTargetsData
 >;
 
-using PipelineData = std::variant<
-    std::vector<Microsoft::WRL::ComPtr<ID3D11SamplerState>>,
-    SamplerStates,
-    PipelineDepthStencilData,
-    Microsoft::WRL::ComPtr<ID3D11RasterizerState>,
-    Microsoft::WRL::ComPtr<ID3D11BlendState>,
-    Microsoft::WRL::ComPtr<ID3D11DepthStencilView>,
-    Microsoft::WRL::ComPtr<ID3D11DepthStencilState>,
-    Microsoft::WRL::ComPtr<ID3D11SamplerState>,
-    Microsoft::WRL::ComPtr<ID3D11Texture2D>,
-    Microsoft::WRL::ComPtr<ID3D11RenderTargetView>>;
-
 class PipelineOperation
 {
-private:
-    PipelineOperationType operationType; // Tipo de operación en el pipeline
-    PipelineParameter operationParam;
-	PipelineData operationData; // Datos específicos de la operación
-    int priority;
-    HRESULT result;
 public:
+    // Función ejecutora
+    using ExecuteFn = std::function<void(PipelineOperation*, FrameStateService*)>;
+
+    void SetExecutor(ExecuteFn fn) { executor = std::move(fn); }
+    void Execute(FrameStateService* frameState) {
+        if (executor) executor(this, frameState);
+    }
     // Constructor por defecto
-    PipelineOperation() : operationType(PipelineOperationType::Unknown), operationParam(), operationData(), priority(0), result() {}
-    PipelineOperation(const PipelineOperation* other) : operationType(other->GetOperationType()), priority(other->GetPriority()), operationParam(other->GetOperationParam()), operationData(other->GetOperationData()), result() {}
+    PipelineOperation() : operationType(PipelineOperationType::Unknown), priority(0), result() {}
+    PipelineOperation(const PipelineOperation* other) : operationType(other->GetOperationType()), priority(other->GetPriority()), result() {}    
     // Constructor con parámetros
-    PipelineOperation(PipelineOperationType type, PipelineParameter param, PipelineData operationOutData = {}, int prio = 0)
-        : operationType(type), operationParam(param), operationData(operationOutData), priority(prio), result() {}
+    PipelineOperation(PipelineOperationType type, int prio = 0)
+        : operationType(type), priority(prio), result() {}
+	PipelineOperation(PipelineOperationType operationType, FrameStateService* frameState, int prio = 0) : operationType(operationType), priority(prio), result() {}
     ~PipelineOperation() {};
+
+	// Datos de entrada y salida de la operación
     PipelineOperationType GetOperationType() const { return operationType; };
-    PipelineParameter GetOperationParam() const { return operationParam; };
     void SetOperationType(PipelineOperationType opType) { operationType = opType; }
     int GetPriority() const { return priority; }
 	void SetPriority(int prio) { priority = prio; }
-    void SetOperationData(PipelineData data) { operationData = data; }
-    PipelineData GetOperationData() const {
-        return operationData;
-    }
-	// Método para obtener un puntero al tipo de dato específico de la operación
-    template<typename T>
-    T GetOperationData() {
-        if (operationData.index() == std::variant_npos) {
-            return nullptr;
-		}
-        return std::get<T>(operationData);
-    }
-    template<typename T>
-    T GetOperationParam() {
-        //if (!operationParam) return nullptr;
-        return std::get<T>(operationParam);
-    }
-    void SetResult(HRESULT hr) {
-        result = hr;
-    }
-    HRESULT GetResult() { return result; }
-};
-
-
-class PipelineStore
-{
+    HRESULT GetResult() const { return result; }
+	void SetResult(HRESULT hr) { result = hr; }
 private:
-    std::map<std::string, PipelineData> m_pipelineStates;
-public:
-    PipelineStore() : m_pipelineStates() {}
-    PipelineStore(const PipelineStore* other) : m_pipelineStates(other->m_pipelineStates) {  }
-    ~PipelineStore() { m_pipelineStates.clear(); };
-
-    void SetPipelineStates(std::map<std::string, PipelineData> pipelineStates) {
-        m_pipelineStates = pipelineStates;
-    }
-
-    std::map<std::string, PipelineData> GetPielineStates() { return m_pipelineStates; }
-
-    template<typename T>
-    T GetState(std::string stateName) {
-        T result;
-        auto pair = m_pipelineStates.find(stateName);
-        if (pair != m_pipelineStates.end()) {
-            result = std::get<T>(pair->second);
-        }
-        return result;
-    }
+    std::string renderPassName;
+    PipelineOperationType operationType; // Tipo de operación en el pipeline    
+    int priority;
+    HRESULT result;
+	// Función que ejecuta la operación
+    ExecuteFn executor;
 };

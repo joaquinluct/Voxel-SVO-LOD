@@ -1,9 +1,9 @@
 #include <DirectXMath.h>
 #include "UIText.h"
+#include <Assets/Base/MeshAsset.h>
 #include <ManagerLocator/ManagerLocator.h>
 #include "DeviceManager.h"
 #include <Services/Material.h>
-#include "WorldMatrixManager.h"
 #include <windows.h> // Para OutputDebugStringA
 #include <algorithm> // Para std::max
 #include <cmath>     // Para roundf
@@ -14,13 +14,12 @@
 
 REGISTER_SERVICE_TYPE(UIText, "UIText")
 
-// Constructor: Inicializa los miembros de estado con valores por defecto
-UIText::UIText(std::shared_ptr<DeviceManager> deviceManager,
-    std::shared_ptr<WorldMatrixManager> worldMatrixManager,
-    Material* material)
-    : m_device(deviceManager),
-    //m_worldMatrixManager(worldMatrixManager),
-    //m_material(material),
+UIText::UIText(std::shared_ptr<MeshAsset> mesh)
+    : m_mesh(mesh),
+    m_device(),
+    //m_material(nullptr),
+    m_screenHeight(0),
+    m_screenWidth(0),
     m_vertexBuffer(nullptr),
     m_text(""),                  // Texto por defecto vacío
     m_position(0.0f, 0.0f, 0.0f), // Posición por defecto
@@ -38,7 +37,7 @@ HRESULT UIText::Init() {
     if (!m_device) {
         OutputDebugStringA("Error: UIText::Init - DeviceManager is null.\n");
         return E_FAIL;
-	}
+	}	
     m_screenWidth = m_device->GetWidth();
 	m_screenHeight = m_device->GetHeight();
     m_screenOffset = DirectX::XMFLOAT3(-(m_screenWidth / 2.0f) + 20.0f, -(m_screenHeight / 2.0f) + 20.0f, 0.0f);
@@ -47,8 +46,13 @@ HRESULT UIText::Init() {
 
 void UIText::SetText(const std::string& text) {
     m_text = text;
-    // Opcional: Podrías añadir una bandera aquí para indicar que el buffer necesita ser regenerado
-    // si el texto cambia y su tamaño afecta la capacidad del buffer.
+    m_mesh->UpdateTextMesh(this, text);
+
+	//m_uiManager->UpdateText(GetMesh()->GetName(), text);
+    //m_text = text;
+    //// Opcional: Podrías añadir una bandera aquí para indicar que el buffer necesita ser regenerado
+    //// si el texto cambia y su tamaño afecta la capacidad del buffer.
+    //m_mesh->InitMesh();
 }
 
 DirectX::XMFLOAT3 UIText::GetPosition() {
@@ -66,13 +70,13 @@ void UIText::SetColor(float r, float g, float b, float a) {
 
 void UIText::SetFontSize(float size) {
     m_fontSize = size;
-	m_font->SetSize(size);
+    m_font->SetSize(static_cast<int>(size));
 }
 
 void UIText::CreateMesh(std::vector<std::shared_ptr<VertexDefinition::VertexVariant>>& pVertexData) {
 
 	//m_position = DirectX::XMFLOAT3(-970.0f, -450.0f, 0.0f); // Aseguramos que la posición se inicializa a (0, 0, 0)
-	m_fontSize = m_font->GetSize(); // Aseguramos que el tamaño de fuente se obtiene del objeto Font
+    m_fontSize = static_cast<float>(m_font->GetSize()); // Aseguramos que el tamaño de fuente se obtiene del objeto Font
 	m_color = m_font->GetColor(); // Aseguramos que el color se obtiene del objeto Font
 
     float charWidth =  m_fontSize;
@@ -83,6 +87,10 @@ void UIText::CreateMesh(std::vector<std::shared_ptr<VertexDefinition::VertexVari
         
     float x = roundf(GetPosition().x);
     float y = roundf(GetPosition().y);
+
+    if (m_text.empty()) {
+        return;
+    }
 
     for (char c : m_text) {
         int charIndex = static_cast<int>(c);
@@ -317,9 +325,6 @@ void UIText::SetVertexBuffer(Microsoft::WRL::ComPtr < ID3D11DeviceContext> conte
 //	params.projectionMatrix = orthoMatrix;
 //
 //    m_material->SetConstantBuffers(context, params, 1);
-//    // Aquí le pasamos al WorldMatrixManager las matrices que necesita para este dibujado.
-//    // Él se encargará de actualizar su buffer interno.
-//    //m_worldMatrixManager->SetGlobalMatrices(worldIdentity, viewIdentity, orthoMatrix);
 //}
 
 //void UIText::Render() {
@@ -334,8 +339,8 @@ void UIText::SetVertexBuffer(Microsoft::WRL::ComPtr < ID3D11DeviceContext> conte
 
 //void UIText::Render(const DirectX::XMMATRIX& orthoMatrix) {
 //    // Verificación de punteros esenciales
-//    if (!m_material || !m_device || !m_worldMatrixManager) {
-//        OutputDebugStringA("Error: UIText::Render - Dependencia nula (material, device o worldMatrixManager).\n");
+//    if (!m_material || !m_device) {
+//        OutputDebugStringA("Error: UIText::Render - Dependencia nula (material ó device).\n");
 //        return;
 //    }
 //

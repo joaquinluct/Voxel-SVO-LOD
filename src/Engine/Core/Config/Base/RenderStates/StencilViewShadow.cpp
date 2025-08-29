@@ -5,6 +5,7 @@ REGISTER_PIPELINE_STATE_TYPE(StencilViewShadow,"StencilViewShadow");
 
 StencilViewShadow::StencilViewShadow(){
 	Type = "D3D11_DEPTH_STENCIL_VIEW_DESC";
+	ClearFlags = 3;
 	StencilEnable = true;
 	DepthEnable = true;
 	DepthWriteMask = 1;

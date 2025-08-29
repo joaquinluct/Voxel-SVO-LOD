@@ -99,7 +99,13 @@ inline std::string ParseInt(int number) {
     return ss.str();
 }
 
-inline void StrToLower(std::string& s) {
+inline std::string ParseFloat(float number) {
+    std::stringstream ss;
+    ss << std::fixed << number;
+    return ss.str();
+}
+
+inline std::string StrToLower(std::string s) {
     // std::transform aplica una operación a cada elemento de un rango.
     // s.begin() y s.end() definen el rango (toda la cadena).
     // s.begin() como tercer argumento indica que el resultado se guarda en la misma cadena.
@@ -108,6 +114,7 @@ inline void StrToLower(std::string& s) {
     // Es importante usar unsigned char con std::tolower para evitar problemas con valores de caracteres negativos.
     std::transform(s.begin(), s.end(), s.begin(),
         [](unsigned char c) { return std::tolower(c); });
+    return s;
 }
 
 // Converts std::string (UTF-8 assumed) to std::wstring (UTF-16)

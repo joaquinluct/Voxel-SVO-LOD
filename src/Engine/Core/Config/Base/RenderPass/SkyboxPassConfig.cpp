@@ -9,10 +9,10 @@ SkyboxPassConfig::SkyboxPassConfig(){
 	shader_default = "PBRShadowShader";
 	rasterizedState = "RasterizedMainColorPass";
 	viewPortState = "ViewportMainColor";
-	stencilState = "StencilViewMainColor";
+	stencilState = "none";
 	stencilDef = "none";
 	shaderViewState = "none";
-	shadowTextureView = "StencilViewShadow";
+	shadowTextureView = "none";
 	blendState = "none";
 	primitiveTopology = 4;
 };

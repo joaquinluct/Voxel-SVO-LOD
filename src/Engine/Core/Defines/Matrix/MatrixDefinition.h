@@ -10,6 +10,8 @@
 #include "CameraMatrix.h"
 #include "MatrixDefinitionBase.h"
 #include "ProceduralSkybox.h"
+#include "WaterMatrices.h"
+#include "TimeMatrices.h"
 
 using namespace MatrixDefinitionBase;
 
@@ -27,10 +29,11 @@ namespace MatrixDefinition {
             projectionMatrix(DirectX::XMMatrixIdentity()) {
         }
 
-        void SetMatrixData(MatrixParams params) {
-            this->worldMatrix = params.worldMatrix;
-            this->viewMatrix = params.viewMatrix;
-            this->projectionMatrix = params.projectionMatrix;
+        void SetMatrixData(std::map<std::string, std::shared_ptr<IMatrixParams>>& params) {
+            std::shared_ptr<MatrixParams> baseParams = GetMatrixParams<MatrixParams>(params["BaseParams"]);
+            this->worldMatrix = baseParams->worldMatrix;
+            this->viewMatrix = baseParams->viewMatrix;
+            this->projectionMatrix = baseParams->projectionMatrix;
         }
 
         UINT Size() {
@@ -51,10 +54,11 @@ namespace MatrixDefinition {
             projectionMatrix(DirectX::XMMatrixIdentity()) {
         }
 
-        void SetMatrixData(MatrixParams params) {
-            this->viewMatrix = params.viewMatrix;
-            //this->viewMatrix = DirectX::XMMatrixTranspose(params.worldMatrix);
-            this->projectionMatrix = params.projectionMatrix;
+        void SetMatrixData(std::map<std::string, std::shared_ptr<IMatrixParams>>& params) {
+            std::shared_ptr<MatrixParams> baseParams = GetMatrixParams<MatrixParams>(params["BaseParams"]);
+            this->viewMatrix = baseParams->viewMatrix;
+            //this->viewMatrix = DirectX::XMMatrixTranspose(baseParams.worldMatrix);
+            this->projectionMatrix = baseParams->projectionMatrix;
         }
 
         UINT Size() {
@@ -73,8 +77,9 @@ namespace MatrixDefinition {
             viewProjectionMatrix(DirectX::XMMatrixIdentity())
         {}
 
-        void SetMatrixData(MatrixParams params) {
-            this->viewProjectionMatrix = params.viewProjectionMatrix;
+        void SetMatrixData(std::map<std::string, std::shared_ptr<IMatrixParams>>& params) {
+            std::shared_ptr<MatrixParams> baseParams = GetMatrixParams<MatrixParams>(params["BaseParams"]);
+            this->viewProjectionMatrix = baseParams->viewProjectionMatrix;
         }
 
         UINT Size() {
@@ -93,8 +98,9 @@ namespace MatrixDefinition {
             projectionMatrix(DirectX::XMMatrixIdentity()) {
         }
 
-        void SetMatrixData(MatrixParams params) {
-            this->projectionMatrix = params.projectionOrthoMatrix;
+        void SetMatrixData(std::map<std::string, std::shared_ptr<IMatrixParams>>& params) {
+            std::shared_ptr<MatrixParams> baseParams = GetMatrixParams<MatrixParams>(params["BaseParams"]);
+            this->projectionMatrix = baseParams->projectionOrthoMatrix;
         }
 
         UINT Size() {
@@ -114,11 +120,17 @@ namespace MatrixDefinition {
         MatrixBufferTypeProceduralSkyBox,       // Matriz View, Projection (para Skybox, sin World)
         MatrixBufferTypeOrthographic,           // Matriz Projection (para UI, etc.)
         Light::DirectionalLight,                // Datos de luz direccional para PBR
-		Light::LightSpaceMatrices,              // Matrices de espacio de luz para sombras
+        Light::LightSpaceMatrices,              // Matrices de espacio de luz para sombras
+		Light::ShadowMapMatrices,               // Matrices para generar mapas de sombras
         CameraMatrix::CameraData,               // Posición de la cámara
         MaterialMatrix::MaterialData,           // Propiedades de material PBR
 		MaterialMatrix::TextureTransformations, // Transformaciones de texturas para PBR
-		SkyboxMatrix::ProceduralSkyboxMatrix    // Matriz para Procedural Skybox
+        MaterialMatrix::TerrainBlendBuffer,     // Buffer de mezcla de terreno para PBR
+        MaterialMatrix::Terrain2BlendBuffer,    // Buffer de mezcla de terreno para PBR
+		SkyboxMatrix::ProceduralSkyboxMatrix,   // Matriz para Procedural Skybox
+        WaterMatrices::WaterData,               // Datos de agua para PBR
+		WaterMatrices::WaterInstancing,         // Datos de instanciación de agua
+		TimeMatrices::TimeData                  // Datos de tiempo para animaciones
     >;
 
     // Declaración de la función Get para crear instancias de los buffers
@@ -150,8 +162,26 @@ namespace MatrixDefinition {
         if (matrixDefinitionName == "TextureTransformations") {
             return MaterialMatrix::TextureTransformations{};
         }
+        if (matrixDefinitionName == "TerrainBlendBuffer") {
+            return MaterialMatrix::TerrainBlendBuffer{};
+		}
+        if (matrixDefinitionName == "Terrain2BlendBuffer") {
+            return MaterialMatrix::Terrain2BlendBuffer{};
+        }
         if (matrixDefinitionName == "LightSpaceMatrices") {
             return Light::LightSpaceMatrices{};
+        }
+        if (matrixDefinitionName == "ShadowMapMatrices") {
+            return Light::ShadowMapMatrices{};
+		}
+        if (matrixDefinitionName == "WaterData") {
+            return WaterMatrices::WaterData{};
+		}
+        if (matrixDefinitionName == "WaterInstance") {
+            return WaterMatrices::WaterInstancing{};
+        }
+        if (matrixDefinitionName == "TimeData") {
+            return TimeMatrices::TimeData{};
         }
         throw std::runtime_error("Unknown matrix definition name: " + matrixDefinitionName);
     }

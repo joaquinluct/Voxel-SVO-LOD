@@ -1,7 +1,6 @@
 // PBRShader.hlsl
 
 // Constant Buffer para matrices (World, View, Projection)
-// Corresponde a MatrixBufferType en C++
 cbuffer MatrixBuffer : register(b0)
 {
     float4x4 worldMatrix;
@@ -9,23 +8,21 @@ cbuffer MatrixBuffer : register(b0)
     float4x4 projectionMatrix;
 };
 
+// Constant Buffer para datos de Cámara
+cbuffer CameraBuffer : register(b1)
+{
+    float3 cameraPosition; // Posición de la cámara en espacio mundo
+};
+
 // Constant Buffer para Luz Direccional (PBR)
-// Corresponde a Light::DirectionalLight en C++
-cbuffer DirectionalLightBuffer : register(b1)
+cbuffer DirectionalLightBuffer : register(b2)
 {
     float3 lightDirection; // Dirección de la luz (hacia la luz, normalizada)
     float3 lightColor; // Color e intensidad de la luz
 };
 
-// Constant Buffer para datos de Cámara
-// Corresponde a Light::CameraData en C++
-cbuffer CameraBuffer : register(b2)
-{
-    float3 cameraPosition; // Posición de la cámara en espacio mundo
-};
 
 // Constant Buffer para datos de Material (PBR)
-// Corresponde a Light::MaterialData en C++
 cbuffer MaterialBuffer : register(b3)
 {
     float4 materialAlbedo; // Color base del material (RGBA)
@@ -46,7 +43,8 @@ Texture2D normalTexture : register(t1);
 Texture2D roughnessTexture : register(t2);
 Texture2D metallicTexture : register(t3);
 Texture2D aoTexture : register(t4);
-SamplerState SamplerType : register(s0);
+
+SamplerState baseSampler : register(s0);
 
 // Estructuras de entrada/salida del shader
 struct VSInput
@@ -55,6 +53,7 @@ struct VSInput
     float2 tex : TEXCOORD;
     float3 norm : NORMAL;
     float3 tang : TANGENT; // Para normal mapping
+    float4 debugColor : COLOR; // Color para debug (si lo necesitas)
 };
 
 struct PSInput
@@ -64,6 +63,7 @@ struct PSInput
     float3 worldNorm : TEXCOORD1;
     float2 tex : TEXCOORD2;
     float3 worldTangent : TEXCOORD3;
+    float4 debugColor : COLOR; // Color para debug (si lo necesitas)
     // float3 worldBitangent : TEXCOORD4; // Si la calculas en VS
 };
 
@@ -81,6 +81,8 @@ PSInput VSMain(VSInput input)
 
     output.worldNorm = normalize(mul(input.norm, (float3x3) worldMatrix));
     output.worldTangent = normalize(mul(input.tang, (float3x3) worldMatrix));
+    
+    output.debugColor = input.debugColor; // Pasar el color de debug si lo usas
 
     float U_scale = textureTransform.x;
     float V_scale = textureTransform.y;
@@ -104,7 +106,7 @@ float4 PSMain(PSInput input) : SV_TARGET
     // return float4(input.tex.x, input.tex.y, 0.0f, 1.0f);
 
     // [PRUEBA 2] ¿Estoy muestreando la textura correctamente? (Deberías ver la textura sin iluminación)
-    // float4 baseColor1 = albedoTexture.Sample(SamplerType, input.tex);
+    // float4 baseColor1 = albedoTexture.Sample(baseSampler, input.tex);
     // return baseColor1;
 
     // Normalizar la normal y la tangente interpoladas
@@ -123,14 +125,14 @@ float4 PSMain(PSInput input) : SV_TARGET
     float3x3 TBN = float3x3(T, B, N);
 
     // --- Obtener los parámetros del material (PBR) ---
-    float4 baseColor = albedoTexture.Sample(SamplerType, input.tex);
-    float roughness = roughnessTexture.Sample(SamplerType, input.tex).r;
-    float metallic = metallicTexture.Sample(SamplerType, input.tex).r;
-    float ao = aoTexture.Sample(SamplerType, input.tex).r;
+    float4 baseColor = albedoTexture.Sample(baseSampler, input.tex);
+    float roughness = roughnessTexture.Sample(baseSampler, input.tex).r;
+    float metallic = metallicTexture.Sample(baseSampler, input.tex).r;
+    float ao = aoTexture.Sample(baseSampler, input.tex).r;
     float3 F0 = materialF0;
 
     // Muestrear el mapa normal y transformarlo a espacio mundo
-    float3 sampledNormal = normalTexture.Sample(SamplerType, input.tex).rgb;
+    float3 sampledNormal = normalTexture.Sample(baseSampler, input.tex).rgb;
     sampledNormal = sampledNormal * 2.0f - 1.0f;
     N = normalize(mul(sampledNormal, TBN));
 
@@ -172,6 +174,8 @@ float4 PSMain(PSInput input) : SV_TARGET
 
     // [PRUEBA 7] ¿Se calcula bien el resultado final?
     float3 finalColor = diffuse + specular + ambient;
+    
+    finalColor += input.debugColor.rbg;
 
     return float4(finalColor, baseColor.a);
 }

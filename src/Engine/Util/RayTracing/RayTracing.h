@@ -16,6 +16,9 @@ namespace Util {
     struct BoundingBox {
         XMFLOAT3 min;
         XMFLOAT3 max;
+        DirectX::XMFLOAT3 GetCenter() const {
+            return XMFLOAT3((min.x + max.x) / 2.0f, (min.y + max.y) / 2.0f, (min.z + max.z) / 2.0f);
+		}
     };
 
     class RayTracing {
@@ -39,9 +42,9 @@ namespace Util {
         // Si no hay intersección, devuelve false.
         bool Trace(const XMFLOAT3& origin, const XMFLOAT3& direction, float maxDistance, const BoundingBox& aabb, XMFLOAT3& intersectionPoint) const;
 
+        float Distance(const XMFLOAT3& p1, const XMFLOAT3& p2) const;
     private:
         // Métodos auxiliares (puedes añadir más según sea necesario)
-        float Distance(const XMFLOAT3& p1, const XMFLOAT3& p2) const;
         bool IntersectRayTriangle(const XMFLOAT3& origin, const XMFLOAT3& direction, const Triangle& triangle, float& t) const;
         bool IntersectRayAABB(const XMFLOAT3& origin, const XMFLOAT3& direction, float maxDistance, const BoundingBox& aabb, float& t) const;
     };

@@ -1,0 +1,86 @@
+#pragma once
+#define NOMINMAX
+
+#include <windows.h>
+#include <string>
+#include <memory>
+#include <algorithm>
+#include <chrono>
+#include <IService.h>
+#include <Defines/Texture.h>
+#include <Defines/Pass.h>
+#include <KeyboardManager.h>
+#include <Defines/WorldTerrain.h>
+#include <Defines/TerrainChunk.h>
+#include <Config/Game/System/TerrainConfig.h>
+//#include <UI/UIText.h>
+#include "Terrain/ChunkService.h"
+#include <CameraManager.h>
+#include <Game/Systems/Terrain/Chunk/Chunk.h>
+#include <ICamera.h>
+
+class TerrainAsset;
+class ProceduralService;
+
+class Terrain : public IService
+{
+public:
+	Terrain();
+	~Terrain() override;
+
+	// IService implementation
+	HRESULT Init() override;
+	HRESULT InitServices();
+	HRESULT InitConfig();	
+	void Render() override;
+	void Update(float deltaTime) override;
+	void Shutdown() override {};
+	const std::string& GetServiceName() const override { static const std::string name = "Terrain"; return name; }
+	static const std::string& GetStaticServiceName() { static const std::string name = "Terrain"; return name; }
+
+	// Getters
+	std::shared_ptr<TerrainAsset> GetTerrainAsset() const { return m_terrainAsset; }
+	std::vector<std::shared_ptr<Chunk>> GetChunks(std::shared_ptr<ICamera> camera);
+	std::shared_ptr<ChunkService> GetChunkService() const { return m_chunkService; }
+
+	// Métods de gestión del terreno
+	float GetTerrainHeight(float x, float z) const;
+	TextureDefines::CBTerrainBlendBuffer GetTerrainBlenderData();
+	TextureDefines::CBTerrain2BlendBuffer GetTerrain2BlenderData();
+	void EmptyRecycleBin();
+
+	// Control de estado
+	bool IsDirty() const { return m_dirty; }
+	void SetDirty(const bool dirty)	{ m_dirty = dirty; }
+
+	// Methods para depuración
+	int GetNumVisibleChunks() const	{ return m_numVisibleChunks; }
+	int GetNumChunks() const { return m_numChunks; }
+
+private:	
+	// Servicios y managers
+	std::shared_ptr<CameraManager> m_cameraManager = nullptr;
+	std::shared_ptr<ChunkService> m_chunkService = nullptr;
+	std::shared_ptr<ProceduralService> m_proceduralService = nullptr;
+	std::shared_ptr<TerrainAsset> m_terrainAsset = nullptr;
+
+	// Configuración del terreno
+	std::shared_ptr<TerrainConfig> m_config;	
+	WorldTerrain::TerrainDefinition m_def;
+
+	// Datos físicos del terreno (que vienen de la configuración)
+	float m_chunkSize;
+	const float m_materTerrainHeight = 50.0f; // Multipicador para a altura do terreno
+
+	RenderPasses::ExecPassTerrainParams m_terrainParams = {};
+
+
+	// Control de estado
+	bool m_dirty = false;
+	bool m_isGenerating = false;
+	XMFLOAT3 m_lastCameraPosition;
+
+	// Propiedades para depuración
+	int m_numVisibleChunks = 0;
+	int m_numChunks = 0;
+};

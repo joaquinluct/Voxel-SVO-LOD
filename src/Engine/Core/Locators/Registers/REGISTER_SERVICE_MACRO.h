@@ -4,7 +4,6 @@
 #include "IWindowDependentInitializable.h"
 #include "IInitializable.h"
 #include "IRenderable.h"
-#include "IManager.h"
 #include "IService.h"
 
 

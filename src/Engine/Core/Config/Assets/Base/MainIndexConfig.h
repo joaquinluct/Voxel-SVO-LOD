@@ -14,4 +14,5 @@ public:
 		return className;
 	}
 	std::vector<std::string> mainIndex;
+	std::vector<std::string> post_init;
 };

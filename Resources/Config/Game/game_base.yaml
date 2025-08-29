@@ -1,3 +1,4 @@
+#game_base.yaml
 Config:
   Game:
     GameEngine:
@@ -5,32 +6,44 @@ Config:
         # - UIDebug
         # - TestingBasic2
         # - AxisXYZ
+        - Chronos
         - Lighting
         - Shadows
         - Skybox
-        - TestingFloor
-        # - World
-        # - Terrain
+        # - TestingFloor
+        - World
+        - Cycle
+        - Terrain
+        - Water
         # - Physics
         # - Biome
-        # - Cycle
         # - Wheather
+      services_post_init:
+          - World
+          - Water
       services_render_order:
         # - UIDebug
         # - TestingBasic2
         # - AxisXYZ
         - Skybox
-        - TestingFloor
+        # - TestingFloor
         # - World
-        # - Terrain
+        - Terrain
+        - Water 
         # - Physics
         # - Biome
         - Lighting
         # - Cycle
         # - Wheather
       service_update_order:
+        - Chronos
         - Skybox
         - Lighting
+        # - TestingFloor
+        - World
+        - Water
+        - Cycle
+        # - Terrain
         # - UIDebug
         # - TestingBasic2
 Definition:

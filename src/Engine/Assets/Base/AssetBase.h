@@ -19,6 +19,7 @@ public:
     // Métodos de ILifeCycle (IInitializable, IUpdatable, IRenderable, IShutdownable)
     // Todos estos DEBEN implementarse para que AssetBase sea CONCRETA.
     HRESULT Init() override;
+    HRESULT PostInit() { return S_OK; }
     void Update(float deltaTime) override;
     void Render() override;
     void Shutdown() override;

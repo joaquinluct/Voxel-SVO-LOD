@@ -6,6 +6,8 @@
 #include <ManagerLocator/ManagerLocator.h>
 #include <ServiceLocator/ServiceLocator.h>
 #include <algorithm>        // Para std::clamp
+#include <Game/Systems/World.h>
+
 
 REGISTER_SERVICE_TYPE(FirstPersonCamera, "FirstPersonCamera")
 
@@ -28,20 +30,21 @@ REGISTER_SERVICE_TYPE(FirstPersonCamera, "FirstPersonCamera")
 // Podrían estar en un archivo de constantes compartidas, o definidos aquí si son específicos de FPC.
 // Por el momento, los mantengo aquí para que compile, pero considera su ubicación.
 #ifndef CAMERA_SPEED
-#define CAMERA_SPEED 15.0f
+#define CAMERA_SPEED 150.0f
 #endif
 #ifndef CAMERA_SPEEDY
-#define CAMERA_SPEEDY 50.0f
+#define CAMERA_SPEEDY 350.0f
 #endif
 
 using namespace DirectX;
 
 FirstPersonCamera::FirstPersonCamera() :
-    m_position(2.0f, 2.0f, 2.0f),
+    m_position(4000.0f, 2.0f, 2.0f),
+    m_lastPosition(4000.0f, 2.0f, 2.0f),
     m_rotation(0.0f, 0.0f, 0.0f),
     m_fieldOfView(XM_PIDIV4),
     m_aspectRatio(1.0f),
-    m_nearPlane(0.1f),
+    m_nearPlane(0.01f),
     m_farPlane(7000.0f),
     m_moveSpeed(CAMERA_SPEED),
     m_rotationSpeed(XMConvertToRadians(0.1f)), // Sensibilidad ajustada para deltas de movimiento de ratón
@@ -56,11 +59,17 @@ HRESULT FirstPersonCamera::Init() {
     // Obtener referencias a los servicios necesarios
     m_keyboardManager = ManagerLocator::GetKeyboardManager();
     m_mouseService = ServiceLocator::GetService<Mouse>();
+	
     
     // Configurar posición inicial
     SetPosition(40.0f, 40.0f, 40.0f);
     SetLookAt(0.0f, 0.0f, 0.0f); // Mirar al origen por defecto
     
+    return S_OK;
+}
+
+HRESULT FirstPersonCamera::PostInit() {
+    m_world = ServiceLocator::GetService<World>();
     return S_OK;
 }
 
@@ -96,6 +105,27 @@ void FirstPersonCamera::SetLookAt(const XMFLOAT3& target) {
     float pitch = atan2f(XMVectorGetY(dirVec), flatLength);
 
     SetRotation(pitch, yaw, 0.0f); // Roll is usually 0 for a "look at" function
+}
+
+DirectX::XMFLOAT3 FirstPersonCamera::GetLookAt() const {
+    // 1. Obtener la posición de la cámara
+    DirectX::XMVECTOR eyePos = DirectX::XMLoadFloat3(&m_position);
+    
+    // 2. Obtener el vector de dirección "hacia adelante"
+    // Este método ya maneja la rotación.
+    DirectX::XMVECTOR forwardVector = GetForwardVector();
+
+    // 3. Escalar el vector de dirección a una distancia razonable
+    DirectX::XMVECTOR lookAtVector = DirectX::XMVectorScale(forwardVector, m_farPlane);
+    
+    // 4. Sumar el vector de dirección a la posición de la cámara
+    DirectX::XMVECTOR lookAtPoint = DirectX::XMVectorAdd(eyePos, lookAtVector);
+
+    // 5. Almacenar el resultado y devolverlo
+    DirectX::XMFLOAT3 result;
+    DirectX::XMStoreFloat3(&result, lookAtPoint);
+    
+    return result;
 }
 
 float FirstPersonCamera::GetFieldOfView() const {
@@ -148,8 +178,8 @@ void FirstPersonCamera::RecalculateViewMatrix() const {
     m_viewDirty = false;
 }
 
-XMMATRIX FirstPersonCamera::GetViewMatrix() const {
-    if (m_viewDirty) {
+XMMATRIX FirstPersonCamera::GetViewMatrix(bool onUpdate) const {
+    if (m_viewDirty) { //} && !onUpdate) {
         RecalculateViewMatrix();
     }
     return m_viewMatrixCache;
@@ -160,8 +190,8 @@ void FirstPersonCamera::RecalculateProjectionMatrix() const {
     m_projectionDirty = false;
 }
 
-XMMATRIX FirstPersonCamera::GetProjectionMatrix() const {
-    if (m_projectionDirty) {
+XMMATRIX FirstPersonCamera::GetProjectionMatrix(bool onUpdate) const {
+    if (m_projectionDirty ) { //&& !onUpdate) {
         RecalculateProjectionMatrix();
     }
     return m_projectionMatrixCache;
@@ -175,7 +205,9 @@ void FirstPersonCamera::SetProjectionParams(float fieldOfViewRadians, float aspe
     m_projectionDirty = true; // La matriz de proyección cambia
 }
 
-// Implementación de los métodos de movimiento y rotación
+// --------------------------------------------------------------
+// MOVE
+// --------------------------------------------------------------
 void FirstPersonCamera::Move(float x, float y, float z) {
     m_position.x += x;
     m_position.y += y;
@@ -183,6 +215,9 @@ void FirstPersonCamera::Move(float x, float y, float z) {
     m_viewDirty = true;
 }
 
+// --------------------------------------------------------------
+// ROTATE
+// --------------------------------------------------------------
 void FirstPersonCamera::Rotate(float pitchOffset, float yawOffset, float rollOffset) {
     m_rotation.x += pitchOffset;
     m_rotation.y += yawOffset;
@@ -203,7 +238,9 @@ void FirstPersonCamera::Rotate(float pitchOffset, float yawOffset, float rollOff
     m_viewDirty = true;
 }
 
-// Vectores de dirección para movimiento
+// --------------------------------------------------------------
+// GET FORWARD, RIGHT, UP VECTORS
+// --------------------------------------------------------------
 DirectX::XMVECTOR FirstPersonCamera::GetForwardVector() const {
     XMMATRIX rotationMatrix = GetInternalRotationMatrix();
     XMVECTOR forward = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
@@ -222,7 +259,59 @@ DirectX::XMVECTOR FirstPersonCamera::GetUpVector() const {
     return XMVector3TransformCoord(up, rotationMatrix);
 }
 
-// Actualización basada en la entrada
+
+// --------------------------------------------------------------
+// UPDATE HEIGHT
+// --------------------------------------------------------------
+const float ALTURA_PERSONAJE = 10.0f;
+bool FirstPersonCamera::UpdateHeight(float deltaTime, XMVECTOR moveDir) {
+
+    m_verticalVelocity += GRAVITY * deltaTime;
+
+    // 4. Actualizar la posición Y de la cámara
+	float newY = m_position.y + m_verticalVelocity * deltaTime;
+    //m_position.y += m_verticalVelocity * deltaTime;
+    
+    if (m_world && m_world->HasHeight()) {
+
+        // Obtener la altura del terreno en la nueva posición (x, z) de la cámara
+        float terrainHeight = m_world->GetTerrain()->GetTerrainHeight(m_position.x, m_position.z);
+
+        /*if (newY > terrainHeight) {
+            m_lastHeight = terrainHeight;
+            m_position.y = newY;
+            return true;
+        }*/
+
+		float diff = terrainHeight - m_lastHeight;
+
+        m_lastHeight = terrainHeight; 
+
+        /*if (diff > .2f) {
+            m_position = m_lastPosition;
+            return false;
+        }*/
+
+        // DEBUG
+        if (diff != 0.0f) {
+            m_heightDifference = diff;
+        }
+
+        // Verificar la colisión y ajustar la posición
+        if (m_position.y < (terrainHeight + ALTURA_PERSONAJE)) {
+            // Corregir la posición de la cámara para que esté en la altura del terreno
+            m_position.y = terrainHeight + ALTURA_PERSONAJE;
+
+            // Reiniciar la velocidad vertical para detener la caída
+            m_verticalVelocity = 0.0f;
+        }
+    }
+    return true;
+}
+
+// --------------------------------------------------------------
+// UPDATE
+// --------------------------------------------------------------
 void FirstPersonCamera::Update(float deltaTime) {
     // 1. Actualizar rotación basada en el ratón
     float deltaX = static_cast<float>(m_mouseService->GetDeltaX());
@@ -241,7 +330,7 @@ void FirstPersonCamera::Update(float deltaTime) {
     XMVECTOR moveDir = XMVectorZero();
 
     // Movimiento adelante/atrás y lateral
-    if (m_keyboardManager->IsKeyDown(KeyMoves::Forward))
+    if (m_keyboardManager->IsKeyDown(KeyMoves::Forward)) 
         moveDir = XMVectorAdd(moveDir, GetForwardVector());
     if (m_keyboardManager->IsKeyDown(KeyMoves::Backward))
         moveDir = XMVectorAdd(moveDir, XMVectorScale(GetForwardVector(), -1.0f));
@@ -249,6 +338,10 @@ void FirstPersonCamera::Update(float deltaTime) {
         moveDir = XMVectorAdd(moveDir, XMVectorScale(GetRightVector(), -1.0f));
     if (m_keyboardManager->IsKeyDown(KeyMoves::Right))
         moveDir = XMVectorAdd(moveDir, GetRightVector());
+	if (m_keyboardManager->IsKeyDown(KeyMoves::Sprint)) 
+        m_moveSpeed = CAMERA_SPEEDY; // Aumentar velocidad al sprintar
+    else
+		m_moveSpeed = CAMERA_SPEED; // Velocidad normal
 
     // Normalizar y aplicar velocidad
     if (!XMVector3Equal(moveDir, XMVectorZero())) {
@@ -262,6 +355,14 @@ void FirstPersonCamera::Update(float deltaTime) {
         
         m_viewDirty = true;
     }
+
+    // 5. Actualizar la altura
+    if (!UpdateHeight(deltaTime, moveDir)) {
+        m_viewDirty = true;
+        return;
+    }
+
+	m_lastPosition = m_position; // Guardar la última posición para comparaciones futuras
 }
 
 void FirstPersonCamera::UpdateViewMatrix() {
@@ -270,32 +371,70 @@ void FirstPersonCamera::UpdateViewMatrix() {
     }
 }
 
-void FirstPersonCamera::ExtractFrustumPlanes(XMFLOAT4 planes[6]) const {
-    // Obtener la matriz de vista-proyección directamente de la cámara
-    XMMATRIX viewProjectionMatrix = GetViewMatrix() * GetProjectionMatrix();
+void FirstPersonCamera::ExtractFrustumPlanes(std::vector<CameraDefinition::FrustumPlane>& frustumPlanes) const {
+    // 1. Obtener las matrices de vista y proyección
+    XMMATRIX viewMatrix = m_viewMatrixCache;
+    XMMATRIX projectionMatrix = m_projectionMatrixCache;
 
-    // Transponer la matriz para facilitar la extracción de los planos
-    XMFLOAT4X4 m;
-    XMStoreFloat4x4(&m, XMMatrixTranspose(viewProjectionMatrix));
+    // 2. Combinar las matrices para obtener la matriz de vista-proyección
+    XMMATRIX viewProjectionMatrix = XMMatrixTranspose(XMMatrixMultiply(viewMatrix, projectionMatrix));
 
-    // Extracción de los planos (ya normalizados en el código original)
-    planes[0].x = m._14 + m._11; planes[0].y = m._24 + m._21; planes[0].z = m._34 + m._31; planes[0].w = m._44 + m._41; // Left
-    planes[1].x = m._14 - m._11; planes[1].y = m._24 - m._21; planes[1].z = m._34 - m._31; planes[1].w = m._44 - m._41; // Right
-    planes[2].x = m._14 + m._12; planes[2].y = m._24 + m._22; planes[2].z = m._34 + m._32; planes[2].w = m._44 + m._42; // Bottom
-    planes[3].x = m._14 - m._12; planes[3].y = m._24 - m._22; planes[3].z = m._34 - m._32; planes[3].w = m._44 - m._42; // Top
-    planes[4].x = m._13;         planes[4].y = m._23;         planes[4].z = m._33;         planes[4].w = m._43;         // Near
-    planes[5].x = m._14 - m._13; planes[5].y = m._24 - m._23; planes[5].z = m._34 - m._33; planes[5].w = m._44 - m._43; // Far
+    // 3. Obtener las filas de la matriz combinada
+    XMVECTOR row0 = viewProjectionMatrix.r[0];
+    XMVECTOR row1 = viewProjectionMatrix.r[1];
+    XMVECTOR row2 = viewProjectionMatrix.r[2];
+    XMVECTOR row3 = viewProjectionMatrix.r[3];
 
-    // Normalizar los planos
-    for (int i = 0; i < 6; ++i) {
-        float length = XMVectorGetX(XMVector3Length(XMLoadFloat4(&planes[i])));
-        if (length != 0.0f) { // Evitar división por cero
-            planes[i].x /= length;
-            planes[i].y /= length;
-            planes[i].z /= length;
-            planes[i].w /= length;
-        }
-    }
+    frustumPlanes.clear();
+    frustumPlanes.resize(6);
+
+    // Plano Izquierdo (row3 + row0)
+    XMVECTOR leftPlane = row3 + row0;
+    leftPlane = XMVector4Normalize(leftPlane);
+    frustumPlanes[0].coefficients.x = XMVectorGetX(leftPlane);
+    frustumPlanes[0].coefficients.y = XMVectorGetY(leftPlane);
+    frustumPlanes[0].coefficients.z = XMVectorGetZ(leftPlane);
+    frustumPlanes[0].coefficients.w = XMVectorGetW(leftPlane);
+
+    // Plano Derecho (row3 - row0)
+    XMVECTOR rightPlane = row3 - row0;
+    rightPlane = XMVector4Normalize(rightPlane);
+    frustumPlanes[1].coefficients.x = XMVectorGetX(rightPlane);
+    frustumPlanes[1].coefficients.y = XMVectorGetY(rightPlane);
+    frustumPlanes[1].coefficients.z = XMVectorGetZ(rightPlane);
+    frustumPlanes[1].coefficients.w = XMVectorGetW(rightPlane);
+
+    // Plano Inferior (row3 + row1)
+    XMVECTOR bottomPlane = row3 + row1;
+    bottomPlane = XMVector4Normalize(bottomPlane);
+    frustumPlanes[2].coefficients.x = XMVectorGetX(bottomPlane);
+    frustumPlanes[2].coefficients.y = XMVectorGetY(bottomPlane);
+    frustumPlanes[2].coefficients.z = XMVectorGetZ(bottomPlane);
+    frustumPlanes[2].coefficients.w = XMVectorGetW(bottomPlane);
+
+    // Plano Superior (row3 - row1)
+    XMVECTOR topPlane = row3 - row1;
+    topPlane = XMVector4Normalize(topPlane);
+    frustumPlanes[3].coefficients.x = XMVectorGetX(topPlane);
+    frustumPlanes[3].coefficients.y = XMVectorGetY(topPlane);
+    frustumPlanes[3].coefficients.z = XMVectorGetZ(topPlane);
+    frustumPlanes[3].coefficients.w = XMVectorGetW(topPlane);
+
+    // Plano Cercano (row2)
+    XMVECTOR nearPlane = row2;
+    nearPlane = XMVector4Normalize(nearPlane);
+    frustumPlanes[4].coefficients.x = XMVectorGetX(nearPlane);
+    frustumPlanes[4].coefficients.y = XMVectorGetY(nearPlane);
+    frustumPlanes[4].coefficients.z = XMVectorGetZ(nearPlane);
+    frustumPlanes[4].coefficients.w = XMVectorGetW(nearPlane);
+
+    // Plano Lejano (row3 - row2)
+    XMVECTOR farPlane = row3 - row2;
+    farPlane = XMVector4Normalize(farPlane);
+    frustumPlanes[5].coefficients.x = XMVectorGetX(farPlane);
+    frustumPlanes[5].coefficients.y = XMVectorGetY(farPlane);
+    frustumPlanes[5].coefficients.z = XMVectorGetZ(farPlane);
+    frustumPlanes[5].coefficients.w = XMVectorGetW(farPlane);
 }
 
 Util::Triangle* FirstPersonCamera::GetTriangleLookingAt(const std::vector<Util::Triangle>& triangles) const {
@@ -322,4 +461,8 @@ Util::Triangle* FirstPersonCamera::GetTriangleLookingAt(const std::vector<Util::
     }
 
     return const_cast<Util::Triangle*>(closestTriangle);
+}
+
+std::string FirstPersonCamera::GetDebugInfo() const {
+    return ParseFloat(m_heightDifference);
 }

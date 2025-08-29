@@ -7,7 +7,6 @@ MeshAssetConfig::MeshAssetConfig(){
 	dependencies = {
 		"ShaderManager",
 		"DeviceManager",
-		"CameraManager",
-		"WorldMatrixManager"
+		"CameraManager"
 	};
 };

@@ -1,6 +1,5 @@
 // MainController.h
 #pragma once
-
 #include <Defines/Components.h>
 #include "InitController.h"
 #include <Services/Mouse.h>
@@ -15,11 +14,12 @@
 #include "IShutdownable.h"
 #include "DeviceManager.h"
 #include "AssetManager.h"
-#include "RenderTargetManager.h"
+#include <GameManager.h>
 #include "ShaderManager.h"
 #include "WorldMatrixManager.h"
-#include <RenderManager/RenderManager.h>
 #include <KeyboardManager.h>
+#include <RenderManager/RenderManager.h>
+#include <UpdateManager.h>
 //#include "RenderObjects/Line/Line.h"
 //#include "RenderObjects/UIBox/UIBox.h"
 #include <UIManager.h>
@@ -31,7 +31,9 @@
 //#include <Game/GameObjects/TestingBasic.h>
 //#include <Game/GameObjects/UIDebug.h>
 #include <Camera/FirstPersonCamera.h>
-#include <GameManager.h>
+
+class FrameStateService; // Forward declaration para evitar dependencias circulares
+class Water;
 
 class MainController: public IRenderable, public IUpdatable, public IShutdownable {
 public:
@@ -70,6 +72,7 @@ private:
     std::vector<std::shared_ptr<ISubsystem>> m_subsystems;
     std::shared_ptr<Keyboard> m_keyboard;
     std::shared_ptr<Mouse> m_mouse;
+	std::shared_ptr<UpdateManager> m_updateManager;
 
     // Puedes tener un puntero directo a GameManager si es el subsistema principal
     std::shared_ptr<GameManager> m_GameManager;
