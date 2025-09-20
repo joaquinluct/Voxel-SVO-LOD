@@ -20,6 +20,7 @@ OceanMeshConfig::OceanMeshConfig(){
 	receive_shadows = false;
 	shader_shadows = "none";
 	drawType = 3;
+	primitiveTopology = 4;
 	render_passes = 896;
 	dependencies = {
 		"MeshAsset"

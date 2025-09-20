@@ -1,17 +1,13 @@
 #pragma once
 
-#include <windows.h>
-#include <memory>
-#include <string>
-#include <string_view>
-#include <vector>
-#include <future>
-#include <chrono>
-#include <thread>
+#include <Defines/Types/ThreadTypes.h>
+#include <functional>
 #include <ManagerBase.h>
-#include <../Includes/FrameStateForward.h>
-#include <Defines/Threading.h>
-#include <Defines/Types.h>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <windows.h>
 
 // ---------------------------------------------------------------------------
 // Forward declarations
@@ -22,16 +18,12 @@ class MeshAsset;
 struct RenderStateData;
 class CameraManager;
 class ShaderManager;
+class SceneManager;
 class Lighting;
 class Water;
 class World;
 class Skybox;
 class ThreadPool;
-
-// Definición de constantes de nombres de las tareas de actualización
-using UpdateJob = Threading::Job<StringArray>;
-using UpdatedJobs = std::vector<UpdateJob>;
-using FutureUpdateJobs = std::future<UpdatedJobs>;
 
 // ---------------------------------------------------------------------------
 // UpdateManager: Gestor de actualización del estado de frame
@@ -43,22 +35,30 @@ public:
     ~UpdateManager();
 
     // Interfaz IManager
-    HRESULT Init() override;    
+    // -----------------
+    HRESULT Init(EngineContext* context) override;
+    HRESULT PostInit() override;
     void Update(float deltaTime) override;
     void Shutdown() override;
 
     const std::string& GetManagerName() const override { static const std::string name = "UpdateManager"; return name; }
     static const std::string& GetStaticManagerName() { static const std::string name = "UpdateManager"; return name; }
 
+    // Intefaz de ThreadedService
+    // -------------------------
+    void RunLoop() override;
+
     // Tareas principales
+    // ------------------
     UpdatedJobs UpdateMainData(float deltaTime);
     UpdatedJobs UpdateTerrainData(float deltaTime);
 
-
     // Threads
-    void StartThreads(float deltaTime);
+    // -------
+    FutureUpdateJob AddUpdateJob(const std::string& name, std::function<bool()> task, bool allowDuplicates);
 
     // Operacionesbásicas con los estados de Frame
+    // -------------------------------------------
     void ResetState(std::string stateName);
     void UpdateState(std::string stateName);
 
@@ -80,6 +80,8 @@ public:
     ShaderFrameState* ShaderState(bool FromReadBuffer = true);
     PipelineFrameState* PipelineState(bool FromReadBuffer = true);*/
 
+    // Funciones de actualización de estados
+    // -------------------------------------
     FrameStateBase* UpdateTerrainState(float deltaTime);
     FrameStateBase* UpdateCameraState(float deltaTime);
     FrameStateBase* UpdateLightState(float deltaTime);
@@ -95,32 +97,48 @@ public:
     FrameStateBase* UpdateShaderState(float deltaTime);
     FrameStateBase* UpdatePipelineState(float deltaTime);
 
-    FrameStateBase* ResetMeshState(float deltaTime);
+    // Funciones de reseteo de estados
+    // -------------------------------
+    //FrameStateBase* ResetMeshState(float deltaTime);
     FrameStateBase* ResetShaderState(float deltaTime);
 
     //std::function<void()> GetUpdateFunctionByStateName(std::string stateName, float deltaTime);
 
+    // Acceso y gestión del mesh a renderizar
+    // --------------------------------------
     const MeshAsset* GetMesh() const { return m_mesh.get(); }
-    void SetMesh(const std::shared_ptr<MeshAsset>& mesh);
+    //void SetMesh(const std::shared_ptr<MeshAsset>& mesh);
 
     // Métodos para bloqueo y desbloqueo explícito y controlado de buffers
+    // -------------------------------------------------------------------
     void SwapBuffers();
     void Lock();
     void Unlock();
 
 private:
-    std::shared_ptr<MeshAsset> m_mesh = nullptr;
+    // Mesh a renderizar
+    // -----------------
+    std::shared_ptr<MeshAsset> m_mesh = nullptr;            // Mesh a renderizar
 
-    std::shared_ptr<Lighting> m_lighting; // Servicio para gestionar cámaras
-    std::shared_ptr<CameraManager> m_cameraManager; // Servicio para gestionar cámaras
-    std::shared_ptr<ShaderManager> m_shaderManager; // Servicio para gestionar los shaders
-    std::shared_ptr<World> m_world; // Servicio para gestionar el estado de renderizado    
-    std::shared_ptr<Water> m_water; // Servicio de agua
-    std::shared_ptr<Skybox> m_skybox; // Servicio de skybox
-        
+    // Managers
+    // --------
+    std::shared_ptr<CameraManager> m_cameraManager;         // Manager de las cámaras
+    std::shared_ptr<ShaderManager> m_shaderManager;         // Manager de los shaders
+    std::shared_ptr<SceneManager> m_sceneManager;           // Manager de la escena
+
+    // Game services
+    // -------------
+    std::shared_ptr<World> m_world;                         // Servicio para gestionar el estado de renderizado    
+    std::shared_ptr<Water> m_water;                         // Servicio de agua
+    std::shared_ptr<Lighting> m_lighting;                   // Servicio para gestionar cámaras
+    std::shared_ptr<Skybox> m_skybox;                       // Servicio de skybox
+
     std::shared_ptr<FrameStateService> m_frameStateService; // Servicio para gestionar el estado de frame
 
-	// Threading    
-	std::shared_ptr<ThreadPool> m_threadPool; // Servicio de hilos
-    std::vector<FutureUpdateJobs> m_futures;
+    // Threading    
+    // ---------
+    std::shared_ptr<ThreadPool> m_threadPool;               // Servicio de hilos
+    //std::vector<FutureUpdateJob> m_futures;
+    std::mutex m_mutex; // El mutex para proteger la variable compartida
+    std::map<int, FutureUpdateJob> m_futures;
 };

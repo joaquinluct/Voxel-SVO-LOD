@@ -21,7 +21,7 @@ AssetManager::AssetManager() {
     // Constructor. m_loadContext se construirá por defecto.
     // Sus miembros (pDevice, pImmediateContext, etc.) se inicializarán a nullptr si son punteros
     // o shared_ptr vacíos si son smart pointers.
-    // Los valores correctos se asignan en Init().
+    // Los valores correctos se asignan en Init(EngineContext* context).
 	m_config = new MainIndexConfig();    
 }
 
@@ -38,7 +38,7 @@ HRESULT AssetManager::InitShaders(HWND* hwnd, int width, int height) {
     return S_OK;
 }
 
-HRESULT AssetManager::Init(HWND* hwnd, int width, int height) {
+HRESULT AssetManager::Init(EngineContext* context) {
     /*OutputDebugStringA("Incializando AssetManager...\n");
 
     m_configBase = new BaseIndexConfig();

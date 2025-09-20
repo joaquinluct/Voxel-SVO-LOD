@@ -16,9 +16,7 @@ public:
     MouseManager();
     ~MouseManager() override;
 
-    bool IsWindowDependent() const override { return true; }
-
-    HRESULT Init(HWND* hwnd, int width, int heigth) override;
+    HRESULT Init(EngineContext* context) override;
 
     const std::string& GetManagerName() const override { static const std::string name = "MouseManager"; return name; }
     static const std::string& GetStaticManagerName() { static const std::string name = "MouseManager"; return name; }

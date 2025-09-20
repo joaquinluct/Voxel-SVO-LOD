@@ -15,7 +15,8 @@ EngineConfig::EngineConfig(){
 		"ShaderManager",
 		"UIManager",
 		"MouseManager",
-		"SceneManager"
+		"SceneManager",
+		"PipelineResourcesManager"
 	};
 	managers_post_init = {
 		"CameraManager",
@@ -26,9 +27,7 @@ EngineConfig::EngineConfig(){
 		"DeviceManager"
 	};
 	managers_update_order = {
-		"KeyboardManager",
-		"CameraManager",
-		"UIManager"
+		"CameraManager"
 	};
 	pipeline_states_init = {
 		"SwapChainMain",

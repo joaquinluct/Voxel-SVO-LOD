@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ServiceLocator/ServiceLocator.h"
-#include "IWindowDependentInitializable.h"
+#include "IEngineDependentInitializable.h"
 #include "IInitializable.h"
 #include "IRenderable.h"
 #include "IService.h"

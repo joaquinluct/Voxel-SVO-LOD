@@ -124,6 +124,7 @@ PSInput VSMain(VSInput input)
 float4 PSMain(PSInput input) : SV_TARGET
 {
     // --- 1. Lógica de mezcla de texturas de terreno ---
+    // return float4(1, 0, 0, 1); // Color rojo para debug
 
     // Coordenadas de textura para triplanar mapping
     float3 blendedTexCoord = input.worldPos.xyz * terrainScale;

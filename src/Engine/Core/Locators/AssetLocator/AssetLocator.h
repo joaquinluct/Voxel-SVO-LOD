@@ -25,7 +25,7 @@ class TerrainAsset;
 class TextureAsset; 
 class VertexAsset;
 class IInitializable;
-class IWindowDependentInitializable;
+class IEngineDependentInitializable;
 
 // Define el tipo para la lambda de creación.
 // Ahora retorna std::shared_ptr<IAsset>, ya que IAsset es nuestra base polimórfica común.
@@ -66,7 +66,6 @@ public:
     //static void ShutdownAssets(const std::vector<std::string>& orderList); // Shutdown suele ser void
 
     static std::shared_ptr<AssetBase> GetAsset(const std::string& name);
-    static std::unique_ptr<MeshAsset> GetMeshAssetPointer(const std::string& name);
     static std::shared_ptr<MeshAsset> GetMeshAsset(const std::string& name);
     static std::shared_ptr<VertexAsset> GetVertexAsset(const std::string& name);
     static std::shared_ptr<TextureAsset> GetTextureAsset(const std::string& name);

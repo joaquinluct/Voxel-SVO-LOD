@@ -3,6 +3,7 @@
 #include <iostream> // Para debugging si quieres usar std::cout en lugar de OutputDebugStringA
 #include <windows.h> // Para OutputDebugStringA
 #include <string> // Para std::to_string
+#include <Defines/EngineDefinition.h>
 
 std::map<std::string, ManagerLocator::ManagerEntry>& ManagerLocator::GetManagerEntries() {
     static std::map<std::string, ManagerEntry> s_managerEntries; 
@@ -18,7 +19,6 @@ void ManagerLocator::RegisterManagerCreator(
     const std::string& name,
     CreateManagerLambda createFn,
     InitializeManagerLambda initFn,
-	InitializeWithParamasManagerLambda initWithParamsFn,    
     RenderManagerLambda renderFn,
     UpdateManagerLambda updateFn) {
     auto& entries = ManagerLocator::GetManagerEntries();
@@ -26,10 +26,10 @@ void ManagerLocator::RegisterManagerCreator(
         OutputDebugStringA(("WARNING: Manager creator for '" + name + "' already registered. Overwriting.\n").c_str());
     }
     //s_managerCreators[name] = { createFn, initFn };
-    entries[name] = {nullptr, createFn, initFn, initWithParamsFn, renderFn, updateFn};
+    entries[name] = {nullptr, createFn, initFn, renderFn, updateFn};
 }
 
-HRESULT ManagerLocator::InitializeManagers(const std::vector<std::string>& orderList, HWND* hwnd, int width, int height) {
+HRESULT ManagerLocator::InitializeManagers(const std::vector<std::string>& orderList, EngineContext* context) {
     auto& entries = ManagerLocator::GetManagerEntries();
     for (const std::string& managerName : orderList) {
         OutputDebugStringA(("[ManagerLocator] Comenzando la inicialización de " + managerName + " ...\n").c_str());
@@ -49,16 +49,12 @@ HRESULT ManagerLocator::InitializeManagers(const std::vector<std::string>& order
             // configRoot[managerName] asegura que se le pasa solo la configuración relevante a ese manager.
             HRESULT hr = S_OK;
 			bool isWindowDependent = it->second.instance->IsWindowDependent();
-            if (isWindowDependent) {
-                hr = it->second.initializerWithParams(it->second.instance, hwnd, width, height);
-            }
-            else {
-				hr = it->second.initializer(it->second.instance);                
-            }
+			hr = it->second.initializer(it->second.instance, context);                
             if (FAILED(hr)) {
                 OutputDebugStringA(("[ManagerLocator] ERROR: Failed to initialize manager '" + managerName + "'\n").c_str());
                 return hr;
             }
+            it->second.instance->SetInitialized(true);
             OutputDebugStringA(("[ManagerLocator] Inicialización de " + managerName + " - OK\n").c_str());
         }
         else {

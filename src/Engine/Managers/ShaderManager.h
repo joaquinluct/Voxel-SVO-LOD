@@ -1,28 +1,29 @@
 #pragma once
+
 #include <d3d11.h>
-#include <string>
-#include <vector>
-#include <memory>
-#include <map>
-#include <wrl/client.h>
-#include <ManagerBase.h>
 #include <Defines/Matrix/MatrixDefinition.h>
 #include <Defines/ShaderSampler.h>
-#include <Defines/Pipeline.h>
+#include <Defines/Types/Sampler.h>
+#include <ManagerBase.h>
+#include <map>
+#include <memory>
+#include <string>
+#include <vector>
+#include <wrl/client.h>
 
 class DeviceManager;
 
 class ShaderManager : public ManagerBase
 {
 public:
-	ShaderManager();
-	~ShaderManager();
+    ShaderManager();
+    ~ShaderManager();
 
-    HRESULT Init() override;
+    HRESULT Init(EngineContext* context) override;
     HRESULT InitManagers();
     HRESULT InitShaders();
     void Shutdown() override;
-	void Update(float deltaTime) override {};
+    void Update(float deltaTime) override {};
     void Render() override {};
     const std::string& GetManagerName() const override {
         static const std::string name = "ShaderManager";
@@ -33,7 +34,7 @@ public:
         static const std::string name = "ShaderManager";
         return name;
     }
-
+    HRESULT LoadShaderByName(std::wstring shaderName);
     HRESULT LoadShader(Microsoft::WRL::ComPtr<ID3D11Device> device, std::wstring shaderName, std::wstring vsPath, std::wstring psPath, D3D11_INPUT_ELEMENT_DESC layoutDesc[], UINT numElements);
 
     /*void SetConstantsBuffers(std::wstring shaderName, MatrixDefinitionBase::MatrixParams& matrixParams, std::map<std::string, Microsoft::WRL::ComPtr<ID3D11Buffer>>&  constantBuffers, Microsoft::WRL::ComPtr<ID3D11DeviceContext> context);*/
@@ -49,12 +50,12 @@ public:
     ID3DBlob* GetVertexShaderBytecode(std::wstring shaderName); // Nuevo método
     UINT GetVertexShaderBytecodeLength(std::wstring shaderName);
 
-	bool NeedsShadow(std::wstring shaderName);
+    bool NeedsShadow(std::wstring shaderName);
 
     std::vector<D3D11_SAMPLER_DESC> GetSamplersDescAsVector(std::wstring shaderName);
     std::vector<ShaderSampler::SamplerDefinition> GetAllSamplersDesc();
     std::vector<std::pair<int, D3D11_SAMPLER_DESC>> GetSamplersDescAsVector();
-	//std::vector<std::string> GetSamplersNames(std::wstring shaderName);
+    //std::vector<std::string> GetSamplersNames(std::wstring shaderName);
     std::map<std::string, Microsoft::WRL::ComPtr<ID3D11SamplerState>> GetSamplersStates(std::wstring shaderName, SamplerStates state);
 
     std::map<std::wstring, ShaderSampler::SamplerDefinition> samplers;
@@ -67,5 +68,5 @@ public:
     std::map<std::wstring, ID3DBlob*> vertexShaderBlobs; // Nuevo mapa para los blobs VS
     std::map<std::wstring, ID3DBlob*> pixelShaderBlobs;  // Nuevo mapa para los blobs PS
 private:
-	std::shared_ptr<DeviceManager> deviceManager;
+    std::shared_ptr<DeviceManager> deviceManager;
 };

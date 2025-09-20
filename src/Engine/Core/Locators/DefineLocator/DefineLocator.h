@@ -1,26 +1,26 @@
 // DefineLocator.h
 #pragma once
 
-#include <string>
-#include <memory>
-#include <functional>
-#include <map>
-#include <windows.h> // Para HWND, HRESULT
 #include <Defines/VertexDefinition.h>
-#include <ConfigLocator/ConfigLocator.h>
-#include <IDefine.h>
+#include <functional>
 #include <IDefine/IVertex.h>
+#include <map>
+#include <memory>
+#include <string>
+#include <type_traits>
+#include <vector>
+#include <windows.h>
 
 // #include <typeindex> // No es estrictamente necesario si usamos nombres de string para s_defines
 
-// Forward declarations para asegurar que IDefine, IInitializable, IWindowDependentInitializable
+// Forward declarations para asegurar que IDefine, IInitializable, IEngineDependentInitializable
 // estén declaradas antes de ser usadas en std::shared_ptr en las lambdas.
 // Si estas interfaces están definidas en sus propios archivos .h y esos archivos
 // ya se incluyen antes de DefineLocator.h en algunos .cpp, podrías no necesitar
 // estas forward declarations aquí, pero es una buena práctica para prevenir
 // dependencias circulares o problemas de orden de inclusión.
 class IInitializable;
-class IWindowDependentInitializable;
+class IEngineDependentInitializable;
 
 // Define el tipo para la lambda de creación.
 // Ahora retorna std::shared_ptr<IDefine>, ya que IDefine es nuestra base polimórfica común.
@@ -42,7 +42,7 @@ public:
         CreateDefineLambda createFn
     );
 
-    
+
     static HRESULT InitializeDefines();
 
     // Función para obtener un servicio ya inicializado por su tipo C++.
@@ -50,8 +50,8 @@ public:
     template<typename T>
     static std::shared_ptr<T> GetDefine() {
         const std::string name1 = typeid(T).name();
-		const std::string name = T::GetStaticDefineName();
-		auto& s_defineEntries = GetDefineEntries();
+        const std::string name = T::GetStaticDefineName();
+        auto& s_defineEntries = GetDefineEntries();
         auto it = s_defineEntries.find(name);
         if (it != s_defineEntries.end()) {
             return std::dynamic_pointer_cast<T>(it->second.instance);

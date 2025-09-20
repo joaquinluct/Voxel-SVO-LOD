@@ -74,8 +74,8 @@ inline SunData GetSunData(float latitude, const std::chrono::system_clock::time_
 
     //if (sunAltitudeFactor <= 0.7f)
     //{
-        float smoothFactor = DirectXUtils::Smoothstep(0.0f, 1.0f, sunAltitudeFactor);
-        XMStoreFloat4(&data.LightColor, XMVectorLerp(XMLoadFloat4(&sunsetColor), XMLoadFloat4(&middayColor), sunAltitudeFactor));
+    float smoothFactor = DirectXUtils::Smoothstep(0.0f, 1.0f, sunAltitudeFactor);
+    XMStoreFloat4(&data.LightColor, XMVectorLerp(XMLoadFloat4(&sunsetColor), XMLoadFloat4(&middayColor), sunAltitudeFactor));
     //}
 
     data.SunSize = 0.5f + (1 / data.LightDirection.y);

@@ -1,10 +1,24 @@
 #include "RenderPipelineExecutor.h"
+#include "Stages/InputAssemblyStage.h"
+#include "Stages/OutputMergerStage.h"
+#include "Stages/PixelShaderStage.h"
+#include "Stages/RasterizerStage.h"
+#include "Stages/VertexShaderStage.h"
+#include <../Includes/FrameStates.h>
+#include <Assets/Base/MeshAssetBase.h>
+#include <d3d11.h>
+#include <Defines/Mesh.h>
+//#include <Defines/Pipeline.h>
+#include <dxgi.h>
+#include <dxgiformat.h>
+#include <exception>
+#include <Locators/ManagerLocator/ManagerLocator.h>
+#include <RenderState/FrameStates/MeshFrameState.h>
 #include <Services/FrameStateService.h>
 #include <Services/Material.h>
-#include <Defines/Matrix/MatrixDefinitionBase.h>
-#include <../Includes/FrameStates.h>
-#include <Defines/Mesh.h>
-#include <Defines/FrameStateDefinition.h>
+#include <string>
+#include <Windows.h>
+#include <wrl/client.h>
 
 namespace RenderPipeline {
     RenderPipelineExecutor::RenderPipelineExecutor(
@@ -24,190 +38,285 @@ namespace RenderPipeline {
         m_rasterizerStage(rsStage),
         m_outputMergerStage(omStage)
     {
-        m_outputMergerStage = new OutputMergerStage(context);        
+        m_deviceManager = ManagerLocator::GetDeviceManager();
+        m_outputMergerStage = new OutputMergerStage(m_deviceManager);
 
-		RegisterOperations(nullptr);
+        RegisterOperations(nullptr);
     }
 
-    void RenderPipelineExecutor::RegisterOperations(FrameStateService* frameState) {        
+    RenderPipelineExecutor::RenderPipelineExecutor(
+        Microsoft::WRL::ComPtr<ID3D11DeviceContext> context,
+        Microsoft::WRL::ComPtr<IDXGISwapChain> swapChain)
+    {
+        m_context = context;
+        m_swapChain = swapChain;
+        m_deviceManager = ManagerLocator::GetDeviceManager();
+        m_inputAssemblyStage = new InputAssemblyStage(m_deviceManager);
+        m_vertexShaderStage = new VertexShaderStage(m_deviceManager);
+        m_pixelShaderStage = new PixelShaderStage(m_deviceManager);
+        m_rasterizerStage = new RasterizerStage(m_deviceManager);
+        m_outputMergerStage = new OutputMergerStage(m_deviceManager);
+        RegisterOperations(nullptr);
+    }
+
+    void RenderPipelineExecutor::RegisterOperations(FrameStateService* frameState) {
         m_operationsMap[PipelineOperationType::Device_Init_SetRenderTargetView].second =
-            [this](PipelineOperationType operationType, FrameStateService* frameState) {            
-            Microsoft::WRL::ComPtr<ID3D11DepthStencilView> pDepthStencilView = frameState->PipelineState()->GetCurrentDepthStencilView();			
-            ID3D11RenderTargetView* rtv = frameState->PipelineState()->GetCurrentRenderTargetView().Get();
-            this->GetOutputMergerStage()->SetRenderTargets(1, &rtv, pDepthStencilView.Get());
-			};
+            [this](PipelineOperationType operationType, FrameStateService* frameState, PipelineOperBase* parameter) {
+            /*Microsoft::WRL::ComPtr<ID3D11DepthStencilView> pDepthStencilView = frameState->PipelineState()->GetCurrentDepthStencilView();
+            ID3D11RenderTargetView* rtv = frameState->PipelineState()->GetCurrentRenderTargetView().Get();*/
+            //this->GetOutputMergerStage()->SetRenderTargets(1, &rtv, pDepthStencilView.Get());
+            if (parameter != nullptr) {
+                auto param = dynamic_cast<PipelineSetRenderTargetsData*>(parameter);
+                if (param != nullptr) {
+                    this->GetOutputMergerStage()->SetRenderTargets(1, &param->targetView, param->stencilView.Get());
+                }
+            }
+            };
         m_operationsMap[PipelineOperationType::Device_ClearRenderTargetView].second =
-            [this](PipelineOperationType operationType, FrameStateService* frameState) {
-            //this->GetOutputMergerStage()->ClearRenderTargetView(frameState->PipelineState()->GetCurrentRenderTargetView(), frameState->DeviceState()->GetClearColor());
-			const FLOAT* clearColor = frameState->DeviceState()->GetClearColor();
-			Microsoft::WRL::ComPtr<ID3D11RenderTargetView> view = frameState->PipelineState()->GetCurrentRenderTargetView();
-            this->GetOutputMergerStage()->ClearRenderTargetView(view, clearColor);
-            };        
+            [this](PipelineOperationType operationType, FrameStateService* frameState, PipelineOperBase* parameter) {
+            /*const FLOAT* clearColor = frameState->DeviceState()->GetClearColor();
+            Microsoft::WRL::ComPtr<ID3D11RenderTargetView> view = frameState->PipelineState()->GetCurrentRenderTargetView();*/
+            if (parameter != nullptr) {
+                auto param = dynamic_cast<PipelineRenderTargetViewData*>(parameter);
+                if (param != nullptr) {
+                    const float* clearColor = new FLOAT[4]{ param->clearColor.x, param->clearColor.y, param->clearColor.z, param->clearColor.w };
+                    this->GetOutputMergerStage()->ClearRenderTargetView(param->data, clearColor);
+
+                }
+            }
+            //this->GetOutputMergerStage()->ClearRenderTargetView(view, clearColor);xz
+
+            };
         m_operationsMap[PipelineOperationType::Device_Unbind_RenderTargetView].second =
-            [this](PipelineOperationType operationType, FrameStateService* frameState) {            
+            [this](PipelineOperationType operationType, FrameStateService* frameState, PipelineOperBase* parameter) {
             std::string dsName = frameState->GetPipelineState()->GetStencilState();
             Microsoft::WRL::ComPtr<ID3D11RenderTargetView> ppRenderTargetViews = frameState->PipelineState()->GetCurrentRenderTargetView();
             Microsoft::WRL::ComPtr<ID3D11DepthStencilView> pDepthStencilView = frameState->PipelineState()->GetCurrentDepthStencilView();
             ID3D11RenderTargetView* rtv = frameState->PipelineState()->GetCurrentRenderTargetView().Get();
             this->GetOutputMergerStage()->SetRenderTargets(1, &rtv, pDepthStencilView.Get());
-			};
+            };
+        m_operationsMap[PipelineOperationType::Device_SetDepthStencilState].second =
+            [this](PipelineOperationType operationType, FrameStateService* frameState, PipelineOperBase* parameter) {
+            std::string dsName = frameState->GetPipelineState()->GetMainStencilState();
+            this->GetOutputMergerStage()->SetDepthStencilState(frameState->PipelineState()->GetDepthStencilState(dsName), 1);
+            };
         m_operationsMap[PipelineOperationType::Device_ClearDepthStencilView].second =
-            [this](PipelineOperationType operationType, FrameStateService* frameState) {
+            [this](PipelineOperationType operationType, FrameStateService* frameState, PipelineOperBase* parameter) {
             //std::string dsName = frameState->PassState()->GetConfig().stencilDef;
             /*this->GetOutputMergerStage()->ClearDepthStencilView(frameState->PipelineState()->GetDepthStencilView(dsName)->stencilViewData, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
             };*/
-            this->GetOutputMergerStage()->ClearDepthStencilView(frameState->PipelineState()->GetCurrentDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+            Microsoft::WRL::ComPtr<ID3D11DepthStencilView> pDepthStencilView = frameState->PipelineState()->GetCurrentDepthStencilView();
+            this->GetOutputMergerStage()->ClearDepthStencilView(pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
             };
         m_operationsMap[PipelineOperationType::Device_ClearDepthView].second =
-            [this](PipelineOperationType operationType, FrameStateService* frameState) {
+            [this](PipelineOperationType operationType, FrameStateService* frameState, PipelineOperBase* parameter) {
             /*std::string dsName = frameState->PassState()->GetConfig().stencilDef;
             this->GetOutputMergerStage()->ClearDepthStencilView(frameState->PipelineState()->GetDepthStencilView(dsName)->stencilViewData, D3D11_CLEAR_DEPTH, 1.0f, 0);
             };*/
-            this->GetOutputMergerStage()->ClearDepthStencilView(frameState->PipelineState()->GetCurrentDepthStencilView(), D3D11_CLEAR_DEPTH , 1.0f, 0);
+            this->GetOutputMergerStage()->ClearDepthStencilView(frameState->PipelineState()->GetCurrentDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0);
             };
         m_operationsMap[PipelineOperationType::Device_ClearStencilView].second =
-            [this](PipelineOperationType operationType, FrameStateService* frameState) {
+            [this](PipelineOperationType operationType, FrameStateService* frameState, PipelineOperBase* parameter) {
             /*std::string dsName = frameState->GetPipelineState()->GetStencilDef();
-			if (dsName.empty()) return;
-			Microsoft::WRL::ComPtr<ID3D11DepthStencilView> pDepthStencilView = frameState->PipelineState()->GetDepthStencilView(dsName)->stencilViewData;
+            if (dsName.empty()) return;
+            Microsoft::WRL::ComPtr<ID3D11DepthStencilView> pDepthStencilView = frameState->PipelineState()->GetDepthStencilView(dsName)->stencilViewData;
             this->GetOutputMergerStage()->ClearDepthStencilView(pDepthStencilView, D3D11_CLEAR_STENCIL, 1.0f, 0);
             };*/
             this->GetOutputMergerStage()->ClearDepthStencilView(frameState->PipelineState()->GetCurrentDepthStencilView(), D3D11_CLEAR_STENCIL, 1.0f, 0);
             };
+        m_operationsMap[PipelineOperationType::Device_SetRasterizedState].second =
+            [this](PipelineOperationType operationType, FrameStateService* frameState, PipelineOperBase* parameter) {
+            /*std::string rsName = frameState->GetPipelineState()->GetRasterizedState();
+            this->GetRasterizerStage()->SetState(frameState->PipelineState()->GetRasterizerState(rsName));*/
+            this->GetRasterizerStage()->SetState(frameState->PipelineState()->GetRasterizerState("RasterizedMainColorPass"));
+            };
         m_operationsMap[PipelineOperationType::Device_EnabledBledingState].second =
-            [this](PipelineOperationType operationType, FrameStateService* frameState) {
+            [this](PipelineOperationType operationType, FrameStateService* frameState, PipelineOperBase* parameter) {
             std::string blendName = frameState->PassState()->GetConfig().blendState;
             this->GetOutputMergerStage()->SetBlendState(frameState->PipelineState()->GetBlendState(blendName));
             };
         m_operationsMap[PipelineOperationType::Device_DisabledBledingState].second =
-            [this](PipelineOperationType operationType, FrameStateService* frameState) {
+            [this](PipelineOperationType operationType, FrameStateService* frameState, PipelineOperBase* parameter) {
             std::string blendName = frameState->PassState()->GetConfig().blendState;
             this->GetOutputMergerStage()->SetBlendState(frameState->PipelineState()->GetBlendState(blendName));
             };
         m_operationsMap[PipelineOperationType::Device_SetViewport].second =
-            [this](PipelineOperationType operationType, FrameStateService* frameState) {
-            //std::string vpName = frameState->PassState()->GetConfig().viewPortState;
-            std::string vpName = frameState->GetRenderPassConfig()->viewPortState;
+            [this](PipelineOperationType operationType, FrameStateService* frameState, PipelineOperBase* parameter) {
+            /*std::string vpName = frameState->GetPipelineState()->GetMainViewport();
             const D3D11_VIEWPORT vp = frameState->PipelineState()->GetViewport(vpName);
-            this->GetRasterizerStage()->SetViewport(&vp);
+            this->GetRasterizerStage()->SetViewport(&vp);*/
+
+            if (parameter != nullptr) {
+                auto param = dynamic_cast<PipelineViewPortData*>(parameter);
+                if (param != nullptr) {
+                    this->GetRasterizerStage()->SetViewport(&param->desc);
+                }
+            }
+
+
             };
         m_operationsMap[PipelineOperationType::Device_PresentSwapChain].second =
-            [this](PipelineOperationType operationType, FrameStateService* frameState) {
+            [this](PipelineOperationType operationType, FrameStateService* frameState, PipelineOperBase* parameter) {
             this->GetOutputMergerStage()->Present(this->m_swapChain.Get(), 1, 0);
             };
         m_operationsMap[PipelineOperationType::Mesh_Render_SetPrimitiveToplogy]
             .second =
-            [this](PipelineOperationType operationType, FrameStateService* frameState) {
-            D3D11_PRIMITIVE_TOPOLOGY topology = static_cast<D3D11_PRIMITIVE_TOPOLOGY>(frameState->GetPipelineState()->GetPrimitiveTopology());
-            this->m_inputAssemblyStage->SetPrimitiveTopology(topology);
-			};
-        m_operationsMap[PipelineOperationType::Device_draw].second =
-            [this](PipelineOperationType operationType, FrameStateService* frameState) {
-            const MeshAsset* mesh = frameState->MeshState()->GetMesh();
-            Mesh::DrawType drawType = mesh->GetDrawType();
-            switch (drawType) {
-                case Mesh::DrawType::Draw:
-                    this->m_context->Draw(mesh->GetVertexCount(), 0);
-                    break;
-                case Mesh::DrawType::DrawIndexed:
-                    this->m_context->DrawIndexed(mesh->GetIndexCount(), 0, 0);
-                    break;
-                case Mesh::DrawType::DrawInstanced:
-                    this->m_context->DrawInstanced(mesh->GetVertexCount(), frameState->MeshState()->GetNumberOfInstances(), 0, 0);
-                    break;
-                };
-            };  
-       /* m_operationsMap[PipelineOperationType::Device_SetConstantsBufferState].second =
-            [this](PipelineOperationType operationType, FrameStateService* frameState) {
-			MeshFrameState* meshState = frameState->MeshState();
-            const MeshAsset* mesh = meshState->GetMesh();
-            if (!mesh || !mesh->GetMaterial()) return;
-            bool a = true;
-            const Material* material = mesh->GetMaterial();
-            };*/
-		m_operationsMap[PipelineOperationType::Mesh_Render_SetTexture].second =
-			[this](PipelineOperationType operationType, FrameStateService* frameState) {
-			MeshFrameState* meshState = frameState->MeshState();
-			const MeshAsset* mesh = meshState->GetMesh();
-			if (!mesh || !mesh->GetMaterial()) return;
-			const Material* material = mesh->GetMaterial();
-			if (!material) return;
-            m_pixelShaderStage->SetShaderResources(0, material->GetNumTextures(), material->GetTextures().data());
-			};
-		m_operationsMap[PipelineOperationType::Mesh_Render_SetPixelShader].second =
-			[this](PipelineOperationType operationType, FrameStateService* frameState) {
-			MeshFrameState* meshState = frameState->MeshState();
-			const MeshAsset* mesh = meshState->GetMesh();
-			if (!mesh || !mesh->GetMaterial()) return;
-			const Material* material = mesh->GetMaterial();
-			if (!material) return;
-			Microsoft::WRL::ComPtr<ID3D11PixelShader> pShader = material->GetPixelShader();
-			if (pShader) {
-				m_pixelShaderStage->SetShader(pShader);
-			}
-			};
-		m_operationsMap[PipelineOperationType::Mesh_Render_SetVertexShader].second =
-			[this](PipelineOperationType operationType, FrameStateService* frameState) {
-			MeshFrameState* meshState = frameState->MeshState();
-			const MeshAsset* mesh = meshState->GetMesh();
-			if (!mesh || !mesh->GetMaterial()) return;
-			const Material* material = mesh->GetMaterial();
-			if (!material) return;
-			Microsoft::WRL::ComPtr<ID3D11VertexShader> vShader = material->GetVertexShader();
-			if (vShader) {
-				m_vertexShaderStage->SetShader(vShader);
-			}
-			};
-        m_operationsMap[PipelineOperationType::Mesh_Render_SetSampler].second =
-			[this](PipelineOperationType operationType, FrameStateService* frameState) {
-            std::string samplerName = frameState->GetPipelineState()->GetShader();
-			if (samplerName.empty()) return;
-			Microsoft::WRL::ComPtr<ID3D11SamplerState> sampler = frameState->PipelineState()->GetSamplerState(samplerName);
-            ID3D11SamplerState* spr = sampler.Get();
-            m_pixelShaderStage->SetSamplers(0, 1, &spr);
+            [this](PipelineOperationType operationType, FrameStateService* frameState, PipelineOperBase* parameter) {
+            MeshAssetBase* mesh = frameState->MeshState()->GetCurrentMesh();
+            if (!mesh) return;
+            this->m_inputAssemblyStage->SetPrimitiveTopology(mesh->GetPrimitiveTopology());
             };
-		m_operationsMap[PipelineOperationType::Mesh_Render_SetInputLayout].second =
-            [this](PipelineOperationType operationType, FrameStateService* frameState) {
+        m_operationsMap[PipelineOperationType::Device_draw].second =
+            [this](PipelineOperationType operationType, FrameStateService* frameState, PipelineOperBase* parameter) {
+            const MeshAssetBase* mesh = frameState->MeshState()->GetCurrentMesh();
+            Mesh::DrawType drawType = mesh->GetDrawType();
+            PipelineDrawIndexedData* param{};
+            switch (drawType) {
+            case Mesh::DrawType::Draw:
+                m_deviceManager->GetContext()->Draw(mesh->GetVertexCount(), 0);
+                break;
+            case Mesh::DrawType::DrawIndexed:
+                param = dynamic_cast<PipelineDrawIndexedData*>(parameter);
+
+                //auto& paramBase = parameter.value();
+                //PipelineDrawIndexedData param = static_cast<PipelineDrawIndexedData>(paramBase);
+                if (param != nullptr) {
+                    m_deviceManager->GetContext()->DrawIndexed(param->numIndexes, param->indexOffset, param->vertexOffset);
+                    break;
+                }
+
+                m_deviceManager->GetContext()->DrawIndexed(mesh->GetIndexCount(), 0, 0);
+                break;
+            case Mesh::DrawType::DrawInstanced:
+                m_deviceManager->GetContext()->DrawInstanced(mesh->GetVertexCount(), frameState->MeshState()->GetNumberOfInstances(), 0, 0);
+                break;
+            };
+            };
+        /*m_operationsMap[PipelineOperationType::Device_SetConstantsBufferState].second =
+             [this](PipelineOperationType operationType, FrameStateService* frameState, PipelineOperBase* parameter) {
+             MeshFrameState* meshState = frameState->MeshState();
+             const MeshAssetBase* mesh = meshState->GetMesh();
+             if (!mesh || !mesh->GetMaterial()) return;
+             bool a = true;
+             const Material* material = mesh->GetMaterial();
+             };*/
+        m_operationsMap[PipelineOperationType::Mesh_Render_SetTexture].second =
+            [this](PipelineOperationType operationType, FrameStateService* frameState, PipelineOperBase* parameter) {
             MeshFrameState* meshState = frameState->MeshState();
-            const MeshAsset* mesh = meshState->GetMesh();
+            const MeshAssetBase* mesh = meshState->GetMesh();
             if (!mesh || !mesh->GetMaterial()) return;
             const Material* material = mesh->GetMaterial();
             if (!material) return;
-            Microsoft::WRL::ComPtr<ID3D11InputLayout> layout = material->GetInputLayout();
-            if (layout) {
-                m_inputAssemblyStage->SetInputLayout(layout);
-            }
-			};
-        m_operationsMap[PipelineOperationType::Device_UpdateConstantsBufferResource].second =
-            [this](PipelineOperationType operationType, FrameStateService* frameState) {
+            UINT numTextures = material->GetNumTextures();
+            m_pixelShaderStage->SetShaderResources(6, numTextures, material->GetTextures().data());
             };
-		m_operationsMap[PipelineOperationType::Mesh_Render_SetVertexBuffer].second =
-            [this](PipelineOperationType operationType, FrameStateService* frameState) {
+        m_operationsMap[PipelineOperationType::Mesh_Render_SetPixelShader].second =
+            [this](PipelineOperationType operationType, FrameStateService* frameState, PipelineOperBase* parameter) {
+            /*MeshFrameState* meshState = frameState->MeshState();
+            const MeshAssetBase* mesh = meshState->GetMesh();
+            if (!mesh || !mesh->GetMaterial()) return;
+            const Material* material = mesh->GetMaterial();
+            if (!material) return;
+            Microsoft::WRL::ComPtr<ID3D11PixelShader> pShader = material->GetPixelShader();
+            if (pShader) {
+                m_pixelShaderStage->SetShader(pShader);
+            }*/
+            if (parameter != nullptr) {
+                auto param = dynamic_cast<PipelinePixelShaderData*>(parameter);
+                if (param != nullptr && param->data != nullptr) {
+                    m_pixelShaderStage->SetShader(param->data);
+
+                }
+            }
+            };
+        m_operationsMap[PipelineOperationType::Mesh_Render_SetVertexShader].second =
+            [this](PipelineOperationType operationType, FrameStateService* frameState, PipelineOperBase* parameter) {
             MeshFrameState* meshState = frameState->MeshState();
-            const MeshAsset* mesh = meshState->GetMesh();
+            const MeshAssetBase* mesh = meshState->GetMesh();
+            if (!mesh || !mesh->GetMaterial()) return;
+            const Material* material = mesh->GetMaterial();
+            if (!material) return;
+            Microsoft::WRL::ComPtr<ID3D11VertexShader> vShader = material->GetVertexShader();
+            if (vShader) {
+                m_vertexShaderStage->SetShader(vShader);
+            }
+            };
+        m_operationsMap[PipelineOperationType::Mesh_Render_SetSampler].second =
+            [this](PipelineOperationType operationType, FrameStateService* frameState, PipelineOperBase* parameter) {
+            std::string samplerName = frameState->GetPipelineState()->GetShader();
+            if (samplerName.empty()) return;
+            Microsoft::WRL::ComPtr<ID3D11SamplerState> sampler = frameState->PipelineState()->GetSamplerState(samplerName);
+            ID3D11SamplerState* spr = sampler.Get();
+            m_pixelShaderStage->SetSamplers(0, 1, &spr);
+            };
+        m_operationsMap[PipelineOperationType::Mesh_Render_SetInputLayout].second =
+            [this](PipelineOperationType operationType, FrameStateService* frameState, PipelineOperBase* parameter) {
+            try
+            {
+                MeshFrameState* meshState = frameState->MeshState();
+                if (!meshState->HasMeshes()) return;
+
+                const MeshAssetBase* mesh = meshState->GetMesh();
+                if (!mesh || !mesh->GetMaterial()) return;
+                const Material* material = mesh->GetMaterial();
+                if (!material) return;
+                Microsoft::WRL::ComPtr<ID3D11InputLayout> layout = material->GetInputLayout();
+                if (layout) {
+                    m_inputAssemblyStage->SetInputLayout(layout);
+                }
+            }
+            catch (const std::exception&)
+            {
+                bool a = false;
+            }
+            };
+
+        m_operationsMap[PipelineOperationType::Device_UpdateConstantsBufferResource].second =
+            [this](PipelineOperationType operationType, FrameStateService* frameState, PipelineOperBase* parameter) {
+            frameState->PipelineState()->UpdateAllConstantBuffers();
+            };
+
+        m_operationsMap[PipelineOperationType::Mesh_Render_SetVertexBuffer].second =
+            [this](PipelineOperationType operationType, FrameStateService* frameState, PipelineOperBase* parameter) {
+
+            //if (parameter != nullptr) {
+            //    auto param = dynamic_cast<PipelineSetVertexBufferData*>(parameter);
+            //    if (param != nullptr) {
+            //        ID3D11Buffer* pBuffer = param->GetVertexBuffer();
+            //        UINT stride = param->stride;
+            //        UINT offset = param->offset;
+            //        //ID3D11Buffer* pBuffer = param->vertexBuffer.Get();
+            //        m_inputAssemblyStage->SetVertexBuffers(param->startSlot, param->numBuffers, pBuffer, &stride, &offset);
+            //        return;
+            //    }
+            //}
+
+            MeshFrameState* meshState = frameState->MeshState();
+            MeshAssetBase* mesh = meshState->GetMesh();
             if (!mesh) return;
             Microsoft::WRL::ComPtr<ID3D11Buffer> vertexBuffer = mesh->GetVertexBuffer();
             if (vertexBuffer) {
                 UINT stride = mesh->GetVertexTypeSize();
                 UINT offset = 0;
                 //ID3D11Buffer* pBuffer = vertexBuffer.Get();
-                m_inputAssemblyStage->SetVertexBuffers(0, 1, vertexBuffer, &stride, &offset);
+                m_inputAssemblyStage->SetVertexBuffers(0, 1, vertexBuffer.Get(), &stride, &offset);
             }
-			};
+            };
+
         m_operationsMap[PipelineOperationType::Mesh_Render_SetIndexBuffer].second =
-            [this](PipelineOperationType operationType, FrameStateService* frameState) {
+            [this](PipelineOperationType operationType, FrameStateService* frameState, PipelineOperBase* parameter) {
             MeshFrameState* meshState = frameState->MeshState();
-            const MeshAsset* mesh = meshState->GetMesh();
+            MeshAssetBase* mesh = meshState->GetMesh();
             if (!mesh) return;
             const Microsoft::WRL::ComPtr<ID3D11Buffer> indexBuffer = mesh->GetIndexBuffer();
             if (indexBuffer) {
-                DXGI_FORMAT format = DXGI_FORMAT_R16_UINT;
+                DXGI_FORMAT format = DXGI_FORMAT_R32_UINT;
                 UINT offset = 0;
                 m_inputAssemblyStage->SetIndexBuffer(indexBuffer, format, offset);
             }
-			};
-		//m_operationsMap[PipelineOperationType::Mesh_Render_SetInputLayout].second =
-		//m_operationsMap[PipelineOperationType::Device_SetConstantsBufferState].second =
+            };
+        //m_operationsMap[PipelineOperationType::Mesh_Render_SetInputLayout].second =
+        //m_operationsMap[PipelineOperationType::Device_SetConstantsBufferState].second =
 
 
             //std::map<int, std::pair<std::string, MatrixDefinition::AnyMatrixBuffer>> matrices();
@@ -222,20 +331,20 @@ namespace RenderPipeline {
                 std::shared_ptr<MatrixDefinitionBase::MaterialMatrixParams> mParams = MatrixDefinitionBase::GetMatrixParams< MatrixDefinitionBase::MaterialMatrixParams>(param.params[MATRIX_PARAM_MATERIAL.data()]);
                 std::shared_ptr<MatrixDefinitionBase::WaterMatrixParams> wParams = MatrixDefinitionBase::GetMatrixParams< MatrixDefinitionBase::WaterMatrixParams>(param.params[MATRIX_PARAM_WATER.data()]);
             }*/
-            
-            
 
 
 
-        /*PipelineOperation* operation = nullptr;
-        operation = new PipelineOperation(operationType);
-        switch (operationType) {
-            case PipelineOperationType::Device_ClearRenderTargetView:
-                operation->SetExecutor()
 
 
-        }*/
-        
+            /*PipelineOperation* operation = nullptr;
+            operation = new PipelineOperation(operationType);
+            switch (operationType) {
+                case PipelineOperationType::Device_ClearRenderTargetView:
+                    operation->SetExecutor()
+
+
+            }*/
+
     }
 
     void RenderPipelineExecutor::AddOperation(PipelineOperationType operationType) {
@@ -247,8 +356,8 @@ namespace RenderPipeline {
 
     }
 
-    
-    //  void RenderPipelineExecutor::ExecuteOperation(PipelineOperationType operationType, FrameStateService* frameState) {
+
+    //  void RenderPipelineExecutor::ExecuteOperation(PipelineOperationType operationType, FrameStateService* frameState, PipelineOperBase parametere* frameState) {
   //      PipelineOperationType operationType = operation->GetOperationType();
 
   //      switch (operationType) {
@@ -283,7 +392,7 @@ namespace RenderPipeline {
   //                  m_outputMergerStage->SetDepthStencilState(stencilStateData.state, 1);
   //                  operation->SetResult(S_OK);
   //              }
-		//	}
+        //	}
   //          break;
   //      }
   //      case PipelineOperationType::Device_DisabledBledingState:
@@ -296,7 +405,7 @@ namespace RenderPipeline {
   //              }
   //          }
   //          break;
-		//}
+        //}
   //       
   //      case PipelineOperationType::Device_SetViewport:
   //          if (m_rasterizerStage) {
@@ -351,11 +460,11 @@ namespace RenderPipeline {
   //          break;
   //      }
 
-		//case PipelineOperationType::Mesh_Render_ResetVertexBuffer:
+        //case PipelineOperationType::Mesh_Render_ResetVertexBuffer:
   //          if (m_inputAssemblyStage) {
   //              m_inputAssemblyStage->ResetVertexBuffers();
   //          }
-		//	break;
+        //	break;
 
   //      case PipelineOperationType::Mesh_Render_ResetIndexBuffer:
   //          if (m_inputAssemblyStage) {                
@@ -370,11 +479,11 @@ namespace RenderPipeline {
   //                  ID3D11RenderTargetView* tView = rtvData.targetView.Get();
   //                  ID3D11DepthStencilView* sView = rtvData.stencilView.Get();
   //                  bool isColorPass = rtvData.isColorPass;
-		//			m_outputMergerStage->SetRenderTargets( isColorPass ? 1 : 0, &tView, sView);
+        //			m_outputMergerStage->SetRenderTargets( isColorPass ? 1 : 0, &tView, sView);
   //                  operation->SetResult(S_OK);
   //              }
   //          }
-		//	break;
+        //	break;
   //      }
   //      case PipelineOperationType::Device_ResetRenderTargetView: {
   //          if (m_outputMergerStage) {
@@ -495,7 +604,7 @@ namespace RenderPipeline {
   //              m_context->Draw(drawData.vertexCount, 0);
   //              operation->SetResult(S_OK);
   //          }
-		//	break;
+        //	break;
   //      }
   //      case PipelineOperationType::Device_SetConstantsBufferState: {
 
@@ -507,22 +616,22 @@ namespace RenderPipeline {
   //          D3D11_MAPPED_SUBRESOURCE mapped = {};
 
   //          for (const auto& [slot, matrixPair] : matrices) {
-		//		std::string matrixName = matrixPair.first;
+        //		std::string matrixName = matrixPair.first;
 
-		//		std::shared_ptr<MatrixDefinitionBase::MatrixParams> bParams = MatrixDefinitionBase::GetMatrixParams< MatrixDefinitionBase::MatrixParams>(param.params[MATRIX_PARAM_BASE.data()]);
+        //		std::shared_ptr<MatrixDefinitionBase::MatrixParams> bParams = MatrixDefinitionBase::GetMatrixParams< MatrixDefinitionBase::MatrixParams>(param.params[MATRIX_PARAM_BASE.data()]);
   //              std::shared_ptr<MatrixDefinitionBase::LightMatrixParams> lParams = MatrixDefinitionBase::GetMatrixParams< MatrixDefinitionBase::LightMatrixParams>(param.params[MATRIX_PARAM_LIGHT.data()]);
   //              std::shared_ptr<MatrixDefinitionBase::MaterialMatrixParams> mParams = MatrixDefinitionBase::GetMatrixParams< MatrixDefinitionBase::MaterialMatrixParams>(param.params[MATRIX_PARAM_MATERIAL.data()]);
   //              std::shared_ptr<MatrixDefinitionBase::WaterMatrixParams> wParams = MatrixDefinitionBase::GetMatrixParams< MatrixDefinitionBase::WaterMatrixParams>(param.params[MATRIX_PARAM_WATER.data()]);
 
   //              if (matrixName == "TerrainBlendBuffer") {
   //                  mParams->terrainBlenderData = {};
-		//			mParams->terrainBlenderData.dirtHeight = 0.0f; 
+        //			mParams->terrainBlenderData.dirtHeight = 0.0f; 
   //                  mParams->terrainBlenderData.grassHeight = 0.0f;
   //                  mParams->terrainBlenderData.slopeEnd = 1.0f;
   //                  mParams->terrainBlenderData.slopeStart = 0.7f;
   //                  mParams->terrainBlenderData.snowHeight = 50.0f;
   //                  mParams->terrainBlenderData.terrainScale = .008f;
-		//		}
+        //		}
   //              if (matrixName == "Terrain2BlendBuffer") {
   //                  mParams->terrain2BlenderData = {};
   //                  mParams->terrain2BlenderData.grassTransitionHeight = 100.0f; // La hierba empieza desde la base
@@ -613,9 +722,9 @@ namespace RenderPipeline {
   //              &updateData.data->waterInstancingData.instanceWorldMatrix,
   //              0,
   //              0
-		//	);
+        //	);
   //          break;
-		//}
+        //}
 
 
   //      case PipelineOperationType::Device_ResetConstantsBuffers: {
@@ -625,13 +734,13 @@ namespace RenderPipeline {
   //              ID3D11Buffer* nullConstantBuffersVS[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = {};
   //              m_context->VSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, nullConstantBuffersVS);
   //          }
-		//	break;
+        //	break;
   //      }
   //      }
   //          
   // //         int slot = 0;
 
-		//	//PipelineMaterialBufferData param = operation->GetOperationParam<PipelineMaterialBufferData>();
+        //	//PipelineMaterialBufferData param = operation->GetOperationParam<PipelineMaterialBufferData>();
 
   // //         if ((param.oper & static_cast<unsigned int>(PipelineMatrixBufferType::WorldMatrix)) != 0) {
   // //             ID3D11Buffer* pBuffer = ;
@@ -881,10 +990,10 @@ namespace RenderPipeline {
   //      }*/
   //  }
 
-void RenderPipelineExecutor::ExecuteOperation(PipelineOperationType operationType, FrameStateService* frameState) {
-    auto it = m_operationsMap.find(operationType);
-    if (it != m_operationsMap.end()) {
-        it->second.second(operationType, frameState);
+    void RenderPipelineExecutor::ExecuteOperation(PipelineOperationType operationType, FrameStateService* frameState, PipelineOperBase* parameter) {
+        auto it = m_operationsMap.find(operationType);
+        if (it != m_operationsMap.end()) {
+            it->second.second(operationType, frameState, parameter);
+        }
     }
-}
 }

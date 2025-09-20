@@ -1,13 +1,12 @@
 #include "FirstPersonCamera.h"
-#include <Services/Mouse.h>
+#include <Game/Systems/World.h>
 #include <limits>           // Para std::numeric_limits
-#include <windows.h>        // Para OutputDebugStringA (solo para mensajes de depuración)
-#include <REGISTER_SERVICE_MACRO.h>
 #include <ManagerLocator/ManagerLocator.h>
 #include <ServiceLocator/ServiceLocator.h>
-#include <algorithm>        // Para std::clamp
-#include <Game/Systems/World.h>
+#include <Services/Mouse.h>
+#include <windows.h>        // Para OutputDebugStringA (solo para mensajes de depuración)
 
+#include <REGISTER_SERVICE_MACRO.h>
 
 REGISTER_SERVICE_TYPE(FirstPersonCamera, "FirstPersonCamera")
 
@@ -59,12 +58,12 @@ HRESULT FirstPersonCamera::Init() {
     // Obtener referencias a los servicios necesarios
     m_keyboardManager = ManagerLocator::GetKeyboardManager();
     m_mouseService = ServiceLocator::GetService<Mouse>();
-	
-    
+
+
     // Configurar posición inicial
     SetPosition(40.0f, 40.0f, 40.0f);
     SetLookAt(0.0f, 0.0f, 0.0f); // Mirar al origen por defecto
-    
+
     return S_OK;
 }
 
@@ -110,21 +109,21 @@ void FirstPersonCamera::SetLookAt(const XMFLOAT3& target) {
 DirectX::XMFLOAT3 FirstPersonCamera::GetLookAt() const {
     // 1. Obtener la posición de la cámara
     DirectX::XMVECTOR eyePos = DirectX::XMLoadFloat3(&m_position);
-    
+
     // 2. Obtener el vector de dirección "hacia adelante"
     // Este método ya maneja la rotación.
     DirectX::XMVECTOR forwardVector = GetForwardVector();
 
     // 3. Escalar el vector de dirección a una distancia razonable
     DirectX::XMVECTOR lookAtVector = DirectX::XMVectorScale(forwardVector, m_farPlane);
-    
+
     // 4. Sumar el vector de dirección a la posición de la cámara
     DirectX::XMVECTOR lookAtPoint = DirectX::XMVectorAdd(eyePos, lookAtVector);
 
     // 5. Almacenar el resultado y devolverlo
     DirectX::XMFLOAT3 result;
     DirectX::XMStoreFloat3(&result, lookAtPoint);
-    
+
     return result;
 }
 
@@ -191,7 +190,7 @@ void FirstPersonCamera::RecalculateProjectionMatrix() const {
 }
 
 XMMATRIX FirstPersonCamera::GetProjectionMatrix(bool onUpdate) const {
-    if (m_projectionDirty ) { //&& !onUpdate) {
+    if (m_projectionDirty) { //&& !onUpdate) {
         RecalculateProjectionMatrix();
     }
     return m_projectionMatrixCache;
@@ -269,9 +268,9 @@ bool FirstPersonCamera::UpdateHeight(float deltaTime, XMVECTOR moveDir) {
     m_verticalVelocity += GRAVITY * deltaTime;
 
     // 4. Actualizar la posición Y de la cámara
-	float newY = m_position.y + m_verticalVelocity * deltaTime;
+    float newY = m_position.y + m_verticalVelocity * deltaTime;
     //m_position.y += m_verticalVelocity * deltaTime;
-    
+
     if (m_world && m_world->HasHeight()) {
 
         // Obtener la altura del terreno en la nueva posición (x, z) de la cámara
@@ -283,9 +282,9 @@ bool FirstPersonCamera::UpdateHeight(float deltaTime, XMVECTOR moveDir) {
             return true;
         }*/
 
-		float diff = terrainHeight - m_lastHeight;
+        float diff = terrainHeight - m_lastHeight;
 
-        m_lastHeight = terrainHeight; 
+        m_lastHeight = terrainHeight;
 
         /*if (diff > .2f) {
             m_position = m_lastPosition;
@@ -330,7 +329,7 @@ void FirstPersonCamera::Update(float deltaTime) {
     XMVECTOR moveDir = XMVectorZero();
 
     // Movimiento adelante/atrás y lateral
-    if (m_keyboardManager->IsKeyDown(KeyMoves::Forward)) 
+    if (m_keyboardManager->IsKeyDown(KeyMoves::Forward))
         moveDir = XMVectorAdd(moveDir, GetForwardVector());
     if (m_keyboardManager->IsKeyDown(KeyMoves::Backward))
         moveDir = XMVectorAdd(moveDir, XMVectorScale(GetForwardVector(), -1.0f));
@@ -338,31 +337,31 @@ void FirstPersonCamera::Update(float deltaTime) {
         moveDir = XMVectorAdd(moveDir, XMVectorScale(GetRightVector(), -1.0f));
     if (m_keyboardManager->IsKeyDown(KeyMoves::Right))
         moveDir = XMVectorAdd(moveDir, GetRightVector());
-	if (m_keyboardManager->IsKeyDown(KeyMoves::Sprint)) 
+    if (m_keyboardManager->IsKeyDown(KeyMoves::Sprint))
         m_moveSpeed = CAMERA_SPEEDY; // Aumentar velocidad al sprintar
     else
-		m_moveSpeed = CAMERA_SPEED; // Velocidad normal
+        m_moveSpeed = CAMERA_SPEED; // Velocidad normal
 
     // Normalizar y aplicar velocidad
     if (!XMVector3Equal(moveDir, XMVectorZero())) {
         moveDir = XMVector3Normalize(moveDir);
         moveDir = XMVectorScale(moveDir, m_moveSpeed * deltaTime);
-        
+
         // Actualizar posición
         XMVECTOR position = XMLoadFloat3(&m_position);
         position = XMVectorAdd(position, moveDir);
         XMStoreFloat3(&m_position, position);
-        
+
         m_viewDirty = true;
     }
 
     // 5. Actualizar la altura
-    if (!UpdateHeight(deltaTime, moveDir)) {
+    /*if (!UpdateHeight(deltaTime, moveDir)) {
         m_viewDirty = true;
         return;
-    }
+    }*/
 
-	m_lastPosition = m_position; // Guardar la última posición para comparaciones futuras
+    m_lastPosition = m_position; // Guardar la última posición para comparaciones futuras
 }
 
 void FirstPersonCamera::UpdateViewMatrix() {

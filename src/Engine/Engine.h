@@ -7,6 +7,7 @@
 #include <mutex>
 #include <queue>
 #include <chrono>
+#include <Defines/EngineDefinition.h>
 
 class DeviceManager;
 class RenderManager;
@@ -41,15 +42,15 @@ public:
     ~Engine();
 
     //--------------------------------------------------------------------------------------
+    // Función para cerrar el motor y liberar los recursos.
+    //--------------------------------------------------------------------------------------
+    void Shutdown();
+
+    //--------------------------------------------------------------------------------------
     // Inicializa los recursos del motor, incluido DirectX.
     // La ventana se crea y se pasa desde MainWindow.
     //--------------------------------------------------------------------------------------
-    bool Init(HINSTANCE hInstance, int nCmdShow, HWND* outHwnd, int width, int height);
-
-    //--------------------------------------------------------------------------------------
-    // Método principal llamado por MainWindow para actualizar y renderizar.
-    //--------------------------------------------------------------------------------------
-    void UpdateAndRender(float deltaTime);
+    bool Init(EngineContext* context);
 
     //--------------------------------------------------------------------------------------
     // Métodos llamados por MainWindow para la entrada y el redimensionamiento.
@@ -57,13 +58,19 @@ public:
     void OnInput(UINT message, WPARAM wParam, LPARAM lParam);
     void OnResize(int width, int height);
 
+    // --------------------------------------------------------------------------------------
+    // Control del estado del motor
+    // --------------------------------------------------------------------------------------
+    bool IsRunning() const { return m_context->isRunning; }
+    void SetRunning(bool running) { m_context->isRunning = running; }
+
 private:
-	//--------------------------------------------------------------------------------------
-	// Inicialización
-	//--------------------------------------------------------------------------------------
-    bool InitEngine(HWND* outHwnd, int width, int height);
+    //--------------------------------------------------------------------------------------
+    // Inicialización
+    //--------------------------------------------------------------------------------------
+    bool InitEngine(EngineContext* context);
     bool InitManagers();
-	bool InitThreads();
+    bool InitThreads();
 
     //--------------------------------------------------------------------------------------
     // Hilos de la aplicación.
@@ -72,43 +79,39 @@ private:
     std::unique_ptr<std::thread> m_updateThread;
     std::unique_ptr<std::thread> m_renderThread;
     std::shared_ptr<ThreadPool> m_threadPool;
-       
+
     //--------------------------------------------------------------------------------------
     // Cola para la comunicación entre los hilos de actualización y de renderizado.
     //--------------------------------------------------------------------------------------
     std::queue<RenderTask> m_renderQueue;
     std::mutex m_renderQueueMutex;
-    std::condition_variable m_renderCondition;
 
     //--------------------------------------------------------------------------------------
     // Puntero para la ventana, necesario para la inicialización de DirectX.
     //--------------------------------------------------------------------------------------
     HWND* m_hWnd = nullptr;
 
-	// --------------------------------------------------------------------------------------
-	// Control del estado
-	// --------------------------------------------------------------------------------------
-	// Delta time 
-    std::chrono::duration<float> m_deltaTime;
-    // Tiempo transcurrido desde la última actualización.
-    std::chrono::time_point < std::chrono::high_resolution_clock> m_lastTime;
-    // Bandera atómica para notificar a los hilos que deben detenerse.
-    std::atomic<bool> m_isShutdown;           
+    // --------------------------------------------------------------------------------------
+    // Control del estado
+    // --------------------------------------------------------------------------------------
+    EngineContext* m_context = nullptr; // Contexto del motor
 
     //--------------------------------------------------------------------------------------
     // Managers principales del motor.
     //--------------------------------------------------------------------------------------
     std::shared_ptr<InputManager> m_inputManager;
-	std::shared_ptr<DeviceManager> m_deviceManager;
-	std::shared_ptr<InitManager> m_initManager;
-	std::shared_ptr<RenderManager> m_renderManager;
+    std::shared_ptr<DeviceManager> m_deviceManager;
+    std::shared_ptr<InitManager> m_initManager;
+    std::shared_ptr<RenderManager> m_renderManager;
     std::shared_ptr<UpdateManager> m_updateManager;
     std::shared_ptr<SceneManager> m_sceneManager;
-    
+
     //--------------------------------------------------------------------------------------
-    // Métodos que ejecutan los bucles de los hilos.
+    // Métodos para el control de los hilos.
     //--------------------------------------------------------------------------------------
-    void UpdateLoop();
-    void RenderLoop();
+    /*void UpdateLoop();
+    void RenderLoop();*/
+    void Pause();
+    void Resume();
     void ShutdownThreads();
 };

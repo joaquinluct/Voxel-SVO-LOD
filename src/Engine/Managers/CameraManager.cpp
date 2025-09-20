@@ -18,11 +18,11 @@ CameraManager::~CameraManager() {
     m_currentCamera = nullptr;
 }
 
-HRESULT CameraManager::Init(HWND* hwnd, int width, int height) {
+HRESULT CameraManager::Init(EngineContext* context) {
     OutputDebugStringA("Incializando CameraManager...\n");
-    m_hwnd = hwnd;
-    m_width = width;
-    m_height = height;
+    m_hwnd = context->hWnd;
+    m_width = static_cast<int>(context->width);
+    m_height = static_cast<int>(context->height);
 
     m_config = new CameraManagerConfig();
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "AssetLocator/AssetLocator.h"
-#include "IWindowDependentInitializable.h"
+#include "IEngineDependentInitializable.h"
 #include "IInitializable.h"
 #include "IRenderable.h"
 #include <Assets/Base/AssetBase.h>

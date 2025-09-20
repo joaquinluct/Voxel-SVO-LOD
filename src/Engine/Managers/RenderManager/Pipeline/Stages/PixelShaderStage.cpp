@@ -1,27 +1,31 @@
 #include "PixelShaderStage.h"
-// #include <iostream> // Para depuración
+#include <d3d11.h>
+#include <DeviceManager.h>
+#include <memory>
+#include <Windows.h>
+#include <wrl/client.h>
 
 namespace RenderPipeline
 {
-    PixelShaderStage::PixelShaderStage(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context)
-        : m_context(context)
+    PixelShaderStage::PixelShaderStage(std::shared_ptr<DeviceManager> deviceManager)
     {
+        this->m_deviceManager = deviceManager;
     }
 
     // OJO: Para aprender: Hay estos: VSSetShader, HSSetShader, DSSetShader y PSSetShader
     void PixelShaderStage::SetShader(Microsoft::WRL::ComPtr<ID3D11PixelShader> pPixelShader)
     {
-        if (m_context) m_context->PSSetShader(pPixelShader.Get(), nullptr, 0);
+        m_deviceManager->GetContext()->PSSetShader(pPixelShader.Get(), nullptr, 0);
     }
 
     void PixelShaderStage::SetConstantBuffers(UINT StartSlot, UINT NumBuffers, ID3D11Buffer* const* ppConstantBuffers)
     {
-        if (m_context) m_context->PSSetConstantBuffers(StartSlot, NumBuffers, ppConstantBuffers);
+        m_deviceManager->GetContext()->PSSetConstantBuffers(StartSlot, NumBuffers, ppConstantBuffers);
     }
 
     void PixelShaderStage::SetShaderResources(UINT StartSlot, UINT NumViews, ID3D11ShaderResourceView* const* ppShaderResourceViews)
     {
-        if (m_context) m_context->PSSetShaderResources(StartSlot, NumViews, ppShaderResourceViews);
+        m_deviceManager->GetContext()->PSSetShaderResources(StartSlot, NumViews, ppShaderResourceViews);
     }
 
     void PixelShaderStage::ResetShaderResources()
@@ -31,11 +35,11 @@ namespace RenderPipeline
             m_context->PSSetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, nullSRVs);
         }
     }
-    
+
 
     void PixelShaderStage::SetSamplers(UINT StartSlot, UINT NumSamplers, ID3D11SamplerState* const* ppSamplers)
     {
-        if (m_context) m_context->PSSetSamplers(StartSlot, NumSamplers, ppSamplers);
+        m_deviceManager->GetContext()->PSSetSamplers(StartSlot, NumSamplers, ppSamplers);
     }
 
     void PixelShaderStage::ResetSamplers()

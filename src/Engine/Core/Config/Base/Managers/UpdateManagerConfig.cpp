@@ -5,6 +5,7 @@ REGISTER_CONFIG_TYPE(UpdateManagerConfig,"UpdateManagerConfig");
 
 UpdateManagerConfig::UpdateManagerConfig(){
 	dependencies = {
+		"SceneManager",
 		"CameraManager",
 		"World"
 	};

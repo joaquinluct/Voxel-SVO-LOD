@@ -1,14 +1,16 @@
 #pragma once
 
+#include "StageBase.h"
 #include <d3d11.h>
+#include <DeviceManager.h>
 #include <wrl/client.h> // Para ComPtr
 
 namespace RenderPipeline
 {
-    class OutputMergerStage
+    class OutputMergerStage : public StageBase
     {
     public:
-        OutputMergerStage(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context);
+        OutputMergerStage(std::shared_ptr<DeviceManager> deviceManager);
 
         void SetRenderTargets(UINT numRTVs, ID3D11RenderTargetView* const* ppRenderTargetViews, ID3D11DepthStencilView* pDepthStencilView);
         //void SetBlendState(Microsoft::WRL::ComPtr<ID3D11BlendState> pBlendState, const FLOAT BlendFactor[4], UINT SampleMask);

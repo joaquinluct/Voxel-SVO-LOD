@@ -25,6 +25,7 @@ TerrainMeshConfig::TerrainMeshConfig(){
 	receive_shadows = true;
 	shader_shadows = "ShadowMapShader";
 	drawType = 1;
+	primitiveTopology = 4;
 	render_passes = 417;
 	dependencies = {
 		"MeshAsset"

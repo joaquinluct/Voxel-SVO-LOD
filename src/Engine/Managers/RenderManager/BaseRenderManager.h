@@ -12,7 +12,7 @@ class BaseRenderManager : public ManagerBase {
 public:
 	BaseRenderManager();
 	~BaseRenderManager() override;
-	HRESULT Init() override;
+	HRESULT Init(EngineContext* context) override;
 	void Shutdown() override;
 	void BeginRender();
 	void Render() override;

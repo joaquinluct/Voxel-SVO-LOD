@@ -17,12 +17,12 @@
 REGISTER_MANAGER_TYPE(ShaderManager, "ShaderManager")
 
 ShaderManager::ShaderManager() {
-	// Inicializar mapas
-	vertexShaders.clear();
-	pixelShaders.clear();
-	inputLayouts.clear();
-	vertexShaderBlobs.clear();
-	pixelShaderBlobs.clear();
+    // Inicializar mapas
+    vertexShaders.clear();
+    pixelShaders.clear();
+    inputLayouts.clear();
+    vertexShaderBlobs.clear();
+    pixelShaderBlobs.clear();
     matrixShaders.clear();
 }
 
@@ -154,10 +154,10 @@ std::shared_ptr<MatrixDefinition::AnyMatrixBuffer> ShaderManager::GetConstantsBu
         // Lanzar una excepción es la forma idiomática de indicar un fallo en este caso
         throw std::runtime_error(msg);
     }
-	return it->second; // Devuelve una referencia constante al mapa interno
+    return it->second; // Devuelve una referencia constante al mapa interno
 }
 std::map<std::string, std::shared_ptr<MatrixDefinition::AnyMatrixBuffer>> ShaderManager::GetConstantsBuffers() {
-	return constantsBuffers;
+    return constantsBuffers;
 }
 
 std::map<int, std::pair<std::string, std::shared_ptr<MatrixDefinition::AnyMatrixBuffer>>>& ShaderManager::GetMatrixBuffers(std::wstring shaderName) {
@@ -249,6 +249,80 @@ HRESULT ShaderManager::InitManagers() {
     return S_OK;
 }
 
+HRESULT ShaderManager::LoadShaderByName(std::wstring shaderName) {
+    std::shared_ptr<ShaderAsset> shader = AssetLocator::GetShaderAsset(WstringToString(shaderName));
+    if (!shader) {
+        OutputDebugStringA("No se encontraron shaders para cargar.\n");
+        return E_FAIL;
+    }
+    // Configuración del Shader
+    std::shared_ptr<IAssetShaderConfig> config = shader->GetConfig();
+    if (!config || config->vertex_def.empty()) {
+        OutputDebugStringA("Error: Configuración del shader no encontrada.\n");
+        return E_FAIL; // Saltar este shader si no tiene configuración
+    }
+
+    // Obtener valores de configuración
+    std::string vertexDef = config->vertex_def;
+    std::vector<std::string> matrixDef = config->matrix_slots;
+    std::vector<std::string> samplerDef = config->sampler_slots;
+
+    std::shared_ptr<IVertex> vertex = DefineLocator::GetVertexDefine(vertexDef);
+    if (!vertex) {
+        OutputDebugStringA("Error: Configuración del shader: Definición de vértices no encontrada.\n");
+        return E_FAIL;
+    }
+
+    // Obtener el layout de entrada del shader
+    unsigned int numItems = 0;
+    D3D11_INPUT_ELEMENT_DESC* layout = vertex->GetInputLayout(numItems);
+
+    if (!layout) {
+        OutputDebugStringA("Error: Layout de entrada no encontrado.\n");
+        return E_FAIL; // Saltar este shader si no tiene layout
+    }
+
+    // Cargar el shader
+    std::wstring vsPath = StringToWstring(config->shader_path);
+
+    HRESULT result = LoadShader(deviceManager->GetDevice(), shaderName, vsPath, vsPath, layout, numItems);
+
+    if (SUCCEEDED(result)) {
+        // Guardar las constants matrix del shader
+        int slot = 0;
+        for (const std::string& matrixName : matrixDef) {
+            MatrixDefinition::AnyMatrixBuffer matrixDef = MatrixDefinition::Get(matrixName);
+            //const std::string matrixSlotName = ParseInt(idx) + matrixName;
+            //matrixShaders[name][matrixSlotName] = { idx, (std::make_unique<MatrixDefinition::AnyMatrixBuffer>(std::move(matrix))) };
+            std::shared_ptr<MatrixDefinition::AnyMatrixBuffer> matrix = std::make_shared<MatrixDefinition::AnyMatrixBuffer>(std::move(matrixDef));
+            constantsBuffers[matrixName] = matrix;
+            matrixShaders[shaderName][slot] = { matrixName, matrix };
+            slot++;
+        }
+    }
+
+    if (samplerDef.size()) {
+        // Guardar los samplers desc del shader
+        int slot = 0;
+        for (std::string samplerName : samplerDef) {
+            if (StrToLower(samplerName) == "none") {
+                continue;
+            }
+            const std::string samplerSlotName = ParseInt(slot) + samplerName;
+            ShaderSampler::SamplerVariant sampler = ShaderSampler::GetSampler(samplerName);
+            std::visit([&](auto&& sampler) {
+                ShaderSampler::SamplerDefinition samplerDef = {};
+                samplerDef.name = samplerName;
+                samplerDef.slot = slot;
+                samplerDef.desc = sampler.GetDesc();
+                samplersDesc[shaderName].push_back(samplerDef);
+                }, sampler);
+            slot++;
+        }
+    }
+    return S_OK;
+}
+
 HRESULT ShaderManager::InitShaders() {
 
     std::vector<std::shared_ptr<ShaderAsset>> shaders = AssetLocator::GetShaders();
@@ -262,90 +336,32 @@ HRESULT ShaderManager::InitShaders() {
         // Nombre del Shader
         std::wstring name = StringToWstring(shader->GetAssetName());
 
-		// Configuración del Shader
-        std::shared_ptr<IAssetShaderConfig> config = shader->GetConfig();
-        if (!config || config->vertex_def.empty()) {
-            OutputDebugStringA("Error: Configuración del shader no encontrada.\n");
-            continue; // Saltar este shader si no tiene configuración
+        if (FAILED(LoadShaderByName(name))) {
+            std::string msg = "ShaderManager::ERROR: Shader cargado: " + shader->GetAssetName() + "\n";
+            OutputDebugStringA(msg.c_str());
         }
 
-		// Obtener valores de configuración
-        std::string vertexDef = config->vertex_def;
-        std::vector<std::string> matrixDef = config->matrix_slots;
-        std::vector<std::string> samplerDef = config->sampler_slots;
-
-        std::shared_ptr<IVertex> vertex = DefineLocator::GetVertexDefine(vertexDef);
-        if (!vertex) {
-            OutputDebugStringA("Error: Configuración del shader: Definición de vértices no encontrada.\n");
-            continue;
-        }
-
-		// Obtener el layout de entrada del shader
-        unsigned int numItems = 0;
-        D3D11_INPUT_ELEMENT_DESC* layout = vertex->GetInputLayout(numItems);
-
-        if (!layout) {
-            OutputDebugStringA("Error: Layout de entrada no encontrado.\n");
-            continue; // Saltar este shader si no tiene layout
-        }
-
-		// Cargar el shader
-        std::wstring vsPath = StringToWstring(config->shader_path);
-
-        HRESULT result = LoadShader(deviceManager->GetDevice(), name, vsPath, vsPath, layout, numItems);
-
-        if (SUCCEEDED(result)) {
-            // Guardar las constants matrix del shader
-            int slot = 0;
-            for (const std::string& matrixName : matrixDef) {
-                MatrixDefinition::AnyMatrixBuffer matrixDef = MatrixDefinition::Get(matrixName);
-                //const std::string matrixSlotName = ParseInt(idx) + matrixName;
-                //matrixShaders[name][matrixSlotName] = { idx, (std::make_unique<MatrixDefinition::AnyMatrixBuffer>(std::move(matrix))) };
-                std::shared_ptr<MatrixDefinition::AnyMatrixBuffer> matrix = std::make_shared<MatrixDefinition::AnyMatrixBuffer>(std::move(matrixDef));
-				constantsBuffers[matrixName] = matrix;
-                matrixShaders[name][slot] = { matrixName, matrix };
-                slot++;
-            }
-        }
-
-        if (samplerDef.size()) {
-			// Guardar los samplers desc del shader
-            int slot = 0;
-            for (std::string samplerName : samplerDef) {
-                if (StrToLower(samplerName) == "none") {
-                    continue;
-                }
-                const std::string samplerSlotName = ParseInt(slot) + samplerName;
-                ShaderSampler::SamplerVariant sampler = ShaderSampler::GetSampler(samplerName);
-                std::visit([&](auto&& sampler) {
-                    ShaderSampler::SamplerDefinition samplerDef = {};
-					samplerDef.name = samplerName;
-					samplerDef.slot = slot;
-					samplerDef.desc = sampler.GetDesc();
-                    samplersDesc[name].push_back(samplerDef);
-                    }, sampler);
-                slot++;
-            }
-        }
     }
     return S_OK;
 }
 
-HRESULT ShaderManager::Init() {
-	OutputDebugStringA("Inicializando ShaderManager...\n");
+HRESULT ShaderManager::Init(EngineContext* context) {
+    ManagerBase::Init(context);
 
-	HRESULT hr = InitManagers();
+    OutputDebugStringA("Inicializando ShaderManager...\n");
+
+    HRESULT hr = InitManagers();
     if (FAILED(hr)) {
         OutputDebugStringA("Error al inicializar DeviceManager.\n");
         return hr; // Fallo al inicializar DeviceManager
-	}
-    
-	hr = InitShaders();
+    }
+
+    hr = InitShaders();
     if (FAILED(hr)) {
         OutputDebugStringA("Error al inicializar shaders.\n");
-		return hr; // Fallo al inicializar shaders
-	}
-    
+        return hr; // Fallo al inicializar shaders
+    }
+
     return hr;
 }
 
@@ -376,9 +392,9 @@ std::vector<ShaderSampler::SamplerDefinition> ShaderManager::GetAllSamplersDesc(
     if (samplersDesc.empty()) {
         return allSamplers;
     }
-	// Recorremos todos los shaders
+    // Recorremos todos los shaders
     for (const auto& shaderPair : samplersDesc) {
-		std::vector<ShaderSampler::SamplerDefinition> samplerDefs = shaderPair.second;
+        std::vector<ShaderSampler::SamplerDefinition> samplerDefs = shaderPair.second;
         // Recorremos todos sus samplers
         for (const ShaderSampler::SamplerDefinition& samplerDef : samplerDefs) {
             bool found = false;
@@ -389,7 +405,7 @@ std::vector<ShaderSampler::SamplerDefinition> ShaderManager::GetAllSamplersDesc(
                 }
             }
             if (!found) {
-				// Si no se ha encontrado, lo añadimos a la lista de samplers
+                // Si no se ha encontrado, lo añadimos a la lista de samplers
                 allSamplers.push_back(samplerDef);
             }
         }
@@ -414,7 +430,8 @@ SamplerStates ShaderManager::GetSamplersStates(std::wstring shaderName, SamplerS
         auto stateIt = state.find(samplerDef.name);
         if (stateIt != state.end()) {
             result[samplerDef.name] = stateIt->second;
-        } else {
+        }
+        else {
             // Si no se encuentra, añadir un ComPtr vacío (nullptr) para mantener la clave
             result[samplerDef.name] = nullptr;
         }
@@ -429,9 +446,9 @@ bool ShaderManager::NeedsShadow(std::wstring shaderName) {
     if (shaders.empty()) {
         OutputDebugStringA("No se encontraron shaders para verificar sombras.\n");
         return false; // No hay shaders que verificar
-	}
+    }
 
-	// Recorremos todos los shaders
+    // Recorremos todos los shaders
     for (const auto& shader : shaders) {
         if (shader->GetAssetName() == WstringToString(shaderName)) {
             // Verificamos si el shader tiene configuraciones de sombras
@@ -441,31 +458,31 @@ bool ShaderManager::NeedsShadow(std::wstring shaderName) {
                 return true;
             }
         }
-	}
+    }
     return false; // No se encontró ninguna matriz de sombra
 }
 
 void ShaderManager::Shutdown() {
-	// Liberar todos los shaders y layouts
-	for (auto& pair : vertexShaders) {
-		if (pair.second) pair.second->Release();
-	}
-	for (auto& pair : pixelShaders) {
-		if (pair.second) pair.second->Release();
-	}
-	for (auto& pair : inputLayouts) {
-		if (pair.second) pair.second->Release();
-	}
-	for (auto& pair : vertexShaderBlobs) {
-		if (pair.second) pair.second->Release();
-	}
-	for (auto& pair : pixelShaderBlobs) {
-		if (pair.second) pair.second->Release();
-	}
+    // Liberar todos los shaders y layouts
+    for (auto& pair : vertexShaders) {
+        if (pair.second) pair.second->Release();
+    }
+    for (auto& pair : pixelShaders) {
+        if (pair.second) pair.second->Release();
+    }
+    for (auto& pair : inputLayouts) {
+        if (pair.second) pair.second->Release();
+    }
+    for (auto& pair : vertexShaderBlobs) {
+        if (pair.second) pair.second->Release();
+    }
+    for (auto& pair : pixelShaderBlobs) {
+        if (pair.second) pair.second->Release();
+    }
 
-	vertexShaders.clear();
-	pixelShaders.clear();
-	inputLayouts.clear();
-	vertexShaderBlobs.clear();
-	pixelShaderBlobs.clear();
+    vertexShaders.clear();
+    pixelShaders.clear();
+    inputLayouts.clear();
+    vertexShaderBlobs.clear();
+    pixelShaderBlobs.clear();
 }

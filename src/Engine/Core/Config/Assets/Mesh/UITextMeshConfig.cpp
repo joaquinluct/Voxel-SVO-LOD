@@ -19,6 +19,7 @@ UITextMeshConfig::UITextMeshConfig(){
 	cast_shadows = false;
 	receive_shadows = false;
 	drawType = 2;
+	primitiveTopology = 4;
 	render_passes = 8;
 	dependencies = {
 		"MeshAsset"

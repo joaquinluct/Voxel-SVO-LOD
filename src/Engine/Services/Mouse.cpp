@@ -16,16 +16,19 @@ Mouse::~Mouse() {
 
 HRESULT Mouse::Init() {
     m_deviceManager = ManagerLocator::GetManager<DeviceManager>();
-    
-    m_hwnd = m_deviceManager->GetHwnd();
-    m_width = m_deviceManager->GetWidth();
-	m_height = m_deviceManager->GetHeight();
+
+    const auto* context = m_deviceManager->Context();
+
+
+    m_hwnd = context->hWnd;
+    m_width = context->width;
+    m_height = context->height;
 
     // Configurar el cursor
     /*ConfineCursor();*/
     /*SetCenter();*/
     ShowCursor(true);
-    
+
     return S_OK;
 }
 
@@ -39,7 +42,7 @@ void Mouse::Update(float deltaTime) {
 
     m_deltaX = static_cast<int>(currentScreenPos.x - m_lastX);
     m_deltaY = static_cast<int>(currentScreenPos.y - m_lastY);
-   
+
     //SetCenter();
 }
 
@@ -47,7 +50,7 @@ void Mouse::SetCenter() {
     POINT center = { static_cast<long>(m_width / 2), static_cast<long>(m_height / 2) };
     ClientToScreen(*m_hwnd, &center);
     SetCursorPos(center.x, center.y);
-    
+
     // Actualizar las coordenadas de referencia para el siguiente frame
     m_lastX = static_cast<float>(center.x);
     m_lastY = static_cast<float>(center.y);

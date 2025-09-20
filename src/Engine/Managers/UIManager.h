@@ -1,16 +1,18 @@
 // UIManager.h
 #pragma once
 #include <Windows.h>
+#include <directxmath.h>
 #include <string>
 #include <vector>
+#include <map>
+#include <memory>
 #include <ManagerBase.h>
-#include <directxmath.h>
+#include <Defines/VertexDefinition.h>
 #include <UI/UIText.h>
-#include <ManagerLocator/ManagerLocator.h>
 
 class DeviceManager;
-class RenderManager;
 class MeshAsset;
+//class UIText;
 
 class UIManager : public ManagerBase
 {
@@ -27,8 +29,8 @@ public:
         return name;
     }
 
-    HRESULT Init() override;
-    UIText* InitText(std::shared_ptr<MeshAsset> mesh, std::vector<std::shared_ptr<VertexDefinition::VertexVariant>>& vertexDef);
+    HRESULT Init(EngineContext* context) override;
+    UIText* InitText(std::shared_ptr<MeshAsset> mesh, std::vector<std::shared_ptr<VertexDefinition::VertexVariant>>& vertexDef);    
     void Render() override;
     void Update(float deltaTime) override {};
     UIText* UpdateText(std::string meshName, std::string text);
@@ -43,8 +45,7 @@ public:
 
 private:
 	std::map<std::string, UIText*> m_textElements;
-    std::shared_ptr<DeviceManager> m_deviceManager;    
-    std::shared_ptr<RenderManager> m_renderManager;
+    std::shared_ptr<DeviceManager> m_deviceManager;        
 	// Matriz ortográfica para UI
 	XMMATRIX m_orthoMatrix; // Matriz ortográfica para UI
 };

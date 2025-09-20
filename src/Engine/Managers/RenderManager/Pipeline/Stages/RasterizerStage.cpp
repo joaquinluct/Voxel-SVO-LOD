@@ -1,28 +1,32 @@
 #include "RasterizerStage.h"
+#include <d3d11.h>
+#include <DeviceManager.h>
+#include <memory>
+#include <Windows.h>
+#include <wrl/client.h>
 // #include <iostream> // Para depuración
 
 namespace RenderPipeline
 {
-    RasterizerStage::RasterizerStage(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context)
-        : m_context(context)
-    {
+    RasterizerStage::RasterizerStage(std::shared_ptr<DeviceManager> m_deviceManager) {
+        this->m_deviceManager = m_deviceManager;
     }
 
     void RasterizerStage::SetState(Microsoft::WRL::ComPtr<ID3D11RasterizerState> pRasterizerState)
     {
-        if (m_context) m_context->RSSetState(pRasterizerState.Get());
+        m_deviceManager->GetContext()->RSSetState(pRasterizerState.Get());
     }
 
     const void RasterizerStage::SetViewport(const D3D11_VIEWPORT* viewport) const
     {
-        if (m_context) m_context->RSSetViewports(1, viewport);
+        m_deviceManager->GetContext()->RSSetViewports(1, viewport);
     }
     const void RasterizerStage::SetViewports(D3D11_VIEWPORT* viewport, UINT viewportCount) const
     {
-        if (m_context) m_context->RSSetViewports(viewportCount, viewport);
+        m_deviceManager->GetContext()->RSSetViewports(viewportCount, viewport);
     }
 
-	// CAMBIADO DURANTE LA REFACTORIZACIÓN DEL PIPELINE
+    // CAMBIADO DURANTE LA REFACTORIZACIÓN DEL PIPELINE
 
     /*void RasterizerStage::SetViewport(D3D11_VIEWPORT& viewport)
     {

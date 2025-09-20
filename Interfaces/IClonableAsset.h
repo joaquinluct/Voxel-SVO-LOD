@@ -10,7 +10,5 @@ class AssetBase; // Forward declaration
 class IClonableAsset {
 public:
     virtual ~IClonableAsset() = default;
-    virtual std::shared_ptr<AssetBase> Clone() const = 0;
-    virtual std::unique_ptr<AssetBase> CloneUnique() const = 0;
-    virtual std::shared_ptr<MeshAsset> CloneAsMesh() const = 0;
+    virtual std::shared_ptr<AssetBase> Clone() const { return nullptr; }
 };

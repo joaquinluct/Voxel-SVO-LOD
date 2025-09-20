@@ -1,24 +1,20 @@
 #include "SkyboxPass.h"
+#include <Assets/Base/MeshAsset.h>
+#include <Game/Systems/Lighting.h>
+#include <Game/Systems/Shadows.h>
+#include <Locators/Registers/REGISTER_RENDER_PASS_MACRO.h>
 #include <ManagerLocator/ManagerLocator.h>
 #include <ServiceLocator/ServiceLocator.h>
-#include <Locators/Pipeline/PipelineStateLocator.h>
-#include <Game/Systems/Shadows.h>
-#include <Game/Systems/Lighting.h>
-#include <Util/Text/Text.h>
-#include <Assets/Base/MeshAsset.h>
-#include <Defines/Matrix/Light.h>
-#include <Locators/Registers/REGISTER_RENDER_PASS_MACRO.h>
 #include <Services/FrameStateService.h>
-#include <RenderState/FrameStates/CommonFrameState.h>
 
 REGISTER_RENDER_PASS_TYPE(SkyboxPass, "SkyboxPass")
 
 void SkyboxPass::SetInitialOperations() {
-	AddInitialOperation(PipelineOperationType::Device_SetViewport);
-	AddInitialOperation(PipelineOperationType::Device_Init_SetRenderTargetView);
-	AddInitialOperation(PipelineOperationType::Device_ClearRenderTargetView);
-	AddInitialOperation(PipelineOperationType::Device_SetRasterizedState);
-	AddInitialOperation(PipelineOperationType::Device_ClearDepthStencilView);
+    AddInitialOperation(PipelineOperationType::Device_SetViewport);
+    AddInitialOperation(PipelineOperationType::Device_Init_SetRenderTargetView);
+    AddInitialOperation(PipelineOperationType::Device_ClearRenderTargetView);
+    AddInitialOperation(PipelineOperationType::Device_SetRasterizedState);
+    AddInitialOperation(PipelineOperationType::Device_ClearDepthStencilView);
 }
 
 //void SkyboxPass::SetInitialOperations() {
@@ -114,79 +110,79 @@ void SkyboxPass::SetInitialOperations() {
 //}
 
 HRESULT SkyboxPass::InitManagers() {
-	m_deviceManager = ManagerLocator::GetDeviceManager();
-	if (!m_deviceManager) {
-		return E_FAIL;
-	}
-	m_cameraManager = ManagerLocator::GetCameraManager();
-	if (!m_cameraManager) {
-		return E_FAIL;
-	}	
-	m_shaderManager = ManagerLocator::GetShaderManager();
-	if (!m_shaderManager) {
-		return E_FAIL;
-	}
-	/*m_renderTargetManager = ManagerLocator::GetRenderManager();
-	if (!m_shaderManager) {
-		return E_FAIL;
-	}*/
-	m_initManager = ManagerLocator::GetManager<InitManager>();
-	if (!m_initManager) {
-		return E_FAIL;
-	}
-	m_shadows = ServiceLocator::GetService<Shadows>();
-	if (!m_shadows) {
-		return E_FAIL;
-	}
-	m_lighthing = ServiceLocator::GetService<Lighting>();
-	if (!m_lighthing) {
-		return E_FAIL;
-	}
-	return S_OK;
+    m_deviceManager = ManagerLocator::GetDeviceManager();
+    if (!m_deviceManager) {
+        return E_FAIL;
+    }
+    m_cameraManager = ManagerLocator::GetCameraManager();
+    if (!m_cameraManager) {
+        return E_FAIL;
+    }
+    m_shaderManager = ManagerLocator::GetShaderManager();
+    if (!m_shaderManager) {
+        return E_FAIL;
+    }
+    /*m_renderTargetManager = ManagerLocator::GetRenderManager();
+    if (!m_shaderManager) {
+        return E_FAIL;
+    }*/
+    m_initManager = ManagerLocator::GetManager<InitManager>();
+    if (!m_initManager) {
+        return E_FAIL;
+    }
+    m_shadows = ServiceLocator::GetService<Shadows>();
+    if (!m_shadows) {
+        return E_FAIL;
+    }
+    m_lighthing = ServiceLocator::GetService<Lighting>();
+    if (!m_lighthing) {
+        return E_FAIL;
+    }
+    return S_OK;
 }
 
 HRESULT SkyboxPass::Init() {
-	config = std::make_shared<SkyboxPassConfig>(SkyboxPassConfig{});
-	if (!config) { return E_FAIL; };
-	HRESULT hr = InitManagers();
-	if (FAILED(hr)) {
-		return hr;
-	}
-	SetInitialOperations();
-	return hr;
+    config = std::make_shared<SkyboxPassConfig>(SkyboxPassConfig{});
+    if (!config) { return E_FAIL; };
+    HRESULT hr = InitManagers();
+    if (FAILED(hr)) {
+        return hr;
+    }
+    SetInitialOperations();
+    return hr;
 }
 
 std::map<std::string, std::shared_ptr<MeshAsset>> SkyboxPass::GetMeshes(const SceneManager* SceneManager, FrameStateService* renderState) {
-	return {};
-	////return SceneManager->GetMeshes();
-	//return SceneManager->GetMeshesByRenderPass(RenderPassType::Skybox);
+    return {};
+    ////return SceneManager->GetMeshes();
+    //return SceneManager->GetMeshesByRenderPass(RenderPassType::Skybox);
 }
 
 std::vector<PipelineOperationType> SkyboxPass::BeginPass(const MeshAsset* mesh, FrameStateService* renderState)
 {
-	// 1. Operacines fijas definidas al inicio
-	return GetInitialOperations();
+    // 1. Operacines fijas definidas al inicio
+    return GetInitialOperations();
 }
 
 std::vector<PipelineOperationType> SkyboxPass::ExecPass(const MeshAsset* mesh, FrameStateService* renderState)
 {
-	ClearOperations();
+    ClearOperations();
 
-	AddOperation(PipelineOperationType::Device_SetConstantsBufferState);
-	AddOperation(PipelineOperationType::Mesh_Render_SetVertexShader);
-	AddOperation(PipelineOperationType::Mesh_Render_SetPixelShader);
-	AddOperation(PipelineOperationType::Mesh_Render_SetInputLayout);
-	AddOperation(PipelineOperationType::Mesh_Render_SetTexture);
-	//if (needShadowMap) {
-		//AddOperation(PipelineOperationType::Mesh_Render_SetTexture);
-	//}
-	AddOperation(PipelineOperationType::Mesh_Render_SetSampler);
-	AddOperation(PipelineOperationType::Mesh_Render_SetVertexBuffer);
-	AddOperation(PipelineOperationType::Mesh_Render_SetIndexBuffer);
-	AddOperation(PipelineOperationType::Mesh_Render_SetPrimitiveToplogy);
-	AddOperation(PipelineOperationType::Device_draw);
+    AddOperation(PipelineOperationType::Device_SetConstantsBufferState);
+    AddOperation(PipelineOperationType::Mesh_Render_SetVertexShader);
+    AddOperation(PipelineOperationType::Mesh_Render_SetPixelShader);
+    AddOperation(PipelineOperationType::Mesh_Render_SetInputLayout);
+    AddOperation(PipelineOperationType::Mesh_Render_SetTexture);
+    //if (needShadowMap) {
+        //AddOperation(PipelineOperationType::Mesh_Render_SetTexture);
+    //}
+    AddOperation(PipelineOperationType::Mesh_Render_SetSampler);
+    AddOperation(PipelineOperationType::Mesh_Render_SetVertexBuffer);
+    AddOperation(PipelineOperationType::Mesh_Render_SetIndexBuffer);
+    AddOperation(PipelineOperationType::Mesh_Render_SetPrimitiveToplogy);
+    AddOperation(PipelineOperationType::Device_draw);
 
-	return GetOperations();
+    return GetOperations();
 }
 
 //std::vector<PipelineOperationType> SkyboxPass::ExecPass(const MeshAsset* mesh, FrameStateService* renderState)
@@ -306,5 +302,5 @@ std::vector<PipelineOperationType> SkyboxPass::ExecPass(const MeshAsset* mesh, F
 
 std::vector<PipelineOperationType> SkyboxPass::EndPass()
 {
-	return {};
+    return {};
 }

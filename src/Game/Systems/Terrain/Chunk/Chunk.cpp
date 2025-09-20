@@ -1,15 +1,25 @@
 #include "Chunk.h"
+#include <algorithm>
 #include <cmath>
-#include <limits>
-#include <unordered_set>
-#include <ManagerLocator/ManagerLocator.h>
-#include <Managers/RenderManager/RenderManager.h>
-#include <DeviceManager.h>
-//#include <Assets/Base/MeshAsset.h>
+#include <cstdint>
+#include <cstring>
+#include <d3d11.h>
+#include <Defines/VertexDefinition.h>
+#include <DirectXMath.h>
+#include <DirectXUtils.h>
 #include <Game/Systems/Terrain/Procedural/Engines/ProceduralEngineBase.h>
-#include <Defines/WorldTerrain.h>
-#include <Helpers/ChunkHelper.h>
+#include <IDefine/IVertex.h>
+#include <limits>
+#include <memory>
+#include <optional>
+#include <unordered_set>
+#include <Utils.h>
+#include <vector>
+#include <wrl/client.h>
 
+// -----------------------------------------------------------------------------
+// INIT
+// -----------------------------------------------------------------------------
 HRESULT Chunk::Init() {
     m_boundingBox.min.x = (float)m_id.x * m_chunkSize;
     m_boundingBox.min.z = (float)m_id.z * m_chunkSize;
@@ -23,9 +33,39 @@ HRESULT Chunk::Init() {
 
     m_currentLOD = -1; // Forzar la generación del LOD 0 en la primera actualización
 
+    m_dirty = true;
+
     return S_OK;
 }
 
+// -----------------------------------------------------------------------------
+// SetRegion
+// -----------------------------------------------------------------------------
+void Chunk::SetRegion(const TerrainChunk::ChunkBufferRegion& region) {
+    m_bufferRegion = region;
+}
+
+// -----------------------------------------------------------------------------
+// SetBuffers
+// -----------------------------------------------------------------------------
+void Chunk::SetBuffers(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context, ID3D11Buffer* vertexBuffer, ID3D11Buffer* indexBuffer, UINT vertexTypeSize) {
+    UINT vertexOffsetBytes = m_bufferRegion.vertexOffset * vertexTypeSize;
+    UINT indexOffsetBytes = m_bufferRegion.indexOffset * sizeof(uint16_t);
+
+    D3D11_MAPPED_SUBRESOURCE mappedVB;
+    context->Map(vertexBuffer, 0, D3D11_MAP_WRITE_NO_OVERWRITE, 0, &mappedVB);
+    memcpy((BYTE*)mappedVB.pData + vertexOffsetBytes, m_vertices.data(), m_bufferRegion.vertexCount * static_cast<size_t>(vertexTypeSize));
+    context->Unmap(vertexBuffer, 0);
+
+    D3D11_MAPPED_SUBRESOURCE mappedIB;
+    context->Map(indexBuffer, 0, D3D11_MAP_WRITE_NO_OVERWRITE, 0, &mappedIB);
+    memcpy((BYTE*)mappedIB.pData + indexOffsetBytes, m_indexes.data(), m_bufferRegion.indexCount * sizeof(uint16_t));
+    context->Unmap(indexBuffer, 0);
+}
+
+// -----------------------------------------------------------------------------
+// UpdateLOD
+// -----------------------------------------------------------------------------
 void Chunk::UpdateLOD(int lodLevel) {
     if (lodLevel == m_currentLOD) {
         return;
@@ -38,6 +78,9 @@ void Chunk::UpdateLOD(int lodLevel) {
     GenerateLODMesh(lodLevel);
 }
 
+// -----------------------------------------------------------------------------
+// GenerateLODMesh
+// -----------------------------------------------------------------------------
 void Chunk::GenerateLODMesh(int lodLevel) {
     int gridSize = static_cast<int>(m_chunkSize / std::pow(2.0f, lodLevel));
     std::vector<std::shared_ptr<IVertex>> processedVertices;
@@ -52,48 +95,53 @@ void Chunk::GenerateLODMesh(int lodLevel) {
     CalculateNormals(processedVertices);
 
     for (const auto& v : processedVertices) {
-        m_vertices.push_back(v);
+        VertexDefinition::TextureMapVertex vertexData = dynamic_cast<VertexDefinition::TextureMapVertex&>(*v);
+        m_vertices.push_back(vertexData);
     }
 }
 
+// -----------------------------------------------------------------------------
+// InterpolateVertex
+// -----------------------------------------------------------------------------
 std::optional<XMFLOAT3> Chunk::InterpolateVertex(float globalX, float globalZ, int gridSize, const TerrainChunk::NeighborDirection& dir, const DirectX::XMFLOAT4& debugColor)
 {
-    std::shared_ptr<Chunk> neighbor = m_neighbors[static_cast<int>(dir)];
-	if (!neighbor) return std::nullopt;
-	// !!!!! OJO !!!!!
+    Chunk* neighbor = m_neighbors[static_cast<int>(dir)];
+    if (!neighbor) return std::nullopt;
+    // !!!!! OJO !!!!!
     // if (neighbor->GetCurrentLOD() <= m_currentLOD || IsDirty()) return std::nullopt;
     if (neighbor->GetCurrentLOD() <= m_currentLOD) return std::nullopt;
 
-    std::vector<std::shared_ptr<IVertex>> vertex = neighbor->GetBorderVertices(dir, gridSize);
-	// std::vector<std::shared_ptr<IVertex>> vertex = GetBorderVerticesFromTriangles(dir, 0.01f);
-	if (vertex.empty()) return std::nullopt;
+    std::vector<IVertex> vertex = neighbor->GetBorderVertices(dir, gridSize);
+    // std::vector<std::shared_ptr<IVertex>> vertex = GetBorderVerticesFromTriangles(dir, 0.01f);
+    if (vertex.empty()) return std::nullopt;
     if (vertex.size() == 1) {
-        return vertex[0]->GetPosition();
+        return vertex[0].GetPosition();
     };
-	std::shared_ptr<IVertex> closest1 = nullptr;
-	std::shared_ptr<IVertex> closest2 = nullptr;
+    IVertex* closest1 = nullptr;
+    IVertex* closest2 = nullptr;
     if (vertex.size() == 2) {
-        closest1 = vertex[0];
-        closest2 = vertex[1];
-	} else {
-		// Buscar los dos vértices más cercanos
-		float minDist1 = std::numeric_limits<float>::max();
-		float minDist2 = std::numeric_limits<float>::max();
-        for (const auto& v : vertex) {
-            const XMFLOAT3 pos = v->GetPosition();
+        closest1 = &vertex[0];
+        closest2 = &vertex[1];
+    }
+    else {
+        // Buscar los dos vértices más cercanos
+        float minDist1 = std::numeric_limits<float>::max();
+        float minDist2 = std::numeric_limits<float>::max();
+        for (auto& v : vertex) {
+            const XMFLOAT3 pos = v.GetPosition();
             float dist = std::sqrt(std::pow(pos.x - globalX, 2) + std::pow(pos.z - globalZ, 2));
             if (dist < minDist1) {
                 minDist2 = minDist1;
                 closest2 = closest1;
                 minDist1 = dist;
-                closest1 = v;
+                closest1 = &v;
             }
             else if (dist < minDist2) {
                 minDist2 = dist;
-                closest2 = v;
+                closest2 = &v;
             }
-		}
-	}
+        }
+    }
 
     /*if (dir == TerrainChunk::NeighborDirection::NORTH) {
         closest1->SetDebugColor(DirectX::XMFLOAT4{ 1.0f,1.0f,0.0f,0.6f });
@@ -102,15 +150,15 @@ std::optional<XMFLOAT3> Chunk::InterpolateVertex(float globalX, float globalZ, i
     if (dir == TerrainChunk::NeighborDirection::SOUTH) {
         closest1->SetDebugColor(DirectX::XMFLOAT4{ 0.0f,1.0f,0.0f,0.6f });
         closest2->SetDebugColor(DirectX::XMFLOAT4{ 0.0f,1.0f,0.0f,0.6f });
-	}
+    }
     if (dir == TerrainChunk::NeighborDirection::EAST) {
         closest1->SetDebugColor(DirectX::XMFLOAT4{ 0.0f,0.0f,1.0f,0.6f });
-		closest2->SetDebugColor(DirectX::XMFLOAT4{ 0.0f,0.0f,1.0f,0.6f });
+        closest2->SetDebugColor(DirectX::XMFLOAT4{ 0.0f,0.0f,1.0f,0.6f });
     }
 
     if (dir == TerrainChunk::NeighborDirection::WEST) {
         closest1->SetDebugColor(DirectX::XMFLOAT4{ 1.0f,0.0f,1.0f,0.6f });
-		closest2->SetDebugColor(DirectX::XMFLOAT4{ 1.0f,0.0f,1.0f,0.6f });
+        closest2->SetDebugColor(DirectX::XMFLOAT4{ 1.0f,0.0f,1.0f,0.6f });
     }*/
 
     /*if (dir == TerrainChunk::NeighborDirection::NORTH) {
@@ -122,19 +170,22 @@ std::optional<XMFLOAT3> Chunk::InterpolateVertex(float globalX, float globalZ, i
         closest2->SetDebugColor(DirectX::XMFLOAT4(1, 0, 0, 1));
     }*/
 
-    XMFLOAT3 A = closest1->GetPosition();
-    XMFLOAT3 B = closest2->GetPosition();
+    XMFLOAT3 A = closest1 != nullptr ? closest1->GetPosition() : XMFLOAT3{};
+    XMFLOAT3 B = closest2 != nullptr ? closest2->GetPosition() : XMFLOAT3{};
     XMFLOAT3 AB = DirectXUtils::Subtract(B, A);
-    XMFLOAT3 AP = DirectXUtils::Subtract(XMFLOAT3{ globalX, closest2->GetPosition().y, globalZ}, A);
+    XMFLOAT3 AP = DirectXUtils::Subtract(XMFLOAT3{ globalX, closest2->GetPosition().y, globalZ }, A);
     float t = DirectXUtils::Dot(AP, AB) / DirectXUtils::Dot(AB, AB);
     t = std::clamp(t, 0.0f, 1.0f);
     XMFLOAT3 projected = DirectXUtils::Lerp(A, B, t);
-	return projected;
+    return projected;
 }
 
+// -----------------------------------------------------------------------------
+// GenerateVertices
+// -----------------------------------------------------------------------------
 void Chunk::GenerateVertices(int gridSize, int lodLevel, std::vector<std::shared_ptr<IVertex>>& outVertices) {
     float scaleFactor = static_cast<float>(std::pow(2.0f, lodLevel));
-    outVertices.reserve((gridSize + 1) * (gridSize + 1));
+    outVertices.reserve((static_cast<std::vector<std::shared_ptr<IVertex>, std::allocator<std::shared_ptr<IVertex>>>::size_type>(gridSize) + 1) * (static_cast<unsigned long long>(gridSize) + 1));
 
     // Inicializa la altura min/max al inicio de la función
     float minHeight = std::numeric_limits<float>::max();
@@ -148,7 +199,7 @@ void Chunk::GenerateVertices(int gridSize, int lodLevel, std::vector<std::shared
             float height = -1.0f;
 
             /*DirectX::XMFLOAT4 debugColor = DirectXUtils::GenerateRandomColor();
-                        
+
             TerrainChunk::NeighborDirection dir = TerrainChunk::NeighborDirection::UNDEFINED;
             if (z == gridSize) dir = TerrainChunk::NeighborDirection::EAST;
             else if (z == 0) dir = TerrainChunk::NeighborDirection::WEST;
@@ -157,21 +208,21 @@ void Chunk::GenerateVertices(int gridSize, int lodLevel, std::vector<std::shared
             /*else if (x == 0 && z == 0) dir = TerrainChunk::NeighborDirection::SOUTH_WEST;
             else if (x == 0 && z == gridSize) dir = TerrainChunk::NeighborDirection::NORTH_WEST;
             else if (x == gridSize && z == 0) dir = TerrainChunk::NeighborDirection::SOUTH_EAST;
-			else if (x == gridSize && z == gridSize) dir = TerrainChunk::NeighborDirection::NORTH_EAST;*/
+            else if (x == gridSize && z == gridSize) dir = TerrainChunk::NeighborDirection::NORTH_EAST;*/
 
             std::optional<XMFLOAT3> newPos = std::nullopt;
-            
+
             /*if (dir != TerrainChunk::NeighborDirection::UNDEFINED)
-				newPos = InterpolateVertex(globalX, globalZ, gridSize, dir, debugColor);
-            
+                newPos = InterpolateVertex(globalX, globalZ, gridSize, dir, debugColor);
+
             if (newPos.has_value()) {
-				SetDirty(true);
+                SetDirty(true);
                 height = newPos->y;
                 globalX = newPos->x;
-                globalZ = newPos->z;                    
+                globalZ = newPos->z;
             }
             else {*/
-                height = m_proceduralEngine->GetHeight(globalX, globalZ) * m_terrainHeight;
+            height = m_proceduralEngine->GetHeight(globalX, globalZ) * m_terrainHeight;
             //}
 
             if (height < minHeight) minHeight = height;
@@ -189,7 +240,7 @@ void Chunk::GenerateVertices(int gridSize, int lodLevel, std::vector<std::shared
             newVertex.tangent[0] = 1.0f;
             newVertex.tangent[1] = 0.0f;
             newVertex.tangent[2] = 0.0f;
-            
+
             // DEBUG
             //if (newPos.has_value()) {
             //    //if (dir == TerrainChunk::NeighborDirection::NORTH) newVertex.SetDebugColor(debugColor);
@@ -227,6 +278,9 @@ void Chunk::GenerateVertices(int gridSize, int lodLevel, std::vector<std::shared
     m_boundingBox.max.y = maxHeight;
 }
 
+// -----------------------------------------------------------------------------
+// GenerateIndices
+// -----------------------------------------------------------------------------
 void Chunk::GenerateIndices(int gridSize, int lodLevel, std::vector<UINT>& outIndices) {
 
     outIndices.clear();
@@ -250,6 +304,9 @@ void Chunk::GenerateIndices(int gridSize, int lodLevel, std::vector<UINT>& outIn
     }
 }
 
+// -----------------------------------------------------------------------------
+// CalculateNormals
+// -----------------------------------------------------------------------------
 void Chunk::CalculateNormals(std::vector<std::shared_ptr<IVertex>>& processedVertices) {
     std::vector<DirectX::XMVECTOR> accumulatedNormals(processedVertices.size(), DirectX::XMVectorZero());
 
@@ -306,11 +363,14 @@ void Chunk::CalculateNormals(std::vector<std::shared_ptr<IVertex>>& processedVer
 }
 
 
+// -----------------------------------------------------------------------------
+// Otros métodos
+// -----------------------------------------------------------------------------
 std::vector<DirectX::XMFLOAT3> Chunk::GetVerticesVectors() const {
     std::vector<DirectX::XMFLOAT3> vertexPositions;
     vertexPositions.reserve(m_vertices.size());
     for (const auto& vertexVariant : m_vertices) {
-        vertexPositions.push_back(vertexVariant->GetPosition());
+        vertexPositions.push_back(vertexVariant.GetPosition());
     }
     return vertexPositions;
 }
@@ -323,14 +383,14 @@ float Chunk::GetDistanceToCamera(std::shared_ptr<ICamera> camera) const {
     return std::sqrt(std::pow(chunkCenterX - cameraX, 2) + std::pow(chunkCenterZ - cameraZ, 2));
 }
 
-std::shared_ptr<IVertex> Chunk::FindVertexByPosition(const DirectX::XMFLOAT3& position, float tolerance) const
+IVertex Chunk::FindVertexByPosition(const DirectX::XMFLOAT3& position, float tolerance) const
 {
-    std::shared_ptr<IVertex> closest = nullptr;
+    IVertex closest = {};
     float minDistSq = tolerance * tolerance;
 
     for (const auto& vertex : m_vertices)
     {
-        const DirectX::XMFLOAT3& vPos = vertex->GetPosition(); // Asumiendo que tienes este método
+        const DirectX::XMFLOAT3& vPos = vertex.GetPosition(); // Asumiendo que tienes este método
         float dx = vPos.x - position.x;
         float dy = vPos.y - position.y;
         float dz = vPos.z - position.z;
@@ -346,11 +406,11 @@ std::shared_ptr<IVertex> Chunk::FindVertexByPosition(const DirectX::XMFLOAT3& po
     return closest;
 }
 
-std::vector<std::shared_ptr<IVertex>> Chunk::GetBorderVertices(TerrainChunk::NeighborDirection dir, int gridSize) const {
-    std::vector<std::shared_ptr<IVertex>> result;
+std::vector<IVertex> Chunk::GetBorderVertices(TerrainChunk::NeighborDirection dir, int gridSize) const {
+    std::vector<IVertex> result;
 
     for (const auto& vertex : m_vertices) {
-        const DirectX::XMFLOAT3 pos = vertex->GetPosition();
+        const DirectX::XMFLOAT3 pos = vertex.GetPosition();
 
         switch (dir) {
         case TerrainChunk::NeighborDirection::WEST: if (std::abs(pos.z - m_boundingBox.min.z) < EPSILON) result.push_back(vertex); break;
@@ -361,7 +421,7 @@ std::vector<std::shared_ptr<IVertex>> Chunk::GetBorderVertices(TerrainChunk::Nei
     }
 
     if (!result.empty()) {
-		bool a = false;
+        bool a = false;
     }
 
     return result;
@@ -388,7 +448,7 @@ std::vector<std::tuple<UINT, UINT, UINT>> Chunk::GetTrianglesTouchingBorder(int 
         int countOnBorder = 0;
 
         for (UINT idx : { i0, i1, i2 }) {
-            const XMFLOAT3& pos = m_vertices[idx]->GetPosition();
+            const XMFLOAT3& pos = m_vertices[idx].GetPosition();
 
             switch (direction) {
             case 0: // NORTH
@@ -414,15 +474,15 @@ std::vector<std::tuple<UINT, UINT, UINT>> Chunk::GetTrianglesTouchingBorder(int 
     return result;
 }
 
-std::vector<std::shared_ptr<IVertex>> Chunk::GetBorderVerticesFromTriangles(int direction, float epsilon) const {
-    std::vector<std::shared_ptr<IVertex>> result;
+std::vector<IVertex> Chunk::GetBorderVerticesFromTriangles(int direction, float epsilon) const {
+    std::vector<IVertex> result;
     std::unordered_set<UINT> added;
 
     auto triangles = GetTrianglesTouchingBorder(direction, epsilon);
 
     for (const auto& [i0, i1, i2] : triangles) {
         for (UINT idx : { i0, i1, i2 }) {
-            const XMFLOAT3& pos = m_vertices[idx]->GetPosition();
+            const XMFLOAT3& pos = m_vertices[idx].GetPosition();
 
             bool isOnBorder = false;
             switch (direction) {

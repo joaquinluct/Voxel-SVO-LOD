@@ -93,6 +93,11 @@ std::vector<std::shared_ptr<VertexDefinition::VertexVariant>> DefineLocator::Get
                 std::make_shared<VertexDefinition::VertexVariant>(*skybox_vtx); // Desreferenciar el shared_ptr
             return { v };
         }
+        else if (auto text_vtx = std::dynamic_pointer_cast<VertexDefinition::TextVertex>(base_instance)) {
+            std::shared_ptr<VertexDefinition::VertexVariant> v =
+                std::make_shared<VertexDefinition::VertexVariant>(*text_vtx); // Desreferenciar el shared_ptr
+            return { v };
+        }
         // Agrega más 'else if' para cada tipo concreto que VertexVariant pueda contener
 
         // Si el tipo no coincide con ningún tipo conocido en VertexVariant

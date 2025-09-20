@@ -17,17 +17,20 @@ Config:
           - UIManager
           - MouseManager
           - SceneManager
+          - PipelineResourcesManager
           # - InitPipelineManager
         managers_post_init:
           - CameraManager        
           - RenderManager
+          # - UpdateManager
+          # - SceneManager
         managers_render_order:
           - UIManager
           - DeviceManager
         managers_update_order:
-           - KeyboardManager
-           - CameraManager
-           - UIManager
+          # - KeyboardManager
+          - CameraManager
+          # - UIManager
         pipeline_states_init:
           - SwapChainMain
           - RasterizedMainColorPass
@@ -81,6 +84,7 @@ Config:
       
       UpdateManager:      
         dependencies:
+          - SceneManager
           - CameraManager        
           - World
       
@@ -88,6 +92,10 @@ Config:
         dependencies:
           - CameraManager        
           - World
+
+      PipelineResourcesManager:
+        dependencies:
+          - DeviceManager          
       
       AssetManager:
         manifest_path: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Resources\\assets_manifest.yaml"

@@ -16,4 +16,5 @@ public:
 	std::string mainViewport;
 	std::string mainRenderTargetView;
 	std::string mainStencilView;
+	std::string mainStencilState;
 };

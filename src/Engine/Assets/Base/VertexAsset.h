@@ -20,15 +20,7 @@ public:
         // Crea una nueva instancia utilizando el constructor de copia
         // y la devuelve como un shared_ptr.
         return std::make_shared<VertexAsset>(*this);
-    }
-    virtual std::shared_ptr<MeshAsset> CloneAsMesh() const override {
-        return nullptr;
-    }
-    virtual std::unique_ptr<AssetBase> CloneUnique() const override {
-        // Crea una nueva instancia utilizando el constructor de copia
-        // y la devuelve como un shared_ptr.
-        return std::make_unique<VertexAsset>(*this);
-    }
+    }    
     void Load() override {};
     void Unload() override {};
     HRESULT Init() override;

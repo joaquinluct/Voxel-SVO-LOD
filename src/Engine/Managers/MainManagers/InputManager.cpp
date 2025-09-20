@@ -18,14 +18,14 @@ InputManager::~InputManager() {}
 //--------------------------------------------------------------------------------------
 // Inicialización: Obtiene los managers a través del ManagerLocator.
 //--------------------------------------------------------------------------------------
-HRESULT InputManager::Init(HWND* hwnd, int width, int heigth) {
+HRESULT InputManager::Init(EngineContext* context) {
     m_mouseManager = ManagerLocator::GetManager<MouseManager>();
     m_keyboardManager = ManagerLocator::GetManager<KeyboardManager>();
 
-    if (m_mouseManager->Init(hwnd, width, heigth) != S_OK) {
+    if (m_mouseManager->Init(context) != S_OK) {
         return E_FAIL;
     }
-    if (m_keyboardManager->Init() != S_OK) {
+    if (m_keyboardManager->Init(context) != S_OK) {
         return E_FAIL;
     }
     return S_OK;
@@ -36,6 +36,9 @@ HRESULT InputManager::Init(HWND* hwnd, int width, int heigth) {
 //--------------------------------------------------------------------------------------
 void InputManager::HandleInput(UINT message, WPARAM wParam, LPARAM lParam, float deltaTime) {
     if (m_keyboardManager) {
+        if (message == WM_KEYDOWN || message == WM_KEYUP || message == WM_SYSKEYDOWN || message == WM_SYSKEYUP) {
+            bool a = false;
+        }
         m_keyboardManager->HandleMessage(message, wParam, lParam);
     }
     if (m_mouseManager) {

@@ -5,6 +5,7 @@
 #include <string>
 #include <map>
 #include "MatrixDefinitionBase.h" // Incluimos la base para MatrixParamsss
+#include <Defines/Enums/Matrix.h>
 
 using namespace MatrixDefinitionBase;
 
@@ -35,6 +36,10 @@ namespace SkyboxMatrix {
 
         UINT Size() {
             return sizeof(skyColor) + sizeof(sunColor) + sizeof(lightDirection) + sizeof(lightColor);
+        }
+
+        MatrixBufferTypeEnum BufferType() {
+            return MatrixBufferTypeEnum::Dynamic;
         }
 
         std::string MatrixType() {

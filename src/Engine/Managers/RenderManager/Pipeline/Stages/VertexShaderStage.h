@@ -1,15 +1,15 @@
 #pragma once
 
+#include "StageBase.h"
 #include <d3d11.h>
-#include <DirectXMath.h>
 #include <wrl/client.h> // Para ComPtr
 
 namespace RenderPipeline
 {
-    class VertexShaderStage
+    class VertexShaderStage : StageBase
     {
     public:
-        VertexShaderStage(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context);
+        VertexShaderStage(std::shared_ptr<DeviceManager>deviceManager);
         ~VertexShaderStage(); // Necesario si la etapa gestiona recursos D3D internos no compartidos
 
         void SetShader(Microsoft::WRL::ComPtr<ID3D11VertexShader> pVertexShader);

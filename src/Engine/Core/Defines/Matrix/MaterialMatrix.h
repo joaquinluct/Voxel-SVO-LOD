@@ -1,9 +1,10 @@
 #pragma once
 
+#include "MatrixDefinitionBase.h" // Incluimos la base para MatrixParamsss
 #include <d3d11.h>
+#include <Defines/Enums/Matrix.h>
 #include <DirectXMath.h>
 #include <string>
-#include "MatrixDefinitionBase.h" // Incluimos la base para MatrixParamsss
 
 using namespace MatrixDefinitionBase;
 
@@ -40,6 +41,10 @@ namespace MaterialMatrix {
             return (sizeof(Albedo) + sizeof(Roughness) + sizeof(Metallic) + sizeof(marerialF0) + sizeof(AO) + sizeof(Padding1) + sizeof(Padding2));
         }
 
+        MatrixBufferTypeEnum BufferType() {
+            return MatrixBufferTypeEnum::Static;
+        }
+
         std::string MatrixType() {
             return MATRIX_TYPE_PIXEL.data();
         }
@@ -64,6 +69,10 @@ namespace MaterialMatrix {
             return (sizeof(TextureTransform));
         }
 
+        MatrixBufferTypeEnum BufferType() {
+            return MatrixBufferTypeEnum::Static;
+        }
+
         std::string MatrixType() {
             return MATRIX_TYPE_VERTEX.data();
         }
@@ -76,7 +85,7 @@ namespace MaterialMatrix {
         float slopeStart;
         float slopeEnd;
         float terrainScale;
-		float padding1; // Relleno para alinear a 16 bytes
+        float padding1; // Relleno para alinear a 16 bytes
         float padding2; // Relleno para alinear a 16 bytes
 
         void SetMatrixData(std::map<std::string, std::shared_ptr<IMatrixParams>>& params) {
@@ -92,9 +101,14 @@ namespace MaterialMatrix {
             // Asegurarse de que el tamaño total sea un múltiplo de 16 bytes.
             return (sizeof(grassHeight) + sizeof(dirtHeight) + sizeof(snowHeight) + sizeof(slopeStart) + sizeof(slopeEnd) + sizeof(terrainScale) + sizeof(padding1) + sizeof(padding2));
         }
+
+        MatrixBufferTypeEnum BufferType() {
+            return MatrixBufferTypeEnum::Static;
+        }
+
         std::string MatrixType() {
             return MATRIX_TYPE_PIXEL.data();
-		}
+        }
 
     };
 
@@ -110,10 +124,10 @@ namespace MaterialMatrix {
         float snowTransitionSlope;
 
         float beachTransitionHeight;
-		float beachTransitionSlope;
+        float beachTransitionSlope;
         float terrainScale;
-		float padding1; // Relleno para alinear a 16 bytes
-		        
+        float padding1; // Relleno para alinear a 16 bytes
+
         void SetMatrixData(std::map<std::string, std::shared_ptr<IMatrixParams>>& params) {
             std::shared_ptr<MaterialMatrixParams> materialParams = GetMatrixParams<MaterialMatrixParams>(params["MaterialParams"]);
             this->grassTransitionHeight = materialParams->terrain2BlenderData.dirtTransitionHeight;
@@ -138,11 +152,14 @@ namespace MaterialMatrix {
                 sizeof(beachTransitionHeight) + sizeof(beachTransitionSlope) +
                 sizeof(terrainScale) + sizeof(padding1));
         }
+        MatrixBufferTypeEnum BufferType() {
+            return MatrixBufferTypeEnum::Static;
+        }
         std::string MatrixType() {
             return MATRIX_TYPE_PIXEL.data();
         }
 
     };
 
-    
+
 }

@@ -1,6 +1,5 @@
 #include "VertexDefinition.h"
 #include <REGISTER_DEFINE_MACRO.h>
-#include <typeinfo>
 
 using namespace VertexDefinition;
 

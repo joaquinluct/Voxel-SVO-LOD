@@ -1,8 +1,7 @@
 #pragma once
 
-#include <directxmath.h>
 #include <cmath>
-#include "../SVO/SVOBase/SVO_Node.h"
+#include <directxmath.h>
 
 using namespace DirectX;
 
@@ -73,13 +72,13 @@ struct MarchingCubesVertex {
         return std::fabs(Position.x - other.Position.x) < EPSILON &&
             std::fabs(Position.y - other.Position.y) < EPSILON &&
             std::fabs(Position.z - other.Position.z) < EPSILON;
-			/*std::fabs(Color.x - other.Color.x) < EPSILON &&
-			std::fabs(Color.y - other.Color.y) < EPSILON &&
-			std::fabs(Color.z - other.Color.z) < EPSILON &&
-			std::fabs(Color.w - other.Color.w) < EPSILON &&
-			std::fabs(Normal.x - other.Normal.x) < EPSILON &&
-			std::fabs(Normal.y - other.Normal.y) < EPSILON &&
-			std::fabs(Normal.z - other.Normal.z) < EPSILON;*/
+        /*std::fabs(Color.x - other.Color.x) < EPSILON &&
+        std::fabs(Color.y - other.Color.y) < EPSILON &&
+        std::fabs(Color.z - other.Color.z) < EPSILON &&
+        std::fabs(Color.w - other.Color.w) < EPSILON &&
+        std::fabs(Normal.x - other.Normal.x) < EPSILON &&
+        std::fabs(Normal.y - other.Normal.y) < EPSILON &&
+        std::fabs(Normal.z - other.Normal.z) < EPSILON;*/
     }
 };
 namespace std {
@@ -90,7 +89,7 @@ namespace std {
             size_t h = 0;
             auto hash_combine = [&](size_t& seed, float val) {
                 seed ^= std::hash<float>()(val) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-            };
+                };
 
             // Hashing con cuantificación para manejar la tolerancia en floats
             // Puedes ajustar el 'quantizeStep' si EPSILON es muy pequeño

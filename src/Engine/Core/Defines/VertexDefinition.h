@@ -29,8 +29,8 @@ namespace VertexDefinition {
 
     struct Vertex : public IVertex {
         float position[3];
-		Vertex() : position{ 0.0f, 0.0f, 0.0f } {}
-		Vertex(float x, float y, float z) : position{ x, y, z } {}
+        Vertex() : position{ 0.0f, 0.0f, 0.0f } {}
+        Vertex(float x, float y, float z) : position{ x, y, z } {}
     };
 
     /*
@@ -44,7 +44,7 @@ namespace VertexDefinition {
         SimpleVertex(float x, float y, float z) : position{ x, y, z } {}
 
         UINT Size() override {
-			return sizeof(position); // Retorna el tamaño en bytes del vértice
+            return sizeof(position); // Retorna el tamaño en bytes del vértice
         }
 
         UINT GetByteWidth(size_t numVertex) override {
@@ -57,7 +57,7 @@ namespace VertexDefinition {
 
         const DirectX::XMFLOAT3 GetPosition() const override {
             return DirectX::XMFLOAT3{ position };
-        }        
+        }
         const DirectX::XMFLOAT3 GetNormal() const override {
             return DirectX::XMFLOAT3();
         }
@@ -88,7 +88,7 @@ namespace VertexDefinition {
         }
 
 
-        std::vector<SimpleVertex> convert(std::vector<IVertex> vertex) {
+        /*std::vector<SimpleVertex> convert(std::vector<IVertex> vertex) {
             std::vector<SimpleVertex> simpleVertices;
             for (const auto& v : vertex) {
                 if (auto sv = dynamic_cast<const SimpleVertex*>(&v)) {
@@ -96,7 +96,7 @@ namespace VertexDefinition {
                 }
             }
             return simpleVertices;
-        }
+        }*/
     };
 
     struct SimpleNormalVertex : public IVertex {
@@ -342,7 +342,7 @@ namespace VertexDefinition {
             debugColor[1] = other->debugColor[1];
             debugColor[2] = other->debugColor[2];
             debugColor[3] = other->debugColor[3];
-		}
+        }
 
         TextureMapVertex() : position{}, texCoord{}, normal{}, tangent{}, debugColor{} {}
         TextureMapVertex(DirectX::XMFLOAT3 p, DirectX::XMFLOAT2 t, DirectX::XMFLOAT3 n, DirectX::XMFLOAT3 ta, DirectX::XMFLOAT4 dbg) : position(p.x, p.y, p.z), texCoord(t.x, t.y), normal(n.x, n.y, n.z), tangent(ta.x, ta.y, ta.z), debugColor(dbg.x, dbg.y, dbg.z, dbg.w) {}
@@ -368,13 +368,13 @@ namespace VertexDefinition {
         }
         const DirectX::XMFLOAT4 GetDebugColor() override {
             return DirectX::XMFLOAT4{ debugColor };
-		}
+        }
         const void SetDebugColor(const DirectX::XMFLOAT4& color) override {
             this->debugColor[0] = color.x;
             this->debugColor[1] = color.y;
             this->debugColor[2] = color.z;
             this->debugColor[3] = color.w;
-		}
+        }
         void SetNormal(const DirectX::XMFLOAT3& normal) override {
             this->normal[0] = normal.x;
             this->normal[1] = normal.y;
@@ -387,8 +387,8 @@ namespace VertexDefinition {
                 texCoord[0], texCoord[1],
                 normal[0], normal[1], normal[2],
                 tangent[0], tangent[1], tangent[2],
-				debugColor[0], debugColor[1], debugColor[2], debugColor[3]
-                );
+                debugColor[0], debugColor[1], debugColor[2], debugColor[3]
+            );
         }
 
         void SetData(DirectX::XMFLOAT3 pos, DirectX::XMFLOAT2 texCoord, DirectX::XMFLOAT3 normals, DirectX::XMFLOAT4 color, DirectX::XMFLOAT3 tangent, DirectX::XMFLOAT4 debugColor) override {
@@ -403,12 +403,12 @@ namespace VertexDefinition {
             this->tangent[0] = tangent.x;
             this->tangent[1] = tangent.y;
             this->tangent[2] = tangent.z;
-			this->debugColor[0] = debugColor.x;
-			this->debugColor[1] = debugColor.y;
-			this->debugColor[2] = debugColor.z;
-			this->debugColor[3] = debugColor.w;
+            this->debugColor[0] = debugColor.x;
+            this->debugColor[1] = debugColor.y;
+            this->debugColor[2] = debugColor.z;
+            this->debugColor[3] = debugColor.w;
         }
-        
+
         D3D11_INPUT_ELEMENT_DESC* GetInputLayout(unsigned int& numElements) override {
             numElements = 5;
             D3D11_INPUT_ELEMENT_DESC* layoutArray = new D3D11_INPUT_ELEMENT_DESC[numElements];
@@ -423,7 +423,7 @@ namespace VertexDefinition {
         }
     };
 
-	using VertexVariant = std::variant<SimpleVertex, SimpleNormalVertex, SkyboxVertex, TextVertex, TextureBasicVertex, TextureMapVertex>;
+    using VertexVariant = std::variant<SimpleVertex, SimpleNormalVertex, SkyboxVertex, TextVertex, TextureBasicVertex, TextureMapVertex>;
 
     template<typename T, typename... Types>
     inline constexpr bool is_any_of_v = (std::is_same_v<T, Types> || ...);
@@ -455,19 +455,19 @@ namespace VertexDefinition {
             }
             throw std::invalid_argument("Tipo de vértice desconocido: " + std::string(type));
         }
-		template <typename T>
+        template <typename T>
         static std::vector<std::shared_ptr<T>> CreateVertexVector(std::string_view type) {
             if (type == VERTEX_TEXT) { // Usa tus constantes de cadena reales
-				return std::vector<std::shared_ptr<T>>{ std::make_shared<TextVertex>(TextVertex{}) };                
+                return std::vector<std::shared_ptr<T>>{ std::make_shared<TextVertex>(TextVertex{}) };
             }
             else if (type == VERTEX_SIMPLE) {
-				return std::vector<std::shared_ptr<T>>{ std::make_shared<SimpleVertex>(SimpleVertex{}) };
+                return std::vector<std::shared_ptr<T>>{ std::make_shared<SimpleVertex>(SimpleVertex{}) };
             }
             else if (type == VERTEX_SKYBOX) {
-				return std::vector<std::shared_ptr<T>>{ std::make_shared<SkyboxVertex>(SkyboxVertex{}) };
+                return std::vector<std::shared_ptr<T>>{ std::make_shared<SkyboxVertex>(SkyboxVertex{}) };
             }
             else if (type == VERTEX_TEXTURE_BASIC) {
-				return std::vector<std::shared_ptr<T>>{ std::make_shared<TextureBasicVertex>(TextureBasicVertex{}) };
+                return std::vector<std::shared_ptr<T>>{ std::make_shared<TextureBasicVertex>(TextureBasicVertex{}) };
             }
             else if (type == VERTEX_TEXTURE_MAP) {
                 return std::vector<std::shared_ptr<T>>{ std::make_shared<TextureMapVertex>(TextureMapVertex{}) };

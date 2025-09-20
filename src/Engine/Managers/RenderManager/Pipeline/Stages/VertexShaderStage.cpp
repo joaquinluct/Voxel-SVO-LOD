@@ -1,11 +1,15 @@
 #include "VertexShaderStage.h"
-// #include <iostream> // Para depuración
+#include <d3d11.h>
+#include <DeviceManager.h>
+#include <memory>
+#include <Windows.h>
+#include <wrl/client.h>
 
 namespace RenderPipeline
 {
-    VertexShaderStage::VertexShaderStage(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context)
-        : m_context(context)
+    VertexShaderStage::VertexShaderStage(std::shared_ptr<DeviceManager> deviceManager)
     {
+        this->m_deviceManager = deviceManager;
     }
 
     VertexShaderStage::~VertexShaderStage()
@@ -17,7 +21,7 @@ namespace RenderPipeline
     // OJO: Para aprender: Hay estos: VSSetShader, HSSetShader, DSSetShader y PSSetShader
     void VertexShaderStage::SetShader(Microsoft::WRL::ComPtr<ID3D11VertexShader> pVertexShader)
     {
-        if (m_context) m_context->VSSetShader(pVertexShader.Get(), nullptr, 0);
+        m_deviceManager->GetContext()->VSSetShader(pVertexShader.Get(), nullptr, 0);
     }
 
     void VertexShaderStage::SetConstantBuffers(UINT StartSlot, UINT NumBuffers, ID3D11Buffer* const* ppConstantBuffers)

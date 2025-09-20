@@ -6,7 +6,6 @@ REGISTER_CONFIG_TYPE(MouseConfig,"MouseConfig");
 MouseConfig::MouseConfig(){
 	enabled = true;
 	dependencies = {
-		"RenderTargetManager",
 		"DeviceManager"
 	};
 };

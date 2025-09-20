@@ -17,14 +17,6 @@ public:
 		// y el constructor de copia para copiar el contenido.
 		return std::make_unique<ShaderAsset>(*this);
 	}
-	virtual std::shared_ptr<MeshAsset> CloneAsMesh() const override {
-		return nullptr;
-	}
-	virtual std::unique_ptr<AssetBase> CloneUnique() const override {
-		// Usa std::make_unique para crear una nueva instancia de VertexShader
-		// y el constructor de copia para copiar el contenido.
-		return std::make_unique<ShaderAsset>(*this);
-	}
 	~ShaderAsset() override;
 	void Load() override {};
 	void Unload() override {};

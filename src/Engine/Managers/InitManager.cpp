@@ -1,18 +1,20 @@
-﻿#include <Windows.h>
-#include "InitManager.h"
-#include <Locators/DefineLocator/DefineLocator.h>
-#include <Locators/ManagerLocator/ManagerLocator.h>
-#include <Locators/ConfigLocator/ConfigLocator.h>
-#include <Locators/ServiceLocator/ServiceLocator.h>
-#include <Locators/Pipeline/RenderPassLocator.h>
-#include <Locators/Pipeline/PipelineStateLocator.h>
-#include <Config/Base/Managers/EngineConfig.h>
-#include <Config/Services/ServiceConfig.h>
+﻿#include "InitManager.h"
 #include <Config/Assets/Base/BaseIndexConfig.h>
 #include <Config/Assets/Base/MainIndexConfig.h>
+#include <Config/Base/Managers/EngineConfig.h>
+#include <Config/Services/ServiceConfig.h>
 #include <Defines/Components.h>
 #include <InitManager/InitController.h>
 #include <InitPipelineManager.h>
+#include <Locators/AssetLocator/AssetLocator.h>
+#include <Locators/ConfigLocator/ConfigLocator.h>
+#include <Locators/DefineLocator/DefineLocator.h>
+#include <Locators/ManagerLocator/ManagerLocator.h>
+#include <Locators/Pipeline/PipelineStateLocator.h>
+#include <Locators/Pipeline/RenderPassLocator.h>
+#include <Locators/ServiceLocator/ServiceLocator.h>
+#include <Util/Text/Text.h>
+#include <Windows.h>
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <TinyObjLoader/tiny_obj_loader.h>
@@ -33,7 +35,7 @@ InitManager::~InitManager()
 HRESULT InitManager::InitBase() {
     // 1. Inicializar básicas
     // ----------------------
-	m_initController = std::make_shared<InitController>();
+    m_initController = std::make_shared<InitController>();
 
     // 1.1 Inicializar defines
     HRESULT hr = DefineLocator::InitializeDefines();
@@ -62,7 +64,7 @@ HRESULT InitManager::InitBase() {
         OutputDebugStringA("[InitManager] Init: Failed to initialize services.\n");
         return hr;
     }
-	return S_OK;
+    return S_OK;
 }
 
 HRESULT InitManager::InitConfigs() {
@@ -97,7 +99,7 @@ HRESULT InitManager::InitConfigs() {
         OutputDebugStringA("[InitManager] Init: Failed to get GameEngineConfig.\n");
         return E_FAIL;
     }
-	return S_OK;
+    return S_OK;
 }
 
 HRESULT InitManager::ExtractComponents() {
@@ -126,10 +128,10 @@ HRESULT InitManager::ExtractComponents() {
             m_initController->RegisterComponent(componentTypeName, componentName, config->dependencies);
         }
     }
-	return S_OK;    
+    return S_OK;
 }
 
-HRESULT InitManager::InitComponents(HWND* hwnd, int width, int height)
+HRESULT InitManager::InitComponents(EngineContext* context)
 {
     // 4. Establecer el orden de inicilización por dependencia
     // -------------------------------------------------------
@@ -146,7 +148,7 @@ HRESULT InitManager::InitComponents(HWND* hwnd, int width, int height)
         if (componentType == COMPONENT_MANAGER)
         {
             // Inicializar el manager
-            HRESULT hr = ManagerLocator::InitializeManagers({ componentName }, hwnd, width, height);
+            HRESULT hr = ManagerLocator::InitializeManagers({ componentName }, context);
             if (FAILED(hr)) {
                 OutputDebugStringA(("[InitManager] Init: Failed to initialize manager " + componentName + "\n").c_str());
                 return hr;
@@ -184,31 +186,31 @@ HRESULT InitManager::InitComponents(HWND* hwnd, int width, int height)
                 return hr;
             }
         }
-    }	    
+    }
     return S_OK;
 }
 
-HRESULT InitManager::InitPipeline(HWND* hwnd, int width, int height)
+HRESULT InitManager::InitPipeline(EngineContext* context)
 {
     OutputDebugStringA("[InitManager] Inicialización del Pipeline...\n");
-    HRESULT hr = ManagerLocator::InitializeManagers({ "InitPipelineManager"}, hwnd, width, height);
+    HRESULT hr = ManagerLocator::InitializeManagers({ "InitPipelineManager" }, context);
     if (FAILED(hr)) {
         return hr;
     }
-    std::shared_ptr<InitPipelineManager> initPipelineManager = ManagerLocator::GetManager<InitPipelineManager>(); 
+    std::shared_ptr<InitPipelineManager> initPipelineManager = ManagerLocator::GetManager<InitPipelineManager>();
     if (!initPipelineManager) {
         return E_FAIL;
-	}
-    initPipelineManager->Init(hwnd, width, height);
+    }
+    //initPipelineManager->Init(context);
     return S_OK;
 }
 
-HRESULT InitManager::Init(HWND* hwnd, int width, int height)
+HRESULT InitManager::Init(EngineContext* context)
 {
     HRESULT hr = InitBase();
     if (FAILED(hr)) {
         return hr;
-	}
+    }
 
     OutputDebugStringA("[InitManager] inicialización base - OK.\n");
 
@@ -219,12 +221,12 @@ HRESULT InitManager::Init(HWND* hwnd, int width, int height)
 
     OutputDebugStringA("[InitManager] inicialización de Configuración - OK.\n");
 
-	hr = ExtractComponents();
+    hr = ExtractComponents();
     if (FAILED(hr)) {
         return hr;
     }
 
-	hr = InitComponents(hwnd, width, height);
+    hr = InitComponents(context);
     if (FAILED(hr)) {
         return hr;
     }
@@ -238,7 +240,7 @@ HRESULT InitManager::Init(HWND* hwnd, int width, int height)
 
     OutputDebugStringA("[InitManager] Post-inicialización - OK.\n");
 
-    hr = InitPipeline(hwnd, width, height);
+    hr = InitPipeline(context);
     if (FAILED(hr)) {
         return hr;
     }
@@ -264,6 +266,9 @@ HRESULT InitManager::PostInit()
         const std::string& componentTypeName = component.first;
         const std::vector<std::string>& componentsNames = component.second;
         for (const auto& componentName : componentsNames) {
+            if (StrToLower(componentName) == "none") {
+                continue;
+            }
             if (componentTypeName == COMPONENT_MANAGER)
             {
                 std::shared_ptr<ManagerBase> component = ManagerLocator::GetManager(componentName);
@@ -273,7 +278,7 @@ HRESULT InitManager::PostInit()
                         OutputDebugStringA(("[InitManager] PostInit: Failed to post-initialize manager " + componentName + "\n").c_str());
                         return hr;
                     }
-				}
+                }
             }
             else if (componentTypeName == COMPONENT_SERVICE) {
                 std::shared_ptr<IService> component = ServiceLocator::GetService(componentName);
@@ -283,7 +288,7 @@ HRESULT InitManager::PostInit()
                         OutputDebugStringA(("[InitManager] PostInit: Failed to post-initialize service " + componentName + "\n").c_str());
                         return hr;
                     }
-				}                
+                }
             }
             else if (componentTypeName == COMPONENT_ASSET_BASE) {
                 // Inicializar el asset
@@ -319,6 +324,6 @@ HRESULT InitManager::PostInit()
                 }
             }
         }
-	}
+    }
     return S_OK;
 }

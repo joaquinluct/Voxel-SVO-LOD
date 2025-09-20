@@ -1,11 +1,11 @@
 #pragma once
 #define NOMINMAX
-#include <d3d11.h>
-#include <DirectXMath.h>
-#include <windows.h>
-#include <string>
 #include <algorithm>
 #include <cmath> // Para std::fabs
+#include <d3d11.h>
+#include <DirectXMath.h>
+#include <string>
+#include <windows.h>
 
 using namespace DirectX;
 
