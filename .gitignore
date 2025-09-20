@@ -37,6 +37,7 @@ DirectX-Voxelado/*
 .vs/*
 x64/*
 Assets/*
+!Assets/Shader/*
 # Assets/Mesh/*
 # Assets/Skybox/*
 # Assets/Textures/*
