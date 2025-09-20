@@ -36,9 +36,10 @@ Debug/*
 DirectX-Voxelado/*
 .vs/*
 x64/*
-Assets/Mesh/*
-Assets/Skybox/*
-Assets/Textures/*
+Assets/*
+# Assets/Mesh/*
+# Assets/Skybox/*
+# Assets/Textures/*
 Libs/*
 *.cso
 # Visual Studio Code settings
@@ -88,6 +89,5 @@ ser_data.json
 	
 	
 cache.json
-	
 	
 	
