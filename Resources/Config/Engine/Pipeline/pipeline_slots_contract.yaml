@@ -1,4 +1,4 @@
-# assets_shaders.yaml
+# pipeline_slots_contracts.yaml
 Config:
   Base:
     Pipeline:      
@@ -37,6 +37,7 @@ Config:
         mainViewport: ViewportMainColor
         mainRenderTargetView: RenderTargetViewMainColor
         mainStencilView: StencilViewMainColor
+        mainStencilState: StencilStateRegular
           
 Definition:
   Default:

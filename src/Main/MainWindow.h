@@ -1,7 +1,9 @@
 #pragma once
-#include <windows.h>
+//#include <stdafx.h>
+#include <Defines/EngineDefinition.h>
+#include <Engine.h> // Se incluye la clase de motor de juego, ahora llamada Engine.
 #include <memory>
-#include "Engine.h" // Se incluye la clase de motor de juego, ahora llamada Engine.
+#include <windows.h>
 
 //--------------------------------------------------------------------------------------
 // Clase principal que gestiona la ventana y el bucle de la aplicación.
@@ -29,6 +31,9 @@ private:
     // Puntero para la instancia del motor de juego.
     //--------------------------------------------------------------------------------------
     std::unique_ptr<Engine> m_gameEngine;
+
+    // Contexto de la aplicación
+    EngineContext m_context;
 
     //--------------------------------------------------------------------------------------
     // Variables de la ventana

@@ -18,7 +18,7 @@
 #include <Game/Systems/Terrain/Chunk/Chunk.h>
 #include <Defines/CameraDefinition.h>
 
-//class RenderManager; // Forward declaration
+class TerrainAsset; 
 
 class ChunkService : public IService
 {
@@ -28,8 +28,9 @@ private:
 
     //DirectX::XMFLOAT4 m_frustumPlanes[6];
 
-    std::vector<std::shared_ptr<Chunk>> m_chunksToDelete;
+    std::vector<Chunk*> m_chunksToDelete;
     mutable std::mutex m_chunkDeletionMutex;
+	TerrainAsset* m_terrainAsset = nullptr;
     ChunkMap m_chunks;
 
     WorldTerrain::TerrainChunkDefinition m_def;
@@ -39,71 +40,68 @@ private:
     std::shared_ptr<CameraManager> m_cameraManager;
 
     //void StitchChunks();
-    std::vector<std::shared_ptr<Chunk>> GetNeighbors(const TerrainChunk::ChunkID& id);
+    std::vector<Chunk*> GetNeighbors(const TerrainChunk::ChunkID& id);
 public:
-    ChunkService() {};
+    ChunkService():
+		m_deviceManager(nullptr), m_cameraManager(nullptr), m_proceduralService(nullptr), m_chunks(), m_chunksToDelete(),
+		m_chunkSize(0.0f), m_renderDistanceChunks(0), m_def()
+    {};
     ~ChunkService() override {};
 
-    // Métodos de IService
+    // Implementación de IService
     HRESULT Init() override { return S_OK; };
     HRESULT Init(WorldTerrain::TerrainChunkDefinition definition);
     void Update(float deltaTime) override {};
     void Render() override {};
     void Shutdown() override {};
+    const std::string& GetServiceName() const override { static const std::string name = "ChunkService"; return name; }
+    static const std::string& GetStaticServiceName() { static const std::string name = "ChunkService"; return name; }
 
-	void EmptyRecycleBin();
+	void SetTerrainAsset(TerrainAsset* terrainAsset) { m_terrainAsset = terrainAsset; } 
 
+	// Establecer el servicio de generación procedural
+    void SetProceduralService(std::shared_ptr<ProceduralService> proceduralService) { m_proceduralService = proceduralService; }
+
+	// Control de estado
     const bool IsDirty() const;
 
-    // Implementación de IService
-    const std::string& GetServiceName() const override {
-        static const std::string name = "ChunkService";
-        return name;
-    }
-    static const std::string& GetStaticServiceName() {
-        static const std::string name = "ChunkService";
-        return name;
-    }
-    
-    void SetProceduralService(std::shared_ptr<ProceduralService> proceduralService) {
-        m_proceduralService = proceduralService;
-	}
-
-	void UpdateChunks(DirectX::XMFLOAT3 worldPosition);
-        
-    // Métodos CRUD para la gestión de Chunks
-    template<typename T, typename... Args>
-    HRESULT LoadChunk(const TerrainChunk::ChunkID& id);
-    std::shared_ptr<Chunk> GetChunk(const TerrainChunk::ChunkID& id) const;
-    std::shared_ptr<Chunk> GetNeighbor(const TerrainChunk::ChunkID& id, TerrainChunk::NeighborDirection direction);
-    HRESULT UnloadChunk(const TerrainChunk::ChunkID& id);
+    // Gestion de los chunks
+    std::vector<Chunk*> GetVisibleChunks();
+	std::vector<Chunk*> GetAllChunks();
+    Chunk* GetChunk(const TerrainChunk::ChunkID& id) const;
+    Chunk* GetNeighbor(const TerrainChunk::ChunkID& id, TerrainChunk::NeighborDirection direction);
     ChunkMap GetChunks() const { return m_chunks; }
-    std::vector<std::shared_ptr<Chunk>> GetChunksAsVector() const;
+    //template<typename T, typename... Args>
+    HRESULT LoadChunk(const TerrainChunk::ChunkID& id);
+    HRESULT UnloadChunk(const TerrainChunk::ChunkID& id);
+	void EmptyRecycleBin();
+	void UpdateChunks(DirectX::XMFLOAT3 worldPosition);
+    std::vector<Chunk*> GetFrustumChunks(const std::vector<CameraDefinition::FrustumPlane>& frustumPlanes, const DirectX::XMFLOAT3 cameraPosition);
+
     // Debug
 	int GetNumChunks() const { return static_cast<int>(m_chunks.size()); }
     /*
     HRESULT UpdateChunk(const TerrainChunk::ChunkID& id);
     const std::unordered_map<TerrainChunk::ChunkID, std::unique_ptr<IChunk>, ChunkHasher>& GetChunks() const;*/
 
-    std::vector<std::shared_ptr<Chunk>> GetFrustumChunks(const std::vector<CameraDefinition::FrustumPlane>& frustumPlanes, const DirectX::XMFLOAT3 cameraPosition);
 };
 
 // Implementación de la plantilla LoadChunk en el .h, ya que debe ser visible para el compilador
-template<typename T, typename... Args>
-HRESULT ChunkService::LoadChunk(const TerrainChunk::ChunkID& id)
-{
-    if (m_chunks.count(id)) {
-        return S_OK;
-    }
-
-    auto newChunk = std::make_shared<T>(id);
-    if (!newChunk) {
-        return E_FAIL;
-    }
-
-	newChunk->SetProceduralEngine(m_proceduralService->GetEngine());
-	newChunk->SetChunkSize(m_chunkSize);
-    newChunk->Init();
-    m_chunks[id] = std::move(newChunk);
-    return S_OK;
-}
+//template<typename T, typename... Args>
+//HRESULT ChunkService::LoadChunk(const TerrainChunk::ChunkID& id)
+//{
+//    if (m_chunks.count(id)) {
+//        return S_OK;
+//    }
+//
+//    T newChunk = T(id);
+//    if (newChunk.) {
+//        return E_FAIL;
+//    }
+//
+//	newChunk->SetProceduralEngine(m_proceduralService->GetEngine());
+//	newChunk->SetChunkSize(m_chunkSize);
+//    newChunk->Init();
+//    m_chunks[id] = &newChunk;
+//    return S_OK;
+//}

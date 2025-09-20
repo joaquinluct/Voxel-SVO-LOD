@@ -1,30 +1,14 @@
 #include "WaterPass.h"
-#include <ManagerLocator/ManagerLocator.h>
-#include <ServiceLocator/ServiceLocator.h>
-#include <Locators/Pipeline/PipelineStateLocator.h>
-#include <Game/Systems/Shadows.h>
+#include <Assets/Base/MeshAsset.h>
+#include <Config/Base/RenderPass/WaterPassConfig.h>
 #include <Game/Systems/Lighting.h>
-#include <Game/Systems/Terrain.h>
+#include <Game/Systems/Shadows.h>
 #include <Game/Systems/Water.h>
 #include <Game/Systems/World.h>
-#include <Util/Text/Text.h>
-#include <Assets/Base/TerrainAsset.h>
-#include <Assets/Base/MeshAsset.h>
 #include <Locators/Registers/REGISTER_RENDER_PASS_MACRO.h>
-#include <Defines/Matrix/Light.h>
-#include <Defines/VertexDefinition.h>
-#include <Defines/Matrix/WaterMatrices.h>
-#include <Defines/Matrix/TimeMatrices.h>
+#include <ManagerLocator/ManagerLocator.h>
+#include <ServiceLocator/ServiceLocator.h>
 #include <Services/FrameStateService.h>
-#include <Config/Base/RenderPass/WaterPassConfig.h>
-#include <Util/DateTime.h>
-#include <RenderState/FrameStates/CommonFrameState.h>
-#include <RenderState/FrameStates/CameraFrameState.h>
-#include <RenderState/FrameStates/WaterFrameState.h>
-#include <RenderState/FrameStates/LightFrameState.h>
-#include <RenderState/FrameStates/TimeFrameState.h>
-#include <RenderState/FrameStates/MeshFrameState.h>
-#include <RenderState/FrameStates/MaterialFrameState.h>
 
 REGISTER_RENDER_PASS_TYPE(WaterPass, "WaterPass")
 
@@ -58,23 +42,23 @@ HRESULT WaterPass::InitManagers() {
     if (!m_lighthing) {
         return E_FAIL;
     }
-	m_FrameStateService = ServiceLocator::GetService<FrameStateService>();
+    m_FrameStateService = ServiceLocator::GetService<FrameStateService>();
     if (!m_FrameStateService) {
         return E_FAIL;
-	}
-	m_water = ServiceLocator::GetService<Water>();
-	if (!m_water) {
-		return E_FAIL;
-	}
+    }
+    m_water = ServiceLocator::GetService<Water>();
+    if (!m_water) {
+        return E_FAIL;
+    }
     m_world = ServiceLocator::GetService<World>();
     if (!m_world) {
         return E_FAIL;
     }
-    m_terrain = m_world->GetTerrain();
-    m_terrainAsset = m_terrain->GetTerrainAsset();
+    /*m_terrain = m_world->GetTerrain();
+    m_terrainAsset = std::make_shared<TerrainAsset>(m_terrain->GetTerrainMesh());
     if (!m_terrainAsset) {
         return E_FAIL;
-    }
+    }*/
     return S_OK;
 }
 
@@ -85,13 +69,13 @@ HRESULT WaterPass::Init() {
     if (FAILED(hr)) {
         return hr;
     }
-	SetInitialOperations(nullptr, {});
+    SetInitialOperations(nullptr, {});
     return hr;
 }
 
-void WaterPass::SetInitialOperations(std::shared_ptr<MeshAsset> mesh, const std::shared_ptr<FrameStateService> renderState) {	
-	AddInitialOperation(PipelineOperationType::Device_Init_SetRenderTargetView);
-	AddInitialOperation(PipelineOperationType::Device_ClearDepthStencilView);
+void WaterPass::SetInitialOperations(std::shared_ptr<MeshAsset> mesh, const std::shared_ptr<FrameStateService> renderState) {
+    AddInitialOperation(PipelineOperationType::Device_Init_SetRenderTargetView);
+    AddInitialOperation(PipelineOperationType::Device_ClearDepthStencilView);
 }
 
 //void WaterPass::SetInitialOperations(std::shared_ptr<MeshAsset> mesh, const std::shared_ptr<FrameStateService> renderState) {
@@ -144,7 +128,7 @@ std::map<std::string, std::shared_ptr<MeshAsset>> WaterPass::GetMeshes(const Sce
 //    m_combinedVertexData.clear();
 //    m_combinedIndexData.clear();
 //
-//    const std::vector<std::shared_ptr<Chunk>>& chunks = renderData.chunks;
+//    const std::vector<Chunk*>& chunks = renderData.chunks;
 //
 //    if (chunks.empty()) {
 //        emptyMeshes["terrain"] = m_terrain->GetTerrainAsset()->GetMesh();
@@ -210,53 +194,53 @@ std::map<std::string, std::shared_ptr<MeshAsset>> WaterPass::GetMeshes(const Sce
 // BEGIN PASS
 // ----------------------------------------------------------
 std::vector<PipelineOperationType> WaterPass::BeginPass(const MeshAsset* mesh, FrameStateService* renderState) {
-	// 1. Operacines fijas definidas al inicio
-	std::vector<PipelineOperationType> init = GetInitialOperations();
+    // 1. Operacines fijas definidas al inicio
+    std::vector<PipelineOperationType> init = GetInitialOperations();
 
-	return init;
+    return init;
 }
 
 WaterDefinition::WaterData GetTemporalWaterData() {
-	return WaterDefinition::WaterData{
-		.waveHeight = 0.3f,
-		.waveSpeed = 0.3f,
-		.waveLength = 25.0f,
-		.waveFrequency = 0.8f,
-		.waterDensity = 1.0f,
-		.waterViscosity = 1.0f,
-		.reflectionIntensity = 1.0f, // Valores por defecto para futuros efectos
-		.refractionIndex = 1.333f, // El índice de refracción del agua
-		.foamAmount = 0.0f, // Desactivado por ahora
-		.causticsIntensity = 0.0f, // Desactivado por ahora
-		.waterColor = { 0.0f, 0.5f, 0.8f, 1.0f },
-		.isUnderwater = FALSE,
-		.hasFoam = FALSE,
-		.hasCaustics = FALSE,
-		.isReflective = FALSE,
-		.isRefractive = FALSE,
-	};
+    return WaterDefinition::WaterData{
+        .waveHeight = 0.3f,
+        .waveSpeed = 0.3f,
+        .waveLength = 25.0f,
+        .waveFrequency = 0.8f,
+        .waterDensity = 1.0f,
+        .waterViscosity = 1.0f,
+        .reflectionIntensity = 1.0f, // Valores por defecto para futuros efectos
+        .refractionIndex = 1.333f, // El índice de refracción del agua
+        .foamAmount = 0.0f, // Desactivado por ahora
+        .causticsIntensity = 0.0f, // Desactivado por ahora
+        .waterColor = { 0.0f, 0.5f, 0.8f, 1.0f },
+        .isUnderwater = FALSE,
+        .hasFoam = FALSE,
+        .hasCaustics = FALSE,
+        .isReflective = FALSE,
+        .isRefractive = FALSE,
+    };
 }
 
 // ----------------------------------------------------------
 // EXEC PASS
 // ----------------------------------------------------------
 std::vector<PipelineOperationType> WaterPass::ExecPass(const MeshAsset* mesh, FrameStateService* renderState) {
-	ClearOperations();
-	AddOperation(PipelineOperationType::Device_SetConstantsBufferState);
-	AddOperation(PipelineOperationType::Mesh_Render_SetVertexShader);
-	AddOperation(PipelineOperationType::Mesh_Render_SetPixelShader);
-	AddOperation(PipelineOperationType::Mesh_Render_SetInputLayout);
-	//if (needShadowMap) {
-		//AddOperation(PipelineOperationType::Mesh_Render_SetTexture);
-	//}
-	AddOperation(PipelineOperationType::Mesh_Render_SetSampler);
-	AddOperation(PipelineOperationType::Mesh_Render_SetVertexBuffer);
-	AddOperation(PipelineOperationType::Mesh_Render_SetIndexBuffer);
-	AddOperation(PipelineOperationType::Mesh_Render_SetPrimitiveToplogy);
-	AddOperation(PipelineOperationType::Device_UpdateConstantsBufferResource);
+    ClearOperations();
+    AddOperation(PipelineOperationType::Device_SetConstantsBufferState);
+    AddOperation(PipelineOperationType::Mesh_Render_SetVertexShader);
+    AddOperation(PipelineOperationType::Mesh_Render_SetPixelShader);
+    AddOperation(PipelineOperationType::Mesh_Render_SetInputLayout);
+    //if (needShadowMap) {
+        //AddOperation(PipelineOperationType::Mesh_Render_SetTexture);
+    //}
+    AddOperation(PipelineOperationType::Mesh_Render_SetSampler);
+    AddOperation(PipelineOperationType::Mesh_Render_SetVertexBuffer);
+    AddOperation(PipelineOperationType::Mesh_Render_SetIndexBuffer);
+    AddOperation(PipelineOperationType::Mesh_Render_SetPrimitiveToplogy);
+    AddOperation(PipelineOperationType::Device_UpdateConstantsBufferResource);
     AddOperation(PipelineOperationType::Device_draw);
-	//Draw(mesh, drawData);
-	return GetOperations();
+    //Draw(mesh, drawData);
+    return GetOperations();
 }
 
 //std::vector<PipelineOperationType> WaterPass::ExecPass(const MeshAsset* mesh, FrameStateService* renderState) {
@@ -389,7 +373,7 @@ std::vector<PipelineOperationType> WaterPass::ExecPass(const MeshAsset* mesh, Fr
 //}
 
 std::vector<PipelineOperationType> WaterPass::EndPass() {
-	// Operaciones de finalización del pase: Limpieza de buffers y reciclaje de chunks    
+    // Operaciones de finalización del pase: Limpieza de buffers y reciclaje de chunks    
     // Liberar los buffers dinámicos
     /*AddOperation(PipelineOperationType::Mesh_Render_ResetVertexBuffer);
     AddOperation(PipelineOperationType::Mesh_Render_ResetIndexBuffer);

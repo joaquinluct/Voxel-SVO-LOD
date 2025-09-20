@@ -42,8 +42,7 @@ Config:
 
     Mouse:
       enabled: true
-      dependencies:
-        - RenderTargetManager
+      dependencies:        
         - DeviceManager
 
     Material:

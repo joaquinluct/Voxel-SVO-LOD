@@ -30,9 +30,7 @@ public:
     AssetManager();
     ~AssetManager() override;
 
-    bool IsWindowDependent() const override { return true; }
-
-    HRESULT Init(HWND* hwnd, int width, int height) override;
+    HRESULT Init(EngineContext* context) override;
     HRESULT InitShaders(HWND* hwnd, int width, int height);
 
     void Render() override;

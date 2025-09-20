@@ -19,110 +19,8 @@
 
 REGISTER_ASSET_TYPE(MeshAsset, "MeshAsset")
 
-MeshAsset::MeshAsset()
-    : m_meshConfig(nullptr)
-    , m_indexBuffer(nullptr)
-    , m_vertexBuffer(nullptr)
-    , m_vertexCount(0)
-    , m_deviceManager(nullptr)
-    , m_cameraManager(nullptr)
-    , m_shaderManager(nullptr)
-    , m_material(nullptr)
-	, m_textureAsset(nullptr)
-{}
-
+MeshAsset::MeshAsset() {}
 MeshAsset::~MeshAsset() {}
-
-HRESULT MeshAsset::InitManagers() {
-    m_deviceManager = ManagerLocator::GetDeviceManager();
-    if (!m_deviceManager) {
-        OutputDebugStringA("MeshAsset::Init - ERROR: DeviceManager not found.\n");
-        return E_FAIL;
-    }
-    m_cameraManager = ManagerLocator::GetCameraManager();
-    if (!m_cameraManager) {
-        OutputDebugStringA("MeshAsset::Init - ERROR: CameraManager not found.\n");
-        return E_FAIL;
-    }
-    m_shaderManager = ManagerLocator::GetShaderManager();
-    if (!m_shaderManager) {
-        OutputDebugStringA("MeshAsset::Init - ERROR: ShaderManager not found.\n");
-        return E_FAIL;
-    }	
-	m_uiManager = ManagerLocator::GetManager<UIManager>();
-    if (!m_uiManager) {
-        OutputDebugStringA("MeshAsset::Init - ERROR: UIManager not found.\n");
-        return E_FAIL;
-	}
-    return S_OK;
-}
-
-HRESULT MeshAsset::InitConfig() {
-    // Obtener el vertexDefinition del shader
-    m_name = m_meshConfig->name;
-    m_shaderAssetName = m_meshConfig->shader;
-    m_meshType = static_cast<Mesh::Type>(m_meshConfig->meshType);
-
-    m_shaderAsset = AssetLocator::GetShaderAsset(m_shaderAssetName);
-    if (!m_shaderAsset) {
-        OutputDebugStringA(("MeshAsset::Init - ERROR: Failed to get ShaderAsset for mesh '" + m_name + "'.\n").c_str());
-        return E_FAIL;
-    }
-
-    m_vertexDef = m_shaderAsset->GetConfig()->vertex_def;
-    if (m_vertexDef.empty()) {
-        OutputDebugStringA(("MeshAsset::Init - ERROR: No vertex definition found for mesh '" + m_name + "'.\n").c_str());
-        return E_FAIL;
-	}
-    return S_OK;
-}
-
-HRESULT MeshAsset::InitTexture() {
-    std::string textureAssetName = m_meshConfig->texture;
-    
-    m_material = new Material();
-    if (!m_material) {
-        OutputDebugStringA(("MeshAsset::Init - ERROR: Failed to create Material resource for mesh '" + m_name + "'.\n").c_str());
-        return E_FAIL;
-    }
-
-    m_material->SetShaderName(StringToWstring(m_shaderAssetName));
-    
-    HRESULT hr = m_material->Init();
-    if (FAILED(hr)) {
-        OutputDebugStringA(("MeshAsset::Init - ERROR: Failed to initialize Material resource for mesh '" + m_name + "'.\n").c_str());
-        return E_FAIL;
-    }
-
-    if (!textureAssetName.empty() && textureAssetName != "none") {
-	    m_textureTransforms = m_meshConfig->texture_transforms;
-        m_textureAsset = AssetLocator::GetTextureAsset(textureAssetName);
-        m_textureAsset->SetTextureView(m_material);
-		m_material->SetTextureType(m_textureAsset->GetTextureType());
-        if (m_textureTransforms.size() == 4) {
-            XMFLOAT4 textureTransforms = XMFLOAT4(m_textureTransforms[0], m_textureTransforms[1], m_textureTransforms[2], m_textureTransforms[3]);
-            m_material->SetTextureTranforms(textureTransforms);
-		}
-    }
-
-    return hr;
-}
-
-HRESULT MeshAsset::InitShadows()
-{
-    bool castShadows = m_meshConfig->cast_shadows;
-    if (!castShadows) {
-	    return S_OK;
-    }
-	m_shadowMaterial = new Material();
-    m_shadowMaterial->SetShaderName(StringToWstring(m_meshConfig->shader_shadows));
-    HRESULT hr = m_shadowMaterial->Init();
-    if (FAILED(hr)) {
-        OutputDebugStringA("MeshAsset::Init - ERROR: Failed to initialize Material resource for shadows.\n");
-        return E_FAIL;
-    }
-	return hr;
-}
 
 HRESULT MeshAsset::InitMesh() {
 
@@ -141,8 +39,7 @@ HRESULT MeshAsset::InitMesh() {
         }
 	}
     // PROCESAR TIPO TEXTO
-    else if (m_meshType == Mesh::Type::Text) {
-        //UIText* text = m_uiManager->InitText(std::make_shared<MeshAsset>(*this), vertex);
+    else if (m_meshType == Mesh::Type::Text) {        
         m_uiText = new UIText(std::make_shared<MeshAsset>(*this));
         m_uiText->CreateMesh(vertex);
         if (vertex.empty()) {
@@ -182,36 +79,17 @@ void MeshAsset::UpdateTextMesh(UIText* uiText, std::string text) {
     return;
 }
 
-HRESULT MeshAsset::Init() {
-    if (m_meshConfig == nullptr) {
+HRESULT MeshAsset::Init() {    
+
+    HRESULT hr = MeshAssetBase::Init();
+    if (FAILED(hr)) {
+        OutputDebugStringA("MeshAsset::Init - ERROR: MeshAssetBase initialization error.\n");
+        return E_FAIL;
+    }
+
+    if (m_name.empty()) {
         return S_OK;
     }
-
-	m_name = m_meshConfig->name;
-
-    HRESULT hr = InitManagers();
-    if (FAILED(hr)) {
-        OutputDebugStringA("MeshAsset::Init - ERROR: Managers init.\n");
-        return E_FAIL;
-    }
-
-    hr = InitConfig();
-    if (FAILED(hr)) {
-        OutputDebugStringA("MeshAsset::Init - ERROR: Config init.\n");
-        return E_FAIL;
-	}
-
-    hr = InitTexture();
-    if (FAILED(hr)) {
-        OutputDebugStringA("MeshAsset::Init - ERROR: Texture init.\n");
-        return E_FAIL;
-    }
-
-	hr = InitShadows();
-    if (FAILED(hr)) {
-        OutputDebugStringA("MeshAsset::Init - ERROR: Shadows init.\n");
-        return E_FAIL;
-	}
 
     hr = InitMesh();
     if (FAILED(hr)) {
@@ -223,20 +101,7 @@ HRESULT MeshAsset::Init() {
 }
 
 void MeshAsset::Shutdown() {
-    if (m_vertexBuffer) {
-        m_vertexBuffer->Release();
-        m_vertexBuffer = nullptr;
-    }
-    if (m_indexBuffer) {
-        m_indexBuffer->Release();
-        m_indexBuffer = nullptr;
-    }
-    if (m_material) {
-		SafeShutDown(m_material);        
-    }
-    if (m_shadowMaterial) {
-        SafeShutDown(m_shadowMaterial);        
-    }
+    MeshAssetBase::Shutdown();
     if (m_uiText) {        
 		SafeShutDown(m_uiText);
 	}

@@ -1,48 +1,26 @@
-#include <Windows.h>
 #include "InitPipelineManager.h"
-#include <AssetLocator/AssetLocator.h>
-#include <ManagerLocator/ManagerLocator.h>
-#include <ConfigLocator/ConfigLocator.h>
-#include <ServiceLocator/ServiceLocator.h>
-#include <Pipeline/PipelineStateLocator.h>
-
-#include <IPipelineState.h>
-
-#include <Defines/Pipeline.h>
-#include <Defines/Pass.h>
-#include <Defines/FrameStateDefinition.h>
-
 #include <../Includes/FrameStates.h>
-
-#include <Pipeline/IPipelineBlendingState.h>
-#include <Pipeline/IPipelineRasterizedState.h>
-#include <Pipeline/IPipelineStencilState.h>
-#include <Pipeline/IPipelineStencilView.h>
-#include <Pipeline/IPipelineShaderViewState.h>
-#include <Pipeline/IPipelineViewportState.h>
-
-#include <InitManager/Pipeline/PipelineConfigurator.h>
-
-#include <Services/FrameStateService.h>
-#include <DeviceManager.h>
-#include <ShaderManager.h>
-
-#include <Config/Base/Managers/InitManagerConfig.h>
 #include <Config/Base/Managers/InitPipelineManagerConfig.h>
-
 #include <Config/Base/Pipeline/ShaderMatrixSlotsConfig.h>
 #include <Config/Base/Pipeline/ShaderSamplerSlotsConfig.h>
 #include <Config/Base/Pipeline/ShaderTextureSlotsConfig.h>
-
-#include <Assets/IAssetShaderConfig.h>
-
-#include <Services/Material.h>
-
-#include <RenderManager/Pipeline/Stages/InputAssemblyStage.h>
-#include <RenderManager/Pipeline/Stages/RasterizerStage.h>
-#include <RenderManager/Pipeline/Stages/VertexShaderStage.h>
-#include <RenderManager/Pipeline/Stages/PixelShaderStage.h>
-#include <RenderManager/Pipeline/Stages/OutputMergerStage.h>
+#include <ConfigLocator/ConfigLocator.h>
+#include <Core/Defines/Enums/Matrix.h>
+#include <Defines/FrameStateDefinition.h>
+#include <Defines/Matrix/MatrixDefinition.h>
+#include <DeviceManager.h>
+#include <ManagerLocator/ManagerLocator.h>
+#include <Pipeline/IPipelineBlendingState.h>
+#include <Pipeline/IPipelineRasterizedState.h>
+#include <Pipeline/IPipelineShaderViewState.h>
+#include <Pipeline/IPipelineStencilState.h>
+#include <Pipeline/IPipelineStencilView.h>
+#include <Pipeline/IPipelineViewportState.h>
+#include <Pipeline/PipelineStateLocator.h>
+#include <ServiceLocator/ServiceLocator.h>
+#include <Services/FrameStateService.h>
+#include <ShaderManager.h>
+#include <Windows.h>
 
 #include "REGISTER_MANAGER_MACRO.h"
 
@@ -58,28 +36,27 @@ InitPipelineManager::~InitPipelineManager()
 
 HRESULT InitPipelineManager::InitPipelineManagers() {
     m_deviceManager = ManagerLocator::GetDeviceManager();
-    if(!m_deviceManager) {
+    if (!m_deviceManager) {
         return E_FAIL;
-	}
-	m_shaderManager = ManagerLocator::GetShaderManager();
+    }
+    m_shaderManager = ManagerLocator::GetShaderManager();
     if (!m_shaderManager) {
         return E_FAIL;
-	}
+    }
     m_FrameStateService = ServiceLocator::GetService<FrameStateService>();
     if (!m_FrameStateService) {
         return E_FAIL;
-	} 
+    }
 
-	// Obtenemos los estados de Frame
+    // Obtenemos los estados de Frame
     PipelineFrameState* pipelineState = m_FrameStateService->PipelineState(false);
     CommonFrameState* commonState = m_FrameStateService->CommonState(false);
 
-	// Actualizamos los estados
+    // Actualizamos los estados
     pipelineState->SetContext(m_deviceManager->GetContext());
     pipelineState->SetDevice(m_deviceManager->GetDevice());
     pipelineState->SetSwapChain(m_deviceManager->GetSwapChain());
-    commonState->SetWidth(m_deviceManager->GetWidth());
-	commonState->SetHeight(m_deviceManager->GetHeight());
+    commonState->SetEngineContext(m_context);
 
     return S_OK;
 }
@@ -90,19 +67,19 @@ HRESULT InitPipelineManager::InitConfigs() {
         return E_FAIL;
     }
     m_constantsBuffersSlotsConfig = ConfigLocator::GetConfig<ShaderMatrixSlotsConfig>();
-	m_samplersSlotsConfig = ConfigLocator::GetConfig<ShaderSamplerSlotsConfig>();
-	m_texturesSlotsConfig = ConfigLocator::GetConfig<ShaderTextureSlotsConfig>();
+    m_samplersSlotsConfig = ConfigLocator::GetConfig<ShaderSamplerSlotsConfig>();
+    m_texturesSlotsConfig = ConfigLocator::GetConfig<ShaderTextureSlotsConfig>();
     return S_OK;
 }
 
 HRESULT InitPipelineManager::InitRaserizerStates()
 {
     // RASTERIZER STATE
-    for (const std::string& stateName : m_config->rasterizedStates) {
+    /*for (const std::string& stateName : m_config->rasterizedStates) {
 
         if (StrToLower(stateName) == "none") {
             continue;
-		}
+        }
         std::shared_ptr<IPipelineRasterizedState> state = PipelineStateLocator::GetPipelineState<IPipelineRasterizedState>(stateName);
 
         D3D11_RASTERIZER_DESC desc = {};
@@ -120,7 +97,7 @@ HRESULT InitPipelineManager::InitRaserizerStates()
         Microsoft::WRL::ComPtr<ID3D11RasterizerState> data = nullptr;
 
         m_FrameStateService->PipelineState(false)->CreateRasterizerState(stateName, desc);
-    }
+    }*/
 
     return S_OK;
 }
@@ -183,7 +160,7 @@ HRESULT InitPipelineManager::InitDepthStencilStates() {
 }
 HRESULT InitPipelineManager::InitDepthStencilViews(int width, int height) {
     // STENCIL VIEWS
-    for (const std::string& stateName : m_config->stencilViews) {
+   /* for (const std::string& stateName : m_config->stencilViews) {
 
         if (StrToLower(stateName) == "none") {
             continue;
@@ -230,72 +207,72 @@ HRESULT InitPipelineManager::InitDepthStencilViews(int width, int height) {
         m_param.depth = static_cast<FLOAT>(state->Depth);
         m_param.stencil = static_cast<UINT8>(state->Stencil);
 
-        m_FrameStateService->PipelineState(false)->CreateDepthStencilView(stateName, m_param);		
-    }
+        m_FrameStateService->PipelineState(false)->CreateDepthStencilView(stateName, m_param);
+    }*/
     return S_OK;
 }
 HRESULT InitPipelineManager::InitViewports(int width, int height) {
     // VIEWPORT STATE
-    for (const std::string& stateName : m_config->viewPortStates) {
+    //for (const std::string& stateName : m_config->viewPortStates) {
 
-        if (StrToLower(stateName) == "none") {
-            continue;
-        }
+    //    if (StrToLower(stateName) == "none") {
+    //        continue;
+    //    }
 
-        std::shared_ptr<IPipelineViewportState> state = PipelineStateLocator::GetPipelineState<IPipelineViewportState>(stateName);
+    //    std::shared_ptr<IPipelineViewportState> state = PipelineStateLocator::GetPipelineState<IPipelineViewportState>(stateName);
 
-        D3D11_VIEWPORT viewport = {};
+    //    D3D11_VIEWPORT viewport = {};
 
-        FLOAT width = static_cast<FLOAT>(state->Width);
-        FLOAT height = static_cast<FLOAT>(state->Height);
+    //    FLOAT width = static_cast<FLOAT>(state->Width);
+    //    FLOAT height = static_cast<FLOAT>(state->Height);
 
-        if (width <= 0 || height <= 0) {
-            width = static_cast<FLOAT>(m_deviceManager->GetWidth());
-            height = static_cast<FLOAT>(m_deviceManager->GetHeight());
-        }
+    //    if (width <= 0 || height <= 0) {
+    //        width = static_cast<FLOAT>(m_deviceManager->GetWidth());
+    //        height = static_cast<FLOAT>(m_deviceManager->GetHeight());
+    //    }
 
-        viewport.TopLeftX = state->TopLeftX;
-        viewport.TopLeftY = state->TopLeftY;
-        viewport.Width = width;
-        viewport.Height = height;
-        viewport.MinDepth = state->MinDepth;
-        viewport.MaxDepth = state->MaxDepth;
+    //    viewport.TopLeftX = state->TopLeftX;
+    //    viewport.TopLeftY = state->TopLeftY;
+    //    viewport.Width = width;
+    //    viewport.Height = height;
+    //    viewport.MinDepth = state->MinDepth;
+    //    viewport.MaxDepth = state->MaxDepth;
 
-        //m_viewport[stateName].desc = viewport;
+    //    //m_viewport[stateName].desc = viewport;
 
-        PipelineViewPortData m_param = {};
-        m_param.desc = viewport;
-        m_param.name = stateName;
+    //    PipelineViewPortData m_param = {};
+    //    m_param.desc = viewport;
+    //    m_param.name = stateName;
 
-        m_FrameStateService->PipelineState(false)->CreateViewport(stateName, viewport);
-    }
+    //    m_FrameStateService->PipelineState(false)->CreateViewport(stateName, viewport);
+    //}
     return S_OK;
 }
 HRESULT InitPipelineManager::InitSamplers() {
     // SAMPLERS
-    std::vector<ShaderSampler::SamplerDefinition> samplersDesc = m_shaderManager->GetAllSamplersDesc();
+    //std::vector<ShaderSampler::SamplerDefinition> samplersDesc = m_shaderManager->GetAllSamplersDesc();
 
-    if (samplersDesc.size()) {
-        PipelineSamplerSateData m_param = {};
-        m_param.desc = samplersDesc;
-        m_param.data = {};
-        m_param.numSamplers = static_cast<UINT>(samplersDesc.size());
-        m_param.name = "samplers";
+    //if (samplersDesc.size()) {
+    //    PipelineSamplerSateData m_param = {};
+    //    m_param.desc = samplersDesc;
+    //    m_param.data = {};
+    //    m_param.numSamplers = static_cast<UINT>(samplersDesc.size());
+    //    m_param.name = "samplers";
 
-        for (const ShaderSampler::SamplerDefinition& descPair : m_param.desc) {
-            std::string samplerName = descPair.name;
-            if (StrToLower(samplerName) == "none") {
-                continue;
-            }
-            m_FrameStateService->PipelineState(false)->CreateSamplerState(samplerName, descPair.desc);
-        }
-    }
+    //    for (const ShaderSampler::SamplerDefinition& descPair : m_param.desc) {
+    //        std::string samplerName = descPair.name;
+    //        if (StrToLower(samplerName) == "none") {
+    //            continue;
+    //        }
+    //        m_FrameStateService->PipelineState(false)->CreateSamplerState(samplerName, descPair.desc);
+    //    }
+    //}
     return S_OK;
 }
 
 HRESULT InitPipelineManager::CreateConstantBuffers(std::vector<std::string> slots)
 {
-	unsigned int slot = 0;
+    unsigned int slot = 0;
     for (const std::string& constantBufferName : slots) {
         if (!constantBufferName.size() || StrToLower(constantBufferName) == "none") {
             continue;
@@ -309,13 +286,23 @@ HRESULT InitPipelineManager::CreateConstantBuffers(std::vector<std::string> slot
 
         unsigned int vertexSize = 0;
         std::string matrixType = "";
+        MatrixBufferTypeEnum bufferType = MatrixBufferTypeEnum::Dynamic;
         std::visit([&](auto& currentVertex) {
             vertexSize = currentVertex.Size();
-			matrixType = currentVertex.MatrixType();
+            matrixType = currentVertex.MatrixType();
+            bufferType = currentVertex.BufferType();
             }, *constantsBuffer);
 
-        m_FrameStateService->PipelineState(false)->CreateConstantBuffer(constantBufferName, matrixType, vertexSize, slot);
-		slot++;
+        m_FrameStateService->PipelineState(false)->CreateConstantBuffer(
+            constantsBuffer,
+            constantBufferName,
+            matrixType,
+            bufferType,
+            vertexSize,
+            slot
+        );
+
+        slot++;
     }
     return S_OK;
 }
@@ -325,37 +312,37 @@ HRESULT InitPipelineManager::SetConstantBuffers(std::vector<std::string> slots) 
     return S_OK;
 }
 HRESULT InitPipelineManager::CreateTextures(std::vector<std::string> slots) {
-	//unsigned int slot = 0;
+    //unsigned int slot = 0;
  //   for (const std::string& textureName : slots) {
  //       if (textureName.size()) {
-	//		Material* material = new Material();
-	//		material->SetShaderName()
-	//		m_FrameStateService->PipelineState(false)->SetTexture(slotName, slot);
+    //		Material* material = new Material();
+    //		material->SetShaderName()
+    //		m_FrameStateService->PipelineState(false)->SetTexture(slotName, slot);
  //           //m_FrameStateService->PipelineState(false)->SetTexture(slot);
-	//		slot++;
+    //		slot++;
  //       }
-	//}
+    //}
 
     return S_OK;
 }
 HRESULT InitPipelineManager::CreateSamplers(std::vector<std::string> slots) {
     unsigned int slot = 0;
-    for(const std::string& slotName : slots) {
+    for (const std::string& slotName : slots) {
         if (slotName.size()) {
             m_FrameStateService->PipelineState(false)->SetSamplerState(slotName, slot);
-			slot++;
+            slot++;
         }
-	}
+    }
     return S_OK;
 }
 HRESULT InitPipelineManager::InitShaders() {
     std::vector<std::string> constanstBuffersSlots = m_constantsBuffersSlotsConfig->slots;
-	std::vector<std::string> samplersSlots = m_samplersSlotsConfig->slots;
-	std::vector<std::string> texturesSlots = m_texturesSlotsConfig->slots;
-	CreateSamplers(samplersSlots);
+    std::vector<std::string> samplersSlots = m_samplersSlotsConfig->slots;
+    std::vector<std::string> texturesSlots = m_texturesSlotsConfig->slots;
+    CreateSamplers(samplersSlots);
     CreateConstantBuffers(constanstBuffersSlots);
-	CreateTextures(texturesSlots);
-	SetConstantBuffers(constanstBuffersSlots);
+    CreateTextures(texturesSlots);
+    SetConstantBuffers(constanstBuffersSlots);
 
     //std::shared_ptr<IAssetShaderConfig> shaderConfig = ConfigLocator::GetConfig<IAssetShaderConfig>();
 
@@ -369,10 +356,10 @@ HRESULT InitPipelineManager::InitPipelineStates(int width, int height) {
     if (!m_config) {
         return E_FAIL;
     }
-	HRESULT hr = InitRaserizerStates();
+    HRESULT hr = InitRaserizerStates();
     if (FAILED(hr)) {
         return hr;
-	}
+    }
     hr = InitBlendStates();
     if (FAILED(hr)) {
         return hr;
@@ -388,24 +375,25 @@ HRESULT InitPipelineManager::InitPipelineStates(int width, int height) {
     hr = InitViewports(width, height);
     if (FAILED(hr)) {
         return hr;
-    }  
-	hr = InitSamplers();
+    }
+    hr = InitSamplers();
     if (FAILED(hr)) {
         return hr;
     }
     hr = InitShaders();
     if (FAILED(hr)) {
         return hr;
-	}
+    }
 
-    m_FrameStateService->Update(0.0f);
+    //m_FrameStateService->Update(0.0f);
+    // 
+    // Hacemos un SwapBuffers (PERO DEL CONTENIDO)
     m_FrameStateService->SwapBuffersContent();
+    // Finalmente hacemos un SwapBuffers para dejar todo listo
     m_FrameStateService->SwapBuffers();
-	// Finalmente hacemos un SwapBuffers (PERO DEL CONTENIDO) para dejar todo listo
 
-    //m_FrameStateService->SwapBuffers();
 
-	//// Matrices (De momento solo la Ortogr fica)
+    //// Matrices (De momento solo la Ortogr fica)
  //   std::shared_ptr<MatrixParams> bData = std::make_shared<MatrixParams>();
  //   bData->projectionOrthoMatrix = DirectX::XMMatrixOrthographicOffCenterLH(
  //       0.0f,                                  // left
@@ -440,35 +428,35 @@ HRESULT InitPipelineManager::InitFinalOperations() {
     //rtParam.name = "RenderTargetView";
     /*std::map<std::string, D3D11_VIEWPORT> views = GetRenderTargetViewPorts();
     for (const auto& pView : views) {
-		std::string name = pView.first;
+        std::string name = pView.first;
         rtParam.name = name;
         Microsoft::WRL::ComPtr<ID3D11RenderTargetView> rtData = nullptr;
-		m_FrameStateService->CommonState()->CreateRenderTargetView(name, rtParam.backBuffer.Get());
+        m_FrameStateService->CommonState()->CreateRenderTargetView(name, rtParam.backBuffer.Get());
         m_initPass->AddOperation(PipelineOperationType::Device_Init_CreateRenderTargetView, rtParam, rtData);
-	}*/
+    }*/
 
     return S_OK;
 }
 
-HRESULT InitPipelineManager::Init(HWND* hwnd, int width, int height)
+HRESULT InitPipelineManager::Init(EngineContext* context)
 {
     //m_initPass = std::make_shared<RenderPass>(RenderPassType::None, 0, "InitPass");
 
     HRESULT hr = InitPipelineManagers();
     if (FAILED(hr)) {
         return hr;
-	}
+    }
     hr = InitConfigs();
     if (FAILED(hr)) {
         return hr;
     }
 
-	hr = InitMainPipelineOperations(width, height);
+    hr = InitMainPipelineOperations(static_cast<int>(context->width), static_cast<int>(context->height));
     if (FAILED(hr)) {
-		return hr;
-	}
+        return hr;
+    }
 
-    hr = InitPipelineStates(width, height);
+    hr = InitPipelineStates(static_cast<int>(context->width), static_cast<int>(context->height));
     if (FAILED(hr)) {
         return hr;
     }

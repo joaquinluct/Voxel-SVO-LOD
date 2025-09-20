@@ -7,15 +7,16 @@
 #include <algorithm>
 #include <chrono>
 #include <IService.h>
+#include <Assets/Base/MeshAssetBase.h>
 #include <Defines/Texture.h>
 #include <Defines/Pass.h>
-#include <KeyboardManager.h>
 #include <Defines/WorldTerrain.h>
 #include <Defines/TerrainChunk.h>
 #include <Config/Game/System/TerrainConfig.h>
 //#include <UI/UIText.h>
 #include "Terrain/ChunkService.h"
-#include <CameraManager.h>
+#include <Managers/KeyboardManager.h>
+#include <Managers/CameraManager.h>
 #include <Game/Systems/Terrain/Chunk/Chunk.h>
 #include <ICamera.h>
 
@@ -32,15 +33,18 @@ public:
 	HRESULT Init() override;
 	HRESULT InitServices();
 	HRESULT InitConfig();	
-	void Render() override;
 	void Update(float deltaTime) override;
 	void Shutdown() override {};
 	const std::string& GetServiceName() const override { static const std::string name = "Terrain"; return name; }
 	static const std::string& GetStaticServiceName() { static const std::string name = "Terrain"; return name; }
 
+	// Generación de los Mesh del terreno
+	void GenerateMesh();
+
 	// Getters
-	std::shared_ptr<TerrainAsset> GetTerrainAsset() const { return m_terrainAsset; }
-	std::vector<std::shared_ptr<Chunk>> GetChunks(std::shared_ptr<ICamera> camera);
+	MeshAssetBase* GetTerrainMesh() const;
+	std::vector<Chunk*> GetChunks(std::shared_ptr<ICamera> camera);
+	std::vector<Chunk*> GetVisibleChunks();
 	std::shared_ptr<ChunkService> GetChunkService() const { return m_chunkService; }
 
 	// Métods de gestión del terreno
@@ -53,6 +57,8 @@ public:
 	bool IsDirty() const { return m_dirty; }
 	void SetDirty(const bool dirty)	{ m_dirty = dirty; }
 
+	bool IsGenerating() const { return m_isGenerating; }
+
 	// Methods para depuración
 	int GetNumVisibleChunks() const	{ return m_numVisibleChunks; }
 	int GetNumChunks() const { return m_numChunks; }
@@ -62,7 +68,7 @@ private:
 	std::shared_ptr<CameraManager> m_cameraManager = nullptr;
 	std::shared_ptr<ChunkService> m_chunkService = nullptr;
 	std::shared_ptr<ProceduralService> m_proceduralService = nullptr;
-	std::shared_ptr<TerrainAsset> m_terrainAsset = nullptr;
+	TerrainAsset* m_terrainAsset = nullptr;
 
 	// Configuración del terreno
 	std::shared_ptr<TerrainConfig> m_config;	

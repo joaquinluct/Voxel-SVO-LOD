@@ -44,7 +44,7 @@ private:
     std::vector<UINT> m_tempIndexData;
 
     // Almacena las mallas visibles y el tamaño de los datos de vértice para la copia
-    std::vector<std::shared_ptr<Chunk>> m_visibleChunks;
+    std::vector<Chunk*> m_visibleChunks;
     size_t m_vertexTypeSize;
 
 	// Para hacer un único draw call por chunk 

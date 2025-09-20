@@ -12,6 +12,7 @@ public:
 	int meshType = -1; // None
 	int render_passes = 0; // Default render pass
 	int drawType = 1; // DrawIndexed
+	int primitiveTopology = 4; // TriangleList
 	std::string shader;
 	std::string mesh_path;
 	std::string texture;

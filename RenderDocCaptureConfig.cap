@@ -5,9 +5,9 @@
         "commandLine": "",
         "environment": [
         ],
-        "executable": "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\x64\\Debug\\DirectX-Voxelado.exe",
+        "executable": "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\DirectX-Voxelado.exe",
         "inject": false,
-        "numQueuedFrames": 1,
+        "numQueuedFrames": 10,
         "options": {
             "allowFullscreen": true,
             "allowVSync": true,
@@ -23,6 +23,6 @@
             "verifyBufferAccess": true
         },
         "queuedFrameCap": 0,
-        "workingDir": ""
+        "workingDir": "C:/Users/joaqu/source/repos/DirectX-Voxelado"
     }
 }

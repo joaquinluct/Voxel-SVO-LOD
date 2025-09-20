@@ -1,18 +1,18 @@
 #include "MainColorPass.h"
 #include <ManagerLocator/ManagerLocator.h>
 #include <ServiceLocator/ServiceLocator.h>
-#include <Locators/Pipeline/PipelineStateLocator.h>
+//#include <Locators/Pipeline/PipelineStateLocator.h>
 #include <Game/Systems/Shadows.h>
 #include <Game/Systems/Lighting.h>
-#include <Util/Text/Text.h>
+//#include <Util/Text/Text.h>
 #include <Assets/Base/MeshAsset.h>
-#include <Defines/Matrix/Light.h>
+//#include <Defines/Matrix/Light.h>
 #include <Locators/Registers/REGISTER_RENDER_PASS_MACRO.h>
 #include <Services/FrameStateService.h>
-#include <RenderState/FrameStates/CommonFrameState.h>
-#include <RenderState/FrameStates/CameraFrameState.h>
-#include <RenderState/FrameStates/LightFrameState.h>
-#include <RenderState/FrameStates/MaterialFrameState.h>
+//#include <RenderState/FrameStates/CommonFrameState.h>
+//#include <RenderState/FrameStates/CameraFrameState.h>
+//#include <RenderState/FrameStates/LightFrameState.h>
+//#include <RenderState/FrameStates/MaterialFrameState.h>
 
 REGISTER_RENDER_PASS_TYPE(MainColorPass, "MainColorPass")
 
@@ -115,7 +115,7 @@ HRESULT MainColorPass::InitManagers() {
 	m_cameraManager = ManagerLocator::GetCameraManager();
 	if (!m_cameraManager) {
 		return E_FAIL;
-	}	
+	}
 	m_shaderManager = ManagerLocator::GetShaderManager();
 	if (!m_shaderManager) {
 		return E_FAIL;
@@ -178,7 +178,7 @@ std::vector<PipelineOperationType> MainColorPass::ExecPass(const MeshAsset* mesh
 	AddOperation(PipelineOperationType::Mesh_Render_SetInputLayout);
 	AddOperation(PipelineOperationType::Mesh_Render_SetTexture);
 	//if (needShadowMap) {
-		AddOperation(PipelineOperationType::Mesh_Render_SetTexture);
+	AddOperation(PipelineOperationType::Mesh_Render_SetTexture);
 	//}
 	AddOperation(PipelineOperationType::Mesh_Render_SetSampler);
 	AddOperation(PipelineOperationType::Mesh_Render_SetVertexBuffer);

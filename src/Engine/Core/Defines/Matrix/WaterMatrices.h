@@ -4,6 +4,7 @@
 #include <string>
 #include "MatrixDefinitionBase.h" // Incluimos la base para MatrixParams
 #include <wtypes.h>
+#include <Defines/Enums/Matrix.h>
 
 using namespace MatrixDefinitionBase;
 
@@ -57,6 +58,10 @@ namespace WaterMatrices
 			return sizeof(WaterData);
 		}
 
+		MatrixBufferTypeEnum BufferType() {
+			return MatrixBufferTypeEnum::Dynamic;
+		}
+
 		std::string MatrixType() {
 			return MATRIX_TYPE_MIXED.data();
 		}
@@ -81,6 +86,10 @@ namespace WaterMatrices
 		UINT Size() {
 			// El tamaño es el número máximo de instancias por el tamaño de una matriz
 			return sizeof(DirectX::XMMATRIX) * MAX_INSTANCES;
+		}
+
+		MatrixBufferTypeEnum BufferType() {
+			return MatrixBufferTypeEnum::Dynamic;
 		}
 
 		std::string MatrixType() {

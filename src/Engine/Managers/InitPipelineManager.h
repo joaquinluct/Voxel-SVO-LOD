@@ -65,9 +65,7 @@ public:
     InitPipelineManager();
     ~InitPipelineManager() override;
 
-    bool IsWindowDependent() const override { return true; }
-
-    HRESULT Init(HWND* hwnd, int width, int heigth) override;
+    HRESULT Init(EngineContext* context) override;
 	HRESULT InitBlendStates();
     HRESULT InitConfigs();
 	HRESULT InitDepthStencilStates();
@@ -75,25 +73,20 @@ public:
     HRESULT InitPipelineManagers();
     HRESULT InitPipelineStates(int width, int height);
 	HRESULT InitRaserizerStates();
-	HRESULT InitViewports(int width, int height);	
-    HRESULT CreateConstantBuffers(std::vector<std::string> slots);
-	HRESULT CreateTextures(std::vector<std::string> slots);
-    HRESULT CreateSamplers(std::vector<std::string> slots);
-    HRESULT SetConstantBuffers(std::vector<std::string> slots);
 	HRESULT InitSamplers();
 	HRESULT InitShaders();
+	HRESULT InitViewports(int width, int height);	
     HRESULT InitFinalOperations();
     HRESULT InitMainPipelineOperations(int width, int height);
 
-    const std::string& GetManagerName() const override {
-        static const std::string name = "InitPipelineManager";
-        return name;
-    }
+    HRESULT CreateConstantBuffers(std::vector<std::string> slots);
+	HRESULT CreateTextures(std::vector<std::string> slots);
+    HRESULT CreateSamplers(std::vector<std::string> slots);
 
-    static const std::string& GetStaticManagerName() {
-        static const std::string name = "InitPipelineManager";
-        return name;
-    }
+    HRESULT SetConstantBuffers(std::vector<std::string> slots);
+
+    const std::string& GetManagerName() const override {static const std::string name = "InitPipelineManager"; return name; }
+    static const std::string& GetStaticManagerName() { static const std::string name = "InitPipelineManager"; return name; }
 
  //   std::map<std::string, PipelineData> GetPipelineStates() { return m_pipelineStates; }
 

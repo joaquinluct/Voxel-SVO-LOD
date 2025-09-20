@@ -1,23 +1,21 @@
 // ManagerLocator.h
 #pragma once
 
-#include <string>
-#include <memory>
-#include <functional>
-#include <map>
-#include "yaml-cpp/yaml.h"
-#include <windows.h> // Para HWND, HRESULT
-#include <RenderManager/RenderManager.h>
-#include <AssetManager.h>
 #include <CameraManager.h>
 #include <DeviceManager.h>
+#include <functional>
 #include <KeyboardManager.h>
-#include <ShaderManager.h>
 #include <ManagerBase.h>
+#include <map>
+#include <memory>
+#include <ShaderManager.h>
+#include <string>
+#include <type_traits>
+#include <windows.h> // Para HWND, HRESULT
 
 // #include <typeindex> // No es estrictamente necesario si usamos nombres de string para s_managers
 
-// Forward declarations para asegurar que ManagerBase, IInitializable, IWindowDependentInitializable
+// Forward declarations para asegurar que ManagerBase, IInitializable, IEngineDependentInitializable
 // estén declaradas antes de ser usadas en std::shared_ptr en las lambdas.
 // Si estas interfaces están definidas en sus propios archivos .h y esos archivos
 // ya se incluyen antes de ManagerLocator.h en algunos .cpp, podrías no necesitar
@@ -25,12 +23,11 @@
 // dependencias circulares o problemas de orden de inclusión.
 //class ManagerBase;
 class IInitializable;
-class IWindowDependentInitializable;
+class IEngineDependentInitializable;
 
 // Define el tipo para la lambda de creación.
 using CreateManagerLambda = std::function<std::shared_ptr<ManagerBase>()>;
-using InitializeManagerLambda = std::function<HRESULT(std::shared_ptr<ManagerBase>)>;
-using InitializeWithParamasManagerLambda = std::function<HRESULT(std::shared_ptr<ManagerBase>, HWND*, int, int)>;
+using InitializeManagerLambda = std::function<HRESULT(std::shared_ptr<ManagerBase>, EngineContext* context)>;
 using RenderManagerLambda = std::function<void(std::shared_ptr<ManagerBase>)>;
 using UpdateManagerLambda = std::function<void(std::shared_ptr<ManagerBase>, float)>;
 
@@ -49,12 +46,11 @@ public:
         const std::string& name,
         CreateManagerLambda createFn,
         InitializeManagerLambda initFn,
-		InitializeWithParamasManagerLambda initWithParamsFn,
-		RenderManagerLambda renderFn,
-		UpdateManagerLambda updateFn
+        RenderManagerLambda renderFn,
+        UpdateManagerLambda updateFn
     );
-    
-    static HRESULT InitializeManagers(const std::vector<std::string>& orderList, HWND* hwnd, int width, int height);
+
+    static HRESULT InitializeManagers(const std::vector<std::string>& orderList, EngineContext* context);
     static HRESULT RenderManagers(const std::vector<std::string>& orderList);
     static HRESULT UpdateManagers(const std::vector<std::string>& orderList, float delta);
     //static HRESULT UpdateManagers(const std::vector<std::string>& orderList, float deltaTime);
@@ -65,8 +61,13 @@ public:
     template<typename T>
     static std::shared_ptr<T> GetManager() {
         const std::string name1 = typeid(T).name();
-		const std::string name = T::GetStaticManagerName();
-		auto& s_managerEntries = GetManagerEntries();
+        const std::string name = T::GetStaticManagerName();
+        if (name.empty()) {
+            // Manejo de error: La clase T no tiene un método estático GetStaticManagerName()
+            // o está en shutdown()
+            return nullptr;
+        }
+        auto& s_managerEntries = GetManagerEntries();
         auto it = s_managerEntries.find(name);
         if (it != s_managerEntries.end()) {
             return std::dynamic_pointer_cast<T>(it->second.instance);
@@ -94,22 +95,22 @@ public:
     static void Shutdown();
 
 
-	// Funciones helper para obtener el manager directamente.
+    // Funciones helper para obtener el manager directamente.
     static const std::shared_ptr<DeviceManager> GetDeviceManager() {
-		return GetManager<DeviceManager>();
+        return GetManager<DeviceManager>();
     };
     /*static const std::shared_ptr<RenderTargetManager> GetRenderManager() {
         return GetManager<RenderTargetManager>();
-	};*/
+    };*/
     /*static const std::shared_ptr<AssetManager> GetAssetManager() {
         return GetManager<AssetManager>();
-	};*/
+    };*/
     static const std::shared_ptr<CameraManager> GetCameraManager() {
-		return GetManager<CameraManager>();
-	};    
+        return GetManager<CameraManager>();
+    };
     static const std::shared_ptr<KeyboardManager> GetKeyboardManager() {
-		return GetManager<KeyboardManager>();
-	};    
+        return GetManager<KeyboardManager>();
+    };
     static const std::shared_ptr<ShaderManager> GetShaderManager() {
         return GetManager<ShaderManager>();
     };
@@ -119,9 +120,8 @@ public:
         std::shared_ptr<ManagerBase> instance; // La instancia real del manager
         CreateManagerLambda creator;
         InitializeManagerLambda initializer;
-        InitializeWithParamasManagerLambda initializerWithParams;
         RenderManagerLambda renderer; // La lambda de render que definiste en la macro
-		UpdateManagerLambda updater; // La lambda de actualización que definiste en la macro
+        UpdateManagerLambda updater; // La lambda de actualización que definiste en la macro
         // ... otras lambdas (Update, Shutdown)
     };
 private:

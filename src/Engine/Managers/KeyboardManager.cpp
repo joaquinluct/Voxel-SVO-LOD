@@ -39,7 +39,9 @@ HRESULT KeyboardManager::InitKeyBindings() {
 //--------------------------------------------------------------------------------------
 // Inicialización del manager
 //--------------------------------------------------------------------------------------
-HRESULT KeyboardManager::Init() {
+HRESULT KeyboardManager::Init(EngineContext* context) {
+	ManagerBase::Init(context);
+
 	OutputDebugStringA("Incializando KeyboardManager...\n");
 	HRESULT hr = S_OK;
 	m_keyboard = ServiceLocator::GetService<Keyboard>();

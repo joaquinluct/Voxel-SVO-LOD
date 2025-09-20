@@ -24,8 +24,10 @@ MouseManager::~MouseManager()
 //--------------------------------------------------------------------------------------
 // Inicialización
 //--------------------------------------------------------------------------------------
-HRESULT MouseManager::Init(HWND* hwnd, int width, int heigth)
+HRESULT MouseManager::Init(EngineContext* context)
 {
+    ManagerBase::Init(context);
+
     // Obtener el servicio de Mouse a través del ServiceLocator
     m_mouse = ServiceLocator::GetService<Mouse>();
     if (!m_mouse) {

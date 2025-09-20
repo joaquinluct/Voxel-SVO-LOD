@@ -10,14 +10,14 @@
 
 // #include <typeindex> // No es estrictamente necesario si usamos nombres de string para s_services
 
-// Forward declarations para asegurar que IPipelineState, IInitializable, IWindowDependentInitializable
+// Forward declarations para asegurar que IPipelineState, IInitializable, IEngineDependentInitializable
 // estén declaradas antes de ser usadas en std::shared_ptr en las lambdas.
 // Si estas interfaces están definidas en sus propios archivos .h y esos archivos
 // ya se incluyen antes de PipelineStateLocator.h en algunos .cpp, podrías no necesitar
 // estas forward declarations aquí, pero es una buena práctica para prevenir
 // dependencias circulares o problemas de orden de inclusión.
 class IInitializable;
-class IWindowDependentInitializable;
+class IEngineDependentInitializable;
 
 // Define el tipo para la lambda de creación.
 // Ahora retorna std::shared_ptr<IPipelineState>, ya que IPipelineState es nuestra base polimórfica común.

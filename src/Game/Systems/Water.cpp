@@ -47,12 +47,12 @@ HRESULT Water::InitConfig()
 HRESULT Water::PostInit()
 {
 	std::shared_ptr<RenderManager> m_renderManager = ManagerLocator::GetManager<RenderManager>();
-	m_waterMesh = m_renderManager->SceneManagerGet()->RegisterMesh("OceanMesh");
+	/*m_waterMesh = m_renderManager->SceneManagerGet()->RegisterMesh("OceanMesh");
 	if (!m_waterMesh) {
 		OutputDebugStringA("Water: Register water mesh fail.\n");
 		return E_FAIL;
 	}
-	m_waterMesh->Init();
+	m_waterMesh->Init();*/
 	return S_OK;
 }
 

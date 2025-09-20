@@ -12,7 +12,7 @@
 
 // #include <typeindex> // No es estrictamente necesario si usamos nombres de string para s_services
 
-// Forward declarations para asegurar que IService, IInitializable, IWindowDependentInitializable
+// Forward declarations para asegurar que IService, IInitializable, IEngineDependentInitializable
 // estén declaradas antes de ser usadas en std::shared_ptr en las lambdas.
 // Si estas interfaces están definidas en sus propios archivos .h y esos archivos
 // ya se incluyen antes de ServiceLocator.h en algunos .cpp, podrías no necesitar
@@ -20,7 +20,7 @@
 // dependencias circulares o problemas de orden de inclusión.
 class IService;
 class IInitializable;
-class IWindowDependentInitializable;
+class IEngineDependentInitializable;
 
 // Define el tipo para la lambda de creación.
 // Ahora retorna std::shared_ptr<IService>, ya que IService es nuestra base polimórfica común.
@@ -48,11 +48,11 @@ public:
         const std::string& name,
         CreateServiceLambda createFn,
         InitializeServiceLambda initFn,
-		RenderServiceLambda renderFn,
-		UpdateServiceLambda updateFn
+        RenderServiceLambda renderFn,
+        UpdateServiceLambda updateFn
     );
 
-    
+
     static HRESULT InitializeServices(const std::vector<std::string>& orderList);
     static HRESULT RenderServices(const std::vector<std::string>& orderList);
     static HRESULT RenderShadowPassServices(const std::vector<std::string>& orderList);
@@ -64,8 +64,13 @@ public:
     template<typename T>
     static std::shared_ptr<T> GetService() {
         //const std::string name1 = typeid(T).name();
-		const std::string name = T::GetStaticServiceName();
-		auto& s_serviceEntries = GetServiceEntries();
+        const std::string name = T::GetStaticServiceName();
+        if (name.empty()) {
+            // Manejo de error: T no tiene un nombre de servicio estático válido.
+            // o está en shutdown.
+            return nullptr;
+        }
+        auto& s_serviceEntries = GetServiceEntries();
         auto it = s_serviceEntries.find(name);
         if (it != s_serviceEntries.end()) {
             std::shared_ptr<T> service = std::dynamic_pointer_cast<T>(it->second.instance);
@@ -98,7 +103,7 @@ public:
         CreateServiceLambda creator;
         InitializeServiceLambda initializer;
         RenderServiceLambda renderer; // La lambda de render que definiste en la macro
-		UpdateServiceLambda updater; // Si decides usar una lambda de actualización
+        UpdateServiceLambda updater; // Si decides usar una lambda de actualización
         // ... otras lambdas (Update, Shutdown)
     };
 private:

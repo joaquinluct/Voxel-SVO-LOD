@@ -1,28 +1,37 @@
 #pragma once
 
-#include <DirectXMath.h>
 #include "MatrixDefinitionBase.h" // Incluimos la base para MatrixParams
+#include <Defines/Enums/Matrix.h>
+//#include <DirectXMath.h>
+#include <string>
+#include <memory>
+#include <map>
 
 using namespace MatrixDefinitionBase;
 
 namespace TimeMatrices
 {
-	struct TimeData
-	{
-		float time;
-		DirectX::XMFLOAT3 padding; // Relleno para alinear a 16 bytes
+    struct TimeData
+    {
+        float time;
 
-		void SetMatrixData(std::map<std::string, std::shared_ptr<IMatrixParams>>& params) {
-			std::shared_ptr<MatrixParams> baseParams = GetMatrixParams<MatrixParams>(params["BaseParams"]);
-			this->time = baseParams->timeData.time;
-		}
+        void SetTime(float t) { time = t; }
 
-		UINT Size() {
-			return sizeof(TimeData);
-		}
+        void SetMatrixData(std::map<std::string, std::shared_ptr<IMatrixParams>>& params) {
+            std::shared_ptr<MatrixParams> baseParams = GetMatrixParams<MatrixParams>(params["BaseParams"]);
+            this->time = baseParams->timeData.time;
+        }
 
-		std::string MatrixType() {
-			return MATRIX_TYPE_VERTEX.data();
-		}
-	};
+        UINT Size() {
+            return sizeof(TimeData);
+        }
+
+        MatrixBufferTypeEnum BufferType() {
+            return MatrixBufferTypeEnum::Dynamic;
+        }
+
+        std::string MatrixType() {
+            return MATRIX_TYPE_VERTEX.data();
+        }
+    };
 } // namespace TimeMatrices

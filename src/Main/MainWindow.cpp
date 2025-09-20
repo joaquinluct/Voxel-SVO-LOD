@@ -1,5 +1,11 @@
 #include "MainWindow.h"
 #include <../Resources/resource.h>
+#include <stdafx.h>
+
+// -------------------------------------------------------------------------------
+// Límite máximo para el tiempo delta para evitar saltos grandes en la simulación.
+// -------------------------------------------------------------------------------
+const float MAX_DELTA_TIME = 0.1f;
 
 //--------------------------------------------------------------------------------------
 // Variable estática para el puntero a la instancia de MainWindow.
@@ -20,45 +26,70 @@ MainWindow::MainWindow(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCm
 // Implementación de la creación de la ventana y el bucle principal.
 //--------------------------------------------------------------------------------------
 int MainWindow::Create(int width, int height) {
+
     OutputDebugStringA("[MainWindow] Creando aplicación...\n");
     if (!InitializeWindow(width, height)) {
         return 1;
     }
     OutputDebugStringA("[MainWindow] Inicializando aplicación...\n");
+
     // Se inicializa la instancia del motor de juego.
+    // ----------------------------------------------
     m_gameEngine = std::make_unique<Engine>();
-    if (!m_gameEngine->Init(m_hInstance, m_nCmdShow, &m_hWnd, width, height)) {
-        return 1;
-    }
     OutputDebugStringA("[MainWindow] Aplicación creada - OK\n");
+
     // Inicializa la variable de tiempo para el bucle principal.
+    // ---------------------------------------------------------
     LARGE_INTEGER frequency, previousTime;
     QueryPerformanceFrequency(&frequency);
     QueryPerformanceCounter(&previousTime);
     OutputDebugStringA("[MainWindow] Bucle de Aplicación ...\n");
     MSG msg = { 0 };
+
+    // ----------------------------------
+    // Iniciar la aplicación.
+    // ----------------------------------
+    m_context = {};
+    m_context.width = static_cast<float>(width);
+    m_context.height = static_cast<float>(height);
+    m_context.hWnd = &m_hWnd;
+    m_context.hInstance = m_hInstance;
+    m_context.nCmdShow = m_nCmdShow;
+
+    m_context.isRunning = m_gameEngine->Init(&m_context);
+
+    if (!m_context.isRunning) {
+        return 1;
+    }
+
+    // ---------------------------------
+    // Bucle principal de la aplicación.
+    // ---------------------------------
     while (WM_QUIT != msg.message) {
         if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
             TranslateMessage(&msg);
             DispatchMessage(&msg);
         }
         else {
+            // Calcula el tiempo delta.
             LARGE_INTEGER currentTime;
             QueryPerformanceCounter(&currentTime);
-            float deltaTime = (float)(currentTime.QuadPart - previousTime.QuadPart) / frequency.QuadPart;
+            m_context.deltaTime = (float)(currentTime.QuadPart - previousTime.QuadPart) / frequency.QuadPart;
             previousTime = currentTime;
 
-            // Define un límite máximo para el tiempo delta.
-            const float MAX_DELTA_TIME = 0.1f;
-            if (deltaTime > MAX_DELTA_TIME) {
-                deltaTime = MAX_DELTA_TIME;
+            // Aplica un límite al tiempo delta.
+            if (m_context.deltaTime > MAX_DELTA_TIME) {
+                m_context.deltaTime = MAX_DELTA_TIME;
             }
 
-			// Ahora el bucle queda vacío ya que el motor de juego 
-            // maneja la actualización y el renderizado mediante hilos.
-            // (Este comentario es mío, no de la IA)
+            // ------------------------------------ 
+            // No hay nada, ya que es la
+            // m_gameEngine la que inicia los hilos
+            // de Render y Update principales.
+            // ------------------------------------            
         }
     }
+    m_context.isRunning = false;
     OutputDebugStringA("[MainWindow] Finalizando Aplicación ...\n");
     return (int)msg.wParam;
 }
@@ -110,7 +141,7 @@ bool MainWindow::InitializeWindow(int width, int height) {
     wcex.lpszClassName = L"MainWindowClass";
     wcex.hIconSm = LoadIcon(wcex.hInstance, (LPCTSTR)IDI_TUTORIAL1);
     if (!RegisterClassEx(&wcex))
-        return E_FAIL;
+        return false;
 
     int screenWidth = GetSystemMetrics(SM_CXSCREEN);
     int screenHeight = GetSystemMetrics(SM_CYSCREEN);
@@ -126,7 +157,7 @@ bool MainWindow::InitializeWindow(int width, int height) {
 
     if (!m_hWnd) {
         MessageBox(nullptr, L"Error al crear la ventana", L"Error", MB_OK);
-        return E_FAIL;
+        return false;
     }
 
     //SetWindowLongPtr(m_hWnd, GWLP_USERDATA, (LONG_PTR)this);
@@ -164,6 +195,11 @@ LRESULT CALLBACK MainWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
     case WM_LBUTTONDOWN:
     case WM_LBUTTONUP:
     case WM_MOUSEMOVE:
+        if (wParam == VK_ESCAPE) {
+            m_gameEngine->Shutdown();
+            PostQuitMessage(0);
+            return 0;
+        }
         // Pasa los mensajes de entrada al motor de juego.
         HandleInput(message, wParam, lParam);
         break;
@@ -187,6 +223,8 @@ void MainWindow::HandleInput(UINT message, WPARAM wParam, LPARAM lParam) {
 //--------------------------------------------------------------------------------------
 void MainWindow::OnResize(int width, int height) {
     if (m_gameEngine) {
+        m_context.width = width;
+        m_context.height = height;
         m_gameEngine->OnResize(width, height);
     }
 }

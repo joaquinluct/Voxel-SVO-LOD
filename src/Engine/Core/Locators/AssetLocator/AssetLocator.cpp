@@ -4,7 +4,6 @@
 #include <windows.h> // Para OutputDebugStringA
 #include <string> // Para std::to_string
 #include <VertexAssetConfigBase.h>
-#include <Assets/Base/MaterialAsset.h>
 #include <Assets/Base/MeshAsset.h>
 #include <Assets/Base/ShaderAsset.h>
 #include <Assets/Base/TextureAsset.h>
@@ -57,8 +56,8 @@ HRESULT AssetLocator::InitializeAssets(const std::vector<std::string>& orderList
             entries[assetName] = std::dynamic_pointer_cast<AssetBase>(GetAssetBase<TextureAsset>());
         }
         if (config->type == MESH_ASSET) {
-            MeshAsset* mesh = GetAssetBase<MeshAsset>().get();
-            entries[assetName] = mesh->Clone();
+            //std::shared_ptr<MeshAsset> mesh = GetAssetBase<MeshAsset>().get()->Clone();
+            entries[assetName] = std::dynamic_pointer_cast<AssetBase>(GetAssetBase<MeshAsset>().get()->CloneAsMesh());
         }
         if (config->type == TERRAIN_ASSET) {
             std::shared_ptr<TerrainAsset> mesh = GetAssetBase<TerrainAsset>();
@@ -66,15 +65,12 @@ HRESULT AssetLocator::InitializeAssets(const std::vector<std::string>& orderList
         }
         if (config->type == SHADER_ASSET) {
             entries[assetName] = std::dynamic_pointer_cast<AssetBase>(GetAssetBase<ShaderAsset>());
-		}
-        if (config->type == MATERIAL_ASSET) {
-            entries[assetName] = std::dynamic_pointer_cast<AssetBase>(GetAssetBase<MaterialAsset>());
-        }
+		}        
         if (config->type == VERTEX_ASSET) {
             entries[assetName] = std::dynamic_pointer_cast<AssetBase>(GetAssetBase<VertexAsset>());
         }
         if (entries[assetName] != nullptr) {
-			entries[assetName]->SetAssetName(assetName);
+            entries[assetName]->SetAssetName(assetName);
             entries[assetName]->SetConfig(config);
         }
         else {
@@ -171,31 +167,6 @@ std::shared_ptr<MeshAsset> AssetLocator::GetMeshAsset(const std::string& name) {
         return meshPtr;
     }
 	return nullptr;
-}
-
-std::unique_ptr<MeshAsset> AssetLocator::GetMeshAssetPointer(const std::string& name) {
-    auto& entries = AssetLocator::GetAssetEntries();
-    auto it = entries.find(name);
-    if (it != entries.end()) {
-        std::string configName = name + "Config";
-        auto config = ConfigLocator::GetConfig<ConfigBase>(configName);
-        if (config) {
-            entries[name]->SetConfig(config);
-        }
-        std::unique_ptr<MeshAsset> meshPtr;
-		std::unique_ptr<AssetBase> assetBase = entries[name].get()->CloneUnique();
-		MeshAsset* meshAsset = dynamic_cast<MeshAsset*>(assetBase.get());
-        if (!meshAsset) {
-            OutputDebugStringA(("ERROR: Asset '" + name + "' is not a MeshAsset or cannot be cloned.\n").c_str());
-            return nullptr;
-        }
-
-        std::unique_ptr<AssetBase> movedPtr = std::move(assetBase);
-        meshPtr = std::unique_ptr<MeshAsset>(static_cast<MeshAsset*>(movedPtr.release()));
-        		
-        return meshPtr;
-    }
-    return nullptr;
 }
 
 std::shared_ptr<TerrainAsset> AssetLocator::GetTerrainAsset(const std::string& name) {

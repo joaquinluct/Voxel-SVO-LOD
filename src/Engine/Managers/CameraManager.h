@@ -21,9 +21,7 @@ public:
     CameraManager();
     ~CameraManager();
 
-    bool IsWindowDependent() const override { return true; }
-        
-    HRESULT Init(HWND* hwnd, int width, int height) override;
+    HRESULT Init(EngineContext* context) override;
     HRESULT PostInit();
     void Update(float deltaTime) override;
     void Render() override;

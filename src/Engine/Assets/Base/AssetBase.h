@@ -1,9 +1,9 @@
 #pragma once
 
-#include <string>
 #include "ConfigBase.h"
-#include <IAsset.h> // Esto incluye ILifeCycle y todas sus interfaces base.
 #include <Config/ITextureConfig.h>
+#include <IAsset.h> // Esto incluye ILifeCycle y todas sus interfaces base.
+#include <string>
 
 class AssetBase : public IAsset
 {
@@ -24,14 +24,14 @@ public:
     void Render() override;
     void Shutdown() override;
 
-    virtual void SetConfig(std::shared_ptr<ConfigBase> config) = 0;
+    virtual void SetConfig(std::shared_ptr<ConfigBase> config) {};
 
     void SetAssetName(const std::string& name) {
         m_assetName = name;
-	}
+    }
     const std::string& GetAssetName() const {
         return m_assetName;
-    }    
+    }
 protected:
     // Puedes agregar un miembro para el nombre si GetAssetName lo va a devolver.
     std::string m_assetName;

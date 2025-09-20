@@ -1,26 +1,17 @@
 #include "TerrainPass.h"
-#include <ManagerLocator/ManagerLocator.h>
-#include <ServiceLocator/ServiceLocator.h>
-#include <Locators/Pipeline/PipelineStateLocator.h>
-#include <Game/Systems/Shadows.h>
-#include <Game/Systems/Lighting.h>
-#include <Game/Systems/Terrain.h>
-#include <Game/Systems/World.h>
-#include <Util/Text/Text.h>
-#include <Assets/Base/TerrainAsset.h>
 #include <Assets/Base/MeshAsset.h>
-#include <Defines/Matrix/Light.h>
-#include <Locators/Registers/REGISTER_RENDER_PASS_MACRO.h>
 #include <Defines/VertexDefinition.h>
-#include <Services/FrameStateService.h>
+#include <Game/Systems/Lighting.h>
+#include <Game/Systems/Shadows.h>
+#include <Game/Systems/Terrain.h>
+#include <Game/Systems/Terrain/Chunk/Chunk.h>
+#include <Game/Systems/World.h>
+#include <Locators/Registers/REGISTER_RENDER_PASS_MACRO.h>
+#include <ManagerLocator/ManagerLocator.h>
 #include <RenderState/FrameStates/TerrainFrameState.h>
-#include <RenderState/FrameStates/CommonFrameState.h>
-#include <RenderState/FrameStates/CameraFrameState.h>
-#include <RenderState/FrameStates/WaterFrameState.h>
-#include <RenderState/FrameStates/LightFrameState.h>
-#include <RenderState/FrameStates/TimeFrameState.h>
-#include <RenderState/FrameStates/MeshFrameState.h>
-#include <RenderState/FrameStates/MaterialFrameState.h>
+#include <ServiceLocator/ServiceLocator.h>
+#include <Services/FrameStateService.h>
+#include <vector>
 
 REGISTER_RENDER_PASS_TYPE(TerrainPass, "TerrainPass")
 
@@ -73,19 +64,19 @@ HRESULT TerrainPass::InitManagers() {
     if (!m_lighthing) {
         return E_FAIL;
     }
-	m_FrameStateService = ServiceLocator::GetService<FrameStateService>();
+    m_FrameStateService = ServiceLocator::GetService<FrameStateService>();
     if (!m_FrameStateService) {
         return E_FAIL;
-	}
+    }
     m_world = ServiceLocator::GetService<World>();
     if (!m_world) {
         return E_FAIL;
     }
     m_terrain = m_world->GetTerrain();
-    m_terrainAsset = m_terrain->GetTerrainAsset();
-    if (!m_terrainAsset) {
+    //m_terrainAsset = m_terrain->GetTerrainAsset();
+    /*if (!m_terrainAsset) {
         return E_FAIL;
-    }
+    }*/
     return S_OK;
 }
 
@@ -129,58 +120,58 @@ void TerrainPass::SetInitialOperations(const MeshAsset* mesh, FrameStateService*
 // GetMeshes 
 // ----------------------------------------------------------
 std::map<std::string, std::shared_ptr<MeshAsset>> TerrainPass::GetMeshes(const SceneManager* SceneManager, FrameStateService* renderState) {
-    std::map<std::string, std::shared_ptr<MeshAsset>> emptyMeshes;
+    //std::map<std::string, std::shared_ptr<MeshAsset>> emptyMeshes;
 
-    m_tempVertexData.clear();
-    m_tempIndexData.clear();
-    //m_visibleChunks.clear();
+    //m_tempVertexData.clear();
+    //m_tempIndexData.clear();
+    ////m_visibleChunks.clear();
 
-    //const std::vector<std::shared_ptr<Chunk>>& chunks = m_terrain->GetChunks(m_cameraManager->GetCurrentCamera());	
-    const std::vector<std::shared_ptr<Chunk>> chunks = renderState->TerrainState()->GetChunks();
+    ////const std::vector<Chunk*>& chunks = m_terrain->GetChunks(m_cameraManager->GetCurrentCamera());	
+    //std::vector<Chunk*> chunks = renderState->TerrainState()->GetChunks();
 
-    if (!chunks.empty()) {
-        const auto& firstChunkVertices = chunks[0]->GetVertices();
-        if (!firstChunkVertices.empty()) {
-            m_vertexTypeSize = firstChunkVertices[0]->Size();
-        }
-    }
+    //if (!chunks.empty()) {
+    //    auto& firstChunkVertices = chunks[0]->GetVertices();
+    //    if (!firstChunkVertices.empty()) {
+    //        m_vertexTypeSize = firstChunkVertices[0].Size();
+    //    }
+    //}
 
-    size_t currentVertexCount = 0; // <<-- Añadir este contador
-    //m_FrameStateService->Lock();
-    for (const auto& chunkShared : chunks) {
-		Chunk* chunk = chunkShared.get();
-        if (chunk) {            
-            const std::vector<std::shared_ptr<IVertex>>& vertices = chunk->GetVertices();
-			if (vertices.empty()) continue; // Si no hay vértices, saltar este chunk
-            const std::vector<UINT>& indexes = chunk->GetIndexes();
+    //size_t currentVertexCount = 0; // <<-- Añadir este contador
+    ////m_FrameStateService->Lock();
+    //for (const auto& chunk : chunks) {
+    //    if (chunk) {
+    //        const std::vector<std::shared_ptr<IVertex>>& vertices = chunk->GetVertices();
+    //        if (vertices.empty()) continue; // Si no hay vértices, saltar este chunk
+    //        const std::vector<UINT>& indexes = chunk->GetIndexes();
 
-            m_tempVertexData.reserve(m_tempVertexData.size() + (vertices.size() * m_vertexTypeSize));
-            m_tempIndexData.reserve(m_tempIndexData.size() + indexes.size());
+    //        m_tempVertexData.reserve(m_tempVertexData.size() + (vertices.size() * m_vertexTypeSize));
+    //        m_tempIndexData.reserve(m_tempIndexData.size() + indexes.size());
 
-            // Copiar los vértices tal cual
-            for (const auto& vertex : vertices) {                
-                const void* source_data = vertex.get()->GetRawData();
-                m_tempVertexData.insert(m_tempVertexData.end(), (const uint8_t*)source_data, (const uint8_t*)source_data + m_vertexTypeSize);                
-            }
+    //        // Copiar los vértices tal cual
+    //        for (const auto& vertex : vertices) {
+    //            const void* source_data = vertex.get()->GetRawData();
+    //            m_tempVertexData.insert(m_tempVertexData.end(), (const uint8_t*)source_data, (const uint8_t*)source_data + m_vertexTypeSize);
+    //        }
 
-            // Copiar índices
-            std::vector<UINT> adjustedIndexes;
-            adjustedIndexes.reserve(indexes.size());
-            for (UINT index : indexes) {
-                adjustedIndexes.push_back(index + static_cast<UINT>(currentVertexCount));
-            }
-            m_tempIndexData.insert(m_tempIndexData.end(), adjustedIndexes.begin(), adjustedIndexes.end());
-                        
-            // Actualizar los chunks visibles
-            //m_visibleChunks.push_back(chunk);
+    //        // Copiar índices
+    //        std::vector<UINT> adjustedIndexes;
+    //        adjustedIndexes.reserve(indexes.size());
+    //        for (UINT index : indexes) {
+    //            adjustedIndexes.push_back(index + static_cast<UINT>(currentVertexCount));
+    //        }
+    //        m_tempIndexData.insert(m_tempIndexData.end(), adjustedIndexes.begin(), adjustedIndexes.end());
 
-            // Actualizar el contador de vértices para el próximo chunk
-            currentVertexCount += vertices.size();
-        }
-    }
-    //m_FrameStateService->Unlock();
-    emptyMeshes["terrain"] = m_terrain->GetTerrainAsset()->GetMesh();
-    return emptyMeshes;
+    //        // Actualizar los chunks visibles
+    //        //m_visibleChunks.push_back(chunk);
+
+    //        // Actualizar el contador de vértices para el próximo chunk
+    //        currentVertexCount += vertices.size();
+    //    }
+    //}
+    ////m_FrameStateService->Unlock();
+    ////emptyMeshes["terrain"] = m_terrain->GetTerrainAsset()->GetMesh();
+    //return emptyMeshes;
+    return {};
 }
 
 // ----------------------------------------------------------
@@ -193,7 +184,7 @@ std::map<std::string, std::shared_ptr<MeshAsset>> TerrainPass::GetMeshes(const S
 //    m_combinedVertexData.clear();
 //    m_combinedIndexData.clear();
 //
-//    const std::vector<std::shared_ptr<Chunk>>& chunks = renderData.chunks;
+//    const std::vector<Chunk*>& chunks = renderData.chunks;
 //
 //    if (chunks.empty()) {
 //        emptyMeshes["terrain"] = m_terrain->GetTerrainAsset()->GetMesh();
@@ -298,14 +289,14 @@ std::vector<PipelineOperationType> TerrainPass::BeginPass(const MeshAsset* mesh,
     //memcpy(mappedIndices.pData, m_combinedIndexData.data(), m_combinedIndexData.size() * sizeof(UINT));
     // ** fin CÓDIGO PRUEBA UNA SOLA MALLA
 
-    if (m_terrainAsset) {        
+    if (m_terrainAsset) {
         AddOperation(PipelineOperationType::Device_SetConstantsBufferState);
         AddOperation(PipelineOperationType::Mesh_Render_SetVertexShader);
         AddOperation(PipelineOperationType::Mesh_Render_SetPixelShader);
         AddOperation(PipelineOperationType::Mesh_Render_SetInputLayout);
         AddOperation(PipelineOperationType::Mesh_Render_SetTexture);
         //if (needShadowMap) {
-            AddOperation(PipelineOperationType::Mesh_Render_SetTexture);
+        AddOperation(PipelineOperationType::Mesh_Render_SetTexture);
         //}
         AddOperation(PipelineOperationType::Mesh_Render_SetSampler);
     }
@@ -454,10 +445,8 @@ std::vector<PipelineOperationType> TerrainPass::BeginPass(const MeshAsset* mesh,
 std::vector<PipelineOperationType> TerrainPass::ExecPass(const MeshAsset* mesh, FrameStateService* renderState) {
     ClearOperations();
     size_t currentIndexOffset = 0;
-    const std::vector<std::shared_ptr<Chunk>> chunks = renderState->TerrainState()->GetChunks();
-    for (const auto& visibleChunk : chunks) {
-        Chunk* rawChunk = visibleChunk.get();
-
+    const std::vector<Chunk*> chunks = renderState->TerrainState()->GetChunks();
+    for (const auto& rawChunk : chunks) {
         PipelineDrawIndexedData drawData = {};
         // Número de índices a dibujar para este chunk
         drawData.numIndexes = rawChunk->GetIndexCount();
@@ -514,7 +503,7 @@ std::vector<PipelineOperationType> TerrainPass::EndPass() {
 //	// ** CÓDIGO ACTUAL FUNCIONANDO CORRECTAMENTE
 //    ClearOperations();
 //    size_t currentIndexOffset = 0;
-//    const std::vector<std::shared_ptr<Chunk>> chunks = renderState->TerrainState()->GetChunks();
+//    const std::vector<Chunk*> chunks = renderState->TerrainState()->GetChunks();
 //    //for (const auto& visibleChunk : m_visibleChunks) {
 //    for (const auto& visibleChunk : chunks) {
 //        Chunk* rawChunk = visibleChunk.get();

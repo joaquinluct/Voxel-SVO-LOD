@@ -18,6 +18,7 @@ Config:
         receive_shadows: true
         shader_shadows: "ShadowMapShader"
         drawType: 1 # DrawIndexed
+        primitiveTopology: 4 # D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
         render_passes: 3 # shadow | color
         dependencies:
           - MeshAsset
@@ -33,6 +34,7 @@ Config:
         cast_shadows: false
         receive_shadows: false
         drawType: 1 # DrawIndexed
+        primitiveTopology: 4 # D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
         render_passes: 16 # Skybox pass
         dependencies:
           - MeshAsset
@@ -48,6 +50,7 @@ Config:
         cast_shadows: false
         receive_shadows: false
         drawType: 1 # DrawIndexed
+        primitiveTopology: 4 # D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
         render_passes: 16 # skybox pass
         dependencies:
           - MeshAsset
@@ -66,6 +69,7 @@ Config:
         receive_shadows: true
         shader_shadows: "ShadowMapShader"
         drawType: 1 # DrawIndexed
+        primitiveTopology: 4 # D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
         render_passes: 3 # shadow | color
         dependencies:
           - MeshAsset
@@ -82,6 +86,7 @@ Config:
         receive_shadows: true
         shader_shadows: "ShadowMapShader"
         drawType: 1 # DrawIndexed
+        primitiveTopology: 4 # D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
         render_passes: 3 # shadow | color
         dependencies:
           - MeshAsset
@@ -97,6 +102,7 @@ Config:
         cast_shadows: false
         receive_shadows: false
         drawType: 2 #Draw
+        primitiveTopology: 4 # D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
         render_passes: 8 # ui
         dependencies:
           - MeshAsset
@@ -117,6 +123,7 @@ Config:
         receive_shadows: true
         shader_shadows: "ShadowMapShader"
         drawType: 1 # DrawIndexed
+        primitiveTopology: 4 # D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
         # El terreno debe aparecer en el pase de sombras, reflejos, refracción y su propio pase
         render_passes: 417 # 1 | 128 | 256 | 32
         #render_passes: 2 # color
@@ -136,6 +143,7 @@ Config:
         receive_shadows: false
         shader_shadows: none
         drawType: 3 # DrawInstanced
+        primitiveTopology: 4 # D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
         # Se usan IDs en el bitmask: ShadowPass (1), ReflectionPass (128), RefractionPass (256), WaterPass (512)
         #render_passes: 897 # 1 | 128 | 256 | 512        
         # Se usan IDs en el bitmask: ReflectionPass (128), RefractionPass (256), WaterPass (512)
@@ -170,6 +178,7 @@ Definition:
         - shader_shadows
         - drawType
         - render_passes
+        - primitiveTopology
         - dependencies
     # output_path: 'C:\Users\joaqu\source\repos\DirectX-Voxelado\TestConfig\Assets\'
     output_path: 'c:\Users\joaqu\source\repos\DirectX-Voxelado\src\Engine\Core\Config\Assets\'

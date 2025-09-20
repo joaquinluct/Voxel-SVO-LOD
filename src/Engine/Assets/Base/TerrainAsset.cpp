@@ -1,28 +1,39 @@
-// TerrainAsset.cpp
+﻿// TerrainAsset.cpp
 #include "TerrainAsset.h"
-#include <type_traits>
-#include <DDSTextureLoader.h> // Para CreateDDSTextureFromFile
-#include <windows.h> // Para OutputDebugStringA
-#include <Assets/Base/VertexAsset.h>
 #include <AssetLocator/AssetLocator.h>
-#include <DefineLocator/DefineLocator.h>
-#include <ManagerLocator/ManagerLocator.h>
-#include <REGISTER_ASSET_MACRO.h>
-#include <Util/Text/Text.h>
-#include <Assets/Base/TextureAsset.h>
-#include <Assets/Base/ObjFormat/ObjUtil.h>
-#include <Defines/Mesh.h>
-#include <Defines/Vector.h>
 #include <Assets/Base/MeshAsset.h>
-#include <TinyObjLoader/tiny_obj_loader.h>
+#include <Assets/Base/MeshAssetBase.h>
+#include <Assets/Base/TextureAsset.h>
+#include <Core/Defines/Contants/Flags.h>
+#include <Core/Helpers/PointerQueryRaw.h>
+#include <cstdint>
+#include <cstring>
+#include <d3d11.h>
 #include <Defines/VertexDefinition.h>
+#include <ManagerLocator/ManagerLocator.h>
+#include <MeshAssetConfigBase.h>
+#include <REGISTER_ASSET_MACRO.h>
 #include <TerrainAssetConfigBase.h>
-
+#include <Util/Text/Text.h>
+#include <vector>
+#include <windows.h>
+#include <wrl/client.h>
 
 REGISTER_ASSET_TYPE(TerrainAsset, "TerrainAsset")
 
+constexpr UINT MaxVertexCount = 100000;  // Ajusta según tu terreno
+constexpr UINT MaxIndexCount = 50000;
+
 TerrainAsset::TerrainAsset()
-    : m_terrainConfig(nullptr), m_material(nullptr), m_shadowMaterial(nullptr) {
+    : m_terrainConfig(nullptr), m_vertexTypeSize(0), m_allocator(MaxVertexCount, MaxIndexCount)
+{
+}
+TerrainAsset::TerrainAsset(const TerrainAsset* other)
+    : MeshAssetBase(other), m_terrainConfig(other->m_terrainConfig), m_shaderName(other->m_shaderName),
+    m_textureTransforms(other->m_textureTransforms), m_vertexTypeSize(other->m_vertexTypeSize),
+    m_textureAsset(other->m_textureAsset)
+{
+    // Copiar otros miembros según sea necesario
 }
 
 TerrainAsset::~TerrainAsset() {
@@ -31,6 +42,11 @@ TerrainAsset::~TerrainAsset() {
 
 void TerrainAsset::SetConfig(std::shared_ptr<ConfigBase> config) {
     m_terrainConfig = std::dynamic_pointer_cast<TerrainAssetConfigBase>(config);
+    m_meshConfig = std::dynamic_pointer_cast<MeshAssetConfigBase>(config);
+}
+
+Mesh::DrawType TerrainAsset::GetDrawType() const {
+    return Mesh::DrawType::DrawIndexed;
 }
 
 HRESULT TerrainAsset::Init() {
@@ -39,14 +55,18 @@ HRESULT TerrainAsset::Init() {
     }
     m_shaderName = StringToWstring(m_terrainConfig->shader);
 
+    m_deviceManager = ManagerLocator::GetDeviceManager();
+
     // Inicializar el material
     InitMaterial();
     InitShadowMaterial();
 
-	m_meshAsset = AssetLocator::GetMeshAsset("TerrainMesh");
+    m_allocator = ChunkBufferAllocator(MaxVertexCount, MaxIndexCount);
 
-    // NOTA: Los b�feres din�micos se crean en el TerrainPass,
-    // que es quien conoce el tama�o m�ximo del terreno.
+    //m_meshAsset = AssetLocator::GetMeshAsset("TerrainMesh");
+
+    // NOTA: Los búferes dinámicos se crean en el TerrainPass,
+    // que es quien conoce el tamaño máximo del terreno.
     return S_OK;
 }
 
@@ -82,34 +102,154 @@ void TerrainAsset::InitShadowMaterial() {
     m_shadowMaterial->Init();
 }
 
-HRESULT TerrainAsset::CreateDynamicBuffers(UINT vertexTypeSize, UINT maxVertices, UINT maxIndexes) {
-    m_vertexTypeSize = vertexTypeSize;
+bool TerrainAsset::ShouldCompact() const {
+    float fragmentation = m_allocator.FragmentationRatio();
+    return fragmentation > 0.3f; // Umbral configurable
+}
 
-    // Crear el Vertex Buffer din�mico
-    D3D11_BUFFER_DESC vbDesc = {};
-    vbDesc.Usage = D3D11_USAGE_DYNAMIC;
-    vbDesc.ByteWidth = maxVertices * m_vertexTypeSize;
-    vbDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    vbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+Chunk* TerrainAsset::FindChunkByRegion(const ChunkBufferRegion& region) {
+    size_t key = HashRegion(region);
+    auto it = m_regionToChunkMap.find(key);
+    return it != m_regionToChunkMap.end() ? it->second : nullptr;
+}
 
-    HRESULT hr = ManagerLocator::GetDeviceManager()->GetDevice()->CreateBuffer(&vbDesc, nullptr, &m_vertexBuffer);
-    if (FAILED(hr)) {
-        return hr;
+void TerrainAsset::GenerateMesh(std::vector<Chunk*> chunks) {
+    if (chunks.empty() || m_isGeneratingMesh) return;
+    m_isGeneratingMesh = true;
+
+    m_vertexTypeSize = sizeof(VertexDefinition::TextureMapVertex);
+
+    Microsoft::WRL::ComPtr<ID3D11Buffer> vBuffer{};
+    Microsoft::WRL::ComPtr<ID3D11Buffer> iBuffer{};
+
+    vBuffer.Attach(m_vertexBuffer.Detach());
+    iBuffer.Attach(m_indexBuffer.Detach());
+
+    //auto lock = LockBuffers();
+
+    // 1. Obtener la lista de chunks que necesitan ser actualizados
+   /* PointerQueryRaw<Chunk> query(chunks);
+    auto dirtyChunks = query
+        .Filter([](Chunk* c) { return !c->GetFlag(FLAG_CHUNK_WITH_VERTEX_BUFFER); })
+        .ToVector();
+
+    if (dirtyChunks.empty()) return;*/
+    auto dirtyChunks = chunks;
+
+
+    // 2. Calcular el tamaño total necesario para los buffers
+    size_t totalVertexCount = 0;
+    size_t totalIndexCount = 0;
+    for (Chunk* chunk : dirtyChunks) {
+        totalVertexCount += chunk->GetVertexCount();
+        totalIndexCount += chunk->GetIndexCount();
     }
 
-    // Crear el Index Buffer din�mico
-    D3D11_BUFFER_DESC ibDesc = {};
-    ibDesc.Usage = D3D11_USAGE_DYNAMIC;
-    ibDesc.ByteWidth = maxIndexes * sizeof(UINT);
-    ibDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-    ibDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-
-    hr = ManagerLocator::GetDeviceManager()->GetDevice()->CreateBuffer(&ibDesc, nullptr, &m_indexBuffer);
-    if (FAILED(hr)) {
-        return hr;
+    // 3. Crear o redimensionar los buffers dinámicos si la capacidad es insuficiente
+    if (totalVertexCount > m_vertexCount || totalIndexCount > m_indexCount || vBuffer == nullptr) {
+        CreateDynamicBuffers(totalVertexCount, totalIndexCount, vBuffer, iBuffer);
     }
 
-    return S_OK;
+    // 4. Compactar si se ha solicitado (lógica de gestión de memoria)
+    if (ShouldCompact()) {
+        m_allocator.Compact([&](const ChunkBufferRegion& oldRegion, ChunkBufferRegion& newRegion) {
+            // Lógica para encontrar el chunk por la región (simulado)
+            // Y actualizar la región del chunk
+            Chunk* chunk = nullptr; // chunk = FindChunkByRegion(oldRegion);
+            if (chunk) {
+                chunk->SetRegion(newRegion);
+            }
+            });
+    }
+
+    // 5. Redimensionar los vectores temporales una sola vez
+    //m_tempVertexData.resize(totalVertexCount * m_vertexTypeSize);
+    m_tempVertexData.clear();
+    //m_tempIndexData.clear();
+    m_tempIndexData.resize(totalIndexCount);
+
+    //uint8_t* currentVertexPtr = m_tempVertexData.data();
+    UINT* currentIndexPtr = m_tempIndexData.data();
+    size_t currentVertexOffset = 0;
+
+    // 6. Llenar los buffers temporales de forma segura con memcpy
+    for (Chunk* chunk : dirtyChunks) {
+        const auto& vertices = chunk->GetChunkVertices();
+        const auto& indexes = chunk->GetIndexes();
+
+        m_tempVertexData.reserve(m_tempVertexData.size() + (vertices.size() * m_vertexTypeSize));
+        // Copiar los vértices
+        //size_t vertexByteCount = vertices.size() * m_vertexTypeSize;
+        //memcpy(currentVertexPtr, vertices.data(), vertexByteCount);
+        for (const auto& vertex : vertices) {
+            const void* source_data = vertex->GetRawData();
+            m_tempVertexData.insert(m_tempVertexData.end(), (const uint8_t*)source_data, (const uint8_t*)source_data + m_vertexTypeSize);
+        }
+
+        // Copiar y ajustar los índices
+        for (UINT index : indexes) {
+            *currentIndexPtr = index + static_cast<UINT>(currentVertexOffset);
+            currentIndexPtr++;
+        }
+
+        // Mover los punteros de escritura para el próximo chunk
+        //currentVertexPtr += vertexByteCount;
+        currentVertexOffset += vertices.size();
+    }
+
+    // 7. Mapear los buffers de Direct3D y copiar los datos
+    D3D11_MAPPED_SUBRESOURCE mappedVertices;
+    D3D11_MAPPED_SUBRESOURCE mappedIndices;
+
+    ID3D11Buffer* vB = vBuffer.Get();
+
+    HRESULT hr = m_deviceManager->GetContext()->Map(vB, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedVertices);
+    if (FAILED(hr)) return;
+    hr = m_deviceManager->GetContext()->Map(iBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedIndices);
+    if (FAILED(hr)) {
+        m_deviceManager->GetContext()->Unmap(vBuffer.Get(), 0);
+        return;
+    }
+
+    memcpy(mappedVertices.pData, m_tempVertexData.data(), m_tempVertexData.size());
+    memcpy(mappedIndices.pData, m_tempIndexData.data(), m_tempIndexData.size() * sizeof(UINT));
+
+    m_deviceManager->GetContext()->Unmap(vBuffer.Get(), 0);
+    m_deviceManager->GetContext()->Unmap(iBuffer.Get(), 0);
+
+    // 8. Actualizar los contadores totales
+    this->m_vertexCount = totalVertexCount;
+    this->m_indexCount = totalIndexCount;
+
+    // 9. Marcar los chunks como procesados
+    for (Chunk* chunk : dirtyChunks) {
+        chunk->SetFlag(FLAG_CHUNK_WITH_VERTEX_BUFFER, true);
+    }
+
+    SetVertexBuffer(vBuffer);
+    SetIndexBuffer(iBuffer);
+
+    m_isGeneratingMesh = false;
+}
+
+
+void TerrainAsset::CreateDynamicBuffers(size_t vertexCount, size_t indexCount, Microsoft::WRL::ComPtr<ID3D11Buffer>& vertexBuffer, Microsoft::WRL::ComPtr<ID3D11Buffer>& indexBuffer) {
+    // Lógica para crear un búfer dinámico, simulado
+    D3D11_BUFFER_DESC vertexBufferDesc = {};
+    vertexBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    vertexBufferDesc.ByteWidth = static_cast<UINT>(vertexCount * m_vertexTypeSize);
+    vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    vertexBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+    D3D11_BUFFER_DESC indexBufferDesc = {};
+    indexBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    indexBufferDesc.ByteWidth = static_cast<UINT>(indexCount * sizeof(UINT));
+    indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+    indexBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+    // Aquí iría la llamada real a m_deviceManager->GetDevice()->CreateBuffer()
+    m_deviceManager->GetDevice()->CreateBuffer(&vertexBufferDesc, nullptr, &vertexBuffer);
+    m_deviceManager->GetDevice()->CreateBuffer(&indexBufferDesc, nullptr, &indexBuffer);
 }
 
 XMFLOAT4 TerrainAsset::GetTextureTransforms() {
@@ -122,6 +262,11 @@ XMFLOAT4 TerrainAsset::GetTextureTransforms() {
         defaultTransform = XMFLOAT4(m_textureTransforms[0], m_textureTransforms[1], m_textureTransforms[2], m_textureTransforms[3]);
     }
     return defaultTransform;
+}
+
+void TerrainAsset::UnregisterChunk(Chunk* chunk) {
+    size_t key = HashRegion(chunk->GetRegion());
+    m_regionToChunkMap.erase(key);
 }
 
 void TerrainAsset::Shutdown() {

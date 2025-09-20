@@ -11,7 +11,7 @@ public:
 	KeyboardManager();
 	~KeyboardManager();
 
-	HRESULT Init() override;
+	HRESULT Init(EngineContext* context) override;
 	HRESULT InitKeyBindings();
 	void Render() override {};
 	void Update(float deltaTime) override {};

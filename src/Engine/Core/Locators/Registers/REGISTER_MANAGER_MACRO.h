@@ -1,29 +1,17 @@
 #pragma once
 
 #include <ManagerLocator/ManagerLocator.h>
-#include "IWindowDependentInitializable.h"
-#include "IInitializable.h"
-#include "IRenderable.h"
-#include "ManagerBase.h"
-#include "IService.h"
+#include <IEngineDependentInitializable.h>
+#include <IInitializable.h>
+#include <IRenderable.h>
+#include <ManagerBase.h>
+#include <IService.h>
+#include <Defines/EngineDefinition.h>
 
-//#define DEFINE_INIT_WITH_PARAMS_MANANGER_LAMBDA(ManagerClassName) \
-//    [](std::shared_ptr<ManagerBase> servicePtr, HWND* hwnd, int width, int height) -> HRESULT { \
-//        auto manager = std::dynamic_pointer_cast<ManagerBase>(servicePtr); \
-//        if (manager->IsWindowDependent()) { \
-//            return manager->Init(hwnd, width, height); \
-//        } \
-//        return manager->Init(); \
-//    }
 
 #define DEFINE_INIT_MANANGER_LAMBDA(ManagerClassName) \
-    [](std::shared_ptr<ManagerBase> servicePtr) -> HRESULT { \
-        return servicePtr->Init(); \
-    }
-
-#define DEFINE_INIT_WITH_PARAMS_MANANGER_LAMBDA(ManagerClassName) \
-    [](std::shared_ptr<ManagerBase> servicePtr, HWND* hwnd, int width, int height) -> HRESULT { \
-        return servicePtr->Init(hwnd, width, height); \
+    [](std::shared_ptr<ManagerBase> servicePtr, EngineContext* context) -> HRESULT { \
+        return servicePtr->Init(context); \
     }
 
 #define DEFINE_RENDER_MANAGER_LAMBDA(ManagerClassName) \
@@ -59,8 +47,6 @@
                     }, \
                     /* Initializer Lambda */ \
                     DEFINE_INIT_MANANGER_LAMBDA(ManagerNameString), \
-                    /* Initializer con parámetros Lambda */ \
-                    DEFINE_INIT_WITH_PARAMS_MANANGER_LAMBDA(ManagerNameString), \
                     /* Render Lambda */ \
                     DEFINE_RENDER_MANAGER_LAMBDA(ManagerNameString), \
                     /* Update Lambda */ \

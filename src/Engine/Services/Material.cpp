@@ -1,22 +1,19 @@
 #include "Material.h"
-#include <memory>
-#include <d3dcompiler.h>
-#include <DirectXMath.h>
-#include <ShaderManager.h>
-#include <DirectX/DirectXTex/DirectXTex.h>
-#include <DirectX/WICTextureLoader/WICTextureLoader11.h>
-#include <ManagerLocator/ManagerLocator.h>
-#include <ConfigLocator/ConfigLocator.h>
-#include <Defines/Texture.h>
-#include <Defines/Matrix/MatrixDefinition.h>
 #include <Defines/Matrix/Light.h>
-#include <Util/DirectXUtils.h>
-#include <Util/Text/Text.h>
+#include <Defines/Matrix/MatrixDefinition.h>
+#include <Defines/Texture.h>
+#include <DirectX/WICTextureLoader/WICTextureLoader11.h>
+#include <DirectXMath.h>
+#include <ManagerLocator/ManagerLocator.h>
+#include <memory>
 #include <REGISTER_SERVICE_MACRO.h>
+#include <ShaderManager.h>
+#include <Util/Text/Text.h>
+#include <Util/Utils.h>
 
 REGISTER_SERVICE_TYPE(Material, "Material")
 
-Material::Material() 
+Material::Material()
     : m_shaderName(L""),
     m_texture_albedo(nullptr),
     m_texture_normal(nullptr),
@@ -28,12 +25,12 @@ Material::Material()
     m_matrixBuffer(nullptr),
     m_deviceManager(nullptr),
     m_cameraManager(nullptr),
-    m_shaderManager(nullptr),    
-	m_lighting(nullptr),
+    m_shaderManager(nullptr),
+    m_lighting(nullptr),
     m_shadows(nullptr),
     vertexShader(nullptr),
     pixelShader(nullptr),
-	inputLayout(nullptr)
+    inputLayout(nullptr)
 {
 }
 
@@ -56,16 +53,16 @@ HRESULT Material::InitManagers() {
         OutputDebugStringA("Error: ShaderManager no inicializado.\n");
         return E_FAIL;
     }
-	m_lighting = ServiceLocator::GetService<Lighting>();
+    m_lighting = ServiceLocator::GetService<Lighting>();
     if (m_lighting == nullptr) {
         OutputDebugStringA("Error: Lighting no inicializado.\n");
         return E_FAIL;
-	}
-	m_shadows = ServiceLocator::GetService<Shadows>();
+    }
+    m_shadows = ServiceLocator::GetService<Shadows>();
     if (m_shadows == nullptr) {
         OutputDebugStringA("Error: Shadows no inicializado.\n");
-		return E_FAIL;
-	}
+        return E_FAIL;
+    }
 
     return S_OK;
 }
@@ -122,27 +119,27 @@ HRESULT Material::InitSampleState() {
 // --------------------------------------------------------
 HRESULT Material::InitMatrixBuffer() {
 
-	m_shaderManager = ManagerLocator::GetShaderManager();
+    m_shaderManager = ManagerLocator::GetShaderManager();
     if (m_shaderManager == nullptr) {
         OutputDebugStringA("Error: ShaderManager no inicializado.\n");
         return E_FAIL;
-	}
-    
-	auto& matrixBuffers = m_shaderManager->GetMatrixBuffers(m_shaderName);
+    }
+
+    auto& matrixBuffers = m_shaderManager->GetMatrixBuffers(m_shaderName);
 
     if (matrixBuffers.empty()) {
         OutputDebugStringA("Error: No se encontraron Matrix Buffers para el shader.\n");
         return E_FAIL;
-	}
+    }
 
     for (const auto& [slot, matrix] : matrixBuffers) {
-		std::string matrixName = matrix.first;
+        std::string matrixName = matrix.first;
         UINT buffer_byte_width = 0;
 
         std::visit([&](auto& currentMatrixStruct) {
             using CurrentStructType = std::decay_t<decltype(currentMatrixStruct)>;
             buffer_byte_width = currentMatrixStruct.Size();
-            }, * matrix.second);
+            }, *matrix.second);
 
         // Si no es un múltiplo de 16, redondear hacia arriba
         if (buffer_byte_width % 16 != 0) {
@@ -165,7 +162,7 @@ HRESULT Material::InitMatrixBuffer() {
             return hr;
         }
     }
-	
+
     return S_OK;
 }
 
@@ -177,7 +174,7 @@ HRESULT Material::Init() {
 
     if (m_shaderName.empty()) {
         return S_OK;
-	}
+    }
 
     Shutdown(); // Asegurarse de liberar recursos previos
 
@@ -186,7 +183,7 @@ HRESULT Material::Init() {
         OutputDebugStringA("Material Service Error: Managers.\n");
         return hr;
     }
-    	
+
     hr = InitPixelAndVertexShaders();
     if (FAILED(hr)) {
         OutputDebugStringA("Material Service Error: Pixel/Vertex shader.\n");
@@ -219,40 +216,40 @@ HRESULT Material::Init() {
 // --------------------------------------------------------
 void Material::Render() {
 
- //   Microsoft::WRL::ComPtr<ID3D11DeviceContext> context = m_deviceManager->GetContext();
+    //   Microsoft::WRL::ComPtr<ID3D11DeviceContext> context = m_deviceManager->GetContext();
 
- //   XMMATRIX worldMatrix = XMMatrixIdentity();
- //   XMMATRIX viewMatrix = XMMatrixTranspose(m_cameraManager->GetCurrentViewMatrix());
- //   XMMATRIX projectionMatrix = XMMatrixTranspose(m_cameraManager->GetCurrentProjectionMatrix());
+    //   XMMATRIX worldMatrix = XMMatrixIdentity();
+    //   XMMATRIX viewMatrix = XMMatrixTranspose(m_cameraManager->GetCurrentViewMatrix());
+    //   XMMATRIX projectionMatrix = XMMatrixTranspose(m_cameraManager->GetCurrentProjectionMatrix());
 
- //   MatrixDefinitionBase::MatrixParams matrixParams{};
- //   //if (m_renderManager->IsRenderColourPassActive()) {
- //       matrixParams.worldMatrix = worldMatrix;
- //       matrixParams.viewMatrix = viewMatrix;
- //       matrixParams.projectionMatrix = projectionMatrix;
- //       matrixParams.cameraPosition = m_cameraManager->GetCurrentCameraPosition();
- //       matrixParams.lightDirection = m_lighting->GetLightDirection();
- //       matrixParams.lightColor = m_lighting->GetLightColor();
- //       matrixParams.materialAO = 0.4f;
- //       matrixParams.textureTransform = m_textureTranforms;
- //   /*} else if (m_renderManager->IsRenderShadowsPassActive()) {
- //       matrixParams.worldMatrix = worldMatrix;
- //       matrixParams.lightViewProjectionMatrix = m_shadows->GetLightViewProjectionMatrix();
- //   } */
- //   
-	////SetConstantBuffers(context, matrixParams);
+    //   MatrixDefinitionBase::MatrixParams matrixParams{};
+    //   //if (m_renderManager->IsRenderColourPassActive()) {
+    //       matrixParams.worldMatrix = worldMatrix;
+    //       matrixParams.viewMatrix = viewMatrix;
+    //       matrixParams.projectionMatrix = projectionMatrix;
+    //       matrixParams.cameraPosition = m_cameraManager->GetCurrentCameraPosition();
+    //       matrixParams.lightDirection = m_lighting->GetLightDirection();
+    //       matrixParams.lightColor = m_lighting->GetLightColor();
+    //       matrixParams.materialAO = 0.4f;
+    //       matrixParams.textureTransform = m_textureTranforms;
+    //   /*} else if (m_renderManager->IsRenderShadowsPassActive()) {
+    //       matrixParams.worldMatrix = worldMatrix;
+    //       matrixParams.lightViewProjectionMatrix = m_shadows->GetLightViewProjectionMatrix();
+    //   } */
+    //   
+       ////SetConstantBuffers(context, matrixParams);
 
- //   Apply(context);
+    //   Apply(context);
 }
 
 // --------------------------------------------------------
 // SetTexture
 // --------------------------------------------------------
 void Material::SetTexture(ID3D11ShaderResourceView* texture, std::string textureMap) {
-    if (textureMap.empty()) {  
+    if (textureMap.empty()) {
         m_textureMapViews = texture;
         return;
-	}
+    }
     if (textureMap == TEXTURE_MAP_ALBEDO.data()) m_texture_albedo = texture;
     if (textureMap == TEXTURE_MAP_NORMAL.data()) m_texture_normal = texture;
     if (textureMap == TEXTURE_MAP_ROUGHNESS.data()) m_texture_roughness = texture;
@@ -262,7 +259,7 @@ void Material::SetTexture(ID3D11ShaderResourceView* texture, std::string texture
 
 void Material::SetTextureTranforms(float scaleX, float scaleY, float offsetX, float offsetY)
 {
-	m_textureTranforms = XMFLOAT4(scaleX, scaleY, offsetX, offsetY);
+    m_textureTranforms = XMFLOAT4(scaleX, scaleY, offsetX, offsetY);
 }
 void Material::SetTextureTranforms(XMFLOAT4 tranforms)
 {
@@ -364,10 +361,10 @@ void Material::Update(float deltatime) {
 
     if (m_keyboard == nullptr) {
         return;
-	}
+    }
 
     if (m_keyboard->IsKeyDown('T')) {
-		debug_lightDirection.x += deltatime * av; // Incrementar la dirección de la luz hacia arriba
+        debug_lightDirection.x += deltatime * av; // Incrementar la dirección de la luz hacia arriba
     }
     if (m_keyboard->IsKeyDown('G')) {
         debug_lightDirection.x -= deltatime * av; // Incrementar la dirección de la luz hacia arriba

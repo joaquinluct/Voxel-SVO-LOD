@@ -96,9 +96,10 @@ PSInput VSMain(VSInput input)
 
 float4 PSMain(PSInput input) : SV_TARGET
 {
+    // return float4(1, 0, 1, 1); // Color magenta para depuración
     // Muestrea el color base del albedo desde la textura
-    //float4 baseColor1 = albedoTexture.Sample(baseSampler, input.tex);
-    //return baseColor1;
+    // float4 baseColor1 = albedoTexture.Sample(baseSampler, input.tex);
+    // return baseColor1;
     
     // Normaliza la normal y el tangente en espacio mundial
     float3 N = normalize(input.worldNorm);
@@ -170,7 +171,7 @@ float4 PSMain(PSInput input) : SV_TARGET
          shadowTexCoord.y >= 0.0f && shadowTexCoord.y <= 1.0f)
     {
         // Muestrea el mapa de sombras usando comparación de profundidad
-         shadowFactor = shadowMap.SampleCmp(shadowMapSampler, shadowTexCoord, currentDepth - bias);
+        shadowFactor = shadowMap.SampleCmp(shadowMapSampler, shadowTexCoord, currentDepth - bias);
     }
 
     // Combina los componentes difuso, especular y ambiental, aplicando el factor de sombra

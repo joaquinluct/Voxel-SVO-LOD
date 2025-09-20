@@ -28,7 +28,7 @@ HRESULT TestingFloor::Init()
 	}
 	m_light = ServiceLocator::GetService<Lighting>();
 
-	mesh = m_renderManager->SceneManagerGet()->RegisterMesh("FloorMesh");
+	/*mesh = m_renderManager->SceneManagerGet()->RegisterMesh("FloorMesh");
 
 	if (!mesh) {
 		OutputDebugStringA("TestingFloor::Init - ERROR: Mesh init.\n");
@@ -37,7 +37,7 @@ HRESULT TestingFloor::Init()
 	if (FAILED(hr)) {
 		OutputDebugStringA("TestingFloor::Init - ERROR: Mesh init failed.\n");
 		return hr;
-	}
+	}*/
 
 	/*houseMesh = m_renderManager->SceneManagerGet()->RegisterMesh(("House1Mesh"));
 
@@ -52,7 +52,7 @@ HRESULT TestingFloor::Init()
 
 	//houseMesh->SetScale(0.5f, 0.5f, 0.5f);
 
-	boxMesh = m_renderManager->SceneManagerGet()->RegisterMesh("BoxMesh");
+	/*boxMesh = m_renderManager->SceneManagerGet()->RegisterMesh("BoxMesh");
 	if (boxMesh == nullptr) {
 		OutputDebugStringA("TestingFloor::Init - ERROR: Box mesh init.\n");
 	}
@@ -60,13 +60,13 @@ HRESULT TestingFloor::Init()
 	if (FAILED(hr)) {
 		OutputDebugStringA("TestingFloor::Init - ERROR: Box mesh init failed.\n");
 		return hr;
-	}
+	}*/
 
 	//boxMesh->SetPosition(20.0f, 0.0f, 20.0f);
 
-	text = m_renderManager->SceneManagerGet()->RegisterTextMeshAsUnique("UITextMesh", "AlturaSol");
+	/*text = m_renderManager->SceneManagerGet()->RegisterTextMeshAsUnique("UITextMesh", "AlturaSol");
 	text->SetText("HOLA");
-	hr = text->Init();
+	hr = text->Init();*/
 	
 
 
@@ -74,9 +74,9 @@ HRESULT TestingFloor::Init()
 }
 
 void TestingFloor::Update(float) {
-	float y = m_light->GetLightDirection().y;
+	/*float y = m_light->GetLightDirection().y;
 	text->SetPosition(10, 20);
-	text->SetText("ALTURA SOL " + std::to_string(y));
+	text->SetText("ALTURA SOL " + std::to_string(y));*/
 }
 
 void TestingFloor::Render() {

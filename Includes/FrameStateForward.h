@@ -6,10 +6,10 @@
 //class FrameStateBase;
 class CameraFrameState;
 class CommonFrameState;
-class DeviceFrameState;
+//class DeviceFrameState;
 class LightFrameState;
 class MaterialFrameState;
-class MeshFrameState;
+//class MeshFrameState;
 class ShaderFrameState;
 class SkyboxFrameState;
 class PassFrameState;
@@ -18,4 +18,5 @@ class TimeFrameState;
 class PipelineFrameState;
 class ViewportFrameState;
 class WaterFrameState;
+class RenderFrameState;
 

@@ -14,12 +14,10 @@ public:
     InputManager();
     ~InputManager() override;
 
-    bool IsWindowDependent() const override { return true; }
-
     //--------------------------------------------------------------------------------------
     // Inicialización del manager de entrada
     //--------------------------------------------------------------------------------------
-    HRESULT Init(HWND* hwnd, int width, int heigth) override;
+    HRESULT Init(EngineContext* context) override;
 
     //--------------------------------------------------------------------------------------
     // Maneja los mensajes de la ventana y los delega a los servicios apropiados.

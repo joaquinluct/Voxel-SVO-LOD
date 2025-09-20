@@ -1,8 +1,10 @@
 // UIManager.cpp
 #include "UIManager.h"
-#include <Assets/Base/MeshAsset.h>
+#include <ManagerLocator/ManagerLocator.h>
+#include <UI/UIText.h>
 #include <DeviceManager.h>
-#include <UI/UIElement.h>
+#include <Assets/Base/MeshAsset.h>
+//#include <UI/UIElement.h>
 
 #include <REGISTER_MANAGER_MACRO.h>
 
@@ -42,13 +44,12 @@ UIText* UIManager::UpdateText(std::string meshName, std::string text) {
     return textElement;
 }
 
-HRESULT UIManager::Init()
+HRESULT UIManager::Init(EngineContext* context)
 {
+    ManagerBase::Init(context);
+
     OutputDebugStringA("Incializando UIManager...\n");
     m_deviceManager = ManagerLocator::GetManager<DeviceManager>();
-    //m_renderTargetManager = ManagerLocator::GetManager<RenderTargetManager>();
-	m_renderManager = ManagerLocator::GetManager<RenderManager>();
-    
     //// Crear matriz de proyección ortográfica
     //UINT width = static_cast<UINT>(m_deviceManager->GetWidth());
     //UINT height = static_cast<UINT>(m_deviceManager->GetHeight());
@@ -105,9 +106,9 @@ void UIManager::Shutdown()
 		SafeRelease(element);
     }
     uiElements.clear();*/
-    for (auto textElement : m_textElements)
-    {
-        SafeShutDown(textElement.second);
+    for (auto& textElement : m_textElements)
+    {        
+        delete(textElement.second);
 	}
 }
 

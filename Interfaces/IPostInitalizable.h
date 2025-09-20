@@ -1,6 +1,6 @@
 // IPostInitializable.h (para managers que necesitan post-inicialización)
 #pragma once
-#include <winerror.h>
+#include <Windows.h>
 
 class IPostInitializable {
 public:

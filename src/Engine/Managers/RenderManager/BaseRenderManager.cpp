@@ -9,7 +9,7 @@ BaseRenderManager::~BaseRenderManager() {
 
 }
 
-HRESULT BaseRenderManager::Init() {
+HRESULT BaseRenderManager::Init(EngineContext* context) {
 	m_deviceManager = ManagerLocator::GetDeviceManager();
 	if (!m_deviceManager) {
 		return E_FAIL; // Device manager not found

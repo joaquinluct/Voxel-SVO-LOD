@@ -1,17 +1,21 @@
 #pragma once
 
+#include "StageBase.h"
 #include <d3d11.h>
-#include <wrl/client.h> // Para ComPtr
+#include <DeviceManager.h>
+#include <memory>
+#include <Windows.h>
+#include <wrl/client.h>
 
 namespace RenderPipeline
 {
-    class InputAssemblyStage
+    class InputAssemblyStage : StageBase
     {
     public:
-        InputAssemblyStage(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context);
+        InputAssemblyStage(std::shared_ptr<DeviceManager> deviceManager);
 
         void SetInputLayout(Microsoft::WRL::ComPtr<ID3D11InputLayout> pInputLayout);
-        void SetVertexBuffers(UINT StartSlot, UINT NumBuffers, Microsoft::WRL::ComPtr<ID3D11Buffer> ppVertexBuffers, const UINT* pStrides, const UINT* pOffsets);
+        void SetVertexBuffers(UINT StartSlot, UINT NumBuffers, ID3D11Buffer* ppVertexBuffers, const UINT* pStrides, const UINT* pOffsets);
         void SetIndexBuffer(Microsoft::WRL::ComPtr<ID3D11Buffer> pIndexBuffer, DXGI_FORMAT Format, UINT Offset);
         void ResetVertexBuffers();
         void ResetIndexBuffers();

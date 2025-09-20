@@ -14,6 +14,7 @@ SkyboxMeshConfig::SkyboxMeshConfig(){
 	cast_shadows = false;
 	receive_shadows = false;
 	drawType = 1;
+	primitiveTopology = 4;
 	render_passes = 16;
 	dependencies = {
 		"MeshAsset"

@@ -1,34 +1,27 @@
 #pragma once
 
-#include <Windows.h>
-#include <d3d11.h>
-#include <DirectXMath.h>
-#include <string>
-#include <map>
-#include <vector>
-#include <memory>
-#include <wrl/client.h>
 #include "FrameStateBase.h"
-#include <Defines/Pipeline.h>
+#include <chrono>
+#include <Defines/EngineDefinition.h>
+#include <DirectXMath.h>
 
 class CommonFrameState : public FrameStateBase {
 public:
 
-	float GetDeltaTime() const { return deltaTime; }
-	float GetHeight() const { return m_height; }
-	float GetWidth() const { return m_width; }
-	DirectX::XMMATRIX GetWorldMatrix() const { return worldMatrix; }
+    float GetDeltaTime() const { return engineContext->deltaTime; }
+    float GetHeight() const { return engineContext->height; }
+    float GetWidth() const { return engineContext->width; }
+    DirectX::XMMATRIX GetWorldMatrix() const { return worldMatrix; }
+    std::chrono::system_clock::time_point GetSimulatedTime() { return simulatedTime; }
 
-	void SetDeltaTime(float dt) { deltaTime = dt; }
-	void SetHeight(float height) { m_height = height; }
-	void SetWidth(float width) { m_width = width; }
-	void SetWorldMatrix(const DirectX::XMMATRIX& matrix) { worldMatrix = matrix; }    
+    void SetWorldMatrix(const DirectX::XMMATRIX& matrix) { worldMatrix = matrix; }
+    void SetEngineContext(EngineContext* context) { engineContext = context; }
+    void SetSimulatedTime(std::chrono::system_clock::time_point simulatedTimed) { this->simulatedTime = simulatedTimed; }
 
 private:
-	float deltaTime = 0.0f;
-	float m_height = 600.0f;	
-	float m_width = 800.0f;
-	DirectX::XMMATRIX worldMatrix = DirectX::XMMatrixIdentity();
-	
+    std::chrono::system_clock::time_point simulatedTime;
+    EngineContext* engineContext;
+    DirectX::XMMATRIX worldMatrix = DirectX::XMMatrixIdentity();
+
 };
 

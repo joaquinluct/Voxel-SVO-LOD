@@ -49,13 +49,14 @@ HRESULT Skybox::InitManagers()
 
 HRESULT Skybox::InitMesh()
 {
-	mesh = m_renderManager->SceneManagerGet()->RegisterMesh("ProcSkyboxMesh");
+	/*mesh = m_renderManager->SceneManagerGet()->RegisterMesh("ProcSkyboxMesh");
 
 	if (!mesh) {
 		return E_FAIL;
 	}
 
-	return mesh->Init();
+	return mesh->Init();*/
+	return S_OK;
 }
 
 HRESULT Skybox::Init() 

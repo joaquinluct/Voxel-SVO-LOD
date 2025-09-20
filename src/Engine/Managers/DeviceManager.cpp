@@ -1,24 +1,23 @@
 #define NOMINMAX 
-#include <windows.h>
 #include "DeviceManager.h"
-#include <ConfigLocator/ConfigLocator.h>
-#include <Pipeline/PipelineStateLocator.h>
-#include <ManagerLocator/ManagerLocator.h>
+#include "ManagerBase.h"
 #include "REGISTER_MANAGER_MACRO.h"
-#include <d3d11.h>
 #include "Utils.h"
+#include <d3d11.h>
+#include <Pipeline/PipelineStateLocator.h>
+#include <windows.h>
 
 REGISTER_MANAGER_TYPE(DeviceManager, "DeviceManager")
 
 DeviceManager::DeviceManager()
-	: m_device()
+    : m_device()
 {
-	m_context = nullptr;
-	m_swapChain = nullptr;
-	m_featureLevel = D3D_FEATURE_LEVEL_11_0;
-	m_alphaBlendState = nullptr;
-	m_defaultBlendState = nullptr;
-	m_rasterizerState = nullptr;
+    m_context = nullptr;
+    m_swapChain = nullptr;
+    m_featureLevel = D3D_FEATURE_LEVEL_11_0;
+    m_alphaBlendState = nullptr;
+    m_defaultBlendState = nullptr;
+    m_rasterizerState = nullptr;
     m_rasterizerShadowsState = nullptr;
 }
 
@@ -26,48 +25,50 @@ DeviceManager::~DeviceManager()
 {
 }
 
-HRESULT DeviceManager::Init(HWND* hwnd, int width, int height)
-{   
-	m_swapChainMainConfig = PipelineStateLocator::GetPipelineState<SwapChainMain>();
+HRESULT DeviceManager::Init(EngineContext* context)
+{
+    ManagerBase::Init(context);
+
+    m_swapChainMainConfig = PipelineStateLocator::GetPipelineState<SwapChainMain>();
     HRESULT hr = (m_swapChainMainConfig) ? S_OK : E_FAIL;
     if (FAILED(hr)) {
         OutputDebugStringA("Error al obtener SwapChainMainConfig.\n");
         return hr;
-	}
+    }
     OutputDebugStringA("Incializando DeviceManager...\n");
-    hr = CreateDeviceAndSwapChain(hwnd, width, height);
+    hr = CreateDeviceAndSwapChain(context->hWnd, static_cast<int>(context->width), static_cast<int>(context->height));
     if (FAILED(hr)) {
-        MessageBox(*hwnd, L"Error al crear el dispositivo DirectX 11", L"Error", MB_OK);
+        MessageBox(*context->hWnd, L"Error al crear el dispositivo DirectX 11", L"Error", MB_OK);
         return hr;
     }
- // -------CÓDIGO COMENTADO ANTES DEL CAMBIO DE RENDERING------------------
-    // Modo Rasterizado (ColourPass)
-    /*hr = InitRasterizedState();
-    if (FAILED(hr)) {
-        MessageBox(*hwnd, L"Error al inciailizar el modo Raterizado", L"Error", MB_OK);
-        return hr;
-    }*/
+    // -------CÓDIGO COMENTADO ANTES DEL CAMBIO DE RENDERING------------------
+       // Modo Rasterizado (ColourPass)
+       /*hr = InitRasterizedState();
+       if (FAILED(hr)) {
+           MessageBox(*hwnd, L"Error al inciailizar el modo Raterizado", L"Error", MB_OK);
+           return hr;
+       }*/
 
-	// Modo Rasterizado para el pase de las sombras (ShadowPass)
-    /*hr = InitRasterizedShadowsState();
-    if (FAILED(hr)) {
-        MessageBox(hwnd, L"Error al inciailizar el modo Raterizado", L"Error", MB_OK);
-        return hr;
-    }*/
-
-
-	// Inicializar el estado de mezcla
-	/*hr = InitBlending();
-    if (FAILED(hr)) {
-        MessageBox(*hwnd, L"Error al inciailizar el Blendig", L"Error", MB_OK);
-        return hr;
-    }*/
-// -------FIN CÓDIGO COMENTADO ANTES DEL CAMBIO DE RENDERING------------------ 
+       // Modo Rasterizado para el pase de las sombras (ShadowPass)
+       /*hr = InitRasterizedShadowsState();
+       if (FAILED(hr)) {
+           MessageBox(hwnd, L"Error al inciailizar el modo Raterizado", L"Error", MB_OK);
+           return hr;
+       }*/
 
 
+       // Inicializar el estado de mezcla
+       /*hr = InitBlending();
+       if (FAILED(hr)) {
+           MessageBox(*hwnd, L"Error al inciailizar el Blendig", L"Error", MB_OK);
+           return hr;
+       }*/
+       // -------FIN CÓDIGO COMENTADO ANTES DEL CAMBIO DE RENDERING------------------ 
 
-    m_width = static_cast<float>(width);
-    m_height = static_cast<float>(height);
+
+
+    m_width = static_cast<float>(context->width);
+    m_height = static_cast<float>(context->height);
 
     OutputDebugStringA(("DeviceManager - Resolución: " + std::to_string(m_width) + "x" + std::to_string(m_height) + "\n").c_str());
     return hr;
@@ -224,16 +225,18 @@ HRESULT DeviceManager::CreateDeviceAndSwapChain(HWND* hwnd, int width, int heigh
 //}
 
 Microsoft::WRL::ComPtr<ID3D11Device> DeviceManager::GetDevice() {
+    //std::lock_guard<std::mutex> lock(m_mutex); // Bloquea el mutex durante la lectura
     return m_device;
 }
 
 Microsoft::WRL::ComPtr<ID3D11DeviceContext> DeviceManager::GetContext() {
-	return m_context;
+    std::lock_guard<std::mutex> lock(m_mutex); // Bloquea el mutex durante la lectura
+    return m_context;
 }
 
 void DeviceManager::Render()
-{    
-	// Presentar el swap chain
+{
+    // Presentar el swap chain
     //m_swapChain->Present(1, 0);
 }
 
@@ -290,7 +293,7 @@ void DeviceManager::Shutdown()
 {
     // Antes de liberar, si est�s en modo de depuraci�n y hay objetos pendientes
     if (m_context) m_context->ClearState();
-	SafeRelease(m_alphaBlendState);
+    SafeRelease(m_alphaBlendState);
     SafeRelease(m_defaultBlendState);
 
     // Aseg�rate de liberar el ID3D11Device al final, opcionalmente con un reporte de objetos vivos
@@ -309,6 +312,6 @@ void DeviceManager::Shutdown()
         m_device = nullptr;
     }
     // Liberar el contexto inmediato
-	m_device->Release();
-	//Saf(m_context);
+    //m_device->Release();
+    //Saf(m_context);
 }

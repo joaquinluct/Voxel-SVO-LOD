@@ -7,4 +7,5 @@ PipelineConfig::PipelineConfig(){
 	mainViewport = "ViewportMainColor";
 	mainRenderTargetView = "RenderTargetViewMainColor";
 	mainStencilView = "StencilViewMainColor";
+	mainStencilState = "StencilStateRegular";
 };

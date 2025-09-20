@@ -1,28 +1,31 @@
-#include "UpdateManager.h"
-#include <Locators/Registers/REGISTER_MANAGER_MACRO.h>
-#include <CameraManager.h>
-#include <Game/Systems/World.h>
-#include <Game/Systems/Lighting.h>
-#include <Game/Systems/Water.h>
-#include <Game/Systems/Skybox.h>
-#include <ServiceLocator/ServiceLocator.h>
-#include <ManagerLocator/ManagerLocator.h>
-#include <ShaderManager.h>
-#include <Assets/Base/MeshAsset.h>
+﻿#include "UpdateManager.h"
 #include <../Includes/FrameStates.h>
-#include <Util/Utils.h>
-#include <Util/DateTime.h>
+#include <Assets/Base/MeshAsset.h>
+#include <CameraManager.h>
+#include <cstdlib>
+#include <functional>
+#include <Game/Systems/Lighting.h>
+#include <Game/Systems/Skybox.h>
+#include <Game/Systems/Water.h>
+#include <Game/Systems/World.h>
+#include <Locators/Registers/REGISTER_MANAGER_MACRO.h>
+#include <ManagerLocator/ManagerLocator.h>
+#include <map>
+#include <memory>
+#include <SceneManager.h>
+#include <ServiceLocator/ServiceLocator.h>
 #include <Services/ThreadPool.h>
+#include <utility>
 
 REGISTER_MANAGER_TYPE(UpdateManager, "UpdateManager")
 
 // ----------------------------------------------------------------------------
 // Constructor
 // ----------------------------------------------------------------------------
-UpdateManager::UpdateManager():
-	m_futures(), m_threadPool(nullptr), m_cameraManager(nullptr), m_shaderManager(nullptr),
+UpdateManager::UpdateManager() :
+    m_futures(), m_threadPool(nullptr), m_cameraManager(nullptr), m_shaderManager(nullptr),
     m_frameStateService(nullptr), m_lighting(nullptr), m_world(nullptr), m_water(nullptr),
-	m_mesh(nullptr), m_skybox(nullptr)
+    m_mesh(nullptr), m_skybox(nullptr), m_sceneManager(nullptr)
 {
 }
 // ----------------------------------------------------------------------------
@@ -32,11 +35,30 @@ UpdateManager::~UpdateManager()
 {
 }
 
+// ---------------------------------------------------------------------------
+// RunLoop del UpdateManager
+// ---------------------------------------------------------------------------
+void UpdateManager::RunLoop()
+{
+    // Bucle principal de actualización
+    while (m_running) {
+
+        // Ejecutar los Jobs que nos envía la SceneManager
+        Update(m_context->deltaTime);
+
+        // Pequeña pausa para evitar el uso excesivo de la CPU
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+
+}
+
 // ----------------------------------------------------------------------------
-// Inicializaci�n del UpdateManager
+// Inicialización del UpdateManager
 // ----------------------------------------------------------------------------
-HRESULT UpdateManager::Init()
-{    
+HRESULT UpdateManager::Init(EngineContext* context)
+{
+    ManagerBase::Init(context);
+
     m_threadPool = ServiceLocator::GetService<ThreadPool>();
     if (!m_threadPool) {
         return E_FAIL;
@@ -50,7 +72,7 @@ HRESULT UpdateManager::Init()
     if (!m_shaderManager)
     {
         return E_FAIL;
-    }    
+    }
     m_frameStateService = ServiceLocator::GetService<FrameStateService>();
     if (!m_frameStateService)
     {
@@ -75,17 +97,54 @@ HRESULT UpdateManager::Init()
     return S_OK;
 }
 
-// ----------------------------------------------------------------------------
-// Inicializaci�n de la tareas de actualizaci�n en paralelo
-// ----------------------------------------------------------------------------
-void UpdateManager::StartThreads(float deltaTime)
+HRESULT UpdateManager::PostInit()
 {
-    m_futures.push_back(m_threadPool->enqueue(&UpdateManager::UpdateMainData, this, deltaTime));
-    m_futures.push_back(m_threadPool->enqueue(&UpdateManager::UpdateTerrainData, this, deltaTime));
+    m_sceneManager = ManagerLocator::GetManager<SceneManager>();
+    if (!m_sceneManager) {
+        return E_FAIL;
+    }
+    return S_OK;
 }
-    
+
 // ----------------------------------------------------------------------------
-// Funciones de actualizaci�n de los estados
+// Inicialización de la tareas de actualización en paralelo
+// ----------------------------------------------------------------------------
+FutureUpdateJob UpdateManager::AddUpdateJob(const std::string& name, std::function<bool()> task, bool allowDuplicates) {
+    auto cancel_token = std::make_shared<std::atomic<bool>>(false);
+
+    auto wrappedTask = [task, name, allowDuplicates, cancel_token]() -> UpdateJob {
+        UpdateJob job;
+        job.name = name;
+        job.allowDuplicates = allowDuplicates;
+        job.startTime = std::chrono::high_resolution_clock::now();
+        job.cancel_token = cancel_token;
+        job.isSuccessful = false; // Valor por defecto
+
+        if (!cancel_token->load()) {
+            job.isSuccessful = task(); // CAMBIO: Asigna el resultado de la tarea
+        }
+        return job;
+        };
+
+    FutureUpdateJob future = m_threadPool->enqueue(wrappedTask); // ← devuelve FutureUpdateJob
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_futures[std::rand()] = std::move(future);
+
+    return future;
+}
+
+void IsJobCompleted(std::string jobName) {
+
+}
+
+//void UpdateManager::StartThreads(float deltaTime)
+//{
+//    m_futures.push_back(m_threadPool->enqueue(&UpdateManager::UpdateMainData, this, deltaTime));
+//    m_futures.push_back(m_threadPool->enqueue(&UpdateManager::UpdateTerrainData, this, deltaTime));
+//}
+
+// ----------------------------------------------------------------------------
+// Funciones de actualización de los estados
 // ----------------------------------------------------------------------------
 FrameStateBase* UpdateManager::UpdateTerrainState(float deltaTime) {
     TerrainFrameState* terrain = m_frameStateService->TerrainState(false);
@@ -141,20 +200,17 @@ FrameStateBase* UpdateManager::UpdateTimeState(float deltaTime) {
     TimeFrameState* time = m_frameStateService->TimeState(false);
     return time;
 }
-FrameStateBase* UpdateManager::UpdateMeshState(float deltaTime) {
-    /*MeshFrameState* mesh = m_frameStateService->MeshState(false);
-    mesh->SetMeshAsset(this->GetMesh());
-    return mesh;*/
-
-    // Estamos al final del Update de todos los servicios y managers, por lo que el mesh debe ser reseteado.
-    MeshFrameState* mesh = m_frameStateService->MeshState(false);
-    mesh->SetMeshAsset(nullptr);
-    return mesh;
-}
+//FrameStateBase* UpdateManager::UpdateMeshState(float deltaTime) {
+//    // Estamos al final del Update de todos los servicios y managers, por lo que el mesh debe ser reseteado.
+//    MeshFrameState* mesh = m_frameStateService->MeshState(false);
+//    
+//    return mesh;
+//}
 FrameStateBase* UpdateManager::UpdateDeviceState(float deltaTime) {
-    DeviceFrameState* device = m_frameStateService->DeviceState(false);
-    device->SetClearColor({});
-    return device;
+    //DeviceFrameState* device = m_frameStateService->DeviceState(false);
+    //device->SetClearColor({});
+    //return device;
+    return nullptr;
 }
 FrameStateBase* UpdateManager::UpdatePassState(float deltaTime) {
     PassFrameState* pass = m_frameStateService->PassState(false);
@@ -180,15 +236,15 @@ FrameStateBase* UpdateManager::UpdatePipelineState(float deltaTime) {
 }
 
 // ----------------------------------------------------------------------------
-// Gesti�n del Mesh actual
+// Gestión del Mesh actual
 // ----------------------------------------------------------------------------
-void UpdateManager::SetMesh(const std::shared_ptr<MeshAsset>& mesh) {
-    MeshFrameState* meshState = m_frameStateService->MeshState();
-    meshState->SetMeshAsset(mesh.get());
-    m_frameStateService->SetData(FRAME_STATE_MESH, meshState);
-    //m_frameStateService->FlushAndFreeze(FRAME_STATE_MESH);
-    m_mesh = mesh;
-}
+//void UpdateManager::SetMesh(const std::shared_ptr<MeshAsset>& mesh) {
+//    MeshFrameState* meshState = m_frameStateService->MeshState();
+//    meshState->AddMesh(mesh.get());
+//    m_frameStateService->SetData(FRAME_STATE_MESH, meshState);
+//    //m_frameStateService->FlushAndFreeze(FRAME_STATE_MESH);
+//    m_mesh = mesh;
+//}
 
 // ----------------------------------------------------------------------------
 // Resets de los estados
@@ -196,11 +252,11 @@ void UpdateManager::SetMesh(const std::shared_ptr<MeshAsset>& mesh) {
 //     Unos actualizan con nuevos datos en este momento.
 //     Otros resetean su estado para que no queden datos de un frame a otro.
 // ----------------------------------------------------------------------------
-FrameStateBase* UpdateManager::ResetMeshState(float deltaTime) {
-    MeshFrameState* mesh = m_frameStateService->MeshState(false);
-    mesh->SetMeshAsset(nullptr);
-    return mesh;
-}
+//FrameStateBase* UpdateManager::ResetMeshState(float deltaTime) {
+//    MeshFrameState* mesh = m_frameStateService->MeshState(false);
+//    //mesh->SetMesh(nullptr);
+//    return mesh;
+//}
 FrameStateBase* UpdateManager::ResetShaderState(float deltaTime) {
     ShaderFrameState* shaderState = m_frameStateService->ShaderState(false);
     shaderState->ClearMatrices();
@@ -209,7 +265,7 @@ FrameStateBase* UpdateManager::ResetShaderState(float deltaTime) {
 }
 
 // ----------------------------------------------------------------------------
-// TAREA DE ACTUALIZACI�N: Main
+// TAREA DE ACTUALIZACIÓN: Main
 // ----------------------------------------------------------------------------
 UpdatedJobs UpdateManager::UpdateMainData(float deltaTime) {
 
@@ -263,14 +319,14 @@ UpdatedJobs UpdateManager::UpdateMainData(float deltaTime) {
     }
     state = UpdateDeviceState(deltaTime);
     if (state) {
-        m_frameStateService->SetData(FRAME_STATE_DEVICE, state);
+        //m_frameStateService->SetData(FRAME_STATE_DEVICE, state);
         //updatedStates.push_back(FRAME_STATE_DEVICE.data());
     }
     return updatedStates;
 }
 
 // ----------------------------------------------------------------------------
-// TAREA DE ACTUALIZACI�N: Terreno
+// TAREA DE ACTUALIZACIÓN: Terreno
 // ----------------------------------------------------------------------------
 UpdatedJobs UpdateManager::UpdateTerrainData(float deltaTime) {
     FrameStateBase* state = UpdateTerrainState(deltaTime);
@@ -280,51 +336,57 @@ UpdatedJobs UpdateManager::UpdateTerrainData(float deltaTime) {
     return UpdatedJobs{}; //{ FRAME_STATE_TERRAIN.data()};
 }
 
-// ---------------------------------------------------------------------------
-// Update
-// 
-// PUNTO DE ENTRADA DE LA CLASE
-// ---------------------------------------------------------------------------
-void UpdateManager::Update(float deltaTime)
-{
-    // Bucle de Tareas
-    UpdatedJobs finishedTaskResults;
+void UpdateManager::Update(float deltaTime) {
 
-    for (auto it = m_futures.begin(); it != m_futures.end(); /* no increment */) {
-        if (it->wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
-            UpdatedJobs results = it->get();
-			finishedTaskResults.insert(finishedTaskResults.end(), results.begin(), results.end());
-			//UpdatedJobs::append_range(finishedTaskResults, results);
-            //finishedTaskResults.append_range(results.data());
-
-            it = m_futures.erase(it);
-        }
-        else {
-            it++;
-        }
-    }
-
-    if (finishedTaskResults.empty()) {
+    // Si no hay futuros, salir
+    if (m_futures.size() <= 0) {
         return;
     }
 
-    // RESET DE LOS ESTADOS QUE LO REQUIEREN
-    FrameStateBase* state = UpdatePassState(deltaTime);
-    state = ResetMeshState(deltaTime);
-    if (state) {
-        m_frameStateService->SetData(FRAME_STATE_TERRAIN, state);
+    std::map<int, FutureUpdateJob> finishedJobs;
+
+    // Bucle seguro con iteradores para modificar el mapa mientras se recorre.
+    //// El bucle empieza con 'it' y lo incrementa al final (a menos que se borre).
+    std::lock_guard<std::mutex> lock(m_mutex);
+    for (auto it = m_futures.begin(); it != m_futures.end(); ) {
+        auto& future = it->second;
+
+        // 1. Verificamos si el futuro es válido y está listo.
+        //if (future.valid() && future.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
+        if (future.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
+            // 2. Si está listo, movemos el trabajo al mapa de terminados.
+            finishedJobs.emplace(it->first, std::move(future));
+
+            // 3. Borramos el elemento del mapa principal de forma segura
+            // y actualizamos el iterador para que apunte al siguiente elemento.
+            it = m_futures.erase(it);
+        }
+        else {
+            // 4. Si no está listo o es inválido, simplemente avanzamos el iterador.
+            ++it;
+        }
     }
-    state = ResetShaderState(deltaTime);
-    if (state) {
-        m_frameStateService->SetData(FRAME_STATE_SHADER, state);
+    // Procesamos los trabajos terminados.
+    for (auto& jobFinishedPair : finishedJobs) {
+        // Obtener el resultado final.
+        UpdateJob job = jobFinishedPair.second.get();
+        if (m_futures.count(jobFinishedPair.first) > 0)
+            m_futures.erase(jobFinishedPair.first);
+        if (job.isSuccessful) {
+            std::string stateName = job.name;
+            if (job.name == FRAME_STATE_TERRAIN) {
+                /*m_frameStateService->SwapBuffer(FRAME_STATE_MESH);
+                m_frameStateService->SwapBuffer(FRAME_STATE_RENDER);*/
+                m_frameStateService->SwapBuffer(FRAME_STATE_PIPELINE);
+                continue;
+            }
+            m_frameStateService->SwapBuffer(job.name);
+        }
+        //std::cout << "Trabajo '" << job.name << "' con resultado '" << job.result << "' ha sido procesado.\n";
     }
 
-    // ACTUALIZAR EL ESTADO DE LOS BUFFERS
-    for(const auto& result : finishedTaskResults) {
-		m_frameStateService->SwapBuffer(result.name);
-        //wapBuffers();
-	}
 }
+
 
 void UpdateManager::ResetState(std::string stateName) {
 }
@@ -333,7 +395,7 @@ void UpdateManager::UpdateState(std::string stateName) {
 
 }
 
-// Operaciones de gesti�n de los buffers
+// Operaciones de gestión de los buffers
 void UpdateManager::SwapBuffers() {
     m_frameStateService->SwapBuffers();
 }
@@ -352,6 +414,6 @@ void UpdateManager::Shutdown()
     m_lighting = nullptr;
     m_cameraManager = nullptr;
     m_world = nullptr;
-    m_water = nullptr;    
+    m_water = nullptr;
     m_frameStateService = nullptr;
 }

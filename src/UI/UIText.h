@@ -6,17 +6,14 @@
 #include <vector>
 #include <memory>
 #include <wrl/client.h>
-#include <Util/Utils.h>
 #include <IService.h>
-#include <UIManager.h>
+#include <Util/Utils.h>
 #include <Defines/VertexDefinition.h>
-#include <Defines/UI.h>
 
 // Forward declarations para managers que UIText utiliza
 //class MeshAsset;
-class UIManager;
+class Font;
 class DeviceManager;
-class Material;
 class MeshAsset;
 
 // Estructura de vértice (asegúrate de que coincide con tu shader)
@@ -29,9 +26,7 @@ struct UIVertex {
 class UIText : public IService {
 public:
     // Constructor de UIText, recibe dependencias
-    UIText() : m_color{}, m_fontSize{}, m_position{}, m_vertexBuffer{} {
-        m_font = new Font(32, DirectX::XMFLOAT4{1.0f, 1.0f, 1.0f, 1.0f});
-    };
+    UIText();
     UIText(std::shared_ptr<MeshAsset> mesh);
     ~UIText();
 
@@ -89,8 +84,6 @@ private:
     float m_fontSize;
 
     std::shared_ptr<DeviceManager> m_device;    
-    //std::shared_ptr<Material> m_material;
-    std::shared_ptr<UIManager> m_uiManager;
 
     ID3D11Buffer* m_vertexBuffer; // Gestionado dinámicamente
 

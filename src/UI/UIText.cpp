@@ -3,16 +3,22 @@
 #include <Assets/Base/MeshAsset.h>
 #include <ManagerLocator/ManagerLocator.h>
 #include "DeviceManager.h"
-#include <Services/Material.h>
 #include <windows.h> // Para OutputDebugStringA
 #include <algorithm> // Para std::max
 #include <cmath>     // Para roundf
 #include <Util/DirectXUtils.h>
 #include <Util/Utils.h>
 #include <Defines/Matrix/MatrixDefinitionBase.h>
+#include <Defines/UI.h>
 #include <REGISTER_SERVICE_MACRO.h>
 
 REGISTER_SERVICE_TYPE(UIText, "UIText")
+
+UIText::UIText() :
+    m_color{}, m_fontSize{}, m_position{}, m_vertexBuffer{}, m_screenWidth{ 800.0f }, m_screenHeight{ 600.0f }, m_screenOffset{ 0.0f, 0.0f, 0.0f }, m_text("Sample Text")
+{
+    m_font = new Font(32, DirectX::XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f });
+};
 
 UIText::UIText(std::shared_ptr<MeshAsset> mesh)
     : m_mesh(mesh),

@@ -31,15 +31,13 @@ public:
     InitManager();
     ~InitManager() override;
 
-    bool IsWindowDependent() const override { return true; }
-
-    HRESULT Init(HWND* hwnd, int width, int heigth) override;
+    HRESULT Init(EngineContext* context) override;
     HRESULT InitBase();
     HRESULT InitConfigs();
-	HRESULT InitComponents(HWND* hwnd, int width, int heigth);
+	HRESULT InitComponents(EngineContext* context);
     HRESULT ExtractComponents();
     HRESULT PostInit();
-    HRESULT InitPipeline(HWND* hwnd, int width, int height);
+    HRESULT InitPipeline(EngineContext* context);
 
     const std::string& GetManagerName() const override {
         static const std::string name = "InitManager";
