@@ -12,6 +12,7 @@
 #include <wrl/client.h>
 
 class DeviceManager;
+class ShaderAsset;
 
 class ShaderManager : public ManagerBase
 {
@@ -34,8 +35,8 @@ public:
         static const std::string name = "ShaderManager";
         return name;
     }
-    HRESULT LoadShaderByName(std::wstring shaderName);
-    HRESULT LoadShader(Microsoft::WRL::ComPtr<ID3D11Device> device, std::wstring shaderName, std::wstring vsPath, std::wstring psPath, D3D11_INPUT_ELEMENT_DESC layoutDesc[], UINT numElements);
+    std::shared_ptr<ShaderAsset> LoadShaderByName(std::wstring shaderName);
+    HRESULT LoadShader(Microsoft::WRL::ComPtr<ID3D11Device> device, std::shared_ptr<ShaderAsset>& shader, std::wstring shaderName, std::wstring vsPath, std::wstring psPath, D3D11_INPUT_ELEMENT_DESC layoutDesc[], UINT numElements);
 
     /*void SetConstantsBuffers(std::wstring shaderName, MatrixDefinitionBase::MatrixParams& matrixParams, std::map<std::string, Microsoft::WRL::ComPtr<ID3D11Buffer>>&  constantBuffers, Microsoft::WRL::ComPtr<ID3D11DeviceContext> context);*/
 

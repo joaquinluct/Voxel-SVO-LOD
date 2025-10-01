@@ -25,7 +25,7 @@ ProceduralTerrainConfig::ProceduralTerrainConfig(){
 	receive_shadows = true;
 	shader_shadows = "ShadowMapShader";
 	drawType = 1;
-	render_passes = 3;
+	render_passes = 33;
 	dependencies = {
 		"ShaderManager",
 		"TerrainAsset",

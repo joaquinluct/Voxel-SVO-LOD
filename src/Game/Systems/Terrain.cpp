@@ -122,8 +122,9 @@ MeshAssetBase* Terrain::GetTerrainMesh() const {
 void Terrain::GenerateMesh() {
     //std::vector<Chunk*> chunks = GetRawChunks(m_cameraManager->GetCurrentCamera());
     std::vector<Chunk*> chunks = GetChunks(m_cameraManager->GetCurrentCamera());
-    m_terrainAsset->GenerateMesh(chunks);
+    m_terrainAsset->GenerateMesh(chunks, m_terrainAsset->GetWriteIndex());
 }
+
 // ------------------------------------------------------------------------------------------
 // Update
 // ------------------------------------------------------------------------------------------
@@ -238,7 +239,7 @@ TextureDefines::CBTerrainBlendBuffer Terrain::GetTerrainBlenderData() {
     data.slopeEnd = 0.5f;
     data.slopeStart = 0.8f;
     data.snowHeight = 160.0f;
-    data.terrainScale = 1.0f; // Default value, can be set later
+    data.terrainScale = 0.03f; // Default value, can be set later
     return data;
 }
 
@@ -259,7 +260,7 @@ TextureDefines::CBTerrain2BlendBuffer Terrain::GetTerrain2BlenderData() {
     data.beachTransitionHeight = -10.0f; // La playa empieza desde la base
     data.beachTransitionSlope = 0.2f; // Se mezcla en pendientes suaves
 
-    data.terrainScale = 1.000f; // Un valor bajo para que las texturas no se vean demasiado estiradas
+    data.terrainScale = 0.002f; // Un valor bajo para que las texturas no se vean demasiado estiradas
     return data;
 }
 

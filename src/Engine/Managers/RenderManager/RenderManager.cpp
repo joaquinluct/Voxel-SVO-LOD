@@ -1,26 +1,31 @@
+#include "REGISTER_MANAGER_MACRO.h"
 #include "RenderManager.h"
 #include <../Includes/FrameStates.h>
 #include <Base/Managers/RenderManagerConfig.h>
+#include <chrono>
 #include <Config/Base/Managers/EngineConfig.h>
 #include <Config/Base/Pipeline/PipelineConfig.h>
 #include <Config/PassConfigBase.h>
-#include <Defines/ConcreteOperations.h>
+#include <d3d11.h>
 #include <Defines/Contants/Flags.h>
+#include <Defines/Contants/FrameState.h>
 #include <Game/Systems/World.h>
 #include <Helpers/PipelineHelper.h>
 #include <iostream>
 #include <Locators/ConfigLocator/ConfigLocator.h>
 #include <Locators/ManagerLocator/ManagerLocator.h>
 #include <Locators/ServiceLocator/ServiceLocator.h>
+#include <Managers/RenderManager/Pipeline/ConcreteOperations.h>
 #include <Managers/SceneManager.h>
 #include <memory>
-#include <mutex>
 #include <Pipeline/RenderPassLocator.h>
+#include <RenderState/FrameStates/ConstantsBufferFrameState.h>
+#include <RenderState/FrameStates/MeshesFrameState.h>
+#include <RenderState/FrameStates/RenderFrameState.h>
 #include <Services/FrameStateService.h>
+#include <Text/Text.h>
 #include <vector>
-
-#include "REGISTER_MANAGER_MACRO.h"
-
+#include <wrl/client.h>
 
 REGISTER_MANAGER_TYPE(RenderManager, "RenderManager")
 
@@ -28,7 +33,6 @@ RenderManager::RenderManager() : m_renderOperations{} {
     m_baseRenderManager = new BaseRenderManager();
     m_sceneManager = nullptr;
     m_renderOperations.reserve(100);
-    //m_executor = nullptr;
     m_pipelineState = nullptr;
     m_deviceManager = nullptr;
     m_context = nullptr;
@@ -66,15 +70,6 @@ void RenderManager::RunLoop() {
 }
 
 // ----------------------------------------------------------
-// Inicializar el executor del pipeline de render
-// ----------------------------------------------------------
-void RenderManager::InitPipelineExecutor() {
-    /*if (!m_executor) {
-        m_executor = new RenderPipeline::RenderPipelineExecutor(m_context, m_deviceManager->GetSwapChain());
-    }*/
-}
-
-// ----------------------------------------------------------
 // Inicializar los managers necesarios para el RenderManager
 // ----------------------------------------------------------
 HRESULT RenderManager::InitSubManagers()
@@ -104,6 +99,10 @@ HRESULT RenderManager::InitSubManagers()
     //hr = m_sceneManager->Init(ManagerBase::m_context);
     if (!m_sceneManager) {
         return hr;
+    }
+    m_resources = ManagerLocator::GetManager<PipelineResourcesManager>();
+    if (!m_resources) {
+        return E_FAIL; // Resources manager service not available
     }
     m_engineConfig = ConfigLocator::GetConfig<EngineConfig>();
     if (!m_engineConfig) {
@@ -243,8 +242,6 @@ HRESULT RenderManager::Init(EngineContext* context) {
         return hr;
     }
 
-    InitPipelineExecutor();
-
     hr = InitPipelineState();
     //hr = InitPasses();
     if (FAILED(hr)) {
@@ -327,63 +324,90 @@ void RenderManager::EndRender() {
 // RENDER GENERAL
 // --------------------------------------------------------------------------
 void RenderManager::Render() {
+    // Paso 1: Obtener el RenderFrameState del lado de lectura.
+    ID3D11DeviceContext* context = m_context.Get();
+    RenderFrameState* renderState = m_frameStateService->RenderState(true);
+
+    if (!renderState) {
+        return;
+    }
+
+    // Bloquear el FrameStateService para evitar conflictos con el hilo de actualización.
+    m_frameStateService->BeginRendering();
+    //m_frameStateService->Lock(FRAME_STATE_RENDER);
+
+    // Paso 2.1: Obtener la lista de comandos iniciales grabada por el hilo de actualización.
+    //m_frameStateService->Lock(FRAME_STATE_RENDER);
+    //Microsoft::WRL::ComPtr<ID3D11CommandList> initialCommandList = renderState->GetInitialCommandList();
+
+    //// Paso 2.2: Ejectua la lista de comandos iniciales (si existe)
+    //if (initialCommandList) {
+    //    m_context->ExecuteCommandList(initialCommandList.Get(), FALSE);
+    //    OutputDebugStringA(("Frame CommandList Init: " + ParseInt(m_frameCount) + "\n").c_str());
+    //}
+    //else {
+    //    bool a = false;
+    //}
+    //m_frameStateService->Unlock(FRAME_STATE_RENDER);
+
+    ClearOperation* clearOper = new ClearOperation(m_resources->GetInitialResources()->renderTargetView.Get(), m_resources->GetInitialResources()->depthStencilResource->stencilViewData.Get(), m_resources->GetInitialResources()->clearColor);
+    clearOper->Execute(context);
+
+    // Paso 3: Actualizar los constant buffers que hayan cambiado
+    m_frameStateService->Lock(FRAME_STATE_CONSTANT_BUFFERS);
+    ConstantsBufferFrameState* cbState = m_frameStateService->ConstantBuffersState(true);
+    if (cbState && cbState->HasOperations()) {
+        //std::vector<PipelineConstantBufferResource> constantBuffers = cbState->GetConstantBuffers().emplace(;
+        cbState->ExecuteMapUnmapOperations(context, cbState->GetConstantBuffers());
+        OutputDebugStringA(("Frame ConstantBuffers: " + ParseInt(m_frameCount) + "\n").c_str());
+    }
+    else {
+        bool a = false;
+    }
+    m_frameStateService->Unlock(FRAME_STATE_CONSTANT_BUFFERS);
+
+    // Paso 3.1: Actualiar los vértices e índices de los meshes
+    //m_frameStateService->Lock(FRAME_STATE_MESHES);
+    MeshesFrameState* meshState = m_frameStateService->MeshesState(true);
+    if (meshState && meshState->HasOperations()) {
+        meshState->ExecuteMapUnmapOperations(context);
+        OutputDebugStringA(("Frame Mesh: " + ParseInt(m_frameCount) + "\n").c_str());
+    }
+    else {
+        bool a = false;
+    }
+    //m_frameStateService->Unlock(FRAME_STATE_MESHES);
+
+    // Paso 4.1: Obtener la lista de comandos grabada por el hilo de actualización.
+    m_frameStateService->Lock(FRAME_STATE_RENDER);
+    Microsoft::WRL::ComPtr<ID3D11CommandList> commandList = renderState->GetCommandList();
+
+    // Paso 4.2: Ejecutar la lista de comandos en el contexto inmediato.
+    if (commandList) {
+        m_context->ExecuteCommandList(commandList.Get(), FALSE);
+        OutputDebugStringA(("Frame CommandList Main: " + ParseInt(m_frameCount) + "\n").c_str());
+    }
+    else {
+        //return;
+        bool a = false;
+    }
+    m_frameStateService->Unlock(FRAME_STATE_RENDER);
+
+    // Paso 5: Lanzar el present para mostrar el resultado en pantalla.
+    m_deviceManager->GetSwapChain()->Present(1, 0);
+    OutputDebugStringA(("Frame SwapChain: " + ParseInt(m_frameCount) + "\n").c_str());
+
+    // Desbloquear el FrameStateService para permitir que el hilo de actualización continúe.
+    //m_frameStateService->Unlock(FRAME_STATE_RENDER);
+    m_frameStateService->EndRendering();
+
+    // Opcional: Liberar la lista de comandos para el siguiente frame.
+    // Esto es manejado por el RenderFrameState, pero es bueno tenerlo en cuenta.
+    //renderState->ClearCommandList();
     m_frameCount++;
-
-    //OperationMap allOpers = {};
-
-    //RenderFrameState* render = m_frameStateService->RenderState();
-
-    //if (!render) {
-    //	return;
-    //}
-
-    //allOpers = render->GetAllOperations();
-    //if (allOpers.size() == 0) {
-    //	return;
-    //}
-
-    //if (allOpers.size() < 20) {
-    //	bool a = false;
-    //}
-
-    //if (m_frameCount < 100) {
-    //	int size = static_cast<int>(allOpers.size());
-    //	OutputDebugStringA(("Nº OPER: " + ParseInt(size) + "\n").c_str());
-    //}
-
-    ////auto lock = m_frameStateService->LockAll();
-    ////auto lock = m_frameStateService->LockRenderState();
-    //for (auto& oper : allOpers) {
-    //	PipelineOperBase* param = oper.second.GetOperationParameter();
-    //	m_executor->ExecuteOperation(oper.second.GetOperationType(), m_frameStateService.get(), param);
-    //}
-
-
-
-    //m_frameStateService->UnlockAll();
-
-    /*OperationMap opers = render->GetInitialOperations();
-
-    for (const auto& oper : opers) {
-        AddOperation(oper.second.GetOperationType());
+    if (m_frameCount % 10 == 0) {
+        OutputDebugStringA(("Frame: " + ParseInt(m_frameCount) + "\n").c_str());
     }
-
-    opers = render->GetMeshOperations();
-
-    for (const auto& oper : opers) {
-        AddOperation(oper.second.GetOperationType());
-    }
-
-    opers = render->GetFinalOperations();
-
-    for (const auto& oper : opers) {
-        AddOperation(oper.second.GetOperationType());
-    }*/
-
-
-
-
-
 }
 
 //void RenderManager::Render() {

@@ -7,20 +7,20 @@ namespace DirectXUtils
 {
     // Definir una tolerancia pequeña para comparaciones de punto flotante
     const float EPSILON = 0.0001f;
-    	
+
     XMFLOAT3 AddInt(const XMFLOAT3& v1, const int v2[3]) {
         // Cargar los XMFLOAT3 a XMVECTOR  
-        XMVECTOR vecA = XMLoadFloat3(&v1);  
+        XMVECTOR vecA = XMLoadFloat3(&v1);
         XMFLOAT3 v2_as_float3 = { static_cast<float>(v2[0]), static_cast<float>(v2[1]), static_cast<float>(v2[2]) };
         XMVECTOR vecB = XMLoadFloat3(&v2_as_float3);
         // Realizar la suma  
-        XMVECTOR resultVec = XMVectorAdd(vecA, vecB);  
+        XMVECTOR resultVec = XMVectorAdd(vecA, vecB);
         // Almacenar el resultado de vuelta en un XMFLOAT3  
-        XMFLOAT3 result;  
-        XMStoreFloat3(&result, resultVec);  
-        return result;  
+        XMFLOAT3 result;
+        XMStoreFloat3(&result, resultVec);
+        return result;
     }
-          
+
     XMFLOAT3 Add(const XMFLOAT3& v1, const XMFLOAT3& v2)
     {
         // Cargar los XMFLOAT3 a XMVECTOR
@@ -34,7 +34,7 @@ namespace DirectXUtils
         XMFLOAT3 result;
         XMStoreFloat3(&result, resultVec);
         return result;
-	}
+    }
 
     bool AreEqual(const XMFLOAT3& v1, const XMFLOAT3& v2)
     {
@@ -124,7 +124,7 @@ namespace DirectXUtils
         XMFLOAT3 result;
         XMStoreFloat3(&result, resultVec);
         return result;
-	}
+    }
 
     XMFLOAT3 Transform(const XMFLOAT3& v, const XMMATRIX& m)
     {
@@ -136,8 +136,8 @@ namespace DirectXUtils
         XMFLOAT3 result;
         XMStoreFloat3(&result, resultVec);
         return result;
-	}
-    
+    }
+
 
     // Función más específica para verificar si una normal apunta en una dirección cardinal
     bool IsNormalPointing(const XMFLOAT3& normal, const XMFLOAT3& direction, float dotThreshold) {
@@ -195,7 +195,7 @@ namespace DirectXUtils
     {
         // Convertir cada componente a string y concatenar
         return "X: " + std::to_string(v.x) + ", Y: " + std::to_string(v.y) + ", Z: " + std::to_string(v.z);
-	}
+    }
 
     DirectX::XMFLOAT4 GenerateRandomColor()
     {
@@ -218,5 +218,18 @@ namespace DirectXUtils
             Saturate(color.z),
             Saturate(color.w)
         };
+    }
+
+    DirectX::XMFLOAT3 ToXMFLOAT3(const std::vector<float>& vec) {
+        if (vec.size() != 3) {
+            throw std::invalid_argument("El vector debe tener exactamente 3 elementos para convertir a XMFLOAT3.");
+        }
+        return DirectX::XMFLOAT3{ vec[0], vec[1], vec[2] };
+    }
+    DirectX::XMFLOAT4 ToXMFLOAT4(const std::vector<float>& vec) {
+        if (vec.size() != 4) {
+            throw std::invalid_argument("El vector debe tener exactamente 4 elementos para convertir a XMFLOAT4.");
+        }
+        return DirectX::XMFLOAT4{ vec[0], vec[1], vec[2], vec[3] };
     }
 }

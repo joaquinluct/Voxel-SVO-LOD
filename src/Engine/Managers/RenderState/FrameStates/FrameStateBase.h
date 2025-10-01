@@ -1,12 +1,13 @@
 #pragma once
 
 #include <IFrameState.h>
+#include <Managers/DeviceManager.h>
 #include <memory>
 #include <RenderManager/Pipeline/PipelineState.h>
 
-
 class FrameStateBase : public IFrameState {
 public:
+    virtual void Initialize(std::shared_ptr<DeviceManager> deviceManager) {};
     bool IsInitialized() const { return m_initialized; }
     bool IsReady() const { return !m_dirty; }
     void MarkDirty() { m_dirty = true; }

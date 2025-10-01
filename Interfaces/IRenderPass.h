@@ -1,8 +1,8 @@
 #pragma once
 
 //#include <Defines/Pipeline.h>
-#include <Defines/ConcreteOperations.h>
 #include <IInitializable.h>
+#include <Managers/RenderManager/Pipeline/ConcreteOperations.h>
 #include <map>
 #include <memory>
 #include <string>

@@ -1,0 +1,60 @@
+# pipeline_slots_contracts.yaml
+Config:
+  Base:
+    Pipeline:      
+      ShaderMatrixSlots:
+        slots:
+          - MatrixBufferType # 0
+          - CameraData # 1
+          - DirectionalLight # 2
+          - MaterialData # 3
+          - TextureTransformations # 4
+          - LightSpaceMatrices # 5
+          - ProceduralSkyboxMatrix # 6
+          - WaterData # 7
+          - TimeData # 8
+          - WaterInstance # 9
+          - ShadowMapMatrices # 10
+          - TerrainBlendBuffer # 11
+          - Terrain2BlendBuffer # 12
+          - MatrixBufferTypeOrthographic # 13   
+      ShaderSamplerSlots:
+        slots:
+          - baseSampler # 0
+          - ShadowMapSampler # 1
+          - fontSampler # 3          
+      ShaderTextureSlots:
+        slots:
+          - albedoTexture # 0
+          - normalTexture # 1
+          - roughnessTexture # 2
+          - metallicTexture # 3
+          - aoTexture # 4
+          - ShadowMap # 5
+          - terrainTextures # 6 (Texture2DArray)
+          - fontTexture # 7
+      Pipeline:
+        mainViewport: ViewportMainColor
+        mainRenderTargetView: RenderTargetViewMainColor
+        mainStencilView: StencilViewMainColor
+        mainStencilState: StencilStateRegular
+          
+Definition:
+  Default:
+    language: 1 # C++
+    type: "Class"
+    needs_register: true
+    file_level: 3
+    register_include: "REGISTER_CONFIG_TYPE"
+    register_macro: "REGISTER_CONFIG_MACRO"
+    interface_name: "ConfigBase"
+    class_suffix: "Config"
+    class_prefix: ""
+    inherits_properties:
+        #- dependencies
+    output_path: 'c:\Users\joaqu\source\repos\DirectX-Voxelado\src\Engine\Core\Config\Base\'
+  # Classes:
+  #   ShaderMatrixSlots:
+  #       interface_name: ConfigBase
+  #   ShaderSamplerSlots:
+  #       interface_name: ConfigBase

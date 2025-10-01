@@ -11,10 +11,10 @@ TerrainConfig::TerrainConfig(){
 	seed = 1234567890;
 	procedural_engine = 1;
 	chunk_size = 128;
-	initialRenderDistanceChunks = 30;
-	worldWidth = 2048.0f;
-	worldHeight = 2048.0f;
-	terrainHeight = 2.0f;
+	initialRenderDistanceChunks = 40;
+	worldWidth = 163840.0f;
+	worldHeight = 163840.0f;
+	terrainHeight = 3.164f;
 	waterLevel = -2.0f;
 	dependencies = {
 		"ChunkService",

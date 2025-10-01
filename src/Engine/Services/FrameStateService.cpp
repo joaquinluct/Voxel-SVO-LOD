@@ -1,7 +1,9 @@
 #include "stdafx.h"
 #include "FrameStateService.h"
 #include <../Includes/FrameStates.h>
+#include <Defines/Contants/FrameState.h>
 #include <Defines/FrameStateDefinition.h>
+#include <Locators/ManagerLocator/ManagerLocator.h>
 #include <Locators/Registers/REGISTER_SERVICE_MACRO.h>
 #include <mutex>
 #include <vector>
@@ -16,6 +18,11 @@ FrameStateService::~FrameStateService() {
 }
 
 HRESULT FrameStateService::Init() {
+
+    m_deviceManager = ManagerLocator::GetDeviceManager();
+    if (!m_deviceManager) {
+        return E_FAIL;
+    }
     // Inicialización de todos los buffers de estado
     // Esto asegura que todos los estados estén disponibles desde el inicio
     /*GetBuffer(FRAME_STATE_CAMERA);
@@ -74,8 +81,8 @@ TimeFrameState* FrameStateService::TimeState(bool FromReadBuffer) {
 PassFrameState* FrameStateService::PassState(bool FromReadBuffer) {
     return GetData<PassFrameState>(FRAME_STATE_PASS, FromReadBuffer);
 }
-ViewportFrameState* FrameStateService::ViewportState(bool FromReadBuffer) {
-    return GetData<ViewportFrameState>(FRAME_STATE_VIEWPORT, FromReadBuffer);
+ConstantsBufferFrameState* FrameStateService::ConstantBuffersState(bool FromReadBuffer) {
+    return GetData<ConstantsBufferFrameState>(FRAME_STATE_CONSTANT_BUFFERS, FromReadBuffer);
 }
 ShaderFrameState* FrameStateService::ShaderState(bool FromReadBuffer) {
     return GetData<ShaderFrameState>(FRAME_STATE_SHADER, FromReadBuffer);
@@ -85,6 +92,9 @@ PipelineFrameState* FrameStateService::PipelineState(bool FromReadBuffer) {
 }
 RenderFrameState* FrameStateService::RenderState(bool FromReadBuffer) {
     return GetData<RenderFrameState>(FRAME_STATE_RENDER, FromReadBuffer);
+}
+MeshesFrameState* FrameStateService::MeshesState(bool FromReadBuffer) {
+    return GetData<MeshesFrameState>(FRAME_STATE_MESHES, FromReadBuffer);
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -153,23 +163,12 @@ std::shared_ptr<FrameStateBuffer> FrameStateService::CreateState(std::string_vie
     return threadData;
 }
 
-// ---------------------------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------------------------
 // SwapBuffers
 //	Intercambia los índices de lectura y escritura para todos los estados,
-//	permitiendo que los datos escritos en el buffer de escritura se lean en el siguiente ciclo de renderizado.
-// ---------------------------------------------------------------------------------------------------------------
-
-// Este método intercambia el valor de los índices de todos los búferes
-void FrameStateService::SwapBuffers() {
-    for (auto& [key, buffer] : m_data) {
-        buffer->mutex.lock();
-        int writeIndex = buffer->writeIndex.load();
-        int readIndex = buffer->readIndex.load();
-        buffer->writeIndex.store(readIndex);
-        buffer->readIndex.store(writeIndex);
-        buffer->mutex.unlock();
-    }
-}
+//	permitiendo que los datos escritos en el buffer de escritura se lean
+//  en el siguiente ciclo de renderizado.
+// -----------------------------------------------------------------------------------------------
 
 // Este método intercambia el valor de los índices del nombre del bufer pasado.
 void FrameStateService::SwapBuffer(std::string_view stateName) {
@@ -185,15 +184,30 @@ void FrameStateService::SwapBuffer(std::string_view stateName) {
     }
 }
 
+// Este método intercambia el valor de los índices de todos los búferes
+void FrameStateService::SwapBuffers() {
+    for (auto& [key, buffer] : m_data) {
+        SwapBuffer(key);
+    }
+}
+
 // Este método pasa los valores reales de los búferes de escritura
 // de cada uno a de lectura.
-void FrameStateService::SwapBuffersContent() {
-    for (auto& [key, buffer] : m_data) {
+void FrameStateService::SwapBufferContent(std::string_view stateName) {
+    const auto& state = m_data.find(stateName);
+    if (state != m_data.end()) {
+        auto& buffer = state->second;
         buffer->mutex.lock();
         int writeIndex = buffer->writeIndex.load();
         int readIndex = buffer->readIndex.load();
         buffer->buffers[readIndex] = buffer->buffers[writeIndex];
         buffer->mutex.unlock();
+    }
+}
+
+void FrameStateService::SwapBuffersContent() {
+    for (auto& [key, buffer] : m_data) {
+        SwapBufferContent(key);
     }
 }
 
@@ -269,6 +283,23 @@ void FrameStateService::Unlock(std::string_view stateName) {
     if (state != m_data.end()) {
         state->second->mutex.unlock();
     }
+}
+
+bool FrameStateService::TryLock(std::string_view stateName) {
+    const auto& state = m_data.find(stateName);
+    if (state != m_data.end()) {
+        return state->second->mutex.try_lock();
+    }
+    return true;
+}
+
+// Control del Rendering Stateç
+// ---------------------------------------------------------------------------------------------------------------
+void FrameStateService::BeginRendering() {
+    m_isRendering = true;
+}
+void FrameStateService::EndRendering() {
+    m_isRendering = false;
 }
 
 // ---------------------------------------------------------------------------------------------------------------

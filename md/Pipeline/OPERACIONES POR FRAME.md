@@ -9,7 +9,7 @@ Aquí tienes el resumen de las operaciones de renderizado en un frame típico, o
 | **🎬 Inicio del Frame** | `ID3D11DeviceContext::OMSetRenderTargets` | Vincula los render targets (como el back buffer y el depth-stencil buffer) al pipeline. |
 | | `ID3D11DeviceContext::ClearRenderTargetView` | Limpia el render target (la pantalla) con un color de fondo. |
 | | `ID3D11DeviceContext::ClearDepthStencilView` | Limpia el depth-stencil buffer para las nuevas pruebas de profundidad. |
-| | `ID3D11DeviceContext::RSSetViewports` | Establece el área de la pantalla donde se va a dibujar. |
+| | ✅`ID3D11DeviceContext::RSSetViewports` | Establece el área de la pantalla donde se va a dibujar. |
 | | `ID3D11DeviceContext::VSSetConstantBuffers` | Vincula los constant buffers con datos que no cambian en todo el frame (ej. matrices de la cámara). |
 | | `ID3D11DeviceContext::PSSetConstantBuffers` | Lo mismo que el anterior, pero para el pixel shader. |
 | **🔄 Bucle por Cada Objeto (Mesh)** | `ID3D11DeviceContext::IASetInputLayout` | Vincula el input layout que describe el formato de los vértices. |

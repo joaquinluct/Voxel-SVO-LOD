@@ -9,7 +9,8 @@ BaseIndexConfig::BaseIndexConfig(){
 		"TextureAsset",
 		"VertexAsset",
 		"TerrainAsset",
-		"MeshAsset"
+		"MeshAsset",
+		"UIAsset"
 	};
 	post_init = {
 		"none"

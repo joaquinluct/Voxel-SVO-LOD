@@ -13,6 +13,4 @@ public:
 		static const std::string className = "ShadowPassConfig";
 		return className;
 	}
-	int id;
-	bool enabled;
 };

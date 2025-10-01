@@ -240,10 +240,10 @@ HRESULT InitManager::Init(EngineContext* context)
 
     OutputDebugStringA("[InitManager] Post-inicialización - OK.\n");
 
-    hr = InitPipeline(context);
+    /*hr = InitPipeline(context);
     if (FAILED(hr)) {
         return hr;
-    }
+    }*/
 
     OutputDebugStringA("[InitManager] Inicialización del pipeline - OK.\n");
 

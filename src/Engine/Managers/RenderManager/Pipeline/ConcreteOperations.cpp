@@ -1,6 +1,11 @@
 #include "ConcreteOperations.h"
 #include <cstring>
 #include <d3d11.h>
+#include <Defines/Matrix/MatrixDefinitionBase.h>
+#include <Defines/Structs/PipelineResources.h>
+#include <stdexcept>
+#include <Windows.h>
+#include <wrl/client.h>
 
 // Implementación de las clases existentes
 
@@ -117,6 +122,67 @@ void SetSamplerOperation::Execute(ID3D11DeviceContext* context) {
     context->PSSetSamplers(m_startSlot, m_samplers.size(), m_samplers.data()->GetAddressOf());
 }
 
+UpdateSubresourceOperation::UpdateSubresourceOperation(ID3D11Resource* resource, const void* data) : m_resource(resource), m_data(data)
+{
+}
+
+void UpdateSubresourceOperation::Execute(ID3D11DeviceContext* context) {
+    context->UpdateSubresource(m_resource.Get(), 0, nullptr, m_data, 0, 0);
+}
+
+MapUnmapOperation::MapUnmapOperation(ID3D11Buffer* buffer, const void* data, size_t dataSize)
+{
+    m_buffer = buffer;
+    m_data = data;
+    this->dataSize = dataSize;
+}
+
+void MapUnmapOperation::Execute(ID3D11DeviceContext* context) {
+    D3D11_MAPPED_SUBRESOURCE mappedResource;
+    HRESULT hr = context->Map(
+        m_buffer.Get(),
+        0,
+        D3D11_MAP_WRITE_DISCARD,
+        0,
+        &mappedResource
+    );
+
+    if (FAILED(hr)) {
+        return;
+    }
+    // CORRECCIÓN PRINCIPAL: Quitar el '&' del puntero 'data'
+    memcpy(mappedResource.pData, m_data, dataSize);
+
+    context->Unmap(m_buffer.Get(), 0);
+}
+
+MapUnmapGeometryOperation::MapUnmapGeometryOperation(ID3D11Buffer* vb, ID3D11Buffer* ib, std::vector<uint8_t> vData, std::vector<UINT> iData)
+{
+    vertexBuffer = vb;
+    indexBuffer = vb;
+    vertexData = vData;
+    indexData = iData;
+}
+
+void MapUnmapGeometryOperation::Execute(ID3D11DeviceContext* context) {
+    D3D11_MAPPED_SUBRESOURCE mappedVertices;
+    D3D11_MAPPED_SUBRESOURCE mappedIndices;
+
+    HRESULT hr = context->Map(vertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedVertices);
+    if (FAILED(hr)) return;
+    hr = context->Map(indexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedIndices);
+    if (FAILED(hr)) {
+        context->Unmap(vertexBuffer, 0);
+        return;
+    }
+
+    memcpy(mappedVertices.pData, vertexData.data(), vertexData.size());
+    memcpy(mappedIndices.pData, indexData.data(), indexData.size() * sizeof(UINT));
+
+    context->Unmap(vertexBuffer, 0);
+    context->Unmap(indexBuffer, 0);
+}
+
 UpdateConstantsBufferOperation::UpdateConstantsBufferOperation(ID3D11Buffer* buffer, const std::vector<char>& data)
     : m_buffer(buffer), m_data(data) {
 }
@@ -128,20 +194,34 @@ void UpdateConstantsBufferOperation::Execute(ID3D11DeviceContext* context) {
     context->Unmap(m_buffer.Get(), 0);
 }
 
-BindConstantsBuffersOperation::BindConstantsBuffersOperation(const std::vector<ID3D11Buffer*>& buffers, UINT startSlot)
-    : m_startSlot(startSlot) {
-    for (auto& buffer : buffers) {
-        m_buffers.push_back(buffer);
-    }
+BindConstantsBuffersOperation::BindConstantsBuffersOperation(std::vector<PipelineConstantBufferResource>& constantBuffers, UINT startSlot)
+    : m_startSlot(startSlot), m_constantBuffers(constantBuffers) {
 }
 
 void BindConstantsBuffersOperation::Execute(ID3D11DeviceContext* context) {
-    std::vector<ID3D11Buffer*> pBuffers;
-    for (const auto& buffer : m_buffers) {
+    //std::vector<ID3D11Buffer*> pBuffers;
+    /*for (const auto& buffer : m_buffers) {
         pBuffers.push_back(buffer.Get());
     }
     context->VSSetConstantBuffers(m_startSlot, pBuffers.size(), pBuffers.data());
-    context->PSSetConstantBuffers(m_startSlot, pBuffers.size(), pBuffers.data());
+    context->PSSetConstantBuffers(m_startSlot, pBuffers.size(), pBuffers.data());*/
+
+    for (auto& cbResource : m_constantBuffers) {
+        if (!cbResource.buffer) continue;
+        ID3D11Buffer* res = cbResource.buffer.Get();
+        if (!res) continue;
+
+        if (cbResource.slot == 0) {
+            bool a = false;
+        }
+
+        if (cbResource.matrixType == MATRIX_TYPE_VERTEX) {
+            context->VSSetConstantBuffers(cbResource.slot, 1, &res);
+        }
+        else {
+            context->PSSetConstantBuffers(cbResource.slot, 1, &res);
+        }
+    }
 }
 
 DrawOperation::DrawOperation(UINT vertexCount, UINT startVertexLocation)
@@ -163,16 +243,18 @@ void DrawIndexedOperation::Execute(ID3D11DeviceContext* context) {
 
 // --- Implementaciones de las nuevas operaciones ---
 
-CreateRasterizerStateOperation::CreateRasterizerStateOperation(ID3D11Device* device, const D3D11_RASTERIZER_DESC& desc)
-    : m_device(device), m_desc(desc) {
+CreateRasterizerStateOperation::CreateRasterizerStateOperation(ID3D11Device* device, D3D11_RASTERIZER_DESC& desc, Microsoft::WRL::ComPtr<ID3D11RasterizerState> state)
+    : m_device(device), m_desc(desc), m_state(state) {
 }
 
 void CreateRasterizerStateOperation::Execute(ID3D11DeviceContext* context) {
     if (m_device) {
         HRESULT hr = m_device->CreateRasterizerState(&m_desc, m_state.GetAddressOf());
         if (FAILED(hr)) {
+            throw std::runtime_error("Failed to create rasterizer state");
             // Manejar error
         }
+        context->RSSetState(m_state.Get());
     }
 }
 

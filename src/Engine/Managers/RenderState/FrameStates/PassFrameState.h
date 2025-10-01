@@ -13,10 +13,10 @@
 
 class PassFrameState : public FrameStateBase {
 public:
-    PassFrameState(): passes{}  {};
-	virtual ~PassFrameState() = default;
-	const PassConfigBase& GetConfig() const { return config; }
-	void SetConfig(const PassConfigBase& cfg) { config = cfg; }
+    PassFrameState() : passes{} {};
+    virtual ~PassFrameState() = default;
+    const PassConfigBase& GetConfig() const { return config; }
+    void SetConfig(const PassConfigBase& cfg) { config = cfg; }
 
     std::shared_ptr<PipelineState> GetNextPass() {
         m_idxPass++;
@@ -33,9 +33,9 @@ public:
     void AddPass(std::shared_ptr<PipelineState> pass) {
         passes.push_back(pass);
     }
-    void ReplacePasses(std::vector<std::shared_ptr<PipelineState>>& newPasses) {        
-		passes = newPasses;        
-	}
+    void ReplacePasses(std::vector<std::shared_ptr<PipelineState>>& newPasses) {
+        passes = newPasses;
+    }
     void ClearPasses() {
         passes.clear();
         m_idxPass = 0;

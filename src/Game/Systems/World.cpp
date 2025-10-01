@@ -1,9 +1,19 @@
 #include "World.h"
+#include <Assets/Base/MeshAssetBase.h>
+#include <chrono>
 #include <ConfigLocator/ConfigLocator.h>
+#include <Defines/Contants/Flags/World.h>
+#include <Defines/WorldDefinition.h>
+#include <Game/System/WorldConfig.h>
+#include <Game/Systems/Skybox.h>
+#include <Game/Systems/Terrain.h>
 #include <ManagerLocator/ManagerLocator.h>
+#include <Managers/CameraManager.h>
 #include <REGISTER_SERVICE_MACRO.h>
 #include <ServiceLocator/ServiceLocator.h>
 #include <Services/Mouse.h>
+#include <vector>
+#include <Windows.h>
 
 REGISTER_SERVICE_TYPE(World, "World")
 
@@ -18,6 +28,7 @@ World::World()
     m_text = nullptr;
     m_text2 = nullptr;
     m_water = nullptr;
+    m_line = nullptr;
 }
 
 World::~World()
@@ -57,13 +68,18 @@ HRESULT World::InitConfig() {
 // ----------------------------------------------------------------
 HRESULT World::InitSystems() {
     HRESULT hr = S_OK;
+
     if (WorldDefinition::HasCronos(m_gameFlags)) {
         m_chronos = ServiceLocator::GetService<Chronos>();
         if (!m_chronos) {
             return E_FAIL;
         }
     }
-    if (WorldDefinition::HasTerrain(m_gameFlags)) {
+
+    bool hasTerrain = WorldDefinition::HasTerrain(m_gameFlags);
+    this->flags.SetFlag(FLAG_WORLD_HAS_TERRAIN, hasTerrain);
+
+    if (hasTerrain) {
         m_terrain = ServiceLocator::GetService<Terrain>();
         if (!m_terrain) {
             return E_FAIL;
@@ -102,6 +118,18 @@ HRESULT World::Init()
 // ----------------------------------------------------------------
 HRESULT World::PostInit()
 {
+    bool hasSkybox = WorldDefinition::HasSkybox(m_gameFlags);
+    if (hasSkybox) {
+        m_skybox = ServiceLocator::GetService<Skybox>();
+        if (!m_skybox) {
+            return E_FAIL;
+        }
+        HRESULT hr = m_skybox->Init();
+        if (FAILED(hr)) {
+            return hr;
+        }
+    }
+
     /*HRESULT hr = S_OK;
     std::shared_ptr<RenderManager> m_renderManager = ManagerLocator::GetManager<RenderManager>();
     m_text = m_renderManager->SceneManagerGet()->RegisterTextMeshAsUnique("UITextMesh", "World_texto1");
@@ -182,7 +210,32 @@ const std::chrono::system_clock::time_point& World::GetCurrentSimulatedDateTime(
     return result;
 }
 
-bool World::HasHeight() {
+// ----------------------------------------------------------------
+// Devuelve un vector con todos los meshes del mundo
+// (skybox, terrain, water, etc)
+// ----------------------------------------------------------------
+const std::vector<MeshAssetBase*> World::GetMeshes() const
+{
+    bool hasSkybox = WorldDefinition::HasSkybox(m_gameFlags);
+    bool hasTerrain = WorldDefinition::HasTerrain(m_gameFlags);
+
+    std::vector<MeshAssetBase*> meshes;
+    if (hasSkybox && m_skybox) {
+        MeshAssetBase* skyboxMesh = m_skybox->GetMesh();
+        if (skyboxMesh) {
+            meshes.push_back(skyboxMesh);
+        }
+    }
+    if (hasTerrain && m_terrain) {
+        MeshAssetBase* terrainAsset = m_terrain->GetTerrainMesh();
+        if (terrainAsset) {
+            meshes.push_back(terrainAsset);
+        }
+    }
+    return meshes;
+}
+
+bool World::HasHeight() const {
     return (m_terrain != nullptr);
 }
 

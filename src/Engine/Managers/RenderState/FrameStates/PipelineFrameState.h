@@ -2,7 +2,7 @@
 
 #include "FrameStateBase.h"
 #include <d3d11.h>
-#include <Defines/ConcreteOperations.h>
+#include <Managers/RenderManager/Pipeline/ConcreteOperations.h>
 #include <Defines/Enums/Matrix.h>
 #include <Defines/Matrix/MatrixDefinition.h>
 #include <Defines/Matrix/MatrixDefinitionBase.h>
@@ -32,7 +32,6 @@ struct PipelineConstantBufferFrameState {
 
 class PipelineFrameState : public FrameStateBase {
 public:
-
     // PIPELINE STATES RESOURCES CREATORS
     const void CreateBackBuffer() {
         if (m_device && m_swapChain) {

@@ -1,6 +1,9 @@
 #pragma once
 
+#include <cstdint>
 #include <d3d11.h>
+#include <d3dcommon.h>
+#include <Defines/Structs/PipelineResources.h>
 #include <dxgi.h>
 #include <vector>
 #include <wrl/client.h>
@@ -184,6 +187,39 @@ private:
     UINT m_startSlot;
 };
 
+// Actualizar buffer de geometría
+class MapUnmapGeometryOperation : public PipelineOperation {
+public:
+    MapUnmapGeometryOperation(ID3D11Buffer* vb, ID3D11Buffer* ib, std::vector<uint8_t> vData, std::vector<UINT> iData);
+    void Execute(ID3D11DeviceContext* context) override;
+private:
+    ID3D11Buffer* vertexBuffer;
+    ID3D11Buffer* indexBuffer;
+    std::vector<uint8_t> vertexData;
+    std::vector<UINT> indexData;
+};
+
+// Actualizar un buffer por subResource
+class UpdateSubresourceOperation : public PipelineOperation {
+public:
+    UpdateSubresourceOperation(ID3D11Resource* resource, const void* data);
+    void Execute(ID3D11DeviceContext* context) override;
+private:
+    Microsoft::WRL::ComPtr<ID3D11Resource> m_resource;
+    const void* m_data; // Copia de los datos para asegurar su validez durante la ejecución
+};
+
+// Actualizar un buffer con map/unmap
+class MapUnmapOperation : public PipelineOperation {
+public:
+    MapUnmapOperation(ID3D11Buffer* buffer, const void* data, size_t dataSize);
+    void Execute(ID3D11DeviceContext* context) override;
+private:
+    Microsoft::WRL::ComPtr<ID3D11Buffer> m_buffer;
+    const void* m_data; // Copia de los datos para asegurar su validez durante la ejecución
+    size_t dataSize;
+};
+
 // Actualiza un búfer de constantes con nuevos datos.
 class UpdateConstantsBufferOperation : public PipelineOperation {
 public:
@@ -197,10 +233,10 @@ private:
 // Vincula búferes de constantes.
 class BindConstantsBuffersOperation : public PipelineOperation {
 public:
-    BindConstantsBuffersOperation(const std::vector<ID3D11Buffer*>& buffers, UINT startSlot);
+    BindConstantsBuffersOperation(std::vector<PipelineConstantBufferResource>& constantBuffers, UINT startSlot);
     void Execute(ID3D11DeviceContext* context) override;
 private:
-    std::vector<Microsoft::WRL::ComPtr<ID3D11Buffer>> m_buffers;
+    std::vector<PipelineConstantBufferResource>& m_constantBuffers;
     UINT m_startSlot;
 };
 
@@ -230,7 +266,7 @@ private:
 
 class CreateRasterizerStateOperation : public PipelineOperation {
 public:
-    CreateRasterizerStateOperation(ID3D11Device* device, const D3D11_RASTERIZER_DESC& desc);
+    CreateRasterizerStateOperation(ID3D11Device* device, D3D11_RASTERIZER_DESC& desc, Microsoft::WRL::ComPtr<ID3D11RasterizerState> state);
     void Execute(ID3D11DeviceContext* context) override;
 private:
     Microsoft::WRL::ComPtr<ID3D11Device> m_device;

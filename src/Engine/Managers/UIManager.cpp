@@ -1,16 +1,16 @@
 // UIManager.cpp
 #include "UIManager.h"
+#include <Assets/Base/MeshAsset.h>
+#include <DeviceManager.h>
 #include <ManagerLocator/ManagerLocator.h>
 #include <UI/UIText.h>
-#include <DeviceManager.h>
-#include <Assets/Base/MeshAsset.h>
 //#include <UI/UIElement.h>
 
 #include <REGISTER_MANAGER_MACRO.h>
 
 REGISTER_MANAGER_TYPE(UIManager, "UIManager")
 
-UIManager::UIManager() : m_deviceManager(nullptr), m_orthoMatrix{} {	
+UIManager::UIManager() : m_deviceManager(nullptr), m_orthoMatrix{}, m_uiAsset{ nullptr } {
 }
 
 UIManager::~UIManager()
@@ -18,28 +18,28 @@ UIManager::~UIManager()
     Shutdown();
 }
 UIText* UIManager::InitText(std::shared_ptr<MeshAsset> mesh, std::vector<std::shared_ptr<VertexDefinition::VertexVariant>>& vertexDef) {
-	std::string meshName = mesh->GetName();
+    std::string meshName = mesh->GetName();
     UIText* textElement;
     if (m_textElements.find(meshName) != m_textElements.end()) {
-		return m_textElements[meshName];
+        return m_textElements[meshName];
     }
-	textElement = new UIText();
-	textElement->SetMesh(mesh);
+    textElement = new UIText();
+    textElement->SetMesh(mesh);
     textElement->Init();
     textElement->SetText("Texto inicial.");
     textElement->SetFontSize(24.0f);
-	textElement->SetPosition(10.0f, 10.0f); // Posición inicial del texto
+    textElement->SetPosition(10.0f, 10.0f); // Posición inicial del texto
     textElement->CreateMesh(vertexDef);
     m_textElements[meshName] = textElement;
     return textElement;
 }
 
 UIText* UIManager::UpdateText(std::string meshName, std::string text) {
-	auto it = m_textElements.find(meshName);
+    auto it = m_textElements.find(meshName);
     if (it == m_textElements.end()) {
         return nullptr;
     }
-	UIText* textElement = it->second;
+    UIText* textElement = it->second;
     textElement->SetText(text);
     return textElement;
 }
@@ -85,7 +85,7 @@ HRESULT UIManager::Init(EngineContext* context)
 //}
 
 void UIManager::Render()
-{    
+{
     // Crear una matriz de mundo identidad para la UI
     //DirectX::XMMATRIX uiWorldMatrix = DirectX::XMMatrixIdentity();
     //m_deviceManager->EnableAlphaBlending();
@@ -103,13 +103,13 @@ void UIManager::Shutdown()
 {
     /*for (UIElement* element : uiElements)
     {
-		SafeRelease(element);
+        SafeRelease(element);
     }
     uiElements.clear();*/
     for (auto& textElement : m_textElements)
-    {        
+    {
         delete(textElement.second);
-	}
+    }
 }
 
 //void UIManager::AddElement(UIElement* element)

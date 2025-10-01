@@ -8,9 +8,9 @@
 #include <Defines/TimeDefinition.h>
 
 class TimeFrameState : public FrameStateBase {
-public:	
-	static TimeDefinition::TimeData GetTimeData() {
-		return TimeDefinition::TimeData{ .time = DateTime::GetTimeInSeconds() };
-	};
+public:
+    static TimeDefinition::TimeData GetTimeData() {
+        return TimeDefinition::TimeData{ .time = DateTime::GetTimeInSeconds() };
+    };
 };
 

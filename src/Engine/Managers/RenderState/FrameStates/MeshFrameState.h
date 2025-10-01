@@ -4,8 +4,6 @@
 #include <Assets/Base/MeshAsset.h>
 #include <vector>
 
-struct PipelineSetVertexBufferData;
-
 class MeshFrameState : public FrameStateBase {
 public:
     MeshFrameState() : FrameStateBase(), m_currentMeshIndex(0), m_currentMesh(nullptr), m_meshes{}, meshAsset{ nullptr } {}

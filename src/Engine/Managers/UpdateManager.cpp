@@ -3,6 +3,7 @@
 #include <Assets/Base/MeshAsset.h>
 #include <CameraManager.h>
 #include <cstdlib>
+#include <Defines/Contants/FrameState.h>
 #include <functional>
 #include <Game/Systems/Lighting.h>
 #include <Game/Systems/Skybox.h>
@@ -47,7 +48,7 @@ void UpdateManager::RunLoop()
         Update(m_context->deltaTime);
 
         // Pequeña pausa para evitar el uso excesivo de la CPU
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        //std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
 }
@@ -216,12 +217,12 @@ FrameStateBase* UpdateManager::UpdatePassState(float deltaTime) {
     PassFrameState* pass = m_frameStateService->PassState(false);
     return pass;
 }
-FrameStateBase* UpdateManager::UpdateViewportState(float deltaTime) {
-    ViewportFrameState* viewport = m_frameStateService->ViewportState(false);
-    if (!viewport->IsInitialized()) {
+FrameStateBase* UpdateManager::UpdateConstantBuffersState(float deltaTime) {
+    ConstantsBufferFrameState* cBuffer = m_frameStateService->ConstantBuffersState(false);
+    /*if (!cBuffer->IsInitialized()) {
         viewport->SetViewports(m_frameStateService->PipelineState(false)->GetAllViewports());
-    }
-    return viewport;
+    }*/
+    return cBuffer;
 }
 FrameStateBase* UpdateManager::UpdateShaderState(float deltaTime) {
     // Estamos al final del Update de todos los servicios y managers, por lo que el shader debe ser re-seteado.    

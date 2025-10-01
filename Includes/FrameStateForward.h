@@ -16,7 +16,8 @@ class PassFrameState;
 class TerrainFrameState;
 class TimeFrameState;
 class PipelineFrameState;
-class ViewportFrameState;
+class ConstantsBufferFrameState;
 class WaterFrameState;
 class RenderFrameState;
+class MeshsesFrameState;
 

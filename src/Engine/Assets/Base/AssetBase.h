@@ -1,9 +1,10 @@
 #pragma once
 
 #include "ConfigBase.h"
-#include <Config/ITextureConfig.h>
+#include <GUID.h>
 #include <IAsset.h> // Esto incluye ILifeCycle y todas sus interfaces base.
 #include <string>
+#include <Windows.h>
 
 class AssetBase : public IAsset
 {
@@ -32,7 +33,9 @@ public:
     const std::string& GetAssetName() const {
         return m_assetName;
     }
+    const std::string& GetID() const { return id; }
 protected:
     // Puedes agregar un miembro para el nombre si GetAssetName lo va a devolver.
     std::string m_assetName;
+    std::string id = generateUID();
 };

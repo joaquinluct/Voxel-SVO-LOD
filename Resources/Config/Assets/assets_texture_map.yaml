@@ -1,0 +1,70 @@
+# assets_texture_map.yaml
+Config:
+  Asset:
+    TextureMap:
+      TextureTextUIMap:
+        texture_type: "JPG"
+        albedo: "Assets\\Textures\\UI\\DejaVuSansMono.jpg"
+      TextureGrassDiffuseMap:
+         texture_type: "JPG"
+         albedo: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\Coast_sand_rock\\coast_sand_rocks_02_diff_4k.jpg"
+         normal: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\Coast_sand_rock\\coast_sand_rocks_02_nor_dx_4k.jpg"
+         roughness: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\Coast_sand_rock\\coast_sand_rocks_02_rough_4k.jpg"
+         metallic: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\Coast_sand_rock\\coast_sand_rocks_02_arm_4k.jpg"
+         ao: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\Coast_sand_rock\\coast_sand_rocks_02_ao_4k.jpg"
+      TextureBricks001Map:
+        texture_type: "JPG"
+        albedo: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Brick\\Poliigon_BrickWallReclaimed_8320_BaseColor.jpg"
+        normal: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Brick\\Poliigon_BrickWallReclaimed_8320_Normal.png"
+        roughness: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Brick\\Poliigon_BrickWallReclaimed_8320_Roughness.jpg"
+        metallic: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Brick\\Poliigon_BrickWallReclaimed_8320_Metallic.jpg"
+        ao: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Brick\\Poliigon_BrickWallReclaimed_8320_AmbientOcclusion.jpg"
+        displacement: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Brick\\Poliigon_BrickWallReclaimed_8320_Displacement.tiff"
+      DefaultSkyboxMap:
+        texture_type: "CUBEMAP"
+        # albedo: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Skybox\\skybox_sun.dds"
+        albedo: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Skybox\\defaultSkybox.dds"
+      ProceduralTerrainTextureMap:
+        texture_type: "JPG_ARRAY"
+        texture2DArray: 
+            - "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Grass\\GrassPatchyGround\\Poliigon_GrassPatchyGround_4585_BaseColor.jpg"
+            - "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Dirt\\GroundDirtWeedsPatchy\\GroundDirtWeedsPatchy004_COL_2K.jpg"
+            - "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\Coast_sand_rock\\coast_sand_rocks_02_diff_2k.jpg"
+            - "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Sand\\GroundSand005\\GroundSand005_COL_2K.jpg"
+            - "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Snow\\IA\\snow_albedo.jpg"
+            - "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Grass\\GrassPatchyGround\\Poliigon_GrassPatchyGround_4585_Normal.png"
+            - "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Dirt\\GroundDirtWeedsPatchy\\GroundDirtWeedsPatchy004_NRM_2K.jpg"
+            - "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\Coast_sand_rock\\coast_sand_rocks_02_nor_dx_2k.jpg"
+            - "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Sand\\GroundSand005\\GroundSand005_NRM_2K.jpg"
+            - "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Snow\\IA\\snow_normal.jpg"
+            - "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Grass\\GrassPatchyGround\\Poliigon_GrassPatchyGround_4585_Roughness.jpg"
+            - "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Dirt\\GroundDirtWeedsPatchy\\GroundDirtWeedsPatchy004_GLOSS_2K.jpg"
+            - "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\Coast_sand_rock\\coast_sand_rocks_02_rough_2k.jpg"
+            - "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Sand\\GroundSand005\\GroundSand005_GLOSS_2K.jpg"
+            - "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Snow\\IA\\snow_roughness.jpg"
+Definition:
+  Default:
+    language: 1 # C++
+    type: "Class"
+    needs_register: true
+    file_level: 3
+    register_include: "REGISTER_CONFIG_TYPE"
+    register_macro: "REGISTER_CONFIG_MACRO"
+    interface_name: "ITextureMapConfig"
+    class_suffix: "Config"
+    class_prefix: ""
+    object_class:
+        maps: ""
+    inherits_properties:
+        - type
+        - definition
+        - albedo
+        - normal
+        - roughness
+        - metallic
+        - ao
+        - texture_type
+        - texture2DArray
+        - dependencies
+    # output_path: 'C:\Users\joaqu\source\repos\DirectX-Voxelado\TestConfig\Assets\'
+    output_path: 'c:\Users\joaqu\source\repos\DirectX-Voxelado\src\Engine\Core\Config\Assets\'
