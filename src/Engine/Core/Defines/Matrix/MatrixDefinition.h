@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CameraMatrix.h"
+//#include "Fog.h"
 #include "Light.h"
 #include "MaterialMatrix.h"
 #include "MatrixDefinitionBase.h"
@@ -172,7 +173,8 @@ namespace MatrixDefinition {
         SkyboxMatrix::ProceduralSkyboxMatrix,   // Matriz para Procedural Skybox
         WaterMatrices::WaterData,               // Datos de agua para PBR
         WaterMatrices::WaterInstancing,         // Datos de instanciación de agua
-        TimeMatrices::TimeData                  // Datos de tiempo para animaciones
+        TimeMatrices::TimeData                 // Datos de tiempo para animaciones
+        //Fog::FogBuffer                          // Datos de niebla
     >;
 
     // Declaración de la función Get para crear instancias de los buffers

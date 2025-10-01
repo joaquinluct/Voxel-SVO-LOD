@@ -1,20 +1,16 @@
 #pragma once
 
-#include <functional>
-#include <memory>
-#include <IService.h>
-#include <IProceduralEngine.h>
 #include <Defines/Procedural.h>
+#include <IService.h>
+#include <memory>
+#include <string>
+#include <Windows.h>
 //#include <Defines/WorldTerrain.h>
 
 namespace WorldTerrain {
     // Declaración anticipada de la struct anidada
     struct TerrainProceduralDefinition;
 }
-//namespace Procedural {
-//    // Declaración anticipada de la struct anidada
-//    struct ProceduralEngine;
-//}
 
 class ProceduralEngineBase;
 
@@ -45,5 +41,5 @@ public:
 
     std::shared_ptr<ProceduralEngineBase> GetEngine() const {
         return m_engine;
-	}
+    }
 };

@@ -172,6 +172,7 @@ Config:
             - TextureTransformations
             - LightSpaceMatrices
             - Terrain2BlendBuffer
+            # - FogBuffer
         sampler_slots:
             - baseSampler
             - ShadowMapSampler

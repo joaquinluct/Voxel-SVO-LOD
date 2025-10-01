@@ -1,12 +1,15 @@
 #include "MainWindow.h"
 #include <../Resources/resource.h>
-#include <stdafx.h>
+#include <Defines/EngineDefinition.h>
+#include <memory>
+#include <profileapi.h>
+#include <Windows.h>
 
 // -------------------------------------------------------------------------------
 // Límite máximo para el tiempo delta para evitar saltos grandes en la simulación.
 // -------------------------------------------------------------------------------
-const float MAX_DELTA_TIME = 0.1f;
-const float MIN_DELTA_TIME = 0.0042f;
+const float MAX_DELTA_TIME = 0.052f;
+const float MIN_DELTA_TIME = 0.042f;
 
 //--------------------------------------------------------------------------------------
 // Variable estática para el puntero a la instancia de MainWindow.
@@ -50,16 +53,16 @@ int MainWindow::Create(int width, int height) {
     // ----------------------------------
     // Iniciar la aplicación.
     // ----------------------------------
-    m_context = {};
-    m_context.width = static_cast<float>(width);
-    m_context.height = static_cast<float>(height);
-    m_context.hWnd = &m_hWnd;
-    m_context.hInstance = m_hInstance;
-    m_context.nCmdShow = m_nCmdShow;
+    m_context = new EngineContext();
+    m_context->width = static_cast<float>(width);
+    m_context->height = static_cast<float>(height);
+    m_context->hWnd = &m_hWnd;
+    m_context->hInstance = m_hInstance;
+    m_context->nCmdShow = m_nCmdShow;
 
-    m_context.isRunning = m_gameEngine->Init(&m_context);
+    m_context->isRunning = m_gameEngine->Init(m_context);
 
-    if (!m_context.isRunning) {
+    if (!m_context->isRunning) {
         return 1;
     }
 
@@ -79,6 +82,10 @@ int MainWindow::Create(int width, int height) {
             //m_context.deltaTime = (float)(currentTime.QuadPart - previousTime.QuadPart) / frequency.QuadPart;
             previousTime = currentTime;
 
+            /*if (delta <= 1.00000001e-07f) {
+                bool a = false;
+            }*/
+
             // Aplica un límite al tiempo delta.
             if (delta > MAX_DELTA_TIME) {
                 delta = MAX_DELTA_TIME;
@@ -87,9 +94,9 @@ int MainWindow::Create(int width, int height) {
                 delta = MIN_DELTA_TIME;
             }
 
-            m_context.deltaTime = delta;
-
+            m_context->deltaTime = delta;
             m_gameEngine->SetDeltaTime(delta);
+            this->m_deltaTime = delta;
 
             // ------------------------------------ 
             // No hay nada, ya que es la
@@ -98,7 +105,7 @@ int MainWindow::Create(int width, int height) {
             // ------------------------------------            
         }
     }
-    m_context.isRunning = false;
+    m_context->isRunning = false;
     OutputDebugStringA("[MainWindow] Finalizando Aplicación ...\n");
     return (int)msg.wParam;
 }
@@ -223,7 +230,7 @@ LRESULT CALLBACK MainWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 //--------------------------------------------------------------------------------------
 void MainWindow::HandleInput(UINT message, WPARAM wParam, LPARAM lParam) {
     if (m_gameEngine) {
-        m_gameEngine->OnInput(message, wParam, lParam);
+        m_gameEngine->OnInput(message, wParam, lParam, this->m_deltaTime);
     }
 }
 
@@ -232,8 +239,8 @@ void MainWindow::HandleInput(UINT message, WPARAM wParam, LPARAM lParam) {
 //--------------------------------------------------------------------------------------
 void MainWindow::OnResize(int width, int height) {
     if (m_gameEngine) {
-        m_context.width = width;
-        m_context.height = height;
+        m_context->width = width;
+        m_context->height = height;
         m_gameEngine->OnResize(width, height);
     }
 }

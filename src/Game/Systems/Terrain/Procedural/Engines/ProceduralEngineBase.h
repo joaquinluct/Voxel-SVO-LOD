@@ -1,23 +1,15 @@
 #pragma once
 
-#include <Windows.h>
-#include <IProceduralEngine.h>
-#include "FastNoiseLite/FastNoiseLite.h"
 #include <Defines/WorldTerrain.h>
-
-//namespace WorldTerrain {
-//	// Declaración anticipada de la struct anidada
-//	struct TerrainProceduralDefinition;
-//}
+#include <IProceduralEngine.h>
+#include <Windows.h>
 
 class ProceduralEngineBase : public IProceduralEngine {
 private:
-	int m_seed;
+    int m_seed;
 public:
-	ProceduralEngineBase() : m_seed(0) {}
-	~ProceduralEngineBase() override {}
-	HRESULT Init() override { return S_OK; };
-	HRESULT Init(const int& seed, const WorldTerrain::TerrainProceduralDefinition& def) override { return S_OK; };
-	const float GetHeight(const float& x, const float& z) const override;
-	//const float GetHeight(const float& x, const float& z) const override;
+    ProceduralEngineBase() : m_seed(0) {}
+    virtual ~ProceduralEngineBase() = default;
+    virtual HRESULT Init(const int& seed, const WorldTerrain::TerrainProceduralDefinition& def) override { return S_OK; }
+    virtual const float GetHeight(const float& x, const float& z) const override = 0;
 };

@@ -1,12 +1,9 @@
 #include "UpdateTerrainJob.h"
 #include <Assets/Base/MeshAssetBase.h>
-#include <chrono>
 #include <Defines/EngineDefinition.h>
 #include <Defines/Types/ThreadTypes.h>
 #include <Game/Systems/Terrain.h>
 #include <Game/Systems/World.h>
-#include <Services/FrameStateService.h>
-#include <thread>
 
 bool UpdateTerrainJob::Execute(JobContext* context)
 {
@@ -33,26 +30,6 @@ bool UpdateTerrainJob::Execute(JobContext* context)
 	}*/
 
 	terrain->Update(context->engineContext->deltaTime);
-
-	/*while (context->frameStateService->IsRendering()) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(1));
-	}*/
-	terrain->GenerateMesh();
-
-	MeshAssetBase* terrainMesh = terrain->GetTerrainMesh();
-
-	//context->frameStateService->Unlock(FRAME_STATE_MESHES);
-	int index = terrainMesh->GetWriteIndex();
-
-	if (!terrainMesh || terrainMesh->GetVertexCount(index) <= 0) {
-		m_isGenerating = false;
-		return false; // No hay malla de terreno o no está cargada
-	}
-
-	/*while (context->frameStateService->IsRendering()) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(1));
-	}*/
-	terrainMesh->SwapBuffer();
 
 	m_isGenerating = false;
 

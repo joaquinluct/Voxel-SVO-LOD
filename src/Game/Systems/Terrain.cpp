@@ -260,7 +260,7 @@ TextureDefines::CBTerrain2BlendBuffer Terrain::GetTerrain2BlenderData() {
     data.beachTransitionHeight = -10.0f; // La playa empieza desde la base
     data.beachTransitionSlope = 0.2f; // Se mezcla en pendientes suaves
 
-    data.terrainScale = 0.002f; // Un valor bajo para que las texturas no se vean demasiado estiradas
+    data.terrainScale = 0.0013f; // Un valor bajo para que las texturas no se vean demasiado estiradas
     return data;
 }
 

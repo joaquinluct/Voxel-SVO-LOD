@@ -1,13 +1,11 @@
 #pragma once
 
-#include <DirectXMath.h>
 #include <Defines/Texture.h>
-#include <Defines/WaterDefinition.h>
 #include <Defines/TimeDefinition.h>
-#include <string_view>
-#include <vector>
+#include <Defines/WaterDefinition.h>
+#include <DirectXMath.h>
 #include <memory>
-#include <variant>
+#include <string_view>
 
 inline constexpr std::string_view MATRIX_TYPE_VERTEX = "M_TYPE_VERTEX";
 inline constexpr std::string_view MATRIX_TYPE_PIXEL = "M_TYPE_PIXEL";
@@ -142,6 +140,11 @@ namespace MatrixDefinitionBase {
         LightMatrixParams(LightMatrixParams*) : lightColor(), lightDirection() {
             this->lightDirection = lightDirection;
             this->lightColor = lightColor;
+            this->fogStartDistance = fogStartDistance;
+            this->fogEndDistance = fogEndDistance;
+            this->fogColor = fogColor;
+            this->fogHeightFalloff = fogHeightFalloff;
+            this->fogDensity = fogDensity;
         }
         LightMatrixParams(const LightMatrixParams&) = default;
         //      LightMatrixParams()
@@ -149,9 +152,16 @@ namespace MatrixDefinitionBase {
         //          lightColor(1.0f, 1.0f, 1.0f, 1.0f) // Luz blanca por defecto
         //      {
               //}
-              // Datos para DirectionalLight
+              // 
+        // Datos para DirectionalLight
         DirectX::XMFLOAT3 lightDirection;
         DirectX::XMFLOAT4 lightColor; // El color de la luz direccional
+        // Datos para niebla
+        float fogStartDistance;         // Distancia donde la niebla empieza a aparecer (ej: 1000.0f)
+        float fogEndDistance;           // Distancia donde la niebla es 100% opaca (ej: 3000.0f)
+        float fogHeightFalloff;   // Controla cómo la altura afecta la densidad de la niebla (no siempre se usa)
+        DirectX::XMFLOAT3 fogColor;     // Color de la niebla (El gris que quieres en el horizonte)
+        float fogDensity;               // Se usa para calcular niebla más avanzada, aquí lo dejamos en float.
     };
 
     struct WaterMatrixParams : public IMatrixParams {

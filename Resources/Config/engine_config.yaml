@@ -71,7 +71,7 @@ Config:
           # - ShadowPass
           # - RefractionPass
           # - ReflectionPass
-          - SkyboxPass
+          # - SkyboxPass
           - TerrainPass
           # - WaterPass
           # - MainColorPass

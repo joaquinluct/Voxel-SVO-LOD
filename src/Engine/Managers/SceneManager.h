@@ -33,6 +33,7 @@ class UpdateCommonJob;
 class UpdateMeshJob;
 class UpdateRenderJob;
 class UpdateTerrainJob;
+class UpdateMeshTerrainJob;
 struct JobContext;
 class FrameStateService;
 class PassFrameState;
@@ -126,6 +127,7 @@ private:
     std::shared_ptr<UpdateRenderJob> u_render;
     std::shared_ptr<UpdateConstantBuffersJob> u_constantBuffer;
     std::shared_ptr<UpdateTerrainJob> u_terrain;
+    std::shared_ptr<UpdateMeshTerrainJob> u_meshTerrain;
     std::shared_ptr<UpdateMeshJob> u_mesh;
 
     // ---------------------------------------

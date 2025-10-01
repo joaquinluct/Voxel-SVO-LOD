@@ -161,7 +161,8 @@ void ChunkService::UpdateChunks(DirectX::XMFLOAT3 worldPosition)
 
             if (distance <= m_renderDistanceChunks * m_chunkSize)
             {
-                int lodLevel = 2;
+                int lodLevel = 6;
+                /*int lodLevel = 2;
 
                 if (distance >= m_chunkSize * 5.0f) {
                     lodLevel = 3;
@@ -173,26 +174,6 @@ void ChunkService::UpdateChunks(DirectX::XMFLOAT3 worldPosition)
 
                 if (distance >= m_chunkSize * 20.0f) {
                     lodLevel = 5;
-                }
-
-                /*if (distance >= m_chunkSize * 5.0f) {
-                    lodLevel = 3;
-                }
-                if (distance >= m_chunkSize * 10.0f) {
-                    lodLevel = 4;
-                }
-                if (distance >= m_chunkSize * 25.0f) {
-                    lodLevel = 4;
-                }*/
-
-                /*if (distance > m_chunkSize * 2.0f) {
-                    lodLevel = 3;
-                }
-                if (distance > m_chunkSize * 3.0f) {
-                    lodLevel = 5;
-                }
-                if (distance > m_chunkSize * 4.0f) {
-                    lodLevel = 6;
                 }*/
 
                 if (!m_chunks.count(id))
