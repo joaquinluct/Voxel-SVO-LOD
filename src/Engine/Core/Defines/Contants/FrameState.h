@@ -7,6 +7,7 @@ inline constexpr std::string_view FRAME_STATE_CAMERA = "CameraFrameState";
 inline constexpr std::string_view FRAME_STATE_MESHES = "MeshesFrameState";
 inline constexpr std::string_view FRAME_STATE_COMMON = "CommonFrameState";
 inline constexpr std::string_view FRAME_STATE_TERRAIN = "TerrainFrameState";
+inline constexpr std::string_view FRAME_STATE_TERRAIN_MESH = "MeshTerrainFrameState";
 inline constexpr std::string_view FRAME_STATE_WATER = "WaterFrameState";
 inline constexpr std::string_view FRAME_STATE_SKYBOX = "SkyboxFrameState";
 inline constexpr std::string_view FRAME_STATE_LIGHTING = "LightingFrameState";

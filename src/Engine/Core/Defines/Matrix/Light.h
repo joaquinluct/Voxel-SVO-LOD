@@ -5,42 +5,94 @@
 #include <DirectXMath.h>
 #include <map>
 #include <memory>
+#include <Windows.h>
 
 using namespace MatrixDefinitionBase;
 
 namespace Light {
     // --- Constant Buffer para Luz Direccional (PBR) ---
     // Corresponde a 'cbuffer DirectionalLightBuffer : register(b1)' en el HLSL
-    struct DirectionalLight {
-        DirectX::XMFLOAT3 Direction; // Dirección de la luz (vector normalizado que apunta HACIA la luz)
-        float Padding1;              // Relleno para alinear a 16 bytes
-        DirectX::XMFLOAT4 Color;     // Color e intensidad de la luz (ej. RGB de 0.0 a 1.0 o más para HDR)
-        // No se necesitan colores ambiente/difuso/especular separados para la luz en PBR,
-        // ya que estos son atributos del material y cómo interactúa con la luz.
+    struct __declspec(align(16)) DirectionalLight {
 
+        // --- BLOQUE 1: LUZ DIRECCIONAL (Offset 0 - 31) ---
+
+        // HLSL Fila 0 (Offset 0 - 15)
+        DirectX::XMFLOAT3 Direction;     // float3 lightDirection (0-11 bytes)
+        float PaddingLight1;             // float paddingLight1 (12-15 bytes)
+
+        // HLSL Fila 1 (Offset 16 - 31)
+        DirectX::XMFLOAT3 Color;         // float3 lightColor (16-27 bytes)
+        float PaddingLight2;             // float paddingLight2 (28-31 bytes)
+
+        // --- BLOQUE 2: NIEBLA (Offset 32 - 63) ---
+
+        // HLSL Fila 2 (Offset 32 - 47)
+        float FogStartDistance;          // float fogStartDistance
+        float FogEndDistance;            // float fogEndDistance
+        float FogHeightFalloff;          // float fogHeightFalloff
+        float PaddingFog1;               // float paddingFog1 (Relleno para completar la fila)
+
+        // HLSL Fila 3 (Offset 48 - 63)
+        DirectX::XMFLOAT3 FogColor;      // float3 fogColor
+        float FogDensity;                // float fogDensity
+
+        // --- MÉTODOS ---
+
+        // NOTA: La firma ha cambiado de XMFLOAT4 a XMFLOAT3 para el Color, para coincidir con HLSL.
         void SetDirectionalLight(const DirectX::XMFLOAT3& direction, const DirectX::XMFLOAT4& color) {
             this->Direction = direction;
-            this->Color = color;
+            this->Color.x = color.x;
+            this->Color.y = color.y;
+            this->Color.z = color.z;
             // Asegurarse de que la dirección esté normalizada
             DirectX::XMVECTOR dir = DirectX::XMLoadFloat3(&this->Direction);
             dir = DirectX::XMVector3Normalize(dir);
             DirectX::XMStoreFloat3(&this->Direction, dir);
+
+            // Inicializar paddings
+            this->PaddingLight1 = 0.0f;
+            this->PaddingLight2 = 0.0f;
+            this->PaddingFog1 = 0.0f;
+
+            // Inicializar niebla con valores por defecto/seguros (puedes ajustar)
+            this->FogStartDistance = 1000.0f;
+            this->FogEndDistance = 3000.0f;
+            this->FogHeightFalloff = 0.1f;
+            this->FogColor = DirectX::XMFLOAT3(0.5f, 0.6f, 0.7f); // Gris azulado
+            this->FogDensity = 50.0f; // Altura base de la niebla
         }
 
         void SetMatrixData(std::map<std::string, std::shared_ptr<IMatrixParams>>& params) {
+            // ASUNCIÓN: Tu clase LightMatrixParams ahora contiene los campos de niebla.
             std::shared_ptr<LightMatrixParams> lightParams = GetMatrixParams<LightMatrixParams>(params["LightParams"]);
-            // Asigna los datos de luz desde MatrixParams
+
+            // Asignación de datos de Luz
             this->Direction = lightParams->lightDirection;
-            this->Color = lightParams->lightColor;
+            this->Color.x = lightParams->lightColor.x;
+            this->Color.y = lightParams->lightColor.y;
+            this->Color.z = lightParams->lightColor.z;
+
+            // Asignación de datos de Niebla
+            this->FogStartDistance = lightParams->fogStartDistance;
+            this->FogEndDistance = lightParams->fogEndDistance;
+            this->FogHeightFalloff = lightParams->fogHeightFalloff;
+            this->FogColor = lightParams->fogColor;
+            this->FogDensity = lightParams->fogDensity;
+
             // Asegurarse de que la dirección esté normalizada
             DirectX::XMVECTOR dir = DirectX::XMLoadFloat3(&this->Direction);
             dir = DirectX::XMVector3Normalize(dir);
             DirectX::XMStoreFloat3(&this->Direction, dir);
+
+            // Rellenos
+            this->PaddingLight1 = 0.0f;
+            this->PaddingLight2 = 0.0f;
+            this->PaddingFog1 = 0.0f;
         }
 
         UINT Size() {
-            // El tamaño debe ser un múltiplo de 16 bytes para los constant buffers
-            return (sizeof(Direction) + sizeof(Padding1) + sizeof(Color));
+            // El tamaño total ahora es de 64 bytes (4 filas de 16 bytes)
+            return sizeof(*this);
         }
 
         MatrixBufferTypeEnum BufferType() {
@@ -50,8 +102,9 @@ namespace Light {
         std::string MatrixType() {
             return MATRIX_TYPE_PIXEL.data();
         }
+
         UINT Slot() {
-            return 2;
+            return 2; // Mantiene el registro b2
         }
     };
 

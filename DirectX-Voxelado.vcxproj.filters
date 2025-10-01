@@ -249,9 +249,6 @@
     <ClCompile Include="src\Game\Systems\Terrain\Procedural\Engines\FastNoiseLiteEngine.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="src\Game\Systems\Terrain\Procedural\Engines\ProceduralEngineBase.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
     <ClCompile Include="src\Game\Systems\Chronos.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
@@ -328,6 +325,39 @@
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Assets\Base\UIAsset.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Managers\RenderManager\Pipeline\ConcreteOperations.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Managers\RenderManager\Pipeline\ConcreteResources.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Managers\RenderState\FrameStates\RenderFrameState.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Defines\Contants\Flags\ShaderResources.h">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Managers\RenderState\FrameStates\ConstantsBufferFrameState.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Managers\RenderManager\Jobs\Update\UpdateMeshJob.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Managers\RenderState\FrameStates\MeshesFrameState.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Systems\Terrain\Procedural\Engines\DoubleLayerNoiseEngine.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Systems\Terrain\Procedural\Engines\ProceduralEngineBase.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Systems\Terrain\Procedural\Engines\ProceduralBiomaEngine.cpp">
+      <Filter>Archivos de encabezado</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Managers\RenderManager\Jobs\Update\UpdateMeshTerrainJob.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Assets\Base\BaseIndexConfig.cpp">
@@ -639,9 +669,6 @@
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\StencilViewTerrain.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\SwapChainMain.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\Texture2D_Array_Jpg.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
@@ -759,25 +786,7 @@
     <ClCompile Include="src\Engine\Core\Config\Services\UITextConfig.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engine\Managers\RenderManager\Pipeline\ConcreteOperations.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\Managers\RenderManager\Pipeline\ConcreteResources.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\Managers\RenderState\FrameStates\RenderFrameState.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\Core\Defines\Contants\Flags\ShaderResources.h">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\Managers\RenderState\FrameStates\ConstantsBufferFrameState.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\Managers\RenderManager\Jobs\Update\UpdateMeshJob.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\Managers\RenderState\FrameStates\MeshesFrameState.cpp">
+    <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\SwapChainMain.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1520,9 +1529,6 @@
     <ClInclude Include="Interfaces\IProceduralEngine.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="src\Game\Systems\Terrain\Procedural\Engines\ProceduralEngineBase.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
     <ClInclude Include="src\Engine\Helpers\FrustumCullingHelper.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
@@ -1749,6 +1755,42 @@
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Core\Defines\Structs\PipelineResources.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="Interfaces\Pipeline\IBackBufferState.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Managers\RenderManager\Pipeline\ConcreteOperations.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Managers\RenderManager\Pipeline\ConcreteResources.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Managers\RenderState\FrameStates\RenderFrameState.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Defines\Contants\FrameState.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Managers\RenderManager\Jobs\Update\UpdateMeshJob.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Managers\RenderState\FrameStates\MeshesFrameState.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Systems\Terrain\Procedural\Engines\DoubleLayerNoiseEngine.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Defines\Structs\Procedural\AreaMapping.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Systems\Terrain\Procedural\Engines\ProceduralBiomaEngine.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Systems\Terrain\Procedural\Engines\ProceduralEngineBase.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Managers\RenderManager\Jobs\Update\UpdateMeshTerrainJob.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Assets\Base\BaseIndexConfig.h">
@@ -2060,9 +2102,6 @@
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\StencilViewTerrain.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\SwapChainMain.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\Texture2D_Array_Jpg.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
@@ -2180,25 +2219,7 @@
     <ClInclude Include="src\Engine\Core\Config\Services\UITextConfig.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="Interfaces\Pipeline\IBackBufferState.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Managers\RenderManager\Pipeline\ConcreteOperations.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Managers\RenderManager\Pipeline\ConcreteResources.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Managers\RenderState\FrameStates\RenderFrameState.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Core\Defines\Contants\FrameState.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Managers\RenderManager\Jobs\Update\UpdateMeshJob.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Managers\RenderState\FrameStates\MeshesFrameState.h">
+    <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\SwapChainMain.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
   </ItemGroup>
@@ -2219,6 +2240,7 @@
     <FxCompile Include="Assets\Shader\TerrainShader.hlsl" />
     <FxCompile Include="Assets\Shader\Terrain2Shader.hlsl" />
     <FxCompile Include="Assets\Shader\OceanShader.hlsl" />
+    <FxCompile Include="Assets\Shader\Terrain3Shader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\DejaVuSansMono.png">

@@ -33,7 +33,7 @@ private:
     std::unique_ptr<Engine> m_gameEngine;
 
     // Contexto de la aplicación
-    EngineContext m_context;
+    EngineContext* m_context;
 
     //--------------------------------------------------------------------------------------
     // Variables de la ventana
@@ -53,4 +53,6 @@ private:
     //--------------------------------------------------------------------------------------
     static MainWindow* s_pMainWindow;
     static LRESULT CALLBACK StaticWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+
+    float m_deltaTime = 0.0f;
 };

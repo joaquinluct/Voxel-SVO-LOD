@@ -53,7 +53,7 @@ public:
     //--------------------------------------------------------------------------------------
     // Métodos llamados por MainWindow para la entrada y el redimensionamiento.
     //--------------------------------------------------------------------------------------
-    void OnInput(UINT message, WPARAM wParam, LPARAM lParam);
+    void OnInput(UINT message, WPARAM wParam, LPARAM lParam, float deltaTime);
     void OnResize(int width, int height);
 
     // --------------------------------------------------------------------------------------

@@ -150,12 +150,16 @@ bool Engine::Init(EngineContext* context) {
 // Maneja la entrada de la ventana.
 //--------------------------------------------------------------------------------------
 const float MAX_DELTA_TIME = 0.1f;
-void Engine::OnInput(UINT message, WPARAM wParam, LPARAM lParam) {
+const float MIN_DELTA_TIME = 0.042f;
+void Engine::OnInput(UINT message, WPARAM wParam, LPARAM lParam, float  deltaTime) {
     // Pasa el mensaje de Windows al InputManager.
     if (m_inputManager) {
-        float deltaTime = m_context->deltaTime;
+        //float deltaTime = m_context->deltaTime;
         if (deltaTime > MAX_DELTA_TIME) {
             deltaTime = MAX_DELTA_TIME;
+        }
+        else if (deltaTime < MIN_DELTA_TIME) {
+            deltaTime = MIN_DELTA_TIME;
         }
         m_inputManager->HandleInput(message, wParam, lParam, deltaTime);
     }

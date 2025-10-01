@@ -33,10 +33,12 @@ Config:
             version: "1.0.0"
             flags: 7 # Infinite | Procedural | Chunk
             seed: 1234567890
-            procedural_engine: 1 # FastNoiseLite
+            procedural_engine: 1 # FastNoiseLite base
+            #procedural_engine: 2 # DoubleLayerNoiseEngine
+            #procedural_engine: 3  # ProceuralBiomes
             chunk_size: 128
             # chunk_size: 64
-            initialRenderDistanceChunks: 40
+            initialRenderDistanceChunks: 80
             # worldWidth: 2048.0
             # worldHeight: 2048.0
             # worldWidth: 4096.0

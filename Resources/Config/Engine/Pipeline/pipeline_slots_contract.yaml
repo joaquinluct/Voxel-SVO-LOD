@@ -17,7 +17,8 @@ Config:
           - ShadowMapMatrices # 10
           - TerrainBlendBuffer # 11
           - Terrain2BlendBuffer # 12
-          - MatrixBufferTypeOrthographic # 13   
+          - MatrixBufferTypeOrthographic # 13
+          - FogBuffer # 14
       ShaderSamplerSlots:
         slots:
           - baseSampler # 0

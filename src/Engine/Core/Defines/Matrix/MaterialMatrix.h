@@ -1,10 +1,10 @@
 #pragma once
 
 #include "MatrixDefinitionBase.h" // Incluimos la base para MatrixParamsss
-#include <d3d11.h>
 #include <Defines/Enums/Matrix.h>
 #include <DirectXMath.h>
 #include <string>
+#include <Windows.h>
 
 using namespace MatrixDefinitionBase;
 

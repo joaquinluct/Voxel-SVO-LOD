@@ -108,7 +108,7 @@ private:
     GameEngineConfig m_gameConfig{};
     RenderManagerConfig m_renderConfig{};
     BasePassConfig m_passesBaseConfig{};
-    ShaderTextureSlotsConfig m_shaderTextureSlotContract{};
+    //ShaderTextureSlotsConfig m_shaderTextureSlotContract{};
 
     std::map<std::string, std::shared_ptr<PassConfigBase>> m_passesConfig{};
     ServiceConfig m_serviceConfig{};

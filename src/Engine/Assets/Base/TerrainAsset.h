@@ -36,6 +36,9 @@ private:
     std::vector<std::vector<uint8_t>> m_tempVertexData;
     std::vector<std::vector<uint16_t>> m_tempIndexData;
 
+    size_t m_currentVertexCapacityBytes[2] = { 0, 0 };
+    size_t m_currentIndexCapacityBytes[2] = { 0, 0 };
+
     std::vector<float> m_textureTransforms;
 
     bool m_isGeneratingMesh = false;
@@ -75,7 +78,7 @@ public:
     // ----------------------------------------------------------------
     // Métodos para crear los buffers dinámicos del terreno
     // ----------------------------------------------------------------
-    void CreateDynamicBuffers(size_t vertexCount, size_t indexCount, Microsoft::WRL::ComPtr<ID3D11Buffer>& vertexBuffer, Microsoft::WRL::ComPtr<ID3D11Buffer>& indexBuffer);
+    void CreateDynamicBuffers(size_t vertexCount, size_t indexCount, int index, Microsoft::WRL::ComPtr<ID3D11Buffer>& vertexBuffer, Microsoft::WRL::ComPtr<ID3D11Buffer>& indexBuffer);
     UINT GetVertexTypeSize() const override { return sizeof(VertexDefinition::TextureMapVertex); }
     bool ShouldCompact() const;
     Chunk* FindChunkByRegion(const ChunkBufferRegion& region);

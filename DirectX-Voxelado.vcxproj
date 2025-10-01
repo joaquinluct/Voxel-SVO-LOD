@@ -309,6 +309,7 @@
     <ClCompile Include="src\Engine\Core\Config\Services\UIDebugConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Services\UITextConfig.cpp" />
     <ClCompile Include="src\Engine\Managers\RenderManager\Jobs\Update\UpdateMeshJob.cpp" />
+    <ClCompile Include="src\Engine\Managers\RenderManager\Jobs\Update\UpdateMeshTerrainJob.cpp" />
     <ClCompile Include="src\Engine\Managers\RenderState\FrameStates\ConstantsBufferFrameState.cpp" />
     <ClCompile Include="src\Engine\Core\Defines\Contants\Flags.h" />
     <ClCompile Include="src\Engine\Core\Defines\Contants\Flags\ShaderResources.h" />
@@ -408,6 +409,7 @@
     <ClCompile Include="src\Game\Systems\Terrain\Chunk\ProceduralSeedTerrain.cpp" />
     <ClCompile Include="src\Game\Systems\Terrain\Chunk\Chunk.cpp" />
     <ClCompile Include="src\Game\Systems\Terrain\ProceduralService.cpp" />
+    <ClCompile Include="src\Game\Systems\Terrain\Procedural\Engines\DoubleLayerNoiseEngine.cpp" />
     <ClCompile Include="src\Game\Systems\Terrain\Procedural\Engines\FastNoiseLiteEngine.cpp" />
     <ClCompile Include="src\Game\Systems\Terrain\Procedural\Engines\ProceduralEngineBase.cpp" />
     <ClCompile Include="src\Game\Systems\Water.cpp" />
@@ -622,6 +624,9 @@
     <ClInclude Include="src\Engine\Core\Defines\Enums\Matrix.h" />
     <ClInclude Include="src\Engine\Core\Defines\Enums\Pass.h" />
     <ClInclude Include="src\Engine\Core\Defines\Structs\PipelineResources.h" />
+    <ClInclude Include="src\Engine\Core\Defines\Structs\Procedural\AreaMapping.h" />
+    <ClInclude Include="src\Engine\Managers\RenderManager\Jobs\Update\UpdateMeshTerrainJob.h" />
+    <ClInclude Include="src\Game\Systems\Terrain\Procedural\Engines\ProceduralBiomaEngine.h" />
     <ClInclude Include="src\Engine\Core\Defines\Types\Sampler.h" />
     <ClInclude Include="src\Engine\Core\Helpers\PointerQuery.h" />
     <ClInclude Include="src\Engine\Core\Helpers\PointerQueryRaw.h" />
@@ -891,6 +896,8 @@
     <ClInclude Include="src\Game\Systems\Terrain\Chunk\ProceduralSeedTerrain.h" />
     <ClInclude Include="src\Game\Systems\Terrain\Chunk\Chunk.h" />
     <ClInclude Include="src\Game\Systems\Terrain\ProceduralService.h" />
+    <ClCompile Include="src\Game\Systems\Terrain\Procedural\Engines\ProceduralBiomaEngine.cpp" />
+    <ClInclude Include="src\Game\Systems\Terrain\Procedural\Engines\DoubleLayerNoiseEngine.h" />
     <ClInclude Include="src\Game\Systems\Terrain\Procedural\Engines\FastNoiseLiteEngine.h" />
     <ClInclude Include="src\Game\Systems\Terrain\Procedural\Engines\ProceduralEngineBase.h" />
     <ClInclude Include="src\Game\Systems\Water.h" />
@@ -956,6 +963,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
+    <FxCompile Include="Assets\Shader\Terrain3Shader.hlsl" />
     <FxCompile Include="Assets\Shader\TerrainShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       </ShaderType>

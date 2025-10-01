@@ -18,6 +18,7 @@ ShaderMatrixSlotsConfig::ShaderMatrixSlotsConfig(){
 		"ShadowMapMatrices",
 		"TerrainBlendBuffer",
 		"Terrain2BlendBuffer",
-		"MatrixBufferTypeOrthographic"
+		"MatrixBufferTypeOrthographic",
+		"FogBuffer"
 	};
 };

@@ -3,6 +3,19 @@ Config:
   Base:
     Pipeline:
       RenderStates:
+        SwapChainMain:
+          BufferCount: 2 #2;
+          Width: 0 #width;
+          Height: 0 #height;
+          Format: 28 #DXGI_FORMAT_R8G8B8A8_UNORM;
+          Numerator: 60 #60;
+          Denominator: 1 #1;
+          BufferUsage: 0x00000020UL #DXGI_USAGE_RENDER_TARGET_OUTPUT;
+          SampleCount: 1 #1;
+          SampleQuality: 0 #0;
+          Windowed: true #TRUE;
+          SwapEffect: 4 #DXGI_SWAP_EFFECT_FLIP_DISCARD;
+
         BackBufferMain:
           Type: D3D11_TEXTURE2D_DESC
           Width: 0 #width;

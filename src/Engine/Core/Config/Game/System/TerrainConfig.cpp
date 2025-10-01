@@ -11,7 +11,7 @@ TerrainConfig::TerrainConfig(){
 	seed = 1234567890;
 	procedural_engine = 1;
 	chunk_size = 128;
-	initialRenderDistanceChunks = 40;
+	initialRenderDistanceChunks = 80;
 	worldWidth = 163840.0f;
 	worldHeight = 163840.0f;
 	terrainHeight = 3.164f;
