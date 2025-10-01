@@ -7,7 +7,6 @@
 
 class CommonFrameState : public FrameStateBase {
 public:
-
     float GetDeltaTime() const { return engineContext->deltaTime; }
     float GetHeight() const { return engineContext->height; }
     float GetWidth() const { return engineContext->width; }

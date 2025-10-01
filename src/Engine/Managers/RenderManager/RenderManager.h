@@ -101,13 +101,13 @@ private:
     // ------------------------------------
     std::shared_ptr<PipelineState> m_pipelineState;         // Estado del pipeline de renderizado
     std::shared_ptr<FrameStateService> m_frameStateService; // Servicio para gestionar el estado de frame
-    //RenderPipeline::RenderPipelineExecutor* m_executor;     // Ejecutor del pipeline de renderizado
 
     // ------------------------------------
     // Servios y managers generales
     // ------------------------------------
     std::shared_ptr<DeviceManager> m_deviceManager;
     std::shared_ptr<CameraManager> m_cameraManager;
+    std::shared_ptr<PipelineResourcesManager> m_resources;
     std::shared_ptr<World> m_world;
     std::shared_ptr<Terrain> m_terrain;
 
@@ -129,6 +129,5 @@ private:
     // ------------------------------------
     // Métodos privados
     // ------------------------------------
-    void InitPipelineExecutor();
     //RenderPipeline::RenderPipelineExecutor* GetPipelineExecutor() { return m_executor; }
 };

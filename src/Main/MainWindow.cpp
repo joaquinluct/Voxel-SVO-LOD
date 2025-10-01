@@ -6,6 +6,7 @@
 // Límite máximo para el tiempo delta para evitar saltos grandes en la simulación.
 // -------------------------------------------------------------------------------
 const float MAX_DELTA_TIME = 0.1f;
+const float MIN_DELTA_TIME = 0.0042f;
 
 //--------------------------------------------------------------------------------------
 // Variable estática para el puntero a la instancia de MainWindow.
@@ -74,13 +75,21 @@ int MainWindow::Create(int width, int height) {
             // Calcula el tiempo delta.
             LARGE_INTEGER currentTime;
             QueryPerformanceCounter(&currentTime);
-            m_context.deltaTime = (float)(currentTime.QuadPart - previousTime.QuadPart) / frequency.QuadPart;
+            float delta = (float)(currentTime.QuadPart - previousTime.QuadPart) / frequency.QuadPart;
+            //m_context.deltaTime = (float)(currentTime.QuadPart - previousTime.QuadPart) / frequency.QuadPart;
             previousTime = currentTime;
 
             // Aplica un límite al tiempo delta.
-            if (m_context.deltaTime > MAX_DELTA_TIME) {
-                m_context.deltaTime = MAX_DELTA_TIME;
+            if (delta > MAX_DELTA_TIME) {
+                delta = MAX_DELTA_TIME;
             }
+            else if (delta < MIN_DELTA_TIME) {
+                delta = MIN_DELTA_TIME;
+            }
+
+            m_context.deltaTime = delta;
+
+            m_gameEngine->SetDeltaTime(delta);
 
             // ------------------------------------ 
             // No hay nada, ya que es la

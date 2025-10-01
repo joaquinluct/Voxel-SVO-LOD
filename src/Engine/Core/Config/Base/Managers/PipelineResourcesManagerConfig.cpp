@@ -5,6 +5,7 @@ REGISTER_CONFIG_TYPE(PipelineResourcesManagerConfig,"PipelineResourcesManagerCon
 
 PipelineResourcesManagerConfig::PipelineResourcesManagerConfig(){
 	dependencies = {
-		"DeviceManager"
+		"DeviceManager",
+		"ShaderManager"
 	};
 };

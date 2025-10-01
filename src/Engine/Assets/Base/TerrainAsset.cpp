@@ -5,9 +5,7 @@
 #include <Assets/Base/MeshAssetBase.h>
 #include <Assets/Base/TextureAsset.h>
 #include <Core/Defines/Contants/Flags.h>
-#include <Core/Helpers/PointerQueryRaw.h>
 #include <cstdint>
-#include <cstring>
 #include <d3d11.h>
 #include <Defines/VertexDefinition.h>
 #include <ManagerLocator/ManagerLocator.h>
@@ -29,7 +27,7 @@ TerrainAsset::TerrainAsset()
 {
 }
 TerrainAsset::TerrainAsset(const TerrainAsset* other)
-    : MeshAssetBase(other), m_terrainConfig(other->m_terrainConfig), m_shaderName(other->m_shaderName),
+    : MeshAssetBase(other), m_terrainConfig(other->m_terrainConfig),
     m_textureTransforms(other->m_textureTransforms), m_vertexTypeSize(other->m_vertexTypeSize),
     m_textureAsset(other->m_textureAsset)
 {
@@ -53,7 +51,13 @@ HRESULT TerrainAsset::Init() {
     if (!m_terrainConfig) {
         return S_OK;
     }
+    m_meshConfig = std::make_shared<MeshAssetConfigBase>();
+    m_meshConfig->name = m_terrainConfig->name;
+    //SetConfig(m_terrainConfig);
+    MeshAssetBase::Init();
+
     m_shaderName = StringToWstring(m_terrainConfig->shader);
+    m_shaderAssetName = m_terrainConfig->shader;
 
     m_deviceManager = ManagerLocator::GetDeviceManager();
 
@@ -113,17 +117,17 @@ Chunk* TerrainAsset::FindChunkByRegion(const ChunkBufferRegion& region) {
     return it != m_regionToChunkMap.end() ? it->second : nullptr;
 }
 
-void TerrainAsset::GenerateMesh(std::vector<Chunk*> chunks) {
+void TerrainAsset::GenerateMesh(std::vector<Chunk*> chunks, int indexBuffer) {
     if (chunks.empty() || m_isGeneratingMesh) return;
     m_isGeneratingMesh = true;
 
     m_vertexTypeSize = sizeof(VertexDefinition::TextureMapVertex);
 
-    Microsoft::WRL::ComPtr<ID3D11Buffer> vBuffer{};
+    /*Microsoft::WRL::ComPtr<ID3D11Buffer> vBuffer{};
     Microsoft::WRL::ComPtr<ID3D11Buffer> iBuffer{};
 
     vBuffer.Attach(m_vertexBuffer.Detach());
-    iBuffer.Attach(m_indexBuffer.Detach());
+    iBuffer.Attach(m_indexBuffer.Detach());*/
 
     //auto lock = LockBuffers();
 
@@ -134,8 +138,7 @@ void TerrainAsset::GenerateMesh(std::vector<Chunk*> chunks) {
         .ToVector();
 
     if (dirtyChunks.empty()) return;*/
-    auto dirtyChunks = chunks;
-
+    auto& dirtyChunks = chunks;
 
     // 2. Calcular el tamaño total necesario para los buffers
     size_t totalVertexCount = 0;
@@ -145,50 +148,62 @@ void TerrainAsset::GenerateMesh(std::vector<Chunk*> chunks) {
         totalIndexCount += chunk->GetIndexCount();
     }
 
-    // 3. Crear o redimensionar los buffers dinámicos si la capacidad es insuficiente
-    if (totalVertexCount > m_vertexCount || totalIndexCount > m_indexCount || vBuffer == nullptr) {
-        CreateDynamicBuffers(totalVertexCount, totalIndexCount, vBuffer, iBuffer);
+    if (totalIndexCount == 0 || totalVertexCount == 0) {
+        m_isGeneratingMesh = false;
+        return; // Nada que actualizar
     }
 
+    Microsoft::WRL::ComPtr<ID3D11Buffer> vBuffer = m_vertexBuffer[indexBuffer];
+    Microsoft::WRL::ComPtr<ID3D11Buffer> iBuffer = m_indexBuffer[indexBuffer];
+
+    // 3. Crear o redimensionar los buffers dinámicos si la capacidad es insuficiente
+    //if (totalVertexCount > m_vertexCount[indexBuffer] || totalIndexCount > m_indexCount[indexBuffer] || vBuffer == nullptr) {
+    CreateDynamicBuffers(totalVertexCount, totalIndexCount, vBuffer, iBuffer);
+    //}
+
+    m_vertexBuffer[indexBuffer] = vBuffer;
+    m_indexBuffer[indexBuffer] = iBuffer;
+
     // 4. Compactar si se ha solicitado (lógica de gestión de memoria)
-    if (ShouldCompact()) {
-        m_allocator.Compact([&](const ChunkBufferRegion& oldRegion, ChunkBufferRegion& newRegion) {
-            // Lógica para encontrar el chunk por la región (simulado)
-            // Y actualizar la región del chunk
-            Chunk* chunk = nullptr; // chunk = FindChunkByRegion(oldRegion);
-            if (chunk) {
-                chunk->SetRegion(newRegion);
-            }
-            });
-    }
+    //if (ShouldCompact()) {
+    //    m_allocator.Compact([&](const ChunkBufferRegion& oldRegion, ChunkBufferRegion& newRegion) {
+    //        // Lógica para encontrar el chunk por la región (simulado)
+    //        // Y actualizar la región del chunk
+    //        Chunk* chunk = nullptr; // chunk = FindChunkByRegion(oldRegion);
+    //        if (chunk) {
+    //            chunk->SetRegion(newRegion);
+    //        }
+    //        });
+    //}
 
     // 5. Redimensionar los vectores temporales una sola vez
     //m_tempVertexData.resize(totalVertexCount * m_vertexTypeSize);
-    m_tempVertexData.clear();
-    //m_tempIndexData.clear();
-    m_tempIndexData.resize(totalIndexCount);
+    std::vector<uint8_t>& vertexData = m_vertexData[indexBuffer];
+    std::vector<uint16_t>& indexData = m_indexData[indexBuffer];
 
-    //uint8_t* currentVertexPtr = m_tempVertexData.data();
-    UINT* currentIndexPtr = m_tempIndexData.data();
+    vertexData.clear();
+    indexData.resize(totalIndexCount);
+
+    uint16_t* currentIndexPtr = indexData.data();
     size_t currentVertexOffset = 0;
 
     // 6. Llenar los buffers temporales de forma segura con memcpy
     for (Chunk* chunk : dirtyChunks) {
         const auto& vertices = chunk->GetChunkVertices();
         const auto& indexes = chunk->GetIndexes();
-
-        m_tempVertexData.reserve(m_tempVertexData.size() + (vertices.size() * m_vertexTypeSize));
+        size_t reservedSize = vertexData.size() + (vertices.size() * m_vertexTypeSize);
+        vertexData.reserve(reservedSize);
         // Copiar los vértices
         //size_t vertexByteCount = vertices.size() * m_vertexTypeSize;
         //memcpy(currentVertexPtr, vertices.data(), vertexByteCount);
         for (const auto& vertex : vertices) {
             const void* source_data = vertex->GetRawData();
-            m_tempVertexData.insert(m_tempVertexData.end(), (const uint8_t*)source_data, (const uint8_t*)source_data + m_vertexTypeSize);
+            vertexData.insert(vertexData.end(), (const uint8_t*)source_data, (const uint8_t*)source_data + m_vertexTypeSize);
         }
 
         // Copiar y ajustar los índices
-        for (UINT index : indexes) {
-            *currentIndexPtr = index + static_cast<UINT>(currentVertexOffset);
+        for (uint16_t index : indexes) {
+            *currentIndexPtr = index + static_cast<uint16_t>(currentVertexOffset);
             currentIndexPtr++;
         }
 
@@ -198,36 +213,38 @@ void TerrainAsset::GenerateMesh(std::vector<Chunk*> chunks) {
     }
 
     // 7. Mapear los buffers de Direct3D y copiar los datos
-    D3D11_MAPPED_SUBRESOURCE mappedVertices;
-    D3D11_MAPPED_SUBRESOURCE mappedIndices;
+    //D3D11_MAPPED_SUBRESOURCE mappedVertices;
+    //D3D11_MAPPED_SUBRESOURCE mappedIndices;
 
-    ID3D11Buffer* vB = vBuffer.Get();
+    //ID3D11Buffer* vB = vBuffer.Get();
 
-    HRESULT hr = m_deviceManager->GetContext()->Map(vB, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedVertices);
-    if (FAILED(hr)) return;
-    hr = m_deviceManager->GetContext()->Map(iBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedIndices);
-    if (FAILED(hr)) {
-        m_deviceManager->GetContext()->Unmap(vBuffer.Get(), 0);
-        return;
-    }
+    //HRESULT hr = m_deviceManager->GetContext()->Map(vB, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedVertices);
+    //if (FAILED(hr)) return;
+    //hr = m_deviceManager->GetContext()->Map(iBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedIndices);
+    //if (FAILED(hr)) {
+    //    m_deviceManager->GetContext()->Unmap(vBuffer.Get(), 0);
+    //    return;
+    //}
 
-    memcpy(mappedVertices.pData, m_tempVertexData.data(), m_tempVertexData.size());
-    memcpy(mappedIndices.pData, m_tempIndexData.data(), m_tempIndexData.size() * sizeof(UINT));
+    //memcpy(mappedVertices.pData, m_tempVertexData.data(), m_tempVertexData.size());
+    //memcpy(mappedIndices.pData, m_tempIndexData.data(), m_tempIndexData.size() * sizeof(UINT));
 
-    m_deviceManager->GetContext()->Unmap(vBuffer.Get(), 0);
-    m_deviceManager->GetContext()->Unmap(iBuffer.Get(), 0);
+    //m_deviceManager->GetContext()->Unmap(vBuffer.Get(), 0);
+    //m_deviceManager->GetContext()->Unmap(iBuffer.Get(), 0);
 
     // 8. Actualizar los contadores totales
-    this->m_vertexCount = totalVertexCount;
-    this->m_indexCount = totalIndexCount;
+    this->m_vertexCount[indexBuffer] = static_cast<UINT>(totalVertexCount);
+    this->m_indexCount[indexBuffer] = static_cast<UINT>(totalIndexCount);
+
+    /*OutputDebugStringA(("Terrain Generado: VertexCount:" + ParseInt(totalVertexCount) + " IndexCount:" + ParseInt(totalIndexCount) + "\n").c_str());*/
 
     // 9. Marcar los chunks como procesados
     for (Chunk* chunk : dirtyChunks) {
         chunk->SetFlag(FLAG_CHUNK_WITH_VERTEX_BUFFER, true);
     }
 
-    SetVertexBuffer(vBuffer);
-    SetIndexBuffer(iBuffer);
+    /*SetVertexBuffer(vBuffer);
+    SetIndexBuffer(iBuffer);*/
 
     m_isGeneratingMesh = false;
 }
@@ -264,14 +281,25 @@ XMFLOAT4 TerrainAsset::GetTextureTransforms() {
     return defaultTransform;
 }
 
+std::vector<uint8_t> TerrainAsset::GetVertexData(int index) const {
+    return m_vertexData[index];
+}
+std::vector<uint16_t> TerrainAsset::GetIndexData(int index) const {
+    return m_indexData[index];
+}
+
 void TerrainAsset::UnregisterChunk(Chunk* chunk) {
     size_t key = HashRegion(chunk->GetRegion());
     m_regionToChunkMap.erase(key);
 }
 
 void TerrainAsset::Shutdown() {
-    if (m_vertexBuffer) { m_vertexBuffer.Reset(); }
-    if (m_indexBuffer) { m_indexBuffer.Reset(); }
+    for (auto& vBuffer : m_vertexBuffer) {
+        if (vBuffer) { vBuffer.Reset(); }
+    }
+    for (auto& iBuffer : m_indexBuffer) {
+        if (iBuffer) { iBuffer.Reset(); }
+    }
     if (m_material) { SafeShutDown(m_material); }
     if (m_shadowMaterial) { SafeShutDown(m_shadowMaterial); }
 }

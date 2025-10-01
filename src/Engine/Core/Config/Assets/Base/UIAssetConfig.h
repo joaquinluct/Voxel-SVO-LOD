@@ -5,13 +5,12 @@
 #include <map>
 #include <ConfigBase.h>
 
-class TextureSlotsConfig : public ConfigBase {
+class UIAssetConfig : public ConfigBase {
 public:
-	TextureSlotsConfig();
+	UIAssetConfig();
 	static const std::string& GetStaticConfigName()
 	{
-		static const std::string className = "TextureSlotsConfig";
+		static const std::string className = "UIAssetConfig";
 		return className;
 	}
-	std::vector<std::string> slots;
 };

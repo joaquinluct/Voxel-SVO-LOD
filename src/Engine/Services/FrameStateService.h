@@ -10,6 +10,7 @@
 #include <mutex>
 #include <RenderManager/Pipeline/PipelineState.h>
 #include <RenderState/FrameStates/FrameStateBase.h>
+#include <RenderState/FrameStates/MeshesFrameState.h>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -24,11 +25,14 @@ private:
     std::shared_ptr<PassConfigBase> m_renderPassConfig;
 
     std::shared_ptr<PipelineStateManager> m_pipelineState;
+    std::shared_ptr<DeviceManager> m_deviceManager;
 
     std::map<std::string_view, std::shared_ptr<FrameStateBuffer>> m_data;
 
     FrameStateBase* GetWriteState(FrameStateBuffer* buffer);
     FrameStateBase* GetReadState(FrameStateBuffer* buffer);
+
+    bool m_isRendering = false;
 
     //std::vector<std::unique_lock<std::mutex>> LockAll();
     //void UnlockAll(std::vector<std::unique_lock<std::mutex>>& locks); // Método opcional para desbloquear
@@ -70,10 +74,11 @@ public:
     //MeshFrameState* MeshState(bool FromReadBuffer = true);
     //DeviceFrameState* DeviceState(bool FromReadBuffer = true);
     PassFrameState* PassState(bool FromReadBuffer = true);
-    ViewportFrameState* ViewportState(bool FromReadBuffer = true);
+    ConstantsBufferFrameState* ConstantBuffersState(bool FromReadBuffer = true);
     ShaderFrameState* ShaderState(bool FromReadBuffer = true);
     PipelineFrameState* PipelineState(bool FromReadBuffer = true);
     RenderFrameState* RenderState(bool FromReadBuffer = true);
+    MeshesFrameState* MeshesState(bool FromReadBuffer = true);
 
     // Operaciones genéricas
     std::shared_ptr<FrameStateBuffer> CreateState(std::string_view stateName);
@@ -83,10 +88,16 @@ public:
     void SetPipelineState(std::shared_ptr<PipelineStateManager> pipeline) { m_pipelineState = pipeline; }
     PipelineStateManager* GetPipelineState() const { return m_pipelineState.get(); }
 
+    // ----------------------------------------------------------------------------
+    // Plantilla para obtener el estado de un FrameStateBuffer específico
+    // Si el estado no existe, se crea uno nuevo y se inicializa
+    // ----------------------------------------------------------------------------
     template<typename T>
     T* GetData(std::string_view stateName, bool FromReadBuffer = true) {
         auto it = m_data.find(stateName);
         if (it != m_data.end()) {
+            // El estado ya existe, devolver el estado solicitado
+            // --------------------------------------------------
             FrameStateBuffer* threadData = it->second.get();
             if (FromReadBuffer) {
                 return static_cast<T*>(threadData->buffers[threadData->readIndex.load()]);
@@ -96,6 +107,8 @@ public:
             }
             return static_cast<T*>(threadData->buffers[threadData->writeIndex.load()]);
         }
+        // El estado no existe, crear uno nuevo y devolverlo
+        // -------------------------------------------------
         CreateState(stateName);
         auto it2 = m_data.find(stateName);
         if (it2 != m_data.end()) {
@@ -105,25 +118,23 @@ public:
             if (FromReadBuffer) {
                 threadData->buffers[readIdx] = new T();
                 threadData->buffers[readIdx]->SetPipelineState(m_pipelineState);
+                threadData->buffers[readIdx]->Initialize(m_deviceManager);
                 return static_cast<T*>(threadData->buffers[readIdx]);
             }
             threadData->buffers[writeIdx] = new T();
             threadData->buffers[writeIdx]->SetPipelineState(m_pipelineState);
+            threadData->buffers[writeIdx]->Initialize(m_deviceManager);
             return static_cast<T*>(threadData->buffers[writeIdx]);
         }
         return nullptr;
         //throw std::runtime_error("State not found: " + std::string(stateName));
     };
 
-    /*template<typename T>
-    T& GetData(std::shared_ptr<FrameStateBuffer> threadData) {
-        return static_cast<T&>(threadData->buffers[threadData->writeIndex]);
-    }*/
-
     // Métodos para el doble buffering	
     void SwapBuffers();
     void SwapBuffer(std::string_view stateName);
     void SwapBuffersContent();
+    void SwapBufferContent(std::string_view stateName);
 
     FrameStateBuffer* GetBuffer(std::string_view stateName);
 
@@ -131,8 +142,14 @@ public:
     //void LockAll();
     std::vector<std::unique_lock<std::mutex>> LockAll();
     void UnlockAll(std::vector<std::unique_lock<std::mutex>>& locks);
-    std::unique_lock<std::mutex> LockRenderState();
+    //std::unique_lock<std::mutex> LockRenderState();
     void UnlockAll();
     void Lock(std::string_view stateName);
     void Unlock(std::string_view stateName);
+    bool TryLock(std::string_view stateName);
+
+    // Control del Rendering State
+    void BeginRendering();
+    void EndRendering();
+    bool IsRendering() const { return m_isRendering; }
 };

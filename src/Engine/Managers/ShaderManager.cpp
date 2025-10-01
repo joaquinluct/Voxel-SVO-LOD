@@ -1,16 +1,15 @@
 #include "ShaderManager.h"
-#include <d3dcompiler.h>
-#include <algorithm>
-#include <variant>
-#include "../Resources/resource.h"
-#include <ManagerLocator/ManagerLocator.h>
-#include <DeviceManager.h>
 #include <AssetLocator/AssetLocator.h>
-#include <DefineLocator/DefineLocator.h>
 #include <Assets/Base/ShaderAsset.h>
-#include <Util/Text/Text.h>
+#include <d3dcompiler.h>
+#include <DefineLocator/DefineLocator.h>
 #include <Defines/Matrix/MatrixDefinitionBase.h>
 #include <Defines/ShaderSampler.h>
+#include <DeviceManager.h>
+#include <ManagerLocator/ManagerLocator.h>
+#include <memory>
+#include <Util/Text/Text.h>
+#include <variant>
 
 #include "REGISTER_MANAGER_MACRO.h"
 
@@ -28,7 +27,7 @@ ShaderManager::ShaderManager() {
 
 ShaderManager::~ShaderManager() {}
 
-HRESULT ShaderManager::LoadShader(Microsoft::WRL::ComPtr<ID3D11Device> device, std::wstring shaderName, std::wstring vsPath, std::wstring psPath, D3D11_INPUT_ELEMENT_DESC layoutDesc[], UINT numElements) {
+HRESULT ShaderManager::LoadShader(Microsoft::WRL::ComPtr<ID3D11Device> device, std::shared_ptr<ShaderAsset>& shader, std::wstring shaderName, std::wstring vsPath, std::wstring psPath, D3D11_INPUT_ELEMENT_DESC layoutDesc[], UINT numElements) {
     // Verificar si el shader ya está cargado
     if (vertexShaders.find(shaderName) != vertexShaders.end()) {
         return S_OK;
@@ -90,11 +89,17 @@ HRESULT ShaderManager::LoadShader(Microsoft::WRL::ComPtr<ID3D11Device> device, s
     }
 
     // Guardar shaders y layout en los mapas
-    vertexShaders[shaderName] = vs;
-    pixelShaders[shaderName] = ps;
-    inputLayouts[shaderName] = layout;
-    vertexShaderBlobs[shaderName] = vsBlob; // Guardar el blob del VS
-    pixelShaderBlobs[shaderName] = psBlob;   // Guardar el blob del PS
+    shader->SetVertexShader(vs);
+    shader->SetPixelShader(ps);
+    shader->SetInputLayout(layout);
+    shader->SetVertexShaderBlob(vsBlob); // Guardar el blob del VS
+    shader->SetPixelShaderBlob(psBlob);   // Guardar el blob del PS
+
+    //vertexShaders[shaderName] = vs;
+    //pixelShaders[shaderName] = ps;
+    //inputLayouts[shaderName] = layout;
+    //vertexShaderBlobs[shaderName] = vsBlob; // Guardar el blob del VS
+    //pixelShaderBlobs[shaderName] = psBlob;   // Guardar el blob del PS
 
     // Los blobs ahora se liberan al destruir el ShaderManager o cuando se recargan los shaders.
     // No los liberamos aquí para poder usarlos para crear el Input Layout si es necesario.
@@ -249,17 +254,17 @@ HRESULT ShaderManager::InitManagers() {
     return S_OK;
 }
 
-HRESULT ShaderManager::LoadShaderByName(std::wstring shaderName) {
+std::shared_ptr<ShaderAsset> ShaderManager::LoadShaderByName(std::wstring shaderName) {
     std::shared_ptr<ShaderAsset> shader = AssetLocator::GetShaderAsset(WstringToString(shaderName));
     if (!shader) {
         OutputDebugStringA("No se encontraron shaders para cargar.\n");
-        return E_FAIL;
+        return nullptr;
     }
     // Configuración del Shader
     std::shared_ptr<IAssetShaderConfig> config = shader->GetConfig();
     if (!config || config->vertex_def.empty()) {
         OutputDebugStringA("Error: Configuración del shader no encontrada.\n");
-        return E_FAIL; // Saltar este shader si no tiene configuración
+        return nullptr; // Saltar este shader si no tiene configuración
     }
 
     // Obtener valores de configuración
@@ -270,7 +275,7 @@ HRESULT ShaderManager::LoadShaderByName(std::wstring shaderName) {
     std::shared_ptr<IVertex> vertex = DefineLocator::GetVertexDefine(vertexDef);
     if (!vertex) {
         OutputDebugStringA("Error: Configuración del shader: Definición de vértices no encontrada.\n");
-        return E_FAIL;
+        return nullptr;
     }
 
     // Obtener el layout de entrada del shader
@@ -279,13 +284,13 @@ HRESULT ShaderManager::LoadShaderByName(std::wstring shaderName) {
 
     if (!layout) {
         OutputDebugStringA("Error: Layout de entrada no encontrado.\n");
-        return E_FAIL; // Saltar este shader si no tiene layout
+        return nullptr; // Saltar este shader si no tiene layout
     }
 
     // Cargar el shader
     std::wstring vsPath = StringToWstring(config->shader_path);
 
-    HRESULT result = LoadShader(deviceManager->GetDevice(), shaderName, vsPath, vsPath, layout, numItems);
+    HRESULT result = LoadShader(deviceManager->GetDevice(), shader, shaderName, vsPath, vsPath, layout, numItems);
 
     if (SUCCEEDED(result)) {
         // Guardar las constants matrix del shader
@@ -294,7 +299,9 @@ HRESULT ShaderManager::LoadShaderByName(std::wstring shaderName) {
             MatrixDefinition::AnyMatrixBuffer matrixDef = MatrixDefinition::Get(matrixName);
             //const std::string matrixSlotName = ParseInt(idx) + matrixName;
             //matrixShaders[name][matrixSlotName] = { idx, (std::make_unique<MatrixDefinition::AnyMatrixBuffer>(std::move(matrix))) };
-            std::shared_ptr<MatrixDefinition::AnyMatrixBuffer> matrix = std::make_shared<MatrixDefinition::AnyMatrixBuffer>(std::move(matrixDef));
+            MatrixDefinition::AnyMatrixBuffer mMatrixDef = std::move(matrixDef);
+            std::shared_ptr<MatrixDefinition::AnyMatrixBuffer> matrix = std::make_shared<MatrixDefinition::AnyMatrixBuffer>(mMatrixDef);
+            shader->SetConstantsBuffers(matrixName, matrix);
             constantsBuffers[matrixName] = matrix;
             matrixShaders[shaderName][slot] = { matrixName, matrix };
             slot++;
@@ -316,11 +323,12 @@ HRESULT ShaderManager::LoadShaderByName(std::wstring shaderName) {
                 samplerDef.slot = slot;
                 samplerDef.desc = sampler.GetDesc();
                 samplersDesc[shaderName].push_back(samplerDef);
+                shader->SetSamplersDesc(samplerName, samplerDef);
                 }, sampler);
             slot++;
         }
     }
-    return S_OK;
+    return shader;
 }
 
 HRESULT ShaderManager::InitShaders() {
@@ -336,7 +344,7 @@ HRESULT ShaderManager::InitShaders() {
         // Nombre del Shader
         std::wstring name = StringToWstring(shader->GetAssetName());
 
-        if (FAILED(LoadShaderByName(name))) {
+        if (LoadShaderByName(name)) {
             std::string msg = "ShaderManager::ERROR: Shader cargado: " + shader->GetAssetName() + "\n";
             OutputDebugStringA(msg.c_str());
         }

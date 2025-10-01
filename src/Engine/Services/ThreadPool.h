@@ -1,19 +1,18 @@
 #pragma once
 
-#include <iostream>
-#include <vector>
-#include <queue>
-#include <thread>
-#include <mutex>
 #include <condition_variable>
 #include <functional>
 #include <future>
-#include <type_traits>
 #include <IService.h>
+#include <mutex>
+#include <queue>
+#include <thread>
+#include <type_traits>
+#include <vector>
 
 // La clase ThreadPool gestiona un pool de hilos para ejecutar tareas de forma asíncrona.
-class ThreadPool: public IService {
-public:    
+class ThreadPool : public IService {
+public:
     ThreadPool();
     ~ThreadPool() override;
 
@@ -23,7 +22,8 @@ public:
     void Render() override {};
     void Update(float deltaTime) override {};
 
-    const std::string& GetServiceName() const override { static const std::string name = "ThreadPool"; return name;
+    const std::string& GetServiceName() const override {
+        static const std::string name = "ThreadPool"; return name;
     }
     static const std::string& GetStaticServiceName() { static const std::string name = "ThreadPool"; return name; }
 

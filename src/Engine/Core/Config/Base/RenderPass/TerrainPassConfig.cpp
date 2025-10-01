@@ -6,7 +6,7 @@ REGISTER_CONFIG_TYPE(TerrainPassConfig,"TerrainPassConfig");
 TerrainPassConfig::TerrainPassConfig(){
 	id = 32;
 	enabled = true;
-	shader_default = "TerrainShader";
+	shader_default = "Terrain2Shader";
 	rasterizedState = "RasterizedMainColorPass";
 	viewPortState = "ViewportMainColor";
 	stencilState = "StencilViewMainColor";

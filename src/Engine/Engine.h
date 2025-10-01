@@ -1,13 +1,11 @@
 #pragma once
 
-#include <windows.h>
-#include <thread>
-#include <atomic>
+#include <Defines/EngineDefinition.h>
 #include <memory>
 #include <mutex>
 #include <queue>
-#include <chrono>
-#include <Defines/EngineDefinition.h>
+#include <thread>
+#include <windows.h>
 
 class DeviceManager;
 class RenderManager;
@@ -63,6 +61,8 @@ public:
     // --------------------------------------------------------------------------------------
     bool IsRunning() const { return m_context->isRunning; }
     void SetRunning(bool running) { m_context->isRunning = running; }
+
+    void SetDeltaTime(float deltaTime) { m_context->deltaTime = deltaTime; }
 
 private:
     //--------------------------------------------------------------------------------------

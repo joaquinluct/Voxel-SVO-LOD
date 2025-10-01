@@ -48,6 +48,9 @@ namespace MaterialMatrix {
         std::string MatrixType() {
             return MATRIX_TYPE_PIXEL.data();
         }
+        UINT Slot() {
+            return 3;
+        }
     };
 
 
@@ -75,6 +78,9 @@ namespace MaterialMatrix {
 
         std::string MatrixType() {
             return MATRIX_TYPE_VERTEX.data();
+        }
+        UINT Slot() {
+            return 4;
         }
     };
 
@@ -109,7 +115,9 @@ namespace MaterialMatrix {
         std::string MatrixType() {
             return MATRIX_TYPE_PIXEL.data();
         }
-
+        UINT Slot() {
+            return 11;
+        }
     };
 
     struct Terrain2BlendBuffer {
@@ -158,7 +166,9 @@ namespace MaterialMatrix {
         std::string MatrixType() {
             return MATRIX_TYPE_PIXEL.data();
         }
-
+        UINT Slot() {
+            return 12;
+        }
     };
 
 

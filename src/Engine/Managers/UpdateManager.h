@@ -93,7 +93,7 @@ public:
     FrameStateBase* UpdateMeshState(float deltaTime);
     FrameStateBase* UpdateDeviceState(float deltaTime);
     FrameStateBase* UpdatePassState(float deltaTime);
-    FrameStateBase* UpdateViewportState(float deltaTime);
+    FrameStateBase* UpdateConstantBuffersState(float deltaTime);
     FrameStateBase* UpdateShaderState(float deltaTime);
     FrameStateBase* UpdatePipelineState(float deltaTime);
 

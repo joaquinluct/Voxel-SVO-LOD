@@ -26,8 +26,6 @@ private:
 
     std::unordered_map<size_t, Chunk*> m_regionToChunkMap;
 
-    std::wstring m_shaderName;
-
     // Control de los buffers dinámicos del terreno
     // para índices y vértices con control de fragmentación
     // y reutilización de memoria
@@ -35,8 +33,8 @@ private:
     ChunkBufferAllocator m_allocator;
 
     UINT m_vertexTypeSize = 0;
-    std::vector<uint8_t> m_tempVertexData;
-    std::vector<UINT> m_tempIndexData;
+    std::vector<std::vector<uint8_t>> m_tempVertexData;
+    std::vector<std::vector<uint16_t>> m_tempIndexData;
 
     std::vector<float> m_textureTransforms;
 
@@ -56,12 +54,16 @@ public:
     static const std::string& GetStaticAssetName() { static const std::string name = "TerrainAsset"; return name; }
     void SetConfig(std::shared_ptr<ConfigBase> config) override;
     Mesh::DrawType GetDrawType() const override;
+    int GetRenderPassesValue() const override { return m_terrainConfig ? m_terrainConfig->render_passes : 0; }
 
     // ----------------------------------------------------------------
     // Control de la malla
     // ----------------------------------------------------------------
-    void GenerateMesh(std::vector<Chunk*> chunks) override;
+    void GenerateMesh(std::vector<Chunk*> chunks, int indexBuffer) override;
     bool IsGenerating() const override { return m_isGeneratingMesh; }
+
+    std::vector<uint8_t> GetVertexData(int index) const override;
+    std::vector<uint16_t> GetIndexData(int index) const override;
 
     // ----------------------------------------------------------------
     // Métodos para acceder a los recursos compartidos

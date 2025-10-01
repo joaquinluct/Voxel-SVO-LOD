@@ -10,6 +10,7 @@ public:
     int id;
     bool enabled;
     std::string shader_name;
+    std::string shader_default;
     std::string rasterizedState;
     std::string viewPortState;
     std::string stencilState;

@@ -9,9 +9,12 @@
 #include "WaterMatrices.h"
 #include <Core/Defines/Enums/Matrix.h>
 #include <DirectXMath.h>
+#include <map>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <variant>
+#include <Windows.h>
 
 using namespace MatrixDefinitionBase;
 
@@ -57,6 +60,9 @@ namespace MatrixDefinition {
         std::string MatrixType() {
             return MATRIX_TYPE_VERTEX.data();
         }
+        UINT Slot() {
+            return 0;
+        }
     };
 
     struct MatrixBufferTypeSkyBox {
@@ -86,6 +92,9 @@ namespace MatrixDefinition {
         std::string MatrixType() {
             return MATRIX_TYPE_VERTEX.data();
         }
+        UINT Slot() {
+            return 15;
+        }
     };
 
     struct MatrixBufferTypeProceduralSkyBox {
@@ -112,6 +121,9 @@ namespace MatrixDefinition {
         std::string MatrixType() {
             return MATRIX_TYPE_VERTEX.data();
         }
+        UINT Slot() {
+            return 6;
+        }
     };
 
     struct MatrixBufferTypeOrthographic {
@@ -136,6 +148,9 @@ namespace MatrixDefinition {
 
         std::string MatrixType() {
             return MATRIX_TYPE_VERTEX.data();
+        }
+        UINT Slot() {
+            return 13;
         }
     };
 

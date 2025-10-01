@@ -45,7 +45,7 @@ HRESULT CameraManager::Init(EngineContext* context) {
         }
         if (m_config->camerasTypes.size() <= index) {
             continue; // Evitar acceso fuera de rango
-		}
+        }
         std::string camType = m_config->camerasTypes[index];
         if (camType == "FirstPersonCamera") {
             std::shared_ptr<FirstPersonCamera> cam = ServiceLocator::GetService<FirstPersonCamera>();
@@ -178,6 +178,6 @@ Util::Triangle* CameraManager::GetTriangleLookingAt(const std::vector<Util::Tria
 
 std::string CameraManager::GetDebugInfo() const {
     std::string info = "\nCameraManager Debug Info:\n";
-    info += "Debug Camera: " + (m_currentCamera ? m_currentCamera->GetDebugInfo() : "None") + "\n";    
+    info += "Debug Camera: " + (m_currentCamera ? m_currentCamera->GetDebugInfo() : "None") + "\n";
     return info;
 }

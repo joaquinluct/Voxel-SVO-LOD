@@ -1,7 +1,7 @@
 #pragma once
 
 #include "AssetBase.h"
-#include <Assets/Base/TextureAsset.h>
+#include <atomic>
 #include <Config/MeshAssetConfigBase.h>
 #include <cstdint>
 #include <d3d11.h>
@@ -14,7 +14,9 @@
 #include <Services/Material.h>
 #include <string>
 #include <Util/GUID.h>
+#include <Util/Text/Text.h>
 #include <vector>
+#include <Windows.h>
 #include <wrl/client.h>
 
 class DeviceManager;
@@ -36,6 +38,7 @@ protected:
     DirectX::XMMATRIX m_worldMatrix = DirectX::XMMatrixIdentity();
     std::string m_meshObj;
     std::string m_shaderAssetName;
+    std::wstring m_shaderName;
     std::string m_vertexDef;
     Mesh::Type m_meshType;
     std::string m_textureType;
@@ -47,6 +50,7 @@ protected:
     // -----------------------------------------
     Material* m_material;
     Material* m_shadowMaterial;
+    int m_passes;
 
     // -----------------------------------------
     // Managers
@@ -65,26 +69,32 @@ protected:
     // -----------------------------------------
     // Buffers
     // -----------------------------------------
-    Microsoft::WRL::ComPtr<ID3D11Buffer> m_vertexBuffer;
-    Microsoft::WRL::ComPtr<ID3D11Buffer> m_indexBuffer;
+    std::vector<Microsoft::WRL::ComPtr<ID3D11Buffer>> m_vertexBuffer;
+    std::vector<Microsoft::WRL::ComPtr<ID3D11Buffer>> m_indexBuffer;
 
     // -----------------------------------------
     // Data
     // -----------------------------------------
+    std::vector<std::vector<uint8_t>> m_vertexData;
+    std::vector<std::vector<uint16_t>> m_indexData;
+
     std::vector<std::shared_ptr<VertexDefinition::VertexVariant>> m_vertexes;
     std::vector<uint16_t> m_indexes;
-    UINT m_vertexCount = 0;
-    UINT m_indexCount = 0;
+    std::vector<UINT> m_vertexCount;
+    std::vector<UINT> m_indexCount;
     UINT m_vertexTypeSize = 0;
 
     // Threading
     std::mutex m_mutex;
     std::string uniqueID = generateUID();
+
+    std::atomic<int> m_readIndex{ 1 };
+    std::atomic<int> m_writeIndex{ 0 };
 public:
 
     MeshAssetBase() : AssetBase(),
         m_material(nullptr), m_shadowMaterial(nullptr),
-        m_vertexBuffer(nullptr), m_indexBuffer(nullptr),
+        m_vertexBuffer(), m_indexBuffer(),
         m_meshConfig(nullptr), m_vertexes(), m_indexes(), m_vertexCount(0), m_indexCount(0), m_vertexTypeSize(0), m_meshType(Mesh::Type::None)
     {
     }
@@ -93,7 +103,7 @@ public:
         m_material(other->m_material), m_shadowMaterial(other->m_shadowMaterial),
         m_vertexBuffer(other->m_vertexBuffer), m_indexBuffer(other->m_indexBuffer),
         m_meshConfig(other->m_meshConfig), m_vertexes(other->m_vertexes), m_indexes(other->m_indexes),
-        m_vertexCount(other->m_vertexCount), m_indexCount(other->m_indexCount), m_vertexTypeSize(other->m_vertexTypeSize), m_meshType(other->m_meshType), m_name(other->m_name), m_worldMatrix(other->m_worldMatrix)
+        m_vertexCount(other->m_vertexCount), m_indexCount(other->m_indexCount), m_vertexTypeSize(other->m_vertexTypeSize), m_meshType(other->m_meshType), m_name(other->m_name), m_worldMatrix(other->m_worldMatrix), m_shaderName(other->m_shaderName)
     {
     }
     ~MeshAssetBase() = default;
@@ -107,6 +117,7 @@ public:
     // -----------------------------------------
     // Inicialización
     // -----------------------------------------
+    HRESULT InitBuffers();
     HRESULT InitManagers();
     HRESULT InitConfig();
     HRESULT InitTexture();
@@ -116,7 +127,7 @@ public:
     // Generación de Buffers del mesh
     // -----------------------------------------
     virtual void GenerateMesh() {};
-    virtual void GenerateMesh(std::vector<Chunk*> chunks) {};
+    virtual void GenerateMesh(std::vector<Chunk*> chunks, int indexBuffer) {};
     void ClearMeshData();
     virtual bool IsGenerating() const { return false; }
 
@@ -124,13 +135,16 @@ public:
     // Getters
     // -----------------------------------------
     std::string GetName() const;
-    Microsoft::WRL::ComPtr<ID3D11Buffer> GetVertexBuffer();
-    Microsoft::WRL::ComPtr<ID3D11Buffer> GetIndexBuffer();
-    void SetVertexBuffer(Microsoft::WRL::ComPtr<ID3D11Buffer> vertexBuffer);
-    void SetIndexBuffer(Microsoft::WRL::ComPtr<ID3D11Buffer> indexBuffer);
-    UINT GetVertexCount() const { return m_vertexCount; }
-    UINT GetIndexCount() const { return m_indexCount; }
+    virtual int GetRenderPassesValue() const { return m_passes; }
+    Microsoft::WRL::ComPtr<ID3D11Buffer> GetVertexBuffer(int index);
+    Microsoft::WRL::ComPtr<ID3D11Buffer> GetIndexBuffer(int index);
+    void SetVertexBuffer(Microsoft::WRL::ComPtr<ID3D11Buffer> vertexBuffer, int index);
+    void SetIndexBuffer(Microsoft::WRL::ComPtr<ID3D11Buffer> indexBuffer, int index);
+    UINT GetVertexCount(int index) const { return m_vertexCount[index]; }
+    UINT GetIndexCount(int index) const { return m_indexCount[index]; }
     virtual UINT GetVertexTypeSize() const { return m_vertexTypeSize; }
+    virtual std::vector<uint8_t> GetVertexData(int index) const { return {}; }
+    virtual std::vector<uint16_t> GetIndexData(int index) const { return {}; }
     Mesh::Type GetMeshType() const { return m_meshType; }
     DirectX::XMMATRIX GetWorldMatrix() const { return m_worldMatrix; }
     Material* GetMaterial() const { return m_material; }
@@ -139,6 +153,15 @@ public:
     std::string GetTextureType() const { return m_textureType; }
     std::vector<float> GetTextureTransforms() const { return m_textureTransforms; }
     std::string GetShaderAssetName() const { return m_shaderAssetName; }
+    const std::string GetShaderName() const {
+        if (m_shaderName.size() > 0) {
+            return WstringToString(m_shaderName);
+        }
+        if (!m_meshConfig) {
+            return "";
+        }
+        return m_meshConfig->shader;
+    }
     std::string GetVertexDef() const { return m_vertexDef; }
     virtual Mesh::DrawType GetDrawType() const;
     D3D11_PRIMITIVE_TOPOLOGY GetPrimitiveTopology() const;
@@ -153,4 +176,9 @@ public:
 
     // Threading
     std::unique_lock<std::mutex> LockBuffers();
+
+    void SwapBuffer();
+
+    int GetReadIndex() const { return m_readIndex.load(); }
+    int GetWriteIndex() const { return m_writeIndex.load(); }
 };

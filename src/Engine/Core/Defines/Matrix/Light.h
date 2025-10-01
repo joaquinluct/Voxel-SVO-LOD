@@ -50,6 +50,9 @@ namespace Light {
         std::string MatrixType() {
             return MATRIX_TYPE_PIXEL.data();
         }
+        UINT Slot() {
+            return 2;
+        }
     };
 
     struct LightSpaceMatrices {
@@ -74,6 +77,9 @@ namespace Light {
 
         std::string MatrixType() {
             return MATRIX_TYPE_VERTEX.data();
+        }
+        UINT Slot() {
+            return 5;
         }
     };
 
@@ -105,6 +111,9 @@ namespace Light {
             // Normalmente esta matriz es usada tanto en el Vertex Shader (para transformar posiciones)
             // como en el Pixel Shader (para muestrear el mapa de sombras).
             return MATRIX_TYPE_VERTEX.data();
+        }
+        UINT Slot() {
+            return 10;
         }
     };
 }

@@ -13,7 +13,4 @@ public:
 		static const std::string className = "TerrainPassConfig";
 		return className;
 	}
-	int id;
-	bool enabled;
-	std::string shader_default;
 };

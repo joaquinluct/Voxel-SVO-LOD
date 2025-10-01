@@ -1,0 +1,180 @@
+# engine_render_pass.yaml
+Config:
+  Base:
+    RenderPass:      
+      BasePass:
+        id: 0
+        enabled: true
+        SwapChain: SwapChainMain
+        BackBuffer: BackBufferMain
+        DepthBuffer: DepthBufferMain
+        DepthStencil: DepthStencilMain
+        RenderTarget: MainRenderTarget
+        StencilView: StencilViewMainColor
+        viewPortState: ViewportMainColor
+        rasterizedState: RasterizedMainColorPass
+        passes:
+            # - BasePass
+            - ShadowPass
+            - MainColorPass
+            - UIPass
+            - SkyboxPass
+            - TerrainPass
+            - LinePass
+            - Reflection       # Nuevo: Pase de reflejos del agua
+            - Refraction       # Nuevo: Pase de refracción del agua
+            - WaterPass        # Nuevo: Pase del agua
+
+      ShadowPass:
+        id: 1
+        enabled: true
+        shader_name: ShadowMapShader
+        rasterizedState: RasterizedShadowPass
+        viewPortState: ViewportShadow
+        stencilState: StencilViewShadow
+        stencilDef: StencilStateRegular
+        shaderViewState: ShaderViewShadow
+        shadowTextureView: none
+        blendState: DisabledBlending
+        primitiveTopology: 4 # D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
+        resolution: 2048 # Resolution for shadow map
+
+      MainColorPass:
+        id: 2
+        enabled: true
+        shader_default: PBRShadowShader
+        rasterizedState: RasterizedMainColorPass
+        viewPortState: ViewportMainColor
+        stencilState: StencilViewMainColor
+        stencilDef: none
+        shaderViewState: none
+        shadowTextureView: StencilViewShadow
+        blendState: none
+        primitiveTopology: 4 # D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
+
+      UIPass:
+        id: 8
+        enabled: true
+        shader_default: ShaderTextUI
+        rasterizedState: RasterizedUIPass
+        viewPortState: ViewportUI
+        stencilState: none
+        stencilDef: StencilStateUI
+        shaderViewState: none
+        shadowTextureView: none
+        blendState: BlendingUI
+        primitiveTopology: 4 # D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
+
+      SkyboxPass:
+        id: 16
+        enabled: true
+        shader_default: PBRShadowShader
+        rasterizedState: RasterizedMainColorPass
+        viewPortState: ViewportMainColor
+        stencilState: none
+        stencilDef: none
+        shaderViewState: none
+        shadowTextureView: none
+        blendState: none
+        primitiveTopology: 4 # D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
+
+      TerrainPass:
+        id: 32
+        enabled: true
+        shader_default: Terrain2Shader
+        rasterizedState: RasterizedMainColorPass
+        viewPortState: ViewportMainColor
+        stencilState: StencilViewMainColor
+        stencilDef: none
+        shaderViewState: none
+        shadowTextureView: StencilViewShadow
+        blendState: none
+        primitiveTopology: 4 # D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
+
+      LinePass:
+        id: 64
+        enabled: true
+        shader_default: BaseShader
+        rasterizedState: RasterizedMainColorPass
+        viewPortState: ViewportMainColor
+        stencilState: StencilViewMainColor
+        stencilDef: none
+        shaderViewState: none
+        shadowTextureView: none
+        blendState: none
+        primitiveTopology: 4 # D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
+
+      # Nuevo: Pase de reflejos del agua
+      Reflection:
+        id: 128
+        enabled: true
+        shader_default: WaterReflectionShader
+        rasterizedState: RasterizedReflectedPass # Nueva: Necesita culling invertido
+        viewPortState: ViewportMainColor
+        stencilState: StencilViewMainColor
+        stencilDef: none
+        shaderViewState: none
+        shadowTextureView: none
+        blendState: DisabledBlending
+        primitiveTopology: 4 # D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
+        
+      # Nuevo: Pase de refracción del agua
+      Refraction:
+        id: 256
+        enabled: true
+        shader_default: WaterRefractionShader
+        rasterizedState: RasterizedMainColorPass
+        viewPortState: ViewportMainColor
+        stencilState: StencilViewMainColor
+        stencilDef: none
+        shaderViewState: none
+        shadowTextureView: none
+        blendState: DisabledBlending
+        primitiveTopology: 4 # D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
+
+      # Nuevo: Pase del agua
+      WaterPass:
+        id: 512
+        enabled: true
+        shader_default: OceanShader
+        rasterizedState: RasterizedMainColorPass
+        viewPortState: ViewportMainColor
+        stencilState: StencilViewMainColor
+        stencilDef: none
+        shaderViewState: none
+        shadowTextureView: StencilViewShadow
+        blendState: BlendingWaterPass # Nueva: Necesita transparencia
+        primitiveTopology: 4 # D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
+
+Definition:
+  Default:
+    language: 1 # C++
+    type: "Class"
+    needs_register: true
+    file_level: 3
+    register_include: "REGISTER_CONFIG_TYPE"
+    register_macro: "REGISTER_CONFIG_MACRO"
+    interface_name: "PassConfigBase"
+    class_suffix: "Config"
+    class_prefix: ""
+    inherits_properties:
+      - id
+      - enabled
+      - type
+      - shader_name
+      - shader_default
+      - rasterizedState
+      - viewPortState
+      - stencilState
+      - stencilDef
+      - shaderViewState
+      - shadowTextureView
+      - blendState
+      - primitiveTopology
+      - resolution
+      - dependencies
+    output_path: 'c:\Users\joaqu\source\repos\DirectX-Voxelado\src\Engine\Core\Config\Base\'
+  Classes:
+    Passes:
+      interface_name: "ConfigBase"
+

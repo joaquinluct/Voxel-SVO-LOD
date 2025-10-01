@@ -9,7 +9,7 @@ SkyboxConfig::SkyboxConfig(){
 	shadow_pass = false;
 	version = "1.0.0";
 	type = "DefaultSkybox";
-	mesh = "SkyboxMesh";
+	mesh = "ProcSkyboxMesh";
 	sky_color = {
 		0.4f,
 		0.4f,

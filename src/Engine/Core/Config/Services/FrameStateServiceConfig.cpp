@@ -6,6 +6,6 @@ REGISTER_CONFIG_TYPE(FrameStateServiceConfig,"FrameStateServiceConfig");
 FrameStateServiceConfig::FrameStateServiceConfig(){
 	enabled = true;
 	dependencies = {
-		"None"
+		"DeviceManager"
 	};
 };

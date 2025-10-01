@@ -1,0 +1,184 @@
+# assets_mesh.yaml
+Config:
+  Asset:
+    Mesh:
+      FloorMesh:
+        enabled: true
+        type: "MeshAsset"
+        meshType: 1 # File_Obj
+        name: "FloorMesh"
+        # mesh_path: 'c:\Users\joaqu\source\repos\DirectX-Voxelado\Assets\Mesh\floor.obj'
+        mesh_path: 'c:\Users\joaqu\source\repos\DirectX-Voxelado\Assets\Mesh\floor_plane.obj'
+        texture: "TextureGrassDiffuse"
+        texture_transforms: [3.0, 3.0, 0.0, 0.0] # scale_x, scale_y, offset_x, offset_y
+        # shader: "PBRShader"
+        shader: "PBRShadowShader"
+        position: [1.0, 100.0, 1.0]
+        cast_shadows: true
+        receive_shadows: true
+        shader_shadows: "ShadowMapShader"
+        drawType: 1 # DrawIndexed
+        primitiveTopology: 4 # D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
+        render_passes: 3 # shadow | color
+        dependencies:
+          - MeshAsset
+      SkyboxMesh:
+        enabled: true
+        type: "MeshAsset"
+        meshType: 1 # File_Obj
+        name: "SkyboxMesh"
+        mesh_path: 'c:\Users\joaqu\source\repos\DirectX-Voxelado\Assets\Mesh\skybox1.obj'
+        texture: "DefaultSkybox"
+        shader: "SkyboxShader"
+        # shader: "ProceduralSkyboxShader"
+        cast_shadows: false
+        receive_shadows: false
+        drawType: 1 # DrawIndexed
+        primitiveTopology: 4 # D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
+        render_passes: 16 # Skybox pass
+        dependencies:
+          - MeshAsset
+      ProcSkyboxMesh:
+        enabled: true
+        type: "MeshAsset"
+        meshType: 1 # File_Obj
+        name: "ProcSkyboxMesh"
+        mesh_path: 'c:\Users\joaqu\source\repos\DirectX-Voxelado\Assets\Mesh\skybox1.obj'
+        texture: "DefaultSkybox"
+        # shader: "SkyboxShader"
+        shader: "ProceduralSkyboxShader"
+        cast_shadows: false
+        receive_shadows: false
+        drawType: 1 # DrawIndexed
+        primitiveTopology: 4 # D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
+        render_passes: 16 # skybox pass
+        dependencies:
+          - MeshAsset
+      House1Mesh:
+        enabled: true
+        type: "MeshAsset"
+        meshType: 1 # File_Obj
+        name: "House1Mesh"
+        mesh_path: 'C:\Users\joaqu\source\repos\DirectX-Voxelado\Assets\Mesh\Builds\Houses\house1.obj'
+        texture: "TextureBricks001"
+        # shader: "PBRShader"
+        shader: "PBRShadowShader"
+        position: [0.0, 100.0, 0.0]
+        # cull_mode: "None"
+        cast_shadows: true
+        receive_shadows: true
+        shader_shadows: "ShadowMapShader"
+        drawType: 1 # DrawIndexed
+        primitiveTopology: 4 # D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
+        render_passes: 3 # shadow | color
+        dependencies:
+          - MeshAsset
+      BoxMesh:
+        enabled: true
+        type: "MeshAsset"
+        meshType: 1 # File_Obj
+        name: "BoxMesh"
+        mesh_path: 'C:\Users\joaqu\source\repos\DirectX-Voxelado\Assets\Mesh\box.obj'
+        texture: "TextureBricks001"
+        shader: "PBRShadowShader"
+        position: [0.0, 100.0, 0.0]
+        cast_shadows: true
+        receive_shadows: true
+        shader_shadows: "ShadowMapShader"
+        drawType: 1 # DrawIndexed
+        primitiveTopology: 4 # D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
+        render_passes: 3 # shadow | color
+        dependencies:
+          - MeshAsset
+      UITextMesh:
+        enabled: true
+        type: MeshAsset
+        meshType: 2 # Text
+        textService: UIText
+        name: UIText
+        texture: TextureTextUI
+        shader: ShaderTextUI
+        position: [0.0, 0.0, 0.0]
+        cast_shadows: false
+        receive_shadows: false
+        drawType: 2 #Draw
+        primitiveTopology: 4 # D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
+        render_passes: 8 # ui
+        dependencies:
+          - MeshAsset
+
+      TerrainMesh:
+        enabled: true
+        type: "MeshAsset"
+        meshType: 3 # Terrain
+        name: "TerrainMesh"
+        texture: "ProceduralTerrainTexture"        
+        texture_transforms: [3.0, 3.0, 0.0, 0.0] # scale_x, scale_y, offset_x, offset_y
+        # texture: "TextureGrassDiffuse"
+        # shader: "TerrainShader"
+        shader: "Terrain2Shader"
+        # shader: "PBRShader"
+        position: [0.0, 100.0, 0.0]
+        cast_shadows: true
+        receive_shadows: true
+        shader_shadows: "ShadowMapShader"
+        drawType: 1 # DrawIndexed
+        primitiveTopology: 4 # D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
+        # El terreno debe aparecer en el pase de sombras, reflejos, refracción y su propio pase
+        render_passes: 417 # 1 | 128 | 256 | 32
+        #render_passes: 2 # color
+        dependencies:
+          - MeshAsset
+
+      OceanMesh:
+        enabled: true
+        type: "MeshAsset"
+        meshType: 1 # File_Obj
+        name: "WaterMesh"
+        mesh_path: 'C:\Users\joaqu\source\repos\DirectX-Voxelado\Assets\Mesh\water.obj'
+        texture: none        
+        shader: "OceanShader"
+        position: [0.0, 0.0, 0.0]
+        cast_shadows: false
+        receive_shadows: false
+        shader_shadows: none
+        drawType: 3 # DrawInstanced
+        primitiveTopology: 4 # D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
+        # Se usan IDs en el bitmask: ShadowPass (1), ReflectionPass (128), RefractionPass (256), WaterPass (512)
+        #render_passes: 897 # 1 | 128 | 256 | 512        
+        # Se usan IDs en el bitmask: ReflectionPass (128), RefractionPass (256), WaterPass (512)
+        render_passes: 896 # 128 | 256 | 512        
+        dependencies:
+          - MeshAsset
+Definition:
+  Default:
+    language: 1 # C++
+    type: "Class"
+    needs_register: true
+    file_level: 3
+    register_include: "REGISTER_CONFIG_TYPE"
+    register_macro: "REGISTER_CONFIG_MACRO"
+    interface_name: "MeshAssetConfigBase"
+    class_suffix: "Config"
+    class_prefix: ""
+    inherits_properties:
+        - type
+        - meshType
+        - name
+        - vertexDef
+        - shader
+        - definition
+        - mesh_path
+        - texture
+        - texture_transforms
+        - position 
+        - textService
+        - cast_shadows
+        - receive_shadows
+        - shader_shadows
+        - drawType
+        - render_passes
+        - primitiveTopology
+        - dependencies
+    # output_path: 'C:\Users\joaqu\source\repos\DirectX-Voxelado\TestConfig\Assets\'
+    output_path: 'c:\Users\joaqu\source\repos\DirectX-Voxelado\src\Engine\Core\Config\Assets\'

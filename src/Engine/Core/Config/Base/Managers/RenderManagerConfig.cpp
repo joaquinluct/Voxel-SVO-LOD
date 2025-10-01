@@ -5,6 +5,7 @@ REGISTER_CONFIG_TYPE(RenderManagerConfig,"RenderManagerConfig");
 
 RenderManagerConfig::RenderManagerConfig(){
 	passes = {
+		"SkyboxPass",
 		"TerrainPass"
 	};
 	dependencies = {

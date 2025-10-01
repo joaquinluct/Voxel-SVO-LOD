@@ -33,5 +33,8 @@ namespace TimeMatrices
         std::string MatrixType() {
             return MATRIX_TYPE_VERTEX.data();
         }
+        UINT Slot() {
+            return 8;
+        }
     };
 } // namespace TimeMatrices

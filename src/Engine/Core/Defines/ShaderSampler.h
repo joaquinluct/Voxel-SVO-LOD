@@ -111,8 +111,8 @@ namespace ShaderSampler
     // Estructura con la definición de un sampler
     struct SamplerDefinition
     {
-        std::string name;
-        int slot;
+        std::string name = "";
+        int slot = 0;
         D3D11_SAMPLER_DESC desc = {};
     };
 

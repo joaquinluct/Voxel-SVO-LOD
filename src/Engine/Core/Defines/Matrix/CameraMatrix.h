@@ -35,5 +35,8 @@ namespace CameraMatrix {
         std::string MatrixType() {
             return MATRIX_TYPE_PIXEL.data();
         }
+        UINT Slot() {
+            return 1;
+        }
     };
 }
