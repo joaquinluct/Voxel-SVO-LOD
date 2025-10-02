@@ -28,9 +28,11 @@
 
 # Executables
 *.exe
+*.pdb
 *.out
 *.app
-.vs
+*.vs
+*.json
 debug/*
 Debug/*
 DirectX-Voxelado/*

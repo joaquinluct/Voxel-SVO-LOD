@@ -1,7 +1,0 @@
-{
-  "name": "voxel",
-  "version": "1.0",
-  "dependencies": [
-    "tinyobjloader"
-  ]
-}
