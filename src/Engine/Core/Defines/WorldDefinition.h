@@ -18,6 +18,7 @@ namespace WorldDefinition
         Chronos = 1 << 0, // 1
         Terrain = 1 << 1, // 2
         Skybox = 1 << 2,  // 4
+        Biome = 1 << 3,   // 8
     };
 
     inline bool HasCronos(const Gameflags flags)
@@ -31,5 +32,9 @@ namespace WorldDefinition
     inline bool HasSkybox(const Gameflags flags)
     {
         return (static_cast<int>(flags) & static_cast<int>(Gameflags::Skybox)) != 0;
+    }
+    inline bool HasBiome(const Gameflags flags)
+    {
+        return (static_cast<int>(flags) & static_cast<int>(Gameflags::Biome)) != 0;
     }
 }

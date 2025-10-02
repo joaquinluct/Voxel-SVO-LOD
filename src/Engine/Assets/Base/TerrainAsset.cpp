@@ -6,6 +6,7 @@
 #include <Assets/Base/TextureAsset.h>
 #include <Core/Defines/Contants/Flags.h>
 #include <cstdint>
+#include <cstring>
 #include <d3d11.h>
 #include <Defines/VertexDefinition.h>
 #include <ManagerLocator/ManagerLocator.h>

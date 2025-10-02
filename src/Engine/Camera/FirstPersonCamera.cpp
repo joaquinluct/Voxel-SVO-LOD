@@ -265,70 +265,78 @@ DirectX::XMVECTOR FirstPersonCamera::GetUpVector() const {
 // --------------------------------------------------------------
 // UPDATE HEIGHT
 // --------------------------------------------------------------
-const float ALTURA_PERSONAJE = 10.0f;
-bool FirstPersonCamera::UpdateHeight(float deltaTime, XMVECTOR moveDir) {
+const float ALTURA_PERSONAJE = 40.0f;
+const float MAX_CLIMB_HEIGHT = 0.5f; // Altura máxima que puede subir en 1 frame.
 
+// Se asume que moveDir ha sido removido de la firma
+// Se asume que tienes un miembro de clase 'float m_lastTerrainHeight;'
+bool FirstPersonCamera::UpdateHeight(float deltaTime) {
+
+    // --- 1. APLICAR GRAVEDAD y CALCULAR POSICIÓN Y PROPUESTA ---
     m_verticalVelocity += GRAVITY * deltaTime;
+    float expectedY = m_position.y + m_verticalVelocity * deltaTime; // Y_proposed
 
-    // 4. Actualizar la posición Y de la cámara
-    float newY = m_position.y + m_verticalVelocity * deltaTime;
-    //m_position.y += m_verticalVelocity * deltaTime;
+    // Asignamos la Y propuesta. Solo la corregiremos si hay colisión.
+    m_position.y = expectedY;
 
     if (m_world && m_world->HasHeight()) {
 
-        // Obtener la altura del terreno en la nueva posición (x, z) de la cámara
-        float terrainHeight = m_world->GetTerrain()->GetTerrainHeight(m_position.x, m_position.z);
+        // Obtener la altura del terreno en la POSICIÓN X y Z PROPUESTA
+        float currentTerrainHeight = m_world->GetTerrain()->GetTerrainHeight(m_position.x, m_position.z);
+        float desiredGroundY = currentTerrainHeight + ALTURA_PERSONAJE;
 
-        /*if (newY > terrainHeight) {
-            m_lastHeight = terrainHeight;
-            m_position.y = newY;
-            return true;
-        }*/
+        // --- 2. CHEQUEO DE BLOQUEO HORIZONTAL (Subida excesiva) ---
 
-        float diff = terrainHeight - m_lastHeight;
+        // Si el personaje está por debajo del suelo o intentando atravesarlo:
+        if (m_position.y < desiredGroundY) {
 
-        m_lastHeight = terrainHeight;
+            // Calculamos cuánto ha subido el TERRENO, no el personaje.
+            float terrainStep = currentTerrainHeight - m_lastTerrainHeight;
 
-        /*if (diff > .2f) {
-            m_position = m_lastPosition;
-            return false;
-        }*/
+            if (terrainStep > MAX_CLIMB_HEIGHT) {
+                // ¡BLOQUEADO! Pendiente demasiado empinada. 
+                // La función Update se encargará de revertir X y Z.
+                return false;
+            }
 
-        // DEBUG
-        if (diff != 0.0f) {
-            m_heightDifference = diff;
+            // --- 3. RESOLUCIÓN DE COLISIÓN VERTICAL (Movimiento válido) ---
+
+            // Si el movimiento es válido (subida suave o caída), ajustamos Y.
+            m_position.y = desiredGroundY;
+
+            // Detener la caída si estaba cayendo (velocidad negativa).
+            if (m_verticalVelocity < 0.0f) {
+                m_verticalVelocity = 0.0f;
+            }
         }
 
-        // Verificar la colisión y ajustar la posición
-        if (m_position.y < (terrainHeight + ALTURA_PERSONAJE)) {
-            // Corregir la posición de la cámara para que esté en la altura del terreno
-            m_position.y = terrainHeight + ALTURA_PERSONAJE;
+        // --- 4. ACTUALIZAR ESTADO PARA EL SIGUIENTE FRAME ---
+        // Guardamos la altura del terreno en la posición actual (X, Z).
+        m_lastTerrainHeight = currentTerrainHeight;
 
-            // Reiniciar la velocidad vertical para detener la caída
-            m_verticalVelocity = 0.0f;
-        }
-    }
-    return true;
+    } // Si no hay terreno, m_position.y se mantiene como expectedY (caída libre).
+
+    return true; // Movimiento aceptado.
 }
 
 // --------------------------------------------------------------
 // UPDATE
 // --------------------------------------------------------------
 void FirstPersonCamera::Update(float deltaTime) {
-    // 1. Actualizar rotación basada en el ratón
+
+    // --- 1. Actualizar rotación basada en el ratón (SIN CAMBIOS) ---
     float deltaX = static_cast<float>(m_mouseService->GetDeltaX());
     float deltaY = static_cast<float>(m_mouseService->GetDeltaY());
 
     // Aplicar rotación con los deltas del ratón
     Rotate(
-        deltaY * m_rotationSpeed, // Negativo porque el eje Y de pantalla va hacia abajo
+        deltaY * m_rotationSpeed,
         deltaX * m_rotationSpeed,
-        0.0f                      // Sin cambio en roll
+        0.0f
     );
-
     m_mouseService->SetCenter();
 
-    // 2. Actualizar posición basada en el teclado
+    // --- 2. Preparar el movimiento horizontal ---
     XMVECTOR moveDir = XMVectorZero();
 
     // Movimiento adelante/atrás y lateral
@@ -340,34 +348,69 @@ void FirstPersonCamera::Update(float deltaTime) {
         moveDir = XMVectorAdd(moveDir, XMVectorScale(GetRightVector(), -1.0f));
     if (m_keyboardManager->IsKeyDown(KeyMoves::Right))
         moveDir = XMVectorAdd(moveDir, GetRightVector());
-    if (m_keyboardManager->IsKeyDown(KeyMoves::Sprint))
-        m_moveSpeed = CAMERA_SPEEDY; // Aumentar velocidad al sprintar
-    else
-        m_moveSpeed = CAMERA_SPEED; // Velocidad normal
 
-    // Normalizar y aplicar velocidad
+    // Configuración de velocidad (Sprint, etc.)
+    if (m_keyboardManager->IsKeyDown(KeyMoves::Sprint))
+        m_moveSpeed = CAMERA_SPEEDY;
+    else
+        m_moveSpeed = CAMERA_SPEED;
+
+    // --- 3. Aplicar movimiento horizontal propuesto ---
+    XMVECTOR lastPositionVector = XMLoadFloat3(&m_position); // GUARDAR POSICIÓN INICIAL
+    bool hasMoved = false;
+
     if (!XMVector3Equal(moveDir, XMVectorZero())) {
         float vel = m_moveSpeed * deltaTime;
+
+        // --- CÓDIGO DE GRAVEDAD (REEMPLAZO) ---
+        //// **CRUCIAL:** Ignorar el componente Y de moveDir para evitar levitar
+        //XMVECTOR flatMoveDir = XMVectorSetY(moveDir, 0.0f);
+        //flatMoveDir = XMVector3Normalize(flatMoveDir);
+        //flatMoveDir = XMVectorScale(flatMoveDir, vel);
+
+        //// Aplicar el movimiento PROPUESTO (X y Z)
+        //XMVECTOR position = XMLoadFloat3(&m_position);
+        //position = XMVectorAdd(position, flatMoveDir);
+        //XMStoreFloat3(&m_position, position);
+
+
+        // --- CÓDIGO DE VUELO LIBRE (REEMPLAZO) ---
+        // 1. Normalizar moveDir (que ya tiene las direcciones X, Y, Z combinadas de GetForward/GetRight)
+        //    Si estás mirando hacia arriba (pitch positivo), moveDir ya incluye la componente Y.
         moveDir = XMVector3Normalize(moveDir);
+
+        // 2. Aplicar velocidad y deltaTime
         moveDir = XMVectorScale(moveDir, vel);
 
-        OutputDebugStringA(("Vel. " + ParseFloat(vel) + " Pos. Inicial de la cámara" + DirectXUtils::ToString(m_position) + " en FirstPersonCamera\n").c_str());
-
-        // Actualizar posición
+        // 3. Aplicar el movimiento en X, Y, Z
         XMVECTOR position = XMLoadFloat3(&m_position);
         position = XMVectorAdd(position, moveDir);
+
+        // 4. Actualizar m_position
         XMStoreFloat3(&m_position, position);
-        //OutputDebugStringA(("Pos. cámara" + DirectXUtils::ToString(m_position) + " en FirstPersonCamera\n").c_str());
+
+        hasMoved = true;
         m_viewDirty = true;
     }
 
-    // 5. Actualizar la altura
-    //if (!UpdateHeight(deltaTime, moveDir)) {
-    //    m_viewDirty = true;
-    //    //	//return;
-    //}
+    // --- 4. Actualizar la altura y chequear la colisión ---
+    // UpdateHeight devolverá 'false' si la pendiente es muy empinada.
+    //if (!UpdateHeight(deltaTime)) {
 
-    m_lastPosition = m_position; // Guardar la última posición para comparaciones futuras
+    //    // La colisión horizontal falló (pendiente bloqueada)
+    //    if (hasMoved) {
+    //        // Revertir X y Z a la posición inicial (el "choque")
+    //        XMStoreFloat3(&m_position, lastPositionVector);
+
+    //        // Forzar la corrección vertical en la posición revertida
+    //        if (m_world && m_world->HasHeight()) {
+    //            // Asumimos que m_lastTerrainHeight tiene el valor correcto del suelo
+    //            m_position.y = m_lastTerrainHeight + ALTURA_PERSONAJE;
+    //            m_verticalVelocity = 0.0f;
+    //        }
+    //    }
+    //    m_viewDirty = true;
+    //}
 }
 
 void FirstPersonCamera::UpdateViewMatrix() {

@@ -162,6 +162,10 @@ void ChunkService::UpdateChunks(DirectX::XMFLOAT3 worldPosition)
             if (distance <= m_renderDistanceChunks * m_chunkSize)
             {
                 int lodLevel = 6;
+                /*if (distance >= m_chunkSize * 80.0f) {
+                    lodLevel = 6;
+                }*/
+
                 /*int lodLevel = 2;
 
                 if (distance >= m_chunkSize * 5.0f) {
@@ -186,8 +190,8 @@ void ChunkService::UpdateChunks(DirectX::XMFLOAT3 worldPosition)
                 if (create) {
                     chunk->SetFlag(FLAG_CHUNK_WITH_VERTEX, true);
                     chunk->SetFlag(FLAG_CHUNK_WITH_VERTEX_BUFFER, false);
-                    std::vector<Chunk*> neighbors = GetNeighbors(id);
-                    chunk->SetNeighbors(neighbors.data());
+                    //std::vector<Chunk*> neighbors = GetNeighbors(id);
+                    //chunk->SetNeighbors(neighbors.data());
                     chunk->UpdateLOD(lodLevel);
                 }
 

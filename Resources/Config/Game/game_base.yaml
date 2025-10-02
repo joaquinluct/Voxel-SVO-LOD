@@ -16,7 +16,7 @@ Config:
         - Terrain
         - Water
         # - Physics
-        # - Biome
+        - Biome
         # - Wheather
       services_post_init:
           - World
@@ -37,6 +37,7 @@ Config:
         # - Wheather
       service_update_order:
         - Chronos
+        - Biome
         - Skybox
         - Lighting
         # - TestingFloor

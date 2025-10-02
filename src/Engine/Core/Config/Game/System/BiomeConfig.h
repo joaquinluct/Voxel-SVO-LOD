@@ -15,6 +15,9 @@ public:
 	}
 	std::string name;
 	std::string version;
-	float vegetation_density;
-	float wildlife_density;
+	int biome_type;
+	float ocean_level;
+	float max_height;
+	float min_height;
+	std::vector<std::string> biomes;
 };

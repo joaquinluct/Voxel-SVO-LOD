@@ -1,0 +1,134 @@
+Config:
+  Game:
+    System:
+      Biomes:
+        # BIOMA 1: PLAINS
+        Plains:
+          id: 1
+          name: "Plains"
+          type: 1 # BiomeType: Procedural (Determina si se usa en la generación)
+          domain: 0 # BiomeDomain: Terrestre (0=Terrestre, 1=Acuático)
+
+          # RANGO DE ALTURA DEL BIOMA
+          minHeight: 0.0 
+          maxHeight: 0.8 # Este bioma no aparece por encima de la altura 0.8
+
+          # PUNTOS DE TRANSICIÓN PARA EL SHADER (Proporciones relativas a minHeight/maxHeight)
+          zone1_max_ratio: 0.125 # El 12.5% inferior del rango (Costa/Base)
+          zone2_max_ratio: 0.625 # El 62.5% del rango (Zona Media)
+
+          # RESTRICCIONES DE VECINDAD (para el algoritmo Voronoi modificado)
+          neverNearOf:
+            - "Tundra"
+          alwaysNearOf:
+            - "Forest"
+            
+          # ZONAS GEOGRÁFICAS Y TEXTURAS (3x3=9 Texturas)
+          zone1_type: 6 # BiomeGoegraphycalType: Beach (Corresponde a Coastal)
+          textures_zone1: # Tres texturas para mezclar en la Zona 1
+            - "Dry_Riverbed_4k"
+            - "RockyTrail_4k"
+            - "CoastSand_4k"
+
+          zone2_type: 2 # BiomeGoegraphycalType: Plain (Corresponde a Mid)
+          textures_zone2:
+            - "RockAndGrass_4k"
+            - "RockyTrail_4k"
+            - "RockyTrail_4k"
+
+          zone3_type: 2 # BiomeGoegraphycalType: Plain (Corresponde a Mountain/Abyssal)
+          textures_zone3:
+            - "Mossy_Rock_4k"
+            - "RockyTrail_4k"
+            - "RockyTrail_4k"
+            
+          # CARACTERÍSTICAS
+          canHaveBeaches: true
+          canHaveLakes: true
+          canHaveMountains: false
+          canHaveRivers: true
+          canHaveRoads: true
+          canHaveTrees: true
+
+        # BIOMA 2: FOREST
+        Forest:
+          id: 2
+          name: "Forest"
+          type: 1 # BiomeType: Procedural
+          domain: 0 # BiomeDomain: Terrestre
+
+          # RANGO DE ALTURA DEL BIOMA
+          minHeight: 0.0
+          maxHeight: 1.0 # Este bioma puede llegar a la altura máxima
+
+          # PUNTOS DE TRANSICIÓN PARA EL SHADER
+          zone1_max_ratio: 0.20 # La base del bosque es más alta que las llanuras
+          zone2_max_ratio: 0.70 # Las colinas (zona 3) empiezan en el 70% de la altura
+
+          # RESTRICCIONES DE VECINDAD
+          neverNearOf:
+            - "Desert"
+          alwaysNearOf:
+            - "Plains"
+
+          # ZONAS GEOGRÁFICAS Y TEXTURAS
+          zone1_type: 5 # BiomeGoegraphycalType: Coast
+          textures_zone1:
+            - "ForestGround_A_4k"
+            - "ForestGround_B_4k"
+            - "ForestSand_4k"
+
+          zone2_type: 3 # BiomeGoegraphycalType: Meadow
+          textures_zone2:
+            - "MossyRock_4k"
+            - "DirtPath_4k"
+            - "ForestRoots_4k"
+
+          zone3_type: 9 # BiomeGoegraphycalType: Hill
+          textures_zone3:
+            - "RockSlope_4k"
+            - "MossyCliff_4k"
+            - "PineNeedles_4k"
+
+          # CARACTERÍSTICAS
+          canHaveBeaches: true
+          canHaveLakes: true
+          canHaveMountains: false
+          canHaveRivers: true
+          canHaveRoads: true
+          canHaveTrees: true
+
+Definition:
+  Default:
+    language: 1 # C++
+    type: "Class"
+    needs_register: true
+    file_level: 4
+    register_include: "REGISTER_CONFIG_TYPE"
+    register_macro: "REGISTER_CONFIG_MACRO"
+    interface_name: "BiomeBaseConfig"
+    class_suffix: "Config"
+    class_prefix: ""
+    inherits_properties:
+      - id
+      - name
+      - type
+      - domain
+      - canHaveBeaches
+      - canHaveLakes
+      - canHaveMountains
+      - canHaveRivers
+      - canHaveRoads
+      - canHaveTrees
+      - minHeight
+      - maxHeight
+      - neverNearOf
+      - alwaysNearOf
+      - textures_zone1
+      - textures_zone2
+      - textures_zone3
+      - zone1_type
+      - zone2_type
+      - zone3_type
+    output_path: 'c:\Users\joaqu\source\repos\DirectX-Voxelado\src\Engine\Core\Config\Game\'
+

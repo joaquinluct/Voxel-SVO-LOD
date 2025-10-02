@@ -48,6 +48,7 @@ public:
     float GetTerrainHeight(float x, float z) const;
     TextureDefines::CBTerrainBlendBuffer GetTerrainBlenderData();
     TextureDefines::CBTerrain2BlendBuffer GetTerrain2BlenderData();
+    TextureDefines::TerrainBiomeBufferData GetTerrainBiomeBufferData();
     void EmptyRecycleBin();
 
     // Control de estado

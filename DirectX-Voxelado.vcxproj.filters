@@ -789,6 +789,18 @@
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\SwapChainMain.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="src\Game\Systems\Biome.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Systems\Terrain\Procedural\Engines\ProceduralBiomeEngine.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Game\Biomes\ForestConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Game\Biomes\PlainsConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Interfaces\IManager.h">
@@ -2222,6 +2234,36 @@
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\SwapChainMain.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="src\Engine\Core\Defines\Structs\Material\PbrTextureSet.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Defines\Structs\BiomeTerrainDefinition.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Systems\Biome.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Defines\Enums\Biome.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Base\Enum.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Defines\Structs\BiomeItem.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="Interfaces\Config\BiomeBaseConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Systems\Terrain\Procedural\Engines\ProceduralBiomeEngine.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Game\Biomes\ForestConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Game\Biomes\PlainsConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\Shaders\BasicShader.hlsl" />
@@ -2241,6 +2283,7 @@
     <FxCompile Include="Assets\Shader\Terrain2Shader.hlsl" />
     <FxCompile Include="Assets\Shader\OceanShader.hlsl" />
     <FxCompile Include="Assets\Shader\Terrain3Shader.hlsl" />
+    <FxCompile Include="Assets\Shader\TerrainBiomeShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\DejaVuSansMono.png">
@@ -2316,6 +2359,27 @@
       <Filter>Archivos de recursos</Filter>
     </Image>
     <Image Include="Assets\Textures\Brick\Poliigon_BrickWallReclaimed_8320_Roughness.jpg">
+      <Filter>Archivos de recursos</Filter>
+    </Image>
+    <Image Include="Assets\Textures\Rock\aerial_rocks\1k\aerial_rocks_04_ao_1k.jpg">
+      <Filter>Archivos de recursos</Filter>
+    </Image>
+    <Image Include="Assets\Textures\Rock\aerial_rocks\1k\aerial_rocks_04_arm_1k.jpg">
+      <Filter>Archivos de recursos</Filter>
+    </Image>
+    <Image Include="Assets\Textures\Rock\aerial_rocks\1k\aerial_rocks_04_diff_1k.jpg">
+      <Filter>Archivos de recursos</Filter>
+    </Image>
+    <Image Include="Assets\Textures\Rock\aerial_rocks\1k\aerial_rocks_04_disp_1k.png">
+      <Filter>Archivos de recursos</Filter>
+    </Image>
+    <Image Include="Assets\Textures\Rock\aerial_rocks\1k\aerial_rocks_04_nor_dx_1k.jpg">
+      <Filter>Archivos de recursos</Filter>
+    </Image>
+    <Image Include="Assets\Textures\Rock\aerial_rocks\1k\aerial_rocks_04_nor_gl_1k.jpg">
+      <Filter>Archivos de recursos</Filter>
+    </Image>
+    <Image Include="Assets\Textures\Rock\aerial_rocks\1k\aerial_rocks_04_rough_1k.jpg">
       <Filter>Archivos de recursos</Filter>
     </Image>
   </ItemGroup>
@@ -2419,6 +2483,18 @@
     <None Include="md\Pipeline\PASE DE LAS SOMBRAS.md" />
     <None Include="md\Pipeline\PASES.md" />
     <None Include="md\Pipeline\OPERACIONES CARAS.md" />
+    <None Include="Resources\Config\Game\Biomes\game_biomes.yaml" />
+    <None Include="Resources\Config\Game\Biomes\game_biomes_textures.yaml" />
+    <None Include="Resources\Config\Assets\assets_texture_list.yaml" />
+    <None Include="Assets\Textures\Rock\aerial_rocks\aerial_rocks_02.bin">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="Assets\Textures\Rock\dry_riverbed\dry_riverbed_rock.bin">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="Assets\Textures\Rock\mossy_rock\mossy_rock.bin">
+      <Filter>Archivos de recursos</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Library Include="C:\Users\joaqu\Downloads\yaml-cpp-master-original\yaml-cpp-master\build\Debug\yaml-cppd.lib" />

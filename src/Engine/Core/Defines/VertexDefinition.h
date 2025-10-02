@@ -1,13 +1,12 @@
 #pragma once
 #include <d3d11.h>
 #include <DirectXMath.h>
-#include <string>
-#include <vector>
 #include <format>
-#include <type_traits>
-#include <iostream>
-#include <variant>
 #include <IDefine/IVertex.h>
+#include <stdexcept>
+#include <string>
+#include <variant>
+#include <vector>
 
 inline constexpr std::string_view VERTEX_TEXT = "TextVertex";
 inline constexpr std::string_view VERTEX_SIMPLE = "SimpleVertex";

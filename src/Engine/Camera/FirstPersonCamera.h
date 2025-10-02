@@ -47,8 +47,8 @@ public:
     void Render() override {};
     void Update(float deltaTime) override;
 
-    bool UpdateHeight(float deltaTime, XMVECTOR moveDir);
-    void AdjustToTerrain();
+    bool UpdateHeight(float deltaTime);
+    //void AdjustToTerrain();
 
     void Shutdown() override {};
     const std::string& GetServiceName() const override {
@@ -95,9 +95,10 @@ public:
     std::string GetDebugInfo() const;
 
 protected:
+    float m_lastTerrainHeight = -100000000.0f; // Altura del terreno en el frame anterior
     float m_verticalVelocity = 0.0f;
     const float GRAVITY = -9.8f; // Aceleración de la gravedad en m/s^2
-	float m_lastHeight = 0.0f; // Última altura del terreno
+    float m_lastHeight = 0.0f; // Última altura del terreno
 
     DirectX::XMFLOAT3 m_position;
     DirectX::XMFLOAT3 m_lastPosition;
@@ -131,5 +132,5 @@ protected:
     void UpdateViewMatrix();
 
     // Debug
-	float m_heightDifference = 0.0f; // Diferencia de altura para el ajuste a terreno
+    float m_heightDifference = 0.0f; // Diferencia de altura para el ajuste a terreno
 };

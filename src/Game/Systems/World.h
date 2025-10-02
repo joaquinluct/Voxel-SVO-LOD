@@ -4,6 +4,7 @@
 #include <chrono>
 #include <Config/Game/System/WorldConfig.h>
 #include <Defines/WorldDefinition.h>
+#include <Game/Systems/Biome.h>
 #include <Game/Systems/Chronos.h>
 #include <Game/Systems/Skybox.h>
 #include <Game/Systems/Terrain.h>
@@ -58,6 +59,7 @@ private:
     WorldDefinition::Gameflags m_gameFlags;
     std::shared_ptr<CameraManager> m_cameraManager;
     std::shared_ptr<WorldConfig> m_config;
+    std::shared_ptr<Biome> m_biome;
     std::shared_ptr<Chronos> m_chronos;
     std::shared_ptr<Terrain> m_terrain;
     std::shared_ptr<Skybox> m_skybox;

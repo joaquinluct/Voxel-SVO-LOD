@@ -21,3 +21,5 @@ BatchProcessor:
       - Game\game_object_base.yaml
       - Game\game_system.yaml
       - services_config.yaml
+      - Game\Biomes\game_biomes.yaml
+      # - Game\Biomes\game_biomes_textures.yaml

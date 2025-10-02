@@ -9,7 +9,7 @@ WorldConfig::WorldConfig(){
 	version = "1.0.0";
 	description = "Un mundo abierto.";
 	gameType = 1;
-	gameFlags = 7;
+	gameFlags = 15;
 	type = "VoxelWorld";
 	respawnTime = 5;
 	dependencies = {

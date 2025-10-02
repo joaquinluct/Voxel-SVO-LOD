@@ -4,10 +4,15 @@
 REGISTER_CONFIG_TYPE(BiomeConfig,"BiomeConfig");
 
 BiomeConfig::BiomeConfig(){
-	name = "BiomeService";
+	name = "Biome";
 	enabled = true;
 	version = "1.0.0";
-	type = "ForestBiome";
-	vegetation_density = 0.8f;
-	wildlife_density = 0.5f;
+	biome_type = 1;
+	ocean_level = 0.0f;
+	max_height = 2000.0f;
+	min_height = -2000.0f;
+	biomes = {
+		"Plains",
+		"Forest"
+	};
 };

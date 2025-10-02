@@ -1,0 +1,214 @@
+# assets_texture_map.yaml
+Config:
+  Asset:
+    Materials:
+      Rock:
+        RockAndGrass_4k:
+          texture_type: "JPG"
+          resolution: "4k"
+          albedo: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\Coast_sand_rock\\coast_sand_rocks_02_diff_4k.jpg"
+          normal: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\Coast_sand_rock\\coast_sand_rocks_02_nor_dx_4k.jpg"
+          roughness: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\Coast_sand_rock\\coast_sand_rocks_02_rough_4k.jpg"
+          metallic: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\Coast_sand_rock\\coast_sand_rocks_02_arm_4k.jpg"
+          ao: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\Coast_sand_rock\\coast_sand_rocks_02_ao_4k.jpg"
+          displacement: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\Coast_sand_rock\\coast_sand_rocks_02_disp_4k.png"
+
+        Dry_Riverbed_1k:
+          texture_type: "JPG"
+          resolution: "1k"
+          albedo: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\dry_riverbed\\1k\\dry_riverbed_rock_diff_1k.jpg"
+          normal: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\dry_riverbed\\1k\\dry_riverbed_rock_nor_dx_1k.jpg"
+          roughness: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\dry_riverbed\\1k\\dry_riverbed_rock_rough_1k.jpg"
+          metallic: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\dry_riverbed\\1k\\dry_riverbed_rock_arm_1k.jpg"
+          ao: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\dry_riverbed\\1k\\dry_riverbed_rock_ao_1k.jpg"
+          displacement: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\dry_riverbed\\1k\\dry_riverbed_rock_disp_1k.png"
+
+        Dry_Riverbed_4k:
+          texture_type: "JPG"
+          resolution: "4k"
+          albedo: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\dry_riverbed\\4k\\dry_riverbed_rock_diff_4k.jpg"
+          normal: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\dry_riverbed\\4k\\dry_riverbed_rock_nor_dx_4k.jpg"
+          roughness: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\dry_riverbed\\4k\\dry_riverbed_rock_rough_4k.jpg"
+          metallic: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\dry_riverbed\\4k\\dry_riverbed_rock_arm_4k.jpg"
+          ao: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\dry_riverbed\\4k\\dry_riverbed_rock_ao_4k.jpg"
+          displacement: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\dry_riverbed\\4k\\dry_riverbed_rock_disp_4k.png"
+
+        Mossy_Rock_1k:
+          texture_type: "JPG"
+          resolution: "1k"
+          albedo: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\mossy_rock\\1k\\mossy_rock_diff_1k.jpg"
+          normal: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\mossy_rock\\1k\\mossy_rock_nor_dx_1k.jpg"
+          roughness: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\mossy_rock\\1k\\mossy_rock_rough_1k.jpg"
+          metallic: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\mossy_rock\\1k\\mossy_rock_arm_1k.jpg"
+          ao: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\mossy_rock\\1k\\mossy_rock_ao_1k.jpg"
+          displacement: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\mossy_rock\\1k\\mossy_rock_disp_1k.png"
+
+        Mossy_Rock_4k:
+          texture_type: "JPG"
+          resolution: "4k"
+          albedo: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\mossy_rock\\4k\\mossy_rock_diff_4k.jpg"
+          normal: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\mossy_rock\\4k\\mossy_rock_nor_dx_4k.jpg"
+          roughness: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\mossy_rock\\4k\\mossy_rock_rough_4k.jpg"
+          metallic: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\mossy_rock\\4k\\mossy_rock_arm_4k.jpg"
+          ao: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\mossy_rock\\4k\\mossy_rock_ao_4k.jpg"
+          displacement: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\mossy_rock\\4k\\mossy_rock_disp_4k.png"
+
+      Brick:
+        BrickWallReclaimed:
+          texture_type: "JPG"
+          resolution: "8k"
+          albedo: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Brick\\Poliigon_BrickWallReclaimed_8320_BaseColor.jpg"
+          normal: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Brick\\Poliigon_BrickWallReclaimed_8320_Normal.png"
+          roughness: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Brick\\Poliigon_BrickWallReclaimed_8320_Roughness.jpg"
+          metallic: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Brick\\Poliigon_BrickWallReclaimed_8320_Metallic.jpg"
+          ao: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Brick\\Poliigon_BrickWallReclaimed_8320_AmbientOcclusion.jpg"
+          displacement: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Brick\\Poliigon_BrickWallReclaimed_8320_Displacement.tiff"
+
+      Dirt:
+        GroundDirtWeedsPatchy:
+          texture_type: "JPG"
+          resolution: "2k"
+          albedo: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Dirt\\GroundDirtWeedsPatchy\\GroundDirtWeedsPatchy004_COL_2K.jpg"
+          normal: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Dirt\\GroundDirtWeedsPatchy\\GroundDirtWeedsPatchy004_NRM_2K.jpg"
+          roughness: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Dirt\\GroundDirtWeedsPatchy\\GroundDirtWeedsPatchy004_GLOSS_2K.jpg"
+          metallic: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Dirt\\GroundDirtWeedsPatchy\\GroundDirtWeedsPatchy004_REFL_2K.jpg"
+          ao: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Dirt\\GroundDirtWeedsPatchy\\GroundDirtWeedsPatchy004_AO_2K.jpg"
+          displacement: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Dirt\\GroundDirtWeedsPatchy\\GroundDirtWeedsPatchy004_DISP_2K.jpg"
+
+        RockyTrail_1k:
+          texture_type: "JPG"
+          resolution: "1k"
+          albedo: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Dirt\\rocky_trail\\1K\\rocky_trail_02_diff_1k.jpg"
+          normal: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Dirt\\rocky_trail\\1K\\rocky_trail_02_nor_dx_1k.jpg"
+          roughness: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Dirt\\rocky_trail\\1K\\rocky_trail_02_rough_1k.jpg"
+          metallic: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Dirt\\rocky_trail\\1K\\rocky_trail_02_arm_1k.jpg"
+          ao: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Dirt\\rocky_trail\\1K\\rocky_trail_02_ao_1k.jpg"
+          displacement: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Dirt\\rocky_trail\\1K\\rocky_trail_02_disp_1k.png"
+
+        RockyTrail_4k:
+          texture_type: "JPG"
+          resolution: "4k"
+          albedo: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Dirt\\rocky_trail\\4K\\rocky_trail_02_diff_4k.jpg"
+          normal: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Dirt\\rocky_trail\\4K\\rocky_trail_02_nor_dx_4k.jpg"
+          roughness: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Dirt\\rocky_trail\\4K\\rocky_trail_02_rough_4k.jpg"
+          metallic: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Dirt\\rocky_trail\\4K\\rocky_trail_02_arm_4k.jpg"
+          ao: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Dirt\\rocky_trail\\4K\\rocky_trail_02_ao_4k.jpg"
+          displacement: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Dirt\\rocky_trail\\4K\\rocky_trail_02_disp_4k.png"
+
+      Grass:
+        GrassPatchyGround:
+          texture_type: "JPG"
+          resolution: "4k"
+          albedo: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Grass\\GrassPatchyGround\\Poliigon_GrassPatchyGround_4585_BaseColor.jpg"
+          normal: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Grass\\GrassPatchyGround\\Poliigon_GrassPatchyGround_4585_Normal.png"
+          roughness: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Grass\\GrassPatchyGround\\Poliigon_GrassPatchyGround_4585_Roughness.jpg"
+          metallic: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Grass\\GrassPatchyGround\\Poliigon_GrassPatchyGround_4585_Metallic.jpg"
+          ao: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Grass\\GrassPatchyGround\\Poliigon_GrassPatchyGround_4585_AmbientOcclusion.jpg"
+          displacement: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Grass\\GrassPatchyGround\\Poliigon_GrassPatchyGround_4585_Displacement.tiff"
+
+        ForestLeaves_4k:
+          texture_type: "JPG"
+          resolution: "4k"
+          albedo: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Grass\\Forest\\4K\\forest_leaves_02_diffuse_4k.jpg"
+          normal: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Grass\\Forest\\4K\\forest_leaves_02_nor_dx_4k.jpg"
+          roughness: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Grass\\Forest\\4K\\forest_leaves_02_rough_4k.jpg"
+          metallic: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Grass\\Forest\\4K\\forest_leaves_02_arm_4k.jpg"
+          ao: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Grass\\Forest\\4K\\forest_leaves_02_ao_4k.jpg"
+          displacement: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Grass\\Forest\\4K\\forest_leaves_02_disp_4k.png"
+
+        RockyTerrain_1k:
+          texture_type: "JPG"
+          resolution: "1k"
+          albedo: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Grass\\Rocky\\1K\\rocky_terrain_02_diff_1k.jpg"
+          normal: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Grass\\Rocky\\1K\\rocky_terrain_02_nor_dx_1k.jpg"
+          roughness: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Grass\\Rocky\\1K\\rocky_terrain_02_rough_1k.jpg"
+          metallic: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Grass\\Rocky\\1K\\rocky_terrain_02_arm_1k.jpg"
+          ao: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Grass\\Rocky\\1K\\rocky_terrain_02_ao_1k.jpg"
+          displacement: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Grass\\Rocky\\1K\\rocky_terrain_02_disp_1k.png"
+
+        RockyTerrain_4k:
+          texture_type: "JPG"
+          resolution: "4k"
+          albedo: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Grass\\Rocky\\4K\\rocky_terrain_02_diff_4k.jpg"
+          normal: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Grass\\Rocky\\4K\\rocky_terrain_02_nor_dx_4k.jpg"
+          roughness: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Grass\\Rocky\\4K\\rocky_terrain_02_rough_4k.jpg"
+          metallic: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Grass\\Rocky\\4K\\rocky_terrain_02_arm_4k.jpg"
+          ao: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Grass\\Rocky\\4K\\rocky_terrain_02_ao_4k.jpg"
+          displacement: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Grass\\Rocky\\4K\\rocky_terrain_02_disp_4k.png"
+
+      Sand:
+        GroundSand:
+          texture_type: "JPG"
+          resolution: "2k"
+          albedo: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Sand\\GroundSand005\\GroundSand005_COL_2K.jpg"
+          normal: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Sand\\GroundSand005\\GroundSand005_NRM_2K.jpg"
+          roughness: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Sand\\GroundSand005\\GroundSand005_GLOSS_2K.jpg"
+          metallic: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Sand\\GroundSand005\\GroundSand005_REFL_2K.jpg"
+          ao: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Sand\\GroundSand005\\GroundSand005_AO_2K.jpg"
+          displacement: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Sand\\GroundSand005\\GroundSand005_DISP_2K.jpg"
+
+        CoastSand_1k:
+          texture_type: "JPG"
+          resolution: "1k"
+          albedo: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Sand\\CoastSand\\1K\\coast_sand_03_diff_1k.jpg"
+          normal: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Sand\\CoastSand\\1K\\coast_sand_03_nor_dx_1k.jpg"
+          roughness: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Sand\\CoastSand\\1K\\coast_sand_03_rough_1k.jpg"
+          metallic: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Sand\\CoastSand\\1K\\coast_sand_03_arm_1k.jpg"
+          ao: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Sand\\CoastSand\\1K\\coast_sand_03_ao_1k.jpg"
+          displacement: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Sand\\CoastSand\\1K\\coast_sand_03_disp_1k.png"
+
+        CoastSand_4k:
+          texture_type: "JPG"
+          resolution: "4k"
+          albedo: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Sand\\CoastSand\\4K\\coast_sand_03_diff_4k.jpg"
+          normal: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Sand\\CoastSand\\4K\\coast_sand_03_nor_dx_4k.jpg"
+          roughness: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Sand\\CoastSand\\4K\\coast_sand_03_rough_4k.jpg"
+          metallic: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Sand\\CoastSand\\4K\\coast_sand_03_arm_4k.jpg"
+          ao: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Sand\\CoastSand\\4K\\coast_sand_03_ao_4k.jpg"
+          displacement: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Sand\\CoastSand\\4K\\coast_sand_03_disp_4k.png"
+
+        SandBeach_1k:
+          texture_type: "JPG"
+          resolution: "1k"
+          albedo: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Sand\\SandBeach\\1K\\aerial_beach_01_diff_1k.jpg"
+          normal: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Sand\\SandBeach\\1K\\aerial_beach_01_nor_dx_1k.jpg"
+          roughness: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Sand\\SandBeach\\1K\\aerial_beach_01_rough_1k.jpg"
+          metallic: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Sand\\SandBeach\\1K\\aerial_beach_01_arm_1k.jpg"
+          ao: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Sand\\SandBeach\\1K\\aerial_beach_01_ao_1k.jpg"
+          displacement: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Sand\\SandBeach\\1K\\aerial_beach_01_disp_1k.png"
+
+        SandBeach_4k:
+          texture_type: "JPG"
+          resolution: "4k"
+          albedo: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Sand\\SandBeach\\4K\\aerial_beach_01_diff_4k.jpg"
+          normal: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Sand\\SandBeach\\4K\\aerial_beach_01_nor_dx_4k.jpg"
+          roughness: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Sand\\SandBeach\\4K\\aerial_beach_01_rough_4k.jpg"
+          metallic: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Sand\\SandBeach\\4K\\aerial_beach_01_arm_4k.jpg"
+          ao: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Sand\\SandBeach\\4K\\aerial_beach_01_ao_4k.jpg"
+          displacement: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Sand\\SandBeach\\4K\\aerial_beach_01_disp_4k.png"
+
+Definition:
+  Default:
+    language: 1 # C++
+    type: "Class"
+    needs_register: true
+    file_level: 3
+    register_include: "REGISTER_CONFIG_TYPE"
+    register_macro: "REGISTER_CONFIG_MACRO"
+    interface_name: "ITextureMapConfig"
+    class_suffix: "Config"
+    class_prefix: ""
+    object_class:
+        maps: ""
+    inherits_properties:
+        - type
+        - definition
+        - albedo
+        - normal
+        - roughness
+        - metallic
+        - ao
+        - texture_type
+        - texture2DArray
+        - dependencies
+    output_path: 'c:\Users\joaqu\source\repos\DirectX-Voxelado\src\Engine\Core\Config\Assets\'

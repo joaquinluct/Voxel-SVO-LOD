@@ -12,7 +12,8 @@ GameEngineConfig::GameEngineConfig(){
 		"World",
 		"Cycle",
 		"Terrain",
-		"Water"
+		"Water",
+		"Biome"
 	};
 	services_post_init = {
 		"World",
@@ -26,6 +27,7 @@ GameEngineConfig::GameEngineConfig(){
 	};
 	service_update_order = {
 		"Chronos",
+		"Biome",
 		"Skybox",
 		"Lighting",
 		"World",

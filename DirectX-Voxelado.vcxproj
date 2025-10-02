@@ -279,6 +279,8 @@
     <ClCompile Include="src\Engine\Core\Config\Base\RenderStates\ViewportWater.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Camera\DebugCamConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Camera\MainCamConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Game\Biomes\ForestConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Game\Biomes\PlainsConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Game\GameEngineConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Game\GameObjectsBase\AxisXYZConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Game\GameObjectsBase\LineConfig.cpp" />
@@ -411,9 +413,11 @@
     <ClCompile Include="src\Game\Systems\Terrain\ProceduralService.cpp" />
     <ClCompile Include="src\Game\Systems\Terrain\Procedural\Engines\DoubleLayerNoiseEngine.cpp" />
     <ClCompile Include="src\Game\Systems\Terrain\Procedural\Engines\FastNoiseLiteEngine.cpp" />
+    <ClCompile Include="src\Game\Systems\Terrain\Procedural\Engines\ProceduralBiomeEngine.cpp" />
     <ClCompile Include="src\Game\Systems\Terrain\Procedural\Engines\ProceduralEngineBase.cpp" />
     <ClCompile Include="src\Game\Systems\Water.cpp" />
     <ClCompile Include="src\Game\Systems\World.cpp" />
+    <ClCompile Include="src\Game\Systems\Biome.cpp" />
     <ClCompile Include="src\Main\MainWindow.cpp" />
     <ClCompile Include="src\UI\UIBase.cpp" />
     <ClCompile Include="src\UI\UIText.cpp" />
@@ -469,12 +473,14 @@
     <ClInclude Include="Assets\VertexDef\SkyboxCube.h" />
     <ClInclude Include="Includes\FrameStateForward.h" />
     <ClInclude Include="Interfaces\Assets\IAssetVertexConfigBase.h" />
+    <ClInclude Include="Interfaces\Config\BiomeBaseConfig.h" />
     <ClInclude Include="Interfaces\IEngineLifeCycle.h" />
     <ClInclude Include="Interfaces\IJob.h" />
     <ClInclude Include="Interfaces\IPostInitalizable.h" />
     <ClInclude Include="Interfaces\Pipeline\IBackBufferState.h" />
     <ClInclude Include="src\Engine\Assets\Base\MeshAssetBase.h" />
     <ClInclude Include="src\Engine\Assets\Base\UIAsset.h" />
+    <ClInclude Include="src\Engine\Core\Base\Enum.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Base\BaseIndexConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Base\MainIndexConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Base\MeshAssetConfig.h" />
@@ -589,6 +595,8 @@
     <ClInclude Include="src\Engine\Core\Config\Base\RenderStates\ViewportWater.h" />
     <ClInclude Include="src\Engine\Core\Config\Camera\DebugCamConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Camera\MainCamConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Game\Biomes\ForestConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Game\Biomes\PlainsConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Game\GameEngineConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Game\GameObjectsBase\AxisXYZConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Game\GameObjectsBase\LineConfig.h" />
@@ -619,10 +627,14 @@
     <ClInclude Include="src\Engine\Core\Config\Services\UIDebugConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Services\UITextConfig.h" />
     <ClInclude Include="src\Engine\Core\Debug\Helpers\ScopedTimer.h" />
+    <ClInclude Include="src\Engine\Core\Defines\Enums\Biome.h" />
     <ClInclude Include="src\Engine\Core\Defines\Contants\Flags\World.h" />
     <ClInclude Include="src\Engine\Core\Defines\Contants\FrameState.h" />
     <ClInclude Include="src\Engine\Core\Defines\Enums\Matrix.h" />
     <ClInclude Include="src\Engine\Core\Defines\Enums\Pass.h" />
+    <ClInclude Include="src\Engine\Core\Defines\Structs\BiomeItem.h" />
+    <ClInclude Include="src\Engine\Core\Defines\Structs\BiomeTerrainDefinition.h" />
+    <ClInclude Include="src\Engine\Core\Defines\Structs\Material\PbrTextureSet.h" />
     <ClInclude Include="src\Engine\Core\Defines\Structs\PipelineResources.h" />
     <ClInclude Include="src\Engine\Core\Defines\Structs\Procedural\AreaMapping.h" />
     <ClInclude Include="src\Engine\Managers\RenderManager\Jobs\Update\UpdateMeshTerrainJob.h" />
@@ -899,10 +911,12 @@
     <ClCompile Include="src\Game\Systems\Terrain\Procedural\Engines\ProceduralBiomaEngine.cpp" />
     <ClInclude Include="src\Game\Systems\Terrain\Procedural\Engines\DoubleLayerNoiseEngine.h" />
     <ClInclude Include="src\Game\Systems\Terrain\Procedural\Engines\FastNoiseLiteEngine.h" />
+    <ClInclude Include="src\Game\Systems\Terrain\Procedural\Engines\ProceduralBiomeEngine.h" />
     <ClInclude Include="src\Game\Systems\Terrain\Procedural\Engines\ProceduralEngineBase.h" />
     <ClInclude Include="src\Game\Systems\Water.h" />
     <ClInclude Include="src\Game\Systems\World.h" />
     <ClInclude Include="Interfaces\IChunk.h" />
+    <ClInclude Include="src\Game\Systems\Biome.h" />
     <ClInclude Include="src\Main\MainWindow.h" />
     <ClInclude Include="src\UI\UIBase.h" />
     <ClInclude Include="src\UI\UIText.h" />
@@ -1003,6 +1017,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
+    <FxCompile Include="Assets\Shader\TerrainBiomeShader.hlsl" />
     <FxCompile Include="Resources\Shaders\BasicShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       </ShaderType>
@@ -1029,6 +1044,13 @@
     <Image Include="Assets\Textures\Brick\Poliigon_BrickWallReclaimed_8320_Metallic.jpg" />
     <Image Include="Assets\Textures\Brick\Poliigon_BrickWallReclaimed_8320_Normal.png" />
     <Image Include="Assets\Textures\Brick\Poliigon_BrickWallReclaimed_8320_Roughness.jpg" />
+    <Image Include="Assets\Textures\Rock\aerial_rocks\1k\aerial_rocks_04_ao_1k.jpg" />
+    <Image Include="Assets\Textures\Rock\aerial_rocks\1k\aerial_rocks_04_arm_1k.jpg" />
+    <Image Include="Assets\Textures\Rock\aerial_rocks\1k\aerial_rocks_04_diff_1k.jpg" />
+    <Image Include="Assets\Textures\Rock\aerial_rocks\1k\aerial_rocks_04_disp_1k.png" />
+    <Image Include="Assets\Textures\Rock\aerial_rocks\1k\aerial_rocks_04_nor_dx_1k.jpg" />
+    <Image Include="Assets\Textures\Rock\aerial_rocks\1k\aerial_rocks_04_nor_gl_1k.jpg" />
+    <Image Include="Assets\Textures\Rock\aerial_rocks\1k\aerial_rocks_04_rough_1k.jpg" />
     <Image Include="Assets\Textures\Rock\Coast_sand_rock\coast_sand_rocks_02_ao_4k.jpg" />
     <Image Include="Assets\Textures\Rock\Coast_sand_rock\coast_sand_rocks_02_arm_4k.jpg" />
     <Image Include="Assets\Textures\Rock\Coast_sand_rock\coast_sand_rocks_02_diff_4k.jpg" />
@@ -1052,6 +1074,9 @@
   <ItemGroup>
     <None Include="Assets\Textures\Brick\Poliigon_BrickWallReclaimed_8320.mtlx" />
     <None Include="Assets\Textures\DefaultSkybox\build_dds.bat" />
+    <None Include="Assets\Textures\Rock\aerial_rocks\aerial_rocks_02.bin" />
+    <None Include="Assets\Textures\Rock\dry_riverbed\dry_riverbed_rock.bin" />
+    <None Include="Assets\Textures\Rock\mossy_rock\mossy_rock.bin" />
     <None Include="copy_debug_to_root.bat" />
     <None Include="cpp.hint" />
     <None Include="Libs\DirectX\DirectXTex\DirectXTex.inl" />
@@ -1097,6 +1122,7 @@
       <DeploymentContent>true</DeploymentContent>
     </None>
     <None Include="Resources\Config\Assets\assets_terrain.yaml" />
+    <None Include="Resources\Config\Assets\assets_texture_list.yaml" />
     <None Include="Resources\Config\Assets\assets_texture_map.yaml" />
     <None Include="Resources\Config\Assets\assets_vertex.yaml" />
     <None Include="Resources\Config\Assets\assets_shader.yaml" />
@@ -1109,6 +1135,8 @@
     <None Include="Resources\Config\Engine\Pipeline\pipeline_operations.yaml" />
     <None Include="Resources\Config\Engine\Pipeline\pipeline_slots_contract.yaml" />
     <None Include="Resources\Config\engine_config.yaml" />
+    <None Include="Resources\Config\Game\Biomes\game_biomes.yaml" />
+    <None Include="Resources\Config\Game\Biomes\game_biomes_textures.yaml" />
     <None Include="Resources\Config\Game\game_base.yaml" />
     <None Include="Resources\Config\Game\game_object.yaml" />
     <None Include="Resources\Config\Game\game_object_base.yaml" />

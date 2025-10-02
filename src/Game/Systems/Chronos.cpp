@@ -8,7 +8,7 @@ Chronos::Chronos()
     : m_currentTime{}, m_simulatedTime{}
 {
     //m_currentTime = new std::chrono::system_clock::time_point();
-    m_timeSpeed = 200;
+    m_timeSpeed = 50;
 }
 
 Chronos::~Chronos()

@@ -6,7 +6,7 @@
 class IService : public ILifeCycle {
 private:
     bool m_isRunning = false; // Default to not running
-    bool m_shadowPass = false; // Default to not using shadow pass
+    bool m_shadowPass = false; // Default to not using shadow pass    
 public:
     virtual ~IService() = default;
     virtual const std::string& GetServiceName() const = 0;

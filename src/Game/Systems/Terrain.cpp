@@ -16,6 +16,7 @@
 #include <Util/DirectXUtils.h>
 #include <Util/RayTracing/RayTracing.h>
 #include <vector>
+#include <Defines/Structs/BiomeTerrainDefinition.h>
 
 REGISTER_SERVICE_TYPE(Terrain, "Terrain")
 
@@ -262,6 +263,69 @@ TextureDefines::CBTerrain2BlendBuffer Terrain::GetTerrain2BlenderData() {
 
     data.terrainScale = 0.0013f; // Un valor bajo para que las texturas no se vean demasiado estiradas
     return data;
+}
+TextureDefines::TerrainBiomeBufferData Terrain::GetTerrainBiomeBufferData() {
+    // =========================================================================
+    // ASIGNACIÓN DE ÍNDICES DE TEXTURA EN EL ARRAY (Mismo ejemplo de distribución)
+    // =========================================================================
+    // Indices base: Coastal (0, 5, 10), Rock (15), Snow (20), Plain (25, 30, 35), Mountain (40, 45, 50)
+    // =========================================================================
+
+    BiomeTerrainDefinition temperateIslandBiome = {
+        // ----------------------------------------------------------------------
+        // 5.1) Texturas de Costa (Coastal Sets)
+        // ----------------------------------------------------------------------
+        .coastalSets = {
+            {.baseAtlasIndex = 0 },  // Arena clara
+            {.baseAtlasIndex = 5 },  // Grava/Arena oscura
+            {.baseAtlasIndex = 10 }  // Arena con barro
+        },
+        .numCoastalSets = 3,
+        .paddingCoastal = {0.0f, 0.0f, 0.0f},
+
+        // ----------------------------------------------------------------------
+        // 5.2) Texturas de Llanura (Plain Sets)
+        // ----------------------------------------------------------------------
+        .plainSets = {
+            {.baseAtlasIndex = 25 }, // Hierba de pradera
+            {.baseAtlasIndex = 30 }, // Hierba seca / con maleza
+            {.baseAtlasIndex = 35 }  // Tierra con poca hierba
+        },
+        .numPlainSets = 3,
+        .paddingPlain = {0.0f, 0.0f, 0.0f},
+
+        // ----------------------------------------------------------------------
+        // 5.3) Texturas de Montañas (Mountain Sets)
+        // ----------------------------------------------------------------------
+        .mountainSets = {
+            {.baseAtlasIndex = 40 }, // Tierra de montaña con rocas
+            {.baseAtlasIndex = 45 }, // Tierra erosionada grisácea
+            {.baseAtlasIndex = 50 }  // Roca con musgo
+        },
+        .numMountainSets = 3,
+        .paddingMountain = {0.0f, 0.0f, 0.0f},
+
+        // ----------------------------------------------------------------------
+        // 3. PARÁMETROS GLOBALES DE BIOMA
+        // ----------------------------------------------------------------------
+        .minChunks = 2,
+        .maxChunks = 8,
+        .biomeSeed = 12345,
+        .noiseEngineID = 0,
+
+        // ----------------------------------------------------------------------
+        // Nuevas texturas GLOBALES por bioma (Usaremos las globales estándar)
+        // ----------------------------------------------------------------------
+        // NOTA: Estos índices *podrían* ser globales o específicos del bioma.
+        // Para este ejemplo, apuntaremos a las texturas que el shader espera.
+        .biomeRockSet = {.baseAtlasIndex = 15 },
+        .biomeSnowSet = {.baseAtlasIndex = 20 },
+
+        // Relleno final
+        .paddingFinal = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}
+    };
+    //return temperateIslandBiome;
+    return {};
 }
 
 float Terrain::GetTerrainHeight(float x, float z) const

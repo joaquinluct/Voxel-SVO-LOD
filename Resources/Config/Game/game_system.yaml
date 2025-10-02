@@ -7,7 +7,7 @@ Config:
             version: "1.0.0"
             description: "Un mundo abierto."
             gameType: 1 # Overworld
-            gameFlags: 7 # Chronos | Terrain | Skybox
+            gameFlags: 15 # Chronos | Terrain | Skybox | Biome
             # gameFlags: 3 # Chronos | Terrain
             # gameFlags: 1 # Chronos
             type: "VoxelWorld"
@@ -38,7 +38,7 @@ Config:
             #procedural_engine: 3  # ProceuralBiomes
             chunk_size: 128
             # chunk_size: 64
-            initialRenderDistanceChunks: 80
+            initialRenderDistanceChunks: 120
             # worldWidth: 2048.0
             # worldHeight: 2048.0
             # worldWidth: 4096.0
@@ -84,15 +84,19 @@ Config:
             version: "1.0.0"
             type: "BasicPhysics"
             properties:
-            gravity: [0.0, -9.81, 0.0] 
+            gravity: [0.0, -9.81, 0.0]
+
         Biome:
-            name: "BiomeService"
+            name: "Biome"
             enabled: true
             version: "1.0.0"
-            type: "ForestBiome"
-            properties:
-            vegetation_density: 0.8
-            wildlife_density: 0.5
+            biome_type: 1 # Procedural
+            ocean_level: 0.0
+            max_height: 2000.0
+            min_height: -2000.0
+            biomes:
+              - Plains
+              - Forest              
         Shadows:
             name: "Shadows"
             enabled: true
