@@ -1,7 +1,7 @@
 #include "UpdateTerrainJob.h"
 #include <Assets/Base/MeshAssetBase.h>
-#include <Defines/EngineDefinition.h>
-#include <Defines/Types/ThreadTypes.h>
+#include <Defines//Context/EngineContext.h>
+#include <Defines/Usings/ThreadTypes.h>
 #include <Game/Systems/Terrain.h>
 #include <Game/Systems/World.h>
 

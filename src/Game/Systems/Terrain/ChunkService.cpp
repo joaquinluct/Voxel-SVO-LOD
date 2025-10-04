@@ -3,6 +3,7 @@
 #include <cmath>
 #include <d3d11.h>
 #include <Defines/Contants/Flags.h>
+#include <Defines/VertexDefinition.h>
 #include <Game/Systems/Terrain/Chunk/Chunk.h>
 #include <Helpers/FrustumCullingHelper.h>
 #include <Helpers/PointerQueryRaw.h>
@@ -199,6 +200,8 @@ void ChunkService::UpdateChunks(DirectX::XMFLOAT3 worldPosition)
         }
     }
 
+    //StitchAllChunks();
+
     std::vector<TerrainChunk::ChunkID> chunksToUnload;
     for (auto const& [id, chunkPtr] : m_chunks)
     {
@@ -281,6 +284,22 @@ std::vector<Chunk*> ChunkService::GetVisibleChunks() {
     return visibleChunks;
 }
 
+DirectX::XMFLOAT3 ChunkService::GetTerrainNormal(float posX, float posZ) const {
+    int chunkX = static_cast<int>(std::floor(posX / m_chunkSize));
+    int chunkZ = static_cast<int>(std::floor(posZ / m_chunkSize));
+    TerrainChunk::ChunkID id = { chunkX, 0, chunkZ };
+    Chunk* chunk = GetChunk(id);
+    if (!chunk) {
+        return { 0.0f, 1.0f, 0.0f }; // Normal predeterminada si el chunk no está cargado
+    }
+    DirectX::XMFLOAT3 localPos{};
+    localPos.x = posX - (float)chunkX * m_chunkSize;
+    localPos.y = 0.0f; // La coordenada Y no es relevante para la normal
+    localPos.z = posZ - (float)chunkZ * m_chunkSize;
+    IVertex vertex = chunk->FindVertexByPosition(localPos, 0.1f);
+    return vertex.GetNormal();
+}
+
 std::vector<Chunk*> ChunkService::GetFrustumChunks(const std::vector<CameraDefinition::FrustumPlane>& frustumPlanes, const DirectX::XMFLOAT3 cameraPosition)
 {
     std::vector<Chunk*> visibleChunks;
@@ -300,8 +319,6 @@ std::vector<Chunk*> ChunkService::GetFrustumChunks(const std::vector<CameraDefin
             maxCorner.y = minCorner.y + m_chunkSize;
             maxCorner.z = minCorner.z + m_chunkSize;
 
-            // Se asume que el helper `IsAABBInFrustum` también ha sido refactorizado
-            // para aceptar el `std::vector<Plane>`
             if (FrustumCullingHelper::IsAABBInFrustum(minCorner, maxCorner, frustumPlanes))
             {
                 chunk->SetFlag(FLAG_CHUNK_VISIBLE, true);
@@ -311,4 +328,107 @@ std::vector<Chunk*> ChunkService::GetFrustumChunks(const std::vector<CameraDefin
     }
 
     return visibleChunks;
+}
+
+// -----------------------------------------------------------------------------
+// StitchChunkBorder: Une Normales y Tangentes de dos chunks adyacentes.
+// ESTA FUNCIÓN DEBE SER LLAMADA DESPUÉS DE Chunk::CalculateNormals() en AMBOS chunks.
+// -----------------------------------------------------------------------------
+void ChunkService::StitchChunkBorder(Chunk* chunkA, Chunk* chunkB, TerrainChunk::NeighborDirection dirA) {
+    if (!chunkA || !chunkB) return;
+
+    int gridSize = chunkA->GetGridSize();
+
+    // Si los LODs son diferentes, el número de vértices en la costura no coincide.
+    // La solución para T-junctions es más compleja y está fuera del alcance 
+    // de este stitching simétrico. Por ahora, solo unimos si el LOD es el mismo.
+    if (gridSize != chunkB->GetGridSize()) {
+        return;
+    }
+
+    // Indices locales de los vértices en las costuras de la cuadrícula (0 a gridSize)
+    int x_a = 0, z_a = 0; // Coordenadas de la costura en Chunk A
+    int x_b = 0, z_b = 0; // Coordenadas de la costura en Chunk B
+
+    for (int i = 0; i <= gridSize; ++i) {
+
+        switch (dirA) {
+        case TerrainChunk::NeighborDirection::EAST: // Chunk B está al Este de Chunk A (+Z)
+            // Chunk A: Borde Este (X=GridSize, Z=i)
+            // Chunk B: Borde Oeste (X=0, Z=i)
+            x_a = gridSize; z_a = i;
+            x_b = 0; z_b = i;
+            break;
+
+        case TerrainChunk::NeighborDirection::WEST: // Chunk B está al Oeste de Chunk A (-Z)
+            // Chunk A: Borde Oeste (X=0, Z=i)
+            // Chunk B: Borde Este (X=GridSize, Z=i)
+            x_a = 0; z_a = i;
+            x_b = gridSize; z_b = i;
+            break;
+
+        case TerrainChunk::NeighborDirection::NORTH: // Chunk B está al Norte de Chunk A (-X)
+            // Chunk A: Borde Norte (X=i, Z=0)
+            // Chunk B: Borde Sur (X=i, Z=GridSize)
+            x_a = i; z_a = 0;
+            x_b = i; z_b = gridSize;
+            break;
+
+        case TerrainChunk::NeighborDirection::SOUTH: // Chunk B está al Sur de Chunk A (+X)
+            // Chunk A: Borde Sur (X=i, Z=GridSize)
+            // Chunk B: Borde Norte (X=i, Z=0)
+            x_a = i; z_a = gridSize;
+            x_b = i; z_b = 0;
+            break;
+        }
+
+        // Obtenemos los índices de almacenamiento en el vector m_vertices
+        size_t indexA = chunkA->GetLocalIndex(x_a, z_a);
+        size_t indexB = chunkB->GetLocalIndex(x_b, z_b);
+
+        // --- 1. Cargar Normales y Tangentes ---
+        // Accedemos a m_vertices directamente porque ChunkService es 'friend' de Chunk.
+        XMVECTOR normalA = XMLoadFloat3(reinterpret_cast<const XMFLOAT3*>(chunkA->m_vertices[indexA].normal));
+        XMVECTOR normalB = XMLoadFloat3(reinterpret_cast<const XMFLOAT3*>(chunkB->m_vertices[indexB].normal));
+        XMVECTOR tangentA = XMLoadFloat3(reinterpret_cast<const XMFLOAT3*>(chunkA->m_vertices[indexA].tangent));
+        XMVECTOR tangentB = XMLoadFloat3(reinterpret_cast<const XMFLOAT3*>(chunkB->m_vertices[indexB].tangent));
+
+        // --- 2. Promediado y Normalización (la clave para eliminar los escalones) ---
+        XMVECTOR stitchedNormal = XMVector3Normalize(XMVectorAdd(normalA, normalB));
+        XMVECTOR stitchedTangent = XMVector3Normalize(XMVectorAdd(tangentA, tangentB));
+
+        // --- 3. Aplicar los resultados a AMBOS chunks ---
+        chunkA->ApplyStitchedNormalAndTangent(indexA, stitchedNormal, stitchedTangent);
+        chunkB->ApplyStitchedNormalAndTangent(indexB, stitchedNormal, stitchedTangent);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Función principal para la costura
+// -----------------------------------------------------------------------------
+void ChunkService::StitchAllChunks() {
+    // Itera sobre todos los chunks cargados.
+    for (auto const& [id, chunkA] : m_chunks) {
+        if (chunkA->GetCurrentLOD() == -1) continue; // Saltar chunks sin inicializar
+
+        // Obtenemos los 4 vecinos
+        for (int i = 0; i < 4; ++i) {
+            TerrainChunk::NeighborDirection dirA = (TerrainChunk::NeighborDirection)i;
+
+            Chunk* chunkB = GetNeighbor(id, dirA);
+
+            // Solo procesamos una vez por par de chunks (ej. A->B pero no B->A)
+            // Esto evita el doble procesamiento y es más limpio.
+            // Para eso, solo procesamos si el ID del vecino es "menor" o "más lejano"
+            // Por simplicidad en IDs de cuadrícula: solo procesar Norte y Este.
+            if (dirA == TerrainChunk::NeighborDirection::SOUTH ||
+                dirA == TerrainChunk::NeighborDirection::WEST) {
+                continue;
+            }
+
+            if (chunkB && chunkB->GetCurrentLOD() != -1 && chunkA->GetCurrentLOD() == chunkB->GetCurrentLOD()) {
+                StitchChunkBorder(chunkA, chunkB, dirA);
+            }
+        }
+    }
 }

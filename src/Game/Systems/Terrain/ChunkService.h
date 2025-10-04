@@ -1,40 +1,36 @@
 #pragma once
-
 #include <d3d11.h>
-#include <DirectXMath.h>
-#include <functional>
-#include <string>
-#include <memory>
-#include <vector>
-#include <mutex>
-#include <unordered_map>
-#include "IService.h"
-#include <DeviceManager.h>
-#include <CameraManager.h>
-#include "IChunk.h"
-#include "Defines/TerrainChunk.h"
-#include "Defines/WorldTerrain.h"
-#include "ProceduralService.h"
-#include <Game/Systems/Terrain/Chunk/Chunk.h>
 #include <Defines/CameraDefinition.h>
+#include <Defines/TerrainChunk.h>
+#include <Defines/WorldTerrain.h>
+#include <DirectXMath.h>
+#include <Game/Systems/Terrain/Chunk/Chunk.h>
+#include <Game/Systems/Terrain/ProceduralService.h>
+#include <IService.h>
+#include <Managers/CameraManager.h>
+#include <Managers/DeviceManager.h>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <vector>
 
-class TerrainAsset; 
+class TerrainAsset;
 
 class ChunkService : public IService
 {
-private:    
-	float m_chunkSize = 0.0f;
+private:
+    float m_chunkSize = 0.0f;
     int m_renderDistanceChunks = 0;
 
     //DirectX::XMFLOAT4 m_frustumPlanes[6];
 
     std::vector<Chunk*> m_chunksToDelete;
     mutable std::mutex m_chunkDeletionMutex;
-	TerrainAsset* m_terrainAsset = nullptr;
+    TerrainAsset* m_terrainAsset = nullptr;
     ChunkMap m_chunks;
 
     WorldTerrain::TerrainChunkDefinition m_def;
-	std::shared_ptr<ProceduralService> m_proceduralService;
+    std::shared_ptr<ProceduralService> m_proceduralService;
     std::shared_ptr<DeviceManager> m_deviceManager;
     //std::shared_ptr<RenderManager> m_renderManager;
     std::shared_ptr<CameraManager> m_cameraManager;
@@ -42,10 +38,11 @@ private:
     //void StitchChunks();
     std::vector<Chunk*> GetNeighbors(const TerrainChunk::ChunkID& id);
 public:
-    ChunkService():
-		m_deviceManager(nullptr), m_cameraManager(nullptr), m_proceduralService(nullptr), m_chunks(), m_chunksToDelete(),
-		m_chunkSize(0.0f), m_renderDistanceChunks(0), m_def()
-    {};
+    ChunkService() :
+        m_deviceManager(nullptr), m_cameraManager(nullptr), m_proceduralService(nullptr), m_chunks(), m_chunksToDelete(),
+        m_chunkSize(0.0f), m_renderDistanceChunks(0), m_def()
+    {
+    };
     ~ChunkService() override {};
 
     // Implementación de IService
@@ -57,29 +54,37 @@ public:
     const std::string& GetServiceName() const override { static const std::string name = "ChunkService"; return name; }
     static const std::string& GetStaticServiceName() { static const std::string name = "ChunkService"; return name; }
 
-	void SetTerrainAsset(TerrainAsset* terrainAsset) { m_terrainAsset = terrainAsset; } 
+    void SetTerrainAsset(TerrainAsset* terrainAsset) { m_terrainAsset = terrainAsset; }
 
-	// Establecer el servicio de generación procedural
+    // Establecer el servicio de generación procedural
     void SetProceduralService(std::shared_ptr<ProceduralService> proceduralService) { m_proceduralService = proceduralService; }
 
-	// Control de estado
+    // Control de estado
     const bool IsDirty() const;
 
     // Gestion de los chunks
     std::vector<Chunk*> GetVisibleChunks();
-	std::vector<Chunk*> GetAllChunks();
+    std::vector<Chunk*> GetAllChunks();
     Chunk* GetChunk(const TerrainChunk::ChunkID& id) const;
     Chunk* GetNeighbor(const TerrainChunk::ChunkID& id, TerrainChunk::NeighborDirection direction);
     ChunkMap GetChunks() const { return m_chunks; }
+    DirectX::XMFLOAT3 GetTerrainNormal(float posX, float posZ) const;
     //template<typename T, typename... Args>
     HRESULT LoadChunk(const TerrainChunk::ChunkID& id);
     HRESULT UnloadChunk(const TerrainChunk::ChunkID& id);
-	void EmptyRecycleBin();
-	void UpdateChunks(DirectX::XMFLOAT3 worldPosition);
+    void EmptyRecycleBin();
+    void UpdateChunks(DirectX::XMFLOAT3 worldPosition);
     std::vector<Chunk*> GetFrustumChunks(const std::vector<CameraDefinition::FrustumPlane>& frustumPlanes, const DirectX::XMFLOAT3 cameraPosition);
 
+    // Para correcto cáculo de Normales
+    // -----------------------------------------------------------------------------
+// Función principal para la costura
+// -----------------------------------------------------------------------------
+    void StitchAllChunks();
+    void StitchChunkBorder(Chunk* chunkA, Chunk* chunkB, TerrainChunk::NeighborDirection dirA);
+
     // Debug
-	int GetNumChunks() const { return static_cast<int>(m_chunks.size()); }
+    int GetNumChunks() const { return static_cast<int>(m_chunks.size()); }
     /*
     HRESULT UpdateChunk(const TerrainChunk::ChunkID& id);
     const std::unordered_map<TerrainChunk::ChunkID, std::unique_ptr<IChunk>, ChunkHasher>& GetChunks() const;*/

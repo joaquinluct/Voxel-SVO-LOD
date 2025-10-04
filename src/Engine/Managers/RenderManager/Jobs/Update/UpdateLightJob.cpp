@@ -1,5 +1,5 @@
 #include "UpdateLightJob.h"
-#include <Defines/Types/ThreadTypes.h>
+#include <Defines/Usings/ThreadTypes.h>
 #include <Game/Systems/Lighting.h>
 #include <Game/Systems/Shadows.h>
 #include <Services/FrameStateService.h>

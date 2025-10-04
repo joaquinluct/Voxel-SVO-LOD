@@ -1,6 +1,5 @@
 // IManager.h
 #pragma once
-#include <Windows.h>
 #include <string>
 
 class IManager {

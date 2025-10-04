@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Defines/Types/ThreadTypes.h>
+#include <Defines/Usings/ThreadTypes.h>
 #include <IJob.h>
 
 //struct JobContext;

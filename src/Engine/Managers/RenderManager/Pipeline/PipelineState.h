@@ -4,7 +4,7 @@
 #include <map>
 #include <unordered_map>
 #include <Helpers/PipelineHelper.h>
-#include <Defines/EngineDefinition.h>
+#include <Defines/Context/EngineContext.h>
 #include <Config/PassConfigBase.h>
 
 class PipelineSlot

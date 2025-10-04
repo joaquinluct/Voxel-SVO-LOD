@@ -3,12 +3,12 @@
 #include <Assets/Base/ShaderAsset.h>
 #include <d3d11.h>
 #include <Defines/Contants/Flags/ShaderResources.h>
-#include <Defines/EngineDefinition.h>
+#include <Defines//Context/EngineContext.h>
 #include <Defines/Enums/Matrix.h>
 #include <Defines/Matrix/MatrixDefinition.h>
 #include <Defines/Matrix/MatrixDefinitionBase.h>
 #include <Defines/ShaderSampler.h>
-#include <Defines/Structs/PipelineResources.h>
+#include <Defines/Structs/Pipeline/PipelineResources.h>
 #include <IPipelineRasterizedState.h>
 #include <IPipelineShaderViewState.h>
 #include <IPipelineStencilState.h>

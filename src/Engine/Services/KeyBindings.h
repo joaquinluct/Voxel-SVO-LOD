@@ -21,7 +21,8 @@ enum class KeyMoves
     Sprint = 1 << 8,
     Walk = 1 << 9,
     Interact = 1 << 10,
-    ToggleInventory = 1 << 11
+    ToggleInventory = 1 << 11,
+    ToggleCamera = 1 << 12,
 };
 
 class KeyBindings : public IService
@@ -57,7 +58,7 @@ public:
     unsigned char TranslateKeyStringToCode(const std::string& key) const;
 
 private:
-	std::shared_ptr<Keyboard> m_keyboard;
+    std::shared_ptr<Keyboard> m_keyboard;
     std::unordered_map<KeyMoves, std::vector<int>> m_keyBindings;
     std::unordered_map<KeyMoves, bool> m_keyBindingsState;
     KeyMoves m_keyMoves = KeyMoves::None;

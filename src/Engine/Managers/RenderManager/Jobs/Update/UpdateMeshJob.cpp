@@ -1,7 +1,7 @@
 #include "UpdateMeshJob.h"
 #include <Defines/Contants/FrameState.h>
-#include <Defines/Structs/PipelineResources.h>
-#include <Defines/Types/ThreadTypes.h>
+#include <Defines/Structs/Pipeline/PipelineResources.h>
+#include <Defines/Usings/ThreadTypes.h>
 #include <Managers/RenderState/FrameStates/MeshesFrameState.h>
 #include <Services/FrameStateService.h>
 #include <vector>

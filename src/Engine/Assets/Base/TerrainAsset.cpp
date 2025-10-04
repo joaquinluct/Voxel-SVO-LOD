@@ -17,6 +17,7 @@
 #include <vector>
 #include <windows.h>
 #include <wrl/client.h>
+#include <utility>
 
 REGISTER_ASSET_TYPE(TerrainAsset, "TerrainAsset")
 
@@ -140,15 +141,15 @@ void TerrainAsset::GenerateMesh(std::vector<Chunk*> chunks, int indexBuffer) {
         return;
     }
 
-    Microsoft::WRL::ComPtr<ID3D11Buffer> vBuffer = m_vertexBuffer[indexBuffer];
-    Microsoft::WRL::ComPtr<ID3D11Buffer> iBuffer = m_indexBuffer[indexBuffer];
+    /*Microsoft::WRL::ComPtr<ID3D11Buffer> vBuffer = m_vertexBuffer[indexBuffer];
+    Microsoft::WRL::ComPtr<ID3D11Buffer> iBuffer = m_indexBuffer[indexBuffer];*/
 
     // 3. Crear o redimensionar los buffers dinámicos solo si es necesario (Solución 2)
     // NOTA: Debes pasar 'indexBuffer' a esta función.
-    CreateDynamicBuffers(totalVertexCount, totalIndexCount, indexBuffer, vBuffer, iBuffer);
+    //CreateDynamicBuffers(totalVertexCount, totalIndexCount, indexBuffer, vBuffer, iBuffer);
 
-    m_vertexBuffer[indexBuffer] = vBuffer;
-    m_indexBuffer[indexBuffer] = iBuffer;
+    /*m_vertexBuffer[indexBuffer] = vBuffer;
+    m_indexBuffer[indexBuffer] = iBuffer;*/
 
     // --- SOLUCIÓN 1: Pre-asignación y llenado eficiente ---
 
@@ -496,10 +497,12 @@ XMFLOAT4 TerrainAsset::GetTextureTransforms() {
 }
 
 std::vector<uint8_t> TerrainAsset::GetVertexData(int index) const {
-    return m_vertexData[index];
+    return std::move(m_vertexData[index]);
+    //return m_vertexData[index];
 }
 std::vector<uint16_t> TerrainAsset::GetIndexData(int index) const {
-    return m_indexData[index];
+    return std::move(m_indexData[index]);
+    //return m_indexData[index];
 }
 
 void TerrainAsset::UnregisterChunk(Chunk* chunk) {

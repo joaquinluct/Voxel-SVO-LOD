@@ -2,7 +2,7 @@
 
 #include "FrameStateBase.h"
 #include <d3d11.h>
-#include <Defines/Structs/PipelineResources.h>
+#include <Defines/Structs/Pipeline/PipelineResources.h>
 #include <vector>
 
 class MeshesFrameState : public FrameStateBase {

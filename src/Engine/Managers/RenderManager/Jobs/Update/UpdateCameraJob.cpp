@@ -1,7 +1,7 @@
 #include "UpdateCameraJob.h"
 #include <Defines/Matrix/CameraMatrix.h>
 #include <Defines/Matrix/MatrixDefinition.h>
-#include <Defines/Types/ThreadTypes.h>
+#include <Defines/Usings/ThreadTypes.h>
 #include <DirectXMathMatrix.inl>
 #include <Managers/CameraManager.h>
 #include <Managers/RenderState/FrameStates/CameraFrameState.h>

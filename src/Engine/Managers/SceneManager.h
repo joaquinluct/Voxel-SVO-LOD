@@ -7,9 +7,10 @@
 #include <Config/PassConfigBase.h>
 #include <Config/Services/ServiceConfig.h>
 #include <Defines/Enums/Pass.h>
-#include <Defines/Structs/PipelineResources.h>
-#include <Defines/Types/ThreadTypes.h>
+#include <Defines/Structs/Pipeline/PipelineResources.h>
+#include <Defines/Usings/ThreadTypes.h>
 #include <ManagerBase.h>
+#include <Managers/GigaBufferManager.h>
 #include <Managers/PipelineResourcesManager.h>
 #include <Managers/UIManager.h>
 #include <Managers/UpdateManager.h>
@@ -149,6 +150,7 @@ private:
     std::shared_ptr<JobContext> m_jobContext;
     std::shared_ptr<FrameStateService> m_frameStateService;
     std::shared_ptr<PipelineResourcesManager> m_resources;
+    std::shared_ptr<GigaBufferManager> m_bufferManager;
 
     // ---------------------------------------
     // Estado de la escena

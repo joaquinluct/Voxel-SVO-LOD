@@ -16,6 +16,7 @@ EngineConfig::EngineConfig(){
 		"UIManager",
 		"MouseManager",
 		"SceneManager",
+		"GigaBufferManager",
 		"PipelineResourcesManager"
 	};
 	managers_post_init = {

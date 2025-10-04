@@ -12,11 +12,11 @@ namespace FrustumCullingHelper {
     inline bool IsSphereInFrustum(const DirectX::XMFLOAT3& center, float radius, const DirectX::XMFLOAT4 planes[6]) {
         for (int i = 0; i < 6; ++i) {
             // Calcular la distancia desde el centro de la esfera al plano
-            float distance = planes[i].x * center.x + 
-                             planes[i].y * center.y + 
-                             planes[i].z * center.z + 
-                             planes[i].w;
-            
+            float distance = planes[i].x * center.x +
+                planes[i].y * center.y +
+                planes[i].z * center.z +
+                planes[i].w;
+
             // Si la distancia es menor que -radio, la esfera está completamente fuera del frustum
             if (distance < -radius) {
                 return false;
@@ -81,9 +81,9 @@ namespace FrustumCullingHelper {
             // Distancia del N-vertex al plano: (Ax*Nx + By*Ny + Cz*Nz + D)
             // (Comentario opcional: Esto se puede usar para determinar si la AABB intersecta o está contenida,
             // pero para un simple culling de "dentro/fuera" no es estrictamente necesario si ya tenemos la primera prueba)
-            if ((GetPlaneCoeff(p, 0) * nVertex.x + GetPlaneCoeff(p, 1) * nVertex.y + GetPlaneCoeff(p, 2) * nVertex.z + GetPlaneCoeff(p, 3)) < 0) {
-                // El N-vertex está fuera, pero el P-vertex no, por lo que intersecta el plano.
-            }
+            //if ((GetPlaneCoeff(p, 0) * nVertex.x + GetPlaneCoeff(p, 1) * nVertex.y + GetPlaneCoeff(p, 2) * nVertex.z + GetPlaneCoeff(p, 3)) < 0) {
+            //    // El N-vertex está fuera, pero el P-vertex no, por lo que intersecta el plano.
+            //}
         }
 
         return true; // La AABB está dentro del frustum

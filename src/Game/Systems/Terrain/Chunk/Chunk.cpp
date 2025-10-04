@@ -46,6 +46,15 @@ void Chunk::SetRegion(const TerrainChunk::ChunkBufferRegion& region) {
 }
 
 // -----------------------------------------------------------------------------
+// Helper para obtener el gridSize actual basado en el LOD.
+// Asumiendo que m_chunkSize y m_currentLOD son miembros accesibles.
+// -----------------------------------------------------------------------------
+int Chunk::GetGridSize() const {
+    if (m_currentLOD < 0) return 0; // Manejo seguro si no se ha inicializado
+    return static_cast<int>(m_chunkSize / std::pow(2.0f, m_currentLOD));
+}
+
+// -----------------------------------------------------------------------------
 // SetBuffers
 // -----------------------------------------------------------------------------
 void Chunk::SetBuffers(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context, ID3D11Buffer* vertexBuffer, ID3D11Buffer* indexBuffer, UINT vertexTypeSize) {
@@ -83,21 +92,15 @@ void Chunk::UpdateLOD(int lodLevel) {
 // -----------------------------------------------------------------------------
 void Chunk::GenerateLODMesh(int lodLevel) {
     int gridSize = static_cast<int>(m_chunkSize / std::pow(2.0f, lodLevel));
-    std::vector<std::shared_ptr<IVertex>> processedVertices;
 
-    //SetNeighborLODs(northLOD, southLOD, eastLOD, westLOD);
+    // 1. Generar vértices, alturas, UVs y AABB. (Llena m_vertices)
+    GenerateVertices(gridSize, lodLevel);
 
-    // Aquí se llama a la función que ahora actualiza la AABB
-    GenerateVertices(gridSize, lodLevel, processedVertices);
+    // 2. Generar índices. (Llena m_indexes)
+    GenerateIndices(gridSize, lodLevel);
 
-    GenerateIndices(gridSize, lodLevel, m_indexes);
-
-    CalculateNormals(processedVertices);
-
-    for (const auto& v : processedVertices) {
-        VertexDefinition::TextureMapVertex vertexData = dynamic_cast<VertexDefinition::TextureMapVertex&>(*v);
-        m_vertices.push_back(vertexData);
-    }
+    // 3. Calcular y aplicar las normales. (Modifica m_vertices)
+    CalculateNormals();
 }
 
 // -----------------------------------------------------------------------------
@@ -181,49 +184,36 @@ std::optional<XMFLOAT3> Chunk::InterpolateVertex(float globalX, float globalZ, i
 }
 
 // -----------------------------------------------------------------------------
-// GenerateVertices
+// GenerateVertices: Genera posiciones, UVs y calcula el AABB (Llena m_vertices).
 // -----------------------------------------------------------------------------
-void Chunk::GenerateVertices(int gridSize, int lodLevel, std::vector<std::shared_ptr<IVertex>>& outVertices) {
+void Chunk::GenerateVertices(int gridSize, int lodLevel) {
     float scaleFactor = static_cast<float>(std::pow(2.0f, lodLevel));
-    outVertices.reserve((static_cast<std::vector<std::shared_ptr<IVertex>, std::allocator<std::shared_ptr<IVertex>>>::size_type>(gridSize) + 1) * (static_cast<unsigned long long>(gridSize) + 1));
+    int totalVertices = (gridSize + 1) * (gridSize + 1);
 
-    // Inicializa la altura min/max al inicio de la función
+    m_vertices.clear();
+    m_vertices.reserve(totalVertices);
+
     float minHeight = std::numeric_limits<float>::max();
     float maxHeight = -std::numeric_limits<float>::max();
 
     for (int z = 0; z <= gridSize; ++z) {
         for (int x = 0; x <= gridSize; ++x) {
-            float globalX = (float)m_id.x * m_chunkSize + (float)x * scaleFactor;
-            float globalZ = (float)m_id.z * m_chunkSize + (float)z * scaleFactor;
 
-            float height = -1.0f;
 
-            /*DirectX::XMFLOAT4 debugColor = DirectXUtils::GenerateRandomColor();
+            // ANTES (Potencialmente menos preciso):
+            /*float globalX = (float)m_id.x * m_chunkSize + (float)x * scaleFactor;
+            float globalZ = (float)m_id.z * m_chunkSize + (float)z * scaleFactor;*/
 
-            TerrainChunk::NeighborDirection dir = TerrainChunk::NeighborDirection::UNDEFINED;
-            if (z == gridSize) dir = TerrainChunk::NeighborDirection::EAST;
-            else if (z == 0) dir = TerrainChunk::NeighborDirection::WEST;
-            else if (x == gridSize) dir = TerrainChunk::NeighborDirection::NORTH;
-            else if (x == 0) dir = TerrainChunk::NeighborDirection::SOUTH;*/
-            /*else if (x == 0 && z == 0) dir = TerrainChunk::NeighborDirection::SOUTH_WEST;
-            else if (x == 0 && z == gridSize) dir = TerrainChunk::NeighborDirection::NORTH_WEST;
-            else if (x == gridSize && z == 0) dir = TerrainChunk::NeighborDirection::SOUTH_EAST;
-            else if (x == gridSize && z == gridSize) dir = TerrainChunk::NeighborDirection::NORTH_EAST;*/
+            // DESPUÉS (Mejorar la precisión de los índices X y Z al sumar):
+            // Asegura que la posición global sea consistente usando la suma de indices,
+            // no la multiplicación de floats grandes, y luego convirtiendo a float.
+            double d_globalX = (double)m_id.x * m_chunkSize + (double)x * scaleFactor;
+            double d_globalZ = (double)m_id.z * m_chunkSize + (double)z * scaleFactor;
 
-            std::optional<XMFLOAT3> newPos = std::nullopt;
+            float globalX = (float)d_globalX;
+            float globalZ = (float)d_globalZ;
 
-            /*if (dir != TerrainChunk::NeighborDirection::UNDEFINED)
-                newPos = InterpolateVertex(globalX, globalZ, gridSize, dir, debugColor);
-
-            if (newPos.has_value()) {
-                SetDirty(true);
-                height = newPos->y;
-                globalX = newPos->x;
-                globalZ = newPos->z;
-            }
-            else {*/
-            height = m_proceduralEngine->GetHeight(globalX, globalZ) * m_terrainHeight;
-            //}
+            float height = m_proceduralEngine->GetHeight(globalX, globalZ) * m_terrainHeight;
 
             if (height < minHeight) minHeight = height;
             if (height > maxHeight) maxHeight = height;
@@ -232,60 +222,35 @@ void Chunk::GenerateVertices(int gridSize, int lodLevel, std::vector<std::shared
             newVertex.position[0] = globalX;
             newVertex.position[1] = height;
             newVertex.position[2] = globalZ;
+
             newVertex.normal[0] = 0.0f;
             newVertex.normal[1] = 0.0f;
             newVertex.normal[2] = 0.0f;
+
             newVertex.texCoord[0] = static_cast<float>(x) / gridSize;
             newVertex.texCoord[1] = 1.0f - static_cast<float>(z) / gridSize;
             newVertex.tangent[0] = 1.0f;
             newVertex.tangent[1] = 0.0f;
             newVertex.tangent[2] = 0.0f;
 
-            // DEBUG
-            //if (newPos.has_value()) {
-            //    //if (dir == TerrainChunk::NeighborDirection::NORTH) newVertex.SetDebugColor(debugColor);
-            //    /*if (dir == TerrainChunk::NeighborDirection::NORTH) newVertex.SetDebugColor(DirectX::XMFLOAT4{ 1.0f,1.0f,0.0f,1.0f });*/
-            //    /*if (dir == TerrainChunk::NeighborDirection::SOUTH) newVertex.SetDebugColor(DirectX::XMFLOAT4{ 0.0f,1.0f,0.0f,1.0f });
-            //    if (dir == TerrainChunk::NeighborDirection::EAST) newVertex.SetDebugColor(DirectX::XMFLOAT4{ 0.0f,0.0f,1.0f,1.0f });
-            //    if (dir == TerrainChunk::NeighborDirection::WEST) newVertex.SetDebugColor(DirectX::XMFLOAT4{ 1.0f,0.0f,1.0f,1.0f });*/
-            //}
-            //if (newPos.has_value()) {
-            //if (dir == TerrainChunk::NeighborDirection::NORTH) {
-            //    newVertex.SetDebugColor(DirectX::XMFLOAT4{ 1.0f,1.0f,1.0f,1.0f });                
-            //}
-            //if (IsDirty()) {
-            //    newVertex.SetDebugColor(DirectX::XMFLOAT4(0, 0, 1, 1)); // Azul si el chunk está sucio
-            //}
-            //else {
-            //    newVertex.SetDebugColor(DirectX::XMFLOAT4{}); // Azul si el chunk está sucio
-            //}
-            // 
-            //if (lodLevel == 6) {
-            //    //newVertex.SetDebugColor(DirectX::XMFLOAT4{ 1.0f,0.0f,1.0f,1.0f });
-            //}
-            // FIN DE DEBUG
-            /*if (x == 0 && z == 0) newVertex.SetDebugColor(DirectX::XMFLOAT4{ 1.0f,0.0f,1.0f,1.0f });
-            else if (x == 0 && z == gridSize) newVertex.SetDebugColor(DirectX::XMFLOAT4{ 1.0f,0.0f,1.0f,1.0f });
-            else if (x == gridSize && z == 0) newVertex.SetDebugColor(DirectX::XMFLOAT4{ 1.0f,0.0f,1.0f,1.0f });
-            else if (x == gridSize && z == gridSize) newVertex.SetDebugColor(DirectX::XMFLOAT4{ 1.0f,0.0f,1.0f,1.0f });*/
-
-            outVertices.push_back(std::make_shared<VertexDefinition::TextureMapVertex>(newVertex));
+            m_vertices.push_back(newVertex);
         }
     }
 
-    // Al final, actualiza la BoundingBox
     m_boundingBox.min.y = minHeight;
     m_boundingBox.max.y = maxHeight;
 }
 
 // -----------------------------------------------------------------------------
-// GenerateIndices
+// GenerateIndices: Genera el patrón de triángulos (Llena m_indexes).
 // -----------------------------------------------------------------------------
-void Chunk::GenerateIndices(int gridSize, int lodLevel, std::vector<UINT>& outIndices) {
+void Chunk::GenerateIndices(int gridSize, int lodLevel) { // La firma ya no acepta 'outIndices'
+    // La variable lodLevel ya no se usa, pero se mantiene en la firma por consistencia.
 
-    outIndices.clear();
-    outIndices.reserve(gridSize * gridSize * 6);
+    m_indexes.clear();
+    m_indexes.reserve(gridSize * gridSize * 6);
     int verticesPerSide = gridSize + 1;
+
     for (int z = 0; z < gridSize; ++z) {
         for (int x = 0; x < gridSize; ++x) {
             UINT topLeft = (z * verticesPerSide) + x;
@@ -293,13 +258,15 @@ void Chunk::GenerateIndices(int gridSize, int lodLevel, std::vector<UINT>& outIn
             UINT bottomLeft = ((z + 1) * verticesPerSide) + x;
             UINT bottomRight = bottomLeft + 1;
 
-            outIndices.push_back(topLeft);
-            outIndices.push_back(bottomLeft);
-            outIndices.push_back(topRight);
+            // Triángulo 1
+            m_indexes.push_back(topLeft);
+            m_indexes.push_back(bottomLeft);
+            m_indexes.push_back(topRight);
 
-            outIndices.push_back(topRight);
-            outIndices.push_back(bottomLeft);
-            outIndices.push_back(bottomRight);
+            // Triángulo 2
+            m_indexes.push_back(topRight);
+            m_indexes.push_back(bottomLeft);
+            m_indexes.push_back(bottomRight);
         }
     }
 }
@@ -307,25 +274,41 @@ void Chunk::GenerateIndices(int gridSize, int lodLevel, std::vector<UINT>& outIn
 // -----------------------------------------------------------------------------
 // CalculateNormals
 // -----------------------------------------------------------------------------
-void Chunk::CalculateNormals(std::vector<std::shared_ptr<IVertex>>& processedVertices) {
-    std::vector<DirectX::XMVECTOR> accumulatedNormals(processedVertices.size(), DirectX::XMVectorZero());
+// -----------------------------------------------------------------------------
+// CalculateNormals: Calcula las normales por vértice (Modifica m_vertices).
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// CalculateNormals: Calcula las normales por vértice (Modifica m_vertices).
+// -----------------------------------------------------------------------------
+void Chunk::CalculateNormals() {
 
-    // Paso 1: acumular normales por triángulo
+    // Inicializar un vector temporal para acumular las normales de cara.
+    std::vector<DirectX::XMVECTOR> accumulatedNormals(m_vertices.size(), DirectX::XMVectorZero());
+
+    // Paso 1: acumular normales por triángulo.
     for (size_t i = 0; i < m_indexes.size(); i += 3) {
         UINT i0 = m_indexes[i + 0];
         UINT i1 = m_indexes[i + 1];
         UINT i2 = m_indexes[i + 2];
 
-        const XMFLOAT3 pos0 = processedVertices[i0]->GetPosition();
-        const XMFLOAT3 pos1 = processedVertices[i1]->GetPosition();
-        const XMFLOAT3 pos2 = processedVertices[i2]->GetPosition();
+        // CORRECCIÓN CLAVE: Cargar XMVECTOR directamente desde el array float[3] (position).
+        // Usamos reinterpret_cast para tratar el array float[3] como un puntero a XMFLOAT3,
+        // o si es una estructura simple, cargamos el vector SIMD directamente.
 
+        // Opción 1 (Más limpia, asume el layout es compatible con XMFLOAT3):
+        XMVECTOR p0 = XMLoadFloat3(reinterpret_cast<const XMFLOAT3*>(m_vertices[i0].position));
+        XMVECTOR p1 = XMLoadFloat3(reinterpret_cast<const XMFLOAT3*>(m_vertices[i1].position));
+        XMVECTOR p2 = XMLoadFloat3(reinterpret_cast<const XMFLOAT3*>(m_vertices[i2].position));
+
+        /*
+        // Opción 2 (Si no quieres el reinterpret_cast, creas un XMFLOAT3 temporal):
+        const XMFLOAT3 pos0 = { m_vertices[i0].position[0], m_vertices[i0].position[1], m_vertices[i0].position[2] };
         XMVECTOR p0 = XMLoadFloat3(&pos0);
-        XMVECTOR p1 = XMLoadFloat3(&pos1);
-        XMVECTOR p2 = XMLoadFloat3(&pos2);
+        */
 
         XMVECTOR edge1 = XMVectorSubtract(p1, p0);
         XMVECTOR edge2 = XMVectorSubtract(p2, p0);
+
         XMVECTOR faceNormal = XMVector3Normalize(XMVector3Cross(edge1, edge2));
 
         accumulatedNormals[i0] = XMVectorAdd(accumulatedNormals[i0], faceNormal);
@@ -333,35 +316,25 @@ void Chunk::CalculateNormals(std::vector<std::shared_ptr<IVertex>>& processedVer
         accumulatedNormals[i2] = XMVectorAdd(accumulatedNormals[i2], faceNormal);
     }
 
-    // Paso 2: suavizar normales con vecinos
-    for (size_t i = 0; i < processedVertices.size(); ++i) {
+    // Paso 2: suavizar y normalizar las normales acumuladas.
+    for (size_t i = 0; i < m_vertices.size(); ++i) {
         XMVECTOR normal = accumulatedNormals[i];
 
-        const XMFLOAT3 pos = processedVertices[i]->GetPosition();
-
-        /*
-        // Suavizado con vecinos desactivado temporalmente
-        for (auto& neighbor : m_neighbors) {
-            if (!neighbor) continue;
-
-            auto match = neighbor->FindVertexByPosition(pos, 0.001f);
-            if (match) {
-                const XMFLOAT3 neighborNormal = match->GetNormal();
-                XMVECTOR n = XMLoadFloat3(&neighborNormal);
-                normal = XMVectorAdd(normal, n);
-            }
-        }
-        */
+        /* Aquí se reintroduce la lógica de suavizado con vecinos si es necesario. */
 
         normal = XMVector3Normalize(normal);
-        processedVertices[i]->SetNormal(XMFLOAT3(
-            XMVectorGetX(normal),
-            XMVectorGetY(normal),
-            XMVectorGetZ(normal)
-        ));
+
+        // Escribir el resultado de vuelta en el array de la normal (normal[3]).
+        // Necesitamos un XMFLOAT3 temporal para usar XMStoreFloat3, 
+        // luego copiamos los datos al array [3].
+        XMFLOAT3 tempNormal;
+        XMStoreFloat3(&tempNormal, normal);
+
+        m_vertices[i].normal[0] = tempNormal.x;
+        m_vertices[i].normal[1] = tempNormal.y;
+        m_vertices[i].normal[2] = tempNormal.z;
     }
 }
-
 
 // -----------------------------------------------------------------------------
 // Otros métodos
@@ -499,4 +472,51 @@ std::vector<IVertex> Chunk::GetBorderVerticesFromTriangles(int direction, float 
     }
 
     return result;
+}
+
+// -----------------------------------------------------------------------------
+// GetLocalIndex: Calcula el índice en m_vertices[N] dada la posición (x, z) 
+// en la cuadrícula local (donde 0 <= x, z <= gridSize).
+// -----------------------------------------------------------------------------
+size_t Chunk::GetLocalIndex(int x, int z) const {
+    int gridSize = GetGridSize();
+
+    // Si la cuadrícula no está generada o no es válida, devolvemos 0 (o lanzamos excepción)
+    if (gridSize <= 0) {
+        // ¡Ojo! El código anterior devolvía 0. Es mejor devolver un valor seguro o fallar.
+        // Pero para ser consistente con la topología, devolvemos 0 si no hay gridSize
+        // o asumimos que esto solo se llama después de UpdateLOD.
+        return 0;
+    }
+
+    int verticesPerSide = gridSize + 1;
+
+    // Se asume que 0 <= x <= gridSize y 0 <= z <= gridSize
+
+    // La fórmula es: (fila * columnas) + columna
+    return (size_t)(z * verticesPerSide) + x;
+}
+
+// Sólo para uso de ChunkService (friend).
+// -----------------------------------------------------------------------------
+void Chunk::ApplyStitchedNormalAndTangent(size_t localIndex, DirectX::XMVECTOR normal, DirectX::XMVECTOR tangent) {
+    if (localIndex >= m_vertices.size()) {
+        return;
+    }
+
+    // NORMAL
+    DirectX::XMFLOAT3 tempNormal;
+    DirectX::XMStoreFloat3(&tempNormal, normal);
+
+    m_vertices[localIndex].normal[0] = tempNormal.x;
+    m_vertices[localIndex].normal[1] = tempNormal.y;
+    m_vertices[localIndex].normal[2] = tempNormal.z;
+
+    // TANGENTE
+    DirectX::XMFLOAT3 tempTangent;
+    DirectX::XMStoreFloat3(&tempTangent, tangent);
+
+    m_vertices[localIndex].tangent[0] = tempTangent.x;
+    m_vertices[localIndex].tangent[1] = tempTangent.y;
+    m_vertices[localIndex].tangent[2] = tempTangent.z;
 }

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "BaseRenderManager.h"
 #include "RenderPass.h"
 #include "SceneManager.h"
 #include <CameraManager.h>
@@ -9,6 +8,7 @@
 #include <Config/PassConfigBase.h>
 #include <Config/Services/ServiceConfig.h>
 #include <DeviceManager.h>
+#include <GigaBufferManager.h>
 #include <IRenderPass.h>
 #include <ManagerBase.h>
 #include <memory>
@@ -107,7 +107,9 @@ private:
     // ------------------------------------
     std::shared_ptr<DeviceManager> m_deviceManager;
     std::shared_ptr<CameraManager> m_cameraManager;
+    std::shared_ptr<SceneManager> m_sceneManager;
     std::shared_ptr<PipelineResourcesManager> m_resources;
+    std::shared_ptr<GigaBufferManager> m_bufferManager;
     std::shared_ptr<World> m_world;
     std::shared_ptr<Terrain> m_terrain;
 
@@ -120,8 +122,6 @@ private:
 
     std::vector<PipelineOperationType> m_renderOperations = {};
     std::map<int, std::shared_ptr<IRenderPass>> m_renderPasses;
-    BaseRenderManager* m_baseRenderManager;
-    std::shared_ptr<SceneManager> m_sceneManager;
 
     Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_context;
 

@@ -3,16 +3,16 @@
 #include <d3d11.h>
 #include <Defines/Enums/Matrix.h>
 #include <Defines/Matrix/MatrixDefinition.h>
-#include <Defines/Structs/PipelineResources.h>
+#include <Defines/Structs/Pipeline/PipelineResources.h>
 #include <dxgi.h>
 #include <IPipelineViewportState.h>
 #include <Managers/DeviceManager.h>
 #include <memory>
+#include <string>
 #include <Util/MathUtil.h>
 #include <utility>
 #include <Windows.h>
 #include <wrl/client.h>
-
 
 const void ConcreteResources::CreateRasterizerState(Microsoft::WRL::ComPtr<ID3D11Device> device, D3D11_RASTERIZER_DESC* desc, Microsoft::WRL::ComPtr<ID3D11RasterizerState>& state) {
     if (device) {

@@ -1,9 +1,8 @@
 #include "KeyBindings.h"
-#include <WinUser.h>
-#include <Util/Text/Text.h>
-#include <Util/Array/ArrayUtility.h>
-#include <ServiceLocator/ServiceLocator.h>
 #include <REGISTER_SERVICE_MACRO.h>
+#include <ServiceLocator/ServiceLocator.h>
+#include <Util/Array/ArrayUtility.h>
+#include <Util/Text/Text.h>
 
 REGISTER_SERVICE_TYPE(KeyBindings, "KeyBindings")
 
@@ -35,7 +34,8 @@ static KeyMoves MapAction(const std::string& action) {
 	if (lowerAction == "crouch") return KeyMoves::Crouch;
 	if (lowerAction == "sprint") return KeyMoves::Sprint;
 	if (lowerAction == "interact") return KeyMoves::Interact;
-	if (lowerAction == "inventory") return KeyMoves::ToggleInventory;
+    if (lowerAction == "inventory") return KeyMoves::ToggleInventory;
+    if (lowerAction == "switch_camera") return KeyMoves::ToggleCamera;
 	return KeyMoves::None; // Acción no reconocida
 }
 

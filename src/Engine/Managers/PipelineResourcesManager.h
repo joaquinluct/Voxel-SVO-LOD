@@ -6,8 +6,9 @@
 #include <Config/Base/Pipeline/ShaderTextureSlotsConfig.h>
 #include <Config/Base/RenderPass/BasePassConfig.h>
 #include <d3d11.h>
-#include <Defines/EngineDefinition.h>
-#include <Defines/Structs/PipelineResources.h>
+#include <Defines//Context/EngineContext.h>
+#include <Defines/ShaderSampler.h>
+#include <Defines/Structs/Pipeline/PipelineResources.h>
 #include <Game/GameEngineConfig.h>
 #include <ManagerBase.h>
 #include <Managers/RenderManager/Pipeline/ConcreteResources.h>

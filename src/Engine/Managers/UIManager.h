@@ -1,7 +1,7 @@
 // UIManager.h
 #pragma once
 #include <Assets/Base/UIAsset.h>
-#include <Defines/EngineDefinition.h>
+#include <Defines//Context/EngineContext.h>
 #include <Defines/VertexDefinition.h>
 #include <directxmath.h>
 #include <ManagerBase.h>

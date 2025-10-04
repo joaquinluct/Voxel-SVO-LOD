@@ -3,7 +3,7 @@
 #include <d3d11.h>
 #include <Defines/Enums/Matrix.h>
 #include <Defines/Matrix/MatrixDefinition.h>
-#include <Defines/Structs/PipelineResources.h>
+#include <Defines/Structs/Pipeline/PipelineResources.h>
 #include <variant>
 #include <vector>
 #include <Windows.h>
@@ -69,12 +69,5 @@ void ConstantsBufferFrameState::ExecuteMapUnmapOperations(ID3D11DeviceContext* c
         if (cbResource.bufferType == MatrixBufferTypeEnum::Dynamic) {
             MapUnmapOperation(context, res, cbResource.data);
         }
-
-        /*if (cbResource.matrixType == MATRIX_TYPE_VERTEX) {
-            context->VSSetConstantBuffers(cbResource.slot, 1, &res);
-        }
-        else {
-            context->PSSetConstantBuffers(cbResource.slot, 1, &res);
-        }*/
     }
 }

@@ -1,6 +1,6 @@
 #pragma once
 //#include <stdafx.h>
-#include <Defines/EngineDefinition.h>
+#include <Defines/Context/EngineContext.h>
 #include <Engine.h> // Se incluye la clase de motor de juego, ahora llamada Engine.
 #include <memory>
 #include <windows.h>

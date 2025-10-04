@@ -1,6 +1,6 @@
 #pragma once
 #include <Core/Threading/ThreadedService.h>
-#include <Defines/EngineDefinition.h>
+#include <Defines//Context/EngineContext.h>
 #include <IEngineLifeCycle.h>
 #include <IManager.h>
 #include <windows.h>

@@ -20,6 +20,7 @@
 #include <wrl/client.h>
 
 //class MeshAsset;
+class ChunkService;
 
 class Chunk : public IChunk, public SyncFlagged {
 private:
@@ -50,13 +51,14 @@ private:
     int m_westLOD = -1;
 
     std::optional<XMFLOAT3> InterpolateVertex(float globalX, float globalZ, int gridSize, const TerrainChunk::NeighborDirection& dir, const DirectX::XMFLOAT4& debugColor = {});
-    void GenerateVertices(int gridSize, int lodLevel, std::vector<std::shared_ptr<IVertex>>& outVertices);
-    void GenerateIndices(int gridSize, int lodLevel, std::vector<UINT>& outIndices);
-    void CalculateNormals(std::vector<std::shared_ptr<IVertex>>& processedVertices);
-    IVertex FindVertexByPosition(const DirectX::XMFLOAT3& position, float tolerance) const;
+    void GenerateVertices(int gridSize, int lodLevel);
+    void GenerateIndices(int gridSize, int lodLevel);
+    void CalculateNormals();
     std::vector<std::tuple<UINT, UINT, UINT>> GetTrianglesTouchingBorder(int direction, float epsilon) const;
     std::vector<IVertex> GetBorderVerticesFromTriangles(int direction, float epsilon) const;
+    void ApplyStitchedNormalAndTangent(size_t localIndex, DirectX::XMVECTOR normal, DirectX::XMVECTOR tangent);
 public:
+    friend class ChunkService;
     Chunk()
         : m_position(), m_chunkSize(0.0f), m_id(), m_proceduralEngine(nullptr), m_currentLOD(-1), m_deviceManager(nullptr), m_neighbors{ nullptr, nullptr, nullptr, nullptr }, m_boundingBox(), m_dirty(true)
     {
@@ -71,15 +73,14 @@ public:
     }
     virtual ~Chunk() = default;
 
+
     // IChunk interface
     HRESULT Init() override;
     void Render() override {}
     void Update() override {}
     void Shutdown() override;
     // IMesh interface
-    std::vector<IVertex> GetVertices() override {
-        return {};
-    }
+    std::vector<IVertex> GetVertices() override { return {}; }
     std::vector<VertexDefinition::TextureMapVertex*> GetChunkVertices() {
         std::vector<VertexDefinition::TextureMapVertex*> result{};
         for (auto& v : m_vertices) {
@@ -98,6 +99,7 @@ public:
     UINT GetVertexCount() const override {
         return static_cast<UINT>(m_vertices.size());
     }
+    size_t GetLocalIndex(int x, int z) const;
 
     void SetRegion(const TerrainChunk::ChunkBufferRegion& region);
     const TerrainChunk::ChunkBufferRegion& GetRegion() const { return m_bufferRegion; }
@@ -110,6 +112,8 @@ public:
     /*std::shared_ptr<MeshAsset> GetMesh() override {
         return m_mesh;
     }*/
+
+    int GetGridSize() const;
 
     DirectX::XMFLOAT3 GetPosition() const override {
         return m_position;
@@ -151,6 +155,8 @@ public:
     const Util::BoundingBox& GetAABB() const {
         return m_boundingBox;
     }
+
+    IVertex FindVertexByPosition(const DirectX::XMFLOAT3& position, float tolerance) const;
 
     std::vector<IVertex> GetBorderVertices(TerrainChunk::NeighborDirection dir, int gridSize) const;
 

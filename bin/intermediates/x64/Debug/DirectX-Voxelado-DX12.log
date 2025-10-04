@@ -1,0 +1,4 @@
+﻿  Generando configuraciones YAML automáticamente antes de compilar...
+  El sistema no puede encontrar la ruta especificada.
+C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(156,5): error MSB3073: El comando ""C:\Users\joaqu\source\repos\DirectX-Voxelado\DX12\Scripts\GenerateConfigs.bat" "C:\Users\joaqu\source\repos\DirectX-Voxelado\DX12\" "C:\Users\joaqu\source\repos\DirectX-Voxelado\Tools\YamlToCode\YamlToStruct.exe"
+C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(156,5): error MSB3073: :VCEnd" salió con el código 3.

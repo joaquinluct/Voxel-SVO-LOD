@@ -9,6 +9,7 @@
 #include <ServiceLocator/ServiceLocator.h>
 #include <Services/ThreadPool.h>
 #include <Util/DirectXDebug.h>
+#include <Windows.h>
 //--------------------------------------------------------------------------------------
 // Constructor: Inicializa las variables miembro.
 //--------------------------------------------------------------------------------------

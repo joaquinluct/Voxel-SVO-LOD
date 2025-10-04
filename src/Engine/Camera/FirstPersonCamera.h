@@ -91,6 +91,9 @@ public:
     DirectX::XMVECTOR GetRightVector() const;
     DirectX::XMVECTOR GetUpVector() const;
 
+    // Control de gravedad y colisiones con el terreno
+    void CheckGroundCollision();
+
     // Debug
     std::string GetDebugInfo() const;
 

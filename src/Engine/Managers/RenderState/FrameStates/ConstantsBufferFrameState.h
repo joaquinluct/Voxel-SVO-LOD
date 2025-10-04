@@ -3,7 +3,7 @@
 #include "FrameStateBase.h"
 #include <d3d11.h>
 #include <Defines/Matrix/MatrixDefinition.h>
-#include <Defines/Structs/PipelineResources.h>
+#include <Defines/Structs/Pipeline/PipelineResources.h>
 #include <vector>
 #include <wrl/client.h>
 

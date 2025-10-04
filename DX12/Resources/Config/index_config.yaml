@@ -1,0 +1,6 @@
+BatchProcessor:
+    description: 'DirectX-Voxel project config files - DX12 Migration'
+    workDirectory: 'C:\Users\joaqu\source\repos\DirectX-Voxelado\DX12\Resources\Config'
+    files:
+      # Main application configuration
+      - main_window_config.yaml 

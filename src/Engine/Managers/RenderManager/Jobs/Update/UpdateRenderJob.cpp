@@ -1,5 +1,5 @@
 #include "UpdateRenderJob.h"
-#include <Defines/Types/ThreadTypes.h>
+#include <Defines/Usings/ThreadTypes.h>
 #include <Game/Systems/Chronos.h>
 #include <Managers/RenderState/FrameStates/CommonFrameState.h>
 #include <Services/FrameStateService.h>

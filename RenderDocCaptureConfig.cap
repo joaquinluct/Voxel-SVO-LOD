@@ -12,7 +12,7 @@
             "allowFullscreen": true,
             "allowVSync": true,
             "apiValidation": false,
-            "captureAllCmdLists": true,
+            "captureAllCmdLists": false,
             "captureCallstacks": false,
             "captureCallstacksOnlyDraws": false,
             "debugOutputMute": true,
@@ -22,7 +22,7 @@
             "softMemoryLimit": 0,
             "verifyBufferAccess": true
         },
-        "queuedFrameCap": 0,
+        "queuedFrameCap": 200,
         "workingDir": "C:/Users/joaqu/source/repos/DirectX-Voxelado"
     }
 }

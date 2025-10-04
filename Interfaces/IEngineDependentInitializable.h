@@ -1,7 +1,7 @@
 #pragma once
 
 #include <windows.h>
-#include <Defines/EngineDefinition.h>
+#include <Defines//Context/EngineContext.h>
 
 class IEngineDependentInitializable {
 public:

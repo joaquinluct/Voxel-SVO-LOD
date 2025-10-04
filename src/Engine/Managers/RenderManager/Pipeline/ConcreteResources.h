@@ -2,7 +2,7 @@
 #include <d3d11.h>
 #include <Defines/Enums/Matrix.h>
 #include <Defines/Matrix/MatrixDefinition.h>
-#include <Defines/Structs/PipelineResources.h>
+#include <Defines/Structs/Pipeline/PipelineResources.h>
 #include <DeviceManager.h>
 #include <dxgi.h>
 #include <IPipelineViewportState.h>

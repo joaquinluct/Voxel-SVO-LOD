@@ -46,6 +46,7 @@ public:
 
     // Métods de gestión del terreno
     float GetTerrainHeight(float x, float z) const;
+    DirectX::XMFLOAT3 GetTerrainNormal(float posX, float posZ);
     TextureDefines::CBTerrainBlendBuffer GetTerrainBlenderData();
     TextureDefines::CBTerrain2BlendBuffer GetTerrain2BlenderData();
     TextureDefines::TerrainBiomeBufferData GetTerrainBiomeBufferData();

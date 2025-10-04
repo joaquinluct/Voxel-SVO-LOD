@@ -1,0 +1,2 @@
+# Este archivo mantiene el directorio generated/ en git
+# Los archivos .h/.cpp se generan automáticamente durante la compilación

@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <cstring>
 #include <d3d11.h>
-#include <Defines/Structs/PipelineResources.h>
+#include <Defines/Structs/Pipeline/PipelineResources.h>
 #include <utility>
 #include <vector>
 #include <Windows.h>

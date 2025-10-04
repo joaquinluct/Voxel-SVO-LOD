@@ -1,0 +1,6 @@
+# Archivos generados automáticamente por YAML
+/generated/
+*.generated.*
+
+# Pero mantener la estructura
+!/generated/.gitkeep

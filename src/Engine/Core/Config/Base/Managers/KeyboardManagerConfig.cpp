@@ -15,6 +15,7 @@ KeyboardManagerConfig::KeyboardManagerConfig(){
 			{"sprint", {"KEY_SHIFT_LEFT","KEY_SHIFT_RIGHT","KEY_CTRL_LEFT","KEY_CTRL_RIGHT"}},
 			{"interact", {"KEY_E","MOUSE_BUTTON1"}},
 			{"inventory", {"KEY_I","KEY_TAB"}},
+			{"switch_camera", {"KEY_C"}},
 	};
 	dependencies = {
 		"Keybindings",

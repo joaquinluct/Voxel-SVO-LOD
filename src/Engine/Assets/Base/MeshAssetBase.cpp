@@ -9,6 +9,7 @@
 #include <Services/Material.h>
 #include <Util/Utils.h>
 #include <wrl/client.h>
+#include <GigaBufferManager.h>
 
 HRESULT MeshAssetBase::InitManagers() {
     m_deviceManager = ManagerLocator::GetDeviceManager();
@@ -245,4 +246,29 @@ void MeshAssetBase::Shutdown() {
     if (m_shadowMaterial) {
         SafeShutDown(m_shadowMaterial);
     }
+}
+
+ID3D11Buffer* MeshAssetBase::GetVertexRingBuffer() const
+{
+    // 1. Obtener el GigaBufferManager
+    auto gigaManager = ManagerLocator::GetManager<GigaBufferManager>();
+    if (!gigaManager) return nullptr;
+
+    // 2. Obtener el Ring Buffer (clase C++ RingBuffer*)
+    auto vertexRing = gigaManager->GetVertexBufferRing();
+    if (!vertexRing) return nullptr;
+
+    // 3. Devolver el recurso D3D11 subyacente
+    return vertexRing->GetD3DBuffer();
+}
+
+ID3D11Buffer* MeshAssetBase::GetIndexRingBuffer() const
+{
+    auto gigaManager = ManagerLocator::GetManager<GigaBufferManager>();
+    if (!gigaManager) return nullptr;
+
+    auto indexRing = gigaManager->GetIndexBufferRing();
+    if (!indexRing) return nullptr;
+
+    return indexRing->GetD3DBuffer();
 }

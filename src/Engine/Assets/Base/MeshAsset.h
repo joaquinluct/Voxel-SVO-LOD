@@ -7,6 +7,7 @@
 #include <d3d11.h>
 #include <Defines/Mesh.h>
 #include <Defines/Pass.h>
+#include <Defines/Structs/RingBuffer.h>
 #include <Defines/VertexDefinition.h>
 #include <DirectXMath.h>
 #include <memory>

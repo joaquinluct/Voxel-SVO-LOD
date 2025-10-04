@@ -3,7 +3,7 @@
 #include <d3d11.h>
 #include <Defines/Matrix/MatrixDefinition.h>
 #include <Defines/ShaderSampler.h>
-#include <Defines/Types/Sampler.h>
+#include <Defines/Usings/Sampler.h>
 #include <ManagerBase.h>
 #include <map>
 #include <memory>

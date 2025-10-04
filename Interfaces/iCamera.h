@@ -1,12 +1,12 @@
 #pragma once
 
-#include <DirectXMath.h>
-#include <Windows.h>
-#include <vector> // Para el ray tracing
-#include <memory> // Para std::shared_ptr
 #include "RayTracing/RayTracing.h" // Asumiendo que Triangle es una estructura definida en Util
-#include <IDebug.h>
 #include <Defines/CameraDefinition.h>
+#include <Defines/Enums/Camera.h>
+#include <DirectXMath.h>
+#include <IDebug.h>
+#include <vector> // Para el ray tracing
+#include <Windows.h>
 
 // Forward declarations para evitar dependencias circulares si KeyboardManager o Util son definidos en otro lado
 //class KeyboardManager; // Asumiendo que KeyboardManager es una clase y no un namespace
@@ -15,7 +15,10 @@
 //    class RayTracing; // Asumiendo que RayTracing es una clase dentro del namespace Util
 //}
 
-class ICamera: public IDebug {
+class ICamera : public IDebug {
+protected:
+    CameraMode m_currentMode = CameraMode::Gravity; // Inicia con gravedad.
+    bool m_switchCamTypePressed = false;
 public:
     virtual ~ICamera() = default;
 

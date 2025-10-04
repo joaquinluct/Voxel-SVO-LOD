@@ -1,14 +1,14 @@
 #include "FirstPersonCamera.h"
-#include <debugapi.h>
 #include <Defines/CameraDefinition.h>
 #include <Game/Systems/World.h>
-#include <limits>           // Para std::numeric_limits
+#include <limits>
 #include <ManagerLocator/ManagerLocator.h>
 #include <REGISTER_SERVICE_MACRO.h>
 #include <ServiceLocator/ServiceLocator.h>
+#include <Services/KeyBindings.h>
 #include <Services/Mouse.h>
 #include <Text/Text.h>
-#include <windows.h>        // Para OutputDebugStringA (solo para mensajes de depuración)
+#include <windows.h>
 
 REGISTER_SERVICE_TYPE(FirstPersonCamera, "FirstPersonCamera")
 
@@ -31,10 +31,10 @@ REGISTER_SERVICE_TYPE(FirstPersonCamera, "FirstPersonCamera")
 // Podrían estar en un archivo de constantes compartidas, o definidos aquí si son específicos de FPC.
 // Por el momento, los mantengo aquí para que compile, pero considera su ubicación.
 #ifndef CAMERA_SPEED
-#define CAMERA_SPEED 40.0f
+#define CAMERA_SPEED 50.0f
 #endif
 #ifndef CAMERA_SPEEDY
-#define CAMERA_SPEEDY 100.0f
+#define CAMERA_SPEEDY 220.0f
 #endif
 
 using namespace DirectX;
@@ -265,7 +265,7 @@ DirectX::XMVECTOR FirstPersonCamera::GetUpVector() const {
 // --------------------------------------------------------------
 // UPDATE HEIGHT
 // --------------------------------------------------------------
-const float ALTURA_PERSONAJE = 40.0f;
+const float ALTURA_PERSONAJE = 2.0f;
 const float MAX_CLIMB_HEIGHT = 0.5f; // Altura máxima que puede subir en 1 frame.
 
 // Se asume que moveDir ha sido removido de la firma
@@ -320,23 +320,51 @@ bool FirstPersonCamera::UpdateHeight(float deltaTime) {
 }
 
 // --------------------------------------------------------------
-// UPDATE
+// CheckGroundCollision (Tope de suelo para modo VUELO)
+// --------------------------------------------------------------
+void FirstPersonCamera::CheckGroundCollision() {
+    if (m_world && m_world->HasHeight()) {
+
+        float currentTerrainHeight = m_world->GetTerrain()->GetTerrainHeight(m_position.x, m_position.z);
+        float desiredGroundY = currentTerrainHeight + ALTURA_PERSONAJE;
+
+        // Si hemos atravesado el suelo, corregir Y.
+        if (m_position.y < desiredGroundY) {
+            m_position.y = desiredGroundY;
+        }
+
+        m_lastTerrainHeight = currentTerrainHeight;
+    }
+}
+
+// --------------------------------------------------------------
+// UPDATE (FINAL, COMPLETO Y CON COLISIÓN DURA)
 // --------------------------------------------------------------
 void FirstPersonCamera::Update(float deltaTime) {
 
-    // --- 1. Actualizar rotación basada en el ratón (SIN CAMBIOS) ---
+    // --- 1. Actualizar rotación basada en el ratón ---
     float deltaX = static_cast<float>(m_mouseService->GetDeltaX());
     float deltaY = static_cast<float>(m_mouseService->GetDeltaY());
 
-    // Aplicar rotación con los deltas del ratón
-    Rotate(
-        deltaY * m_rotationSpeed,
-        deltaX * m_rotationSpeed,
-        0.0f
-    );
+    // Aplicar rotación...
+    Rotate(deltaY * m_rotationSpeed, deltaX * m_rotationSpeed, 0.0f);
     m_mouseService->SetCenter();
 
-    // --- 2. Preparar el movimiento horizontal ---
+    // --- 2. Control de Modo de Cámara (ToggleCameraMode) ---
+    bool toggleIsDown = m_keyboardManager->IsKeyDown(KeyMoves::ToggleCamera);
+
+    if (toggleIsDown && !m_switchCamTypePressed) {
+        if (m_currentMode == CameraMode::Gravity) {
+            m_currentMode = CameraMode::Flight;
+        }
+        else {
+            m_currentMode = CameraMode::Gravity;
+            m_verticalVelocity = 0.0f; // Resetear la velocidad vertical al entrar en modo gravedad/suelo.
+        }
+    }
+    m_switchCamTypePressed = toggleIsDown;
+
+    // --- 3. Preparar el movimiento horizontal y velocidad ---
     XMVECTOR moveDir = XMVectorZero();
 
     // Movimiento adelante/atrás y lateral
@@ -349,68 +377,108 @@ void FirstPersonCamera::Update(float deltaTime) {
     if (m_keyboardManager->IsKeyDown(KeyMoves::Right))
         moveDir = XMVectorAdd(moveDir, GetRightVector());
 
-    // Configuración de velocidad (Sprint, etc.)
+    // Configuración de velocidad
     if (m_keyboardManager->IsKeyDown(KeyMoves::Sprint))
         m_moveSpeed = CAMERA_SPEEDY;
     else
         m_moveSpeed = CAMERA_SPEED;
 
-    // --- 3. Aplicar movimiento horizontal propuesto ---
-    XMVECTOR lastPositionVector = XMLoadFloat3(&m_position); // GUARDAR POSICIÓN INICIAL
+    // --- 4. Aplicar movimiento propuesto y Colisión Horizontal (Parada Dura) ---
+    XMVECTOR lastPositionVector = XMLoadFloat3(&m_position);
     bool hasMoved = false;
 
     if (!XMVector3Equal(moveDir, XMVectorZero())) {
         float vel = m_moveSpeed * deltaTime;
 
-        // --- CÓDIGO DE GRAVEDAD (REEMPLAZO) ---
-        //// **CRUCIAL:** Ignorar el componente Y de moveDir para evitar levitar
-        //XMVECTOR flatMoveDir = XMVectorSetY(moveDir, 0.0f);
-        //flatMoveDir = XMVector3Normalize(flatMoveDir);
-        //flatMoveDir = XMVectorScale(flatMoveDir, vel);
+        XMVECTOR positionVector = XMLoadFloat3(&m_position);
+        XMVECTOR proposedMovementVector;
 
-        //// Aplicar el movimiento PROPUESTO (X y Z)
-        //XMVECTOR position = XMLoadFloat3(&m_position);
-        //position = XMVectorAdd(position, flatMoveDir);
-        //XMStoreFloat3(&m_position, position);
+        // 4.1. Calcular el vector de movimiento base
+        if (m_currentMode == CameraMode::Gravity) {
+            // MODO GRAVEDAD: Solo mover X y Z
+            XMVECTOR flatMoveDir = XMVectorSetY(moveDir, 0.0f);
+            flatMoveDir = XMVector3Normalize(flatMoveDir);
+            proposedMovementVector = XMVectorScale(flatMoveDir, vel);
+        }
+        else {
+            // MODO VUELO: Mover X, Y y Z
+            moveDir = XMVector3Normalize(moveDir);
+            proposedMovementVector = XMVectorScale(moveDir, vel);
+        }
 
+        // 4.2. Colisión Horizontal: Detección de Muros y Parada Dura
+        XMVECTOR finalMovementVector = proposedMovementVector;
 
-        // --- CÓDIGO DE VUELO LIBRE (REEMPLAZO) ---
-        // 1. Normalizar moveDir (que ya tiene las direcciones X, Y, Z combinadas de GetForward/GetRight)
-        //    Si estás mirando hacia arriba (pitch positivo), moveDir ya incluye la componente Y.
-        moveDir = XMVector3Normalize(moveDir);
+        if (m_world && m_world->HasHeight()) {
+            XMFLOAT3 currentPos;
+            XMStoreFloat3(&currentPos, positionVector);
 
-        // 2. Aplicar velocidad y deltaTime
-        moveDir = XMVectorScale(moveDir, vel);
+            // a) Obtener la Normal del terreno
+            XMFLOAT3 terrainNormalFloat = m_world->GetTerrain()->GetTerrainNormal(currentPos.x, currentPos.z);
+            XMVECTOR terrainNormal = XMLoadFloat3(&terrainNormalFloat);
 
-        // 3. Aplicar el movimiento en X, Y, Z
-        XMVECTOR position = XMLoadFloat3(&m_position);
-        position = XMVectorAdd(position, moveDir);
+            // b) Chequear si es un muro (Y < 0.2 indica alta pendiente/verticalidad)
+            if (XMVectorGetY(terrainNormal) < 0.2f) {
 
-        // 4. Actualizar m_position
-        XMStoreFloat3(&m_position, position);
+                XMVECTOR movementXZ = XMVectorSetY(proposedMovementVector, 0.0f);
+                XMVECTOR normalXZ = XMVectorSetY(terrainNormal, 0.0f);
+                normalXZ = XMVector3Normalize(normalXZ);
 
-        hasMoved = true;
-        m_viewDirty = true;
+                float dotProduct = XMVectorGetX(XMVector3Dot(movementXZ, normalXZ));
+
+                // c) Si el movimiento es HACIA el muro (producto punto negativo)
+                if (dotProduct < 0.0f) {
+
+                    // --- LÓGICA DE PARADA DURA EN XZ ---
+                    // Anulamos las componentes X y Z del movimiento final, 
+                    // pero mantenemos la componente Y si la había (solo en modo vuelo).
+
+                    float yMovement = XMVectorGetY(finalMovementVector);
+
+                    finalMovementVector = XMVectorZero();
+                    finalMovementVector = XMVectorSetY(finalMovementVector, yMovement);
+                }
+            }
+        }
+
+        // 4.3. Aplicar el movimiento ajustado.
+        if (!XMVector3Equal(finalMovementVector, XMVectorZero())) {
+            positionVector = XMVectorAdd(positionVector, finalMovementVector);
+            XMStoreFloat3(&m_position, positionVector);
+
+            hasMoved = true;
+            m_viewDirty = true;
+        }
+        else {
+            // Detención completa (movimiento XZ fue anulado).
+            hasMoved = false;
+            m_viewDirty = true;
+        }
     }
 
-    // --- 4. Actualizar la altura y chequear la colisión ---
-    // UpdateHeight devolverá 'false' si la pendiente es muy empinada.
-    //if (!UpdateHeight(deltaTime)) {
+    // --- 5. Aplicar Colisión y Gravedad Vertical ---
+    if (m_currentMode == CameraMode::Flight) {
+        // MODO VUELO: Tope de suelo.
+        CheckGroundCollision();
+    }
+    else {
+        // MODO GRAVEDAD: Aplicar gravedad y chequeo de pendientes.
 
-    //    // La colisión horizontal falló (pendiente bloqueada)
-    //    if (hasMoved) {
-    //        // Revertir X y Z a la posición inicial (el "choque")
-    //        XMStoreFloat3(&m_position, lastPositionVector);
+        if (!UpdateHeight(deltaTime)) {
+            // La colisión de pendiente falló (terreno demasiado empinado)
+            if (hasMoved) {
+                // Revertir X y Z a la posición inicial (el "choque")
+                XMStoreFloat3(&m_position, lastPositionVector);
 
-    //        // Forzar la corrección vertical en la posición revertida
-    //        if (m_world && m_world->HasHeight()) {
-    //            // Asumimos que m_lastTerrainHeight tiene el valor correcto del suelo
-    //            m_position.y = m_lastTerrainHeight + ALTURA_PERSONAJE;
-    //            m_verticalVelocity = 0.0f;
-    //        }
-    //    }
-    //    m_viewDirty = true;
-    //}
+                // Forzar corrección vertical
+                if (m_world && m_world->HasHeight()) {
+                    m_position.y = m_lastTerrainHeight + ALTURA_PERSONAJE;
+                    m_verticalVelocity = 0.0f;
+                }
+            }
+            m_viewDirty = true;
+        }
+    }
 }
 
 void FirstPersonCamera::UpdateViewMatrix() {
@@ -418,8 +486,7 @@ void FirstPersonCamera::UpdateViewMatrix() {
         RecalculateViewMatrix();
     }
 }
-//const float HORIZONTAL_OVERSCAN_MARGIN = 0.01f;
-const float HORIZONTAL_OVERSCAN_MARGIN = 0.0f;
+const float HORIZONTAL_OVERSCAN_MARGIN = 0.1f;
 
 void FirstPersonCamera::ExtractFrustumPlanes(std::vector<CameraDefinition::FrustumPlane>& frustumPlanes) const {
     // 1. Obtener las matrices de vista y proyección
@@ -438,8 +505,7 @@ void FirstPersonCamera::ExtractFrustumPlanes(std::vector<CameraDefinition::Frust
     frustumPlanes.clear();
     frustumPlanes.resize(6);
 
-    // Plano Izquierdo (row3 + row0)
-    //XMVECTOR leftPlane = row3 + row0;
+    // Plano Izquierdo (Mantenemos su original: row3 - row0)
     XMVECTOR leftPlane = row3 - row0;
     leftPlane = XMVector4Normalize(leftPlane);
     frustumPlanes[0].coefficients.x = XMVectorGetX(leftPlane);
@@ -447,8 +513,7 @@ void FirstPersonCamera::ExtractFrustumPlanes(std::vector<CameraDefinition::Frust
     frustumPlanes[0].coefficients.z = XMVectorGetZ(leftPlane);
     frustumPlanes[0].coefficients.w = XMVectorGetW(leftPlane) + HORIZONTAL_OVERSCAN_MARGIN;
 
-    // Plano Derecho (row3 - row0)
-    //XMVECTOR rightPlane = row3 - row0;
+    // Plano Derecho (Mantenemos su original: row3 + row0)
     XMVECTOR rightPlane = row3 + row0;
     rightPlane = XMVector4Normalize(rightPlane);
     frustumPlanes[1].coefficients.x = XMVectorGetX(rightPlane);
@@ -456,25 +521,23 @@ void FirstPersonCamera::ExtractFrustumPlanes(std::vector<CameraDefinition::Frust
     frustumPlanes[1].coefficients.z = XMVectorGetZ(rightPlane);
     frustumPlanes[1].coefficients.w = XMVectorGetW(rightPlane) + HORIZONTAL_OVERSCAN_MARGIN;
 
-    // Plano Inferior (row3 + row1)
-    //XMVECTOR bottomPlane = row3 + row1;
-    XMVECTOR bottomPlane = row3 - row1;
+    // Plano Inferior (¡CORRECCIÓN AQUÍ! Cambiamos a row3 + row1 para Normal -> ADENTRO)
+    XMVECTOR bottomPlane = row3 + row1;
     bottomPlane = XMVector4Normalize(bottomPlane);
     frustumPlanes[2].coefficients.x = XMVectorGetX(bottomPlane);
     frustumPlanes[2].coefficients.y = XMVectorGetY(bottomPlane);
     frustumPlanes[2].coefficients.z = XMVectorGetZ(bottomPlane);
     frustumPlanes[2].coefficients.w = XMVectorGetW(bottomPlane);
 
-    // Plano Superior (row3 - row1)
-    //XMVECTOR topPlane = row3 - row1;
-    XMVECTOR topPlane = row3 + row1;
+    // Plano Superior (¡CORRECCIÓN AQUÍ! Cambiamos a row3 - row1 para Normal -> ADENTRO)
+    XMVECTOR topPlane = row3 - row1;
     topPlane = XMVector4Normalize(topPlane);
     frustumPlanes[3].coefficients.x = XMVectorGetX(topPlane);
     frustumPlanes[3].coefficients.y = XMVectorGetY(topPlane);
     frustumPlanes[3].coefficients.z = XMVectorGetZ(topPlane);
     frustumPlanes[3].coefficients.w = XMVectorGetW(topPlane);
 
-    // Plano Cercano (row2)
+    // Plano Cercano (Mantenemos su original: row2)
     XMVECTOR nearPlane = row2;
     nearPlane = XMVector4Normalize(nearPlane);
     frustumPlanes[4].coefficients.x = XMVectorGetX(nearPlane);
@@ -482,7 +545,7 @@ void FirstPersonCamera::ExtractFrustumPlanes(std::vector<CameraDefinition::Frust
     frustumPlanes[4].coefficients.z = XMVectorGetZ(nearPlane);
     frustumPlanes[4].coefficients.w = XMVectorGetW(nearPlane);
 
-    // Plano Lejano (row3 - row2)
+    // Plano Lejano (Mantenemos su original: row3 - row2)
     XMVECTOR farPlane = row3 - row2;
     farPlane = XMVector4Normalize(farPlane);
     frustumPlanes[5].coefficients.x = XMVectorGetX(farPlane);

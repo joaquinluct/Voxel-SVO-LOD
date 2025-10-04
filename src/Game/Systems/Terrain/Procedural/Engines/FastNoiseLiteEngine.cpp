@@ -11,8 +11,8 @@ HRESULT FastNoiseLiteEngine::Init(const int& seed, const WorldTerrain::TerrainPr
         return E_FAIL; // Error al crear los generadores de ruido
     }
 
-    GenerateValleys(seed); // Configura el generador principal para valles
-    //GeneratePlain(seed); // Configura el generador principal para llanuras
+    //GenerateValleys(seed); // Configura el generador principal para valles
+    GeneratePlain(seed); // Configura el generador principal para llanuras
 
     // Configurar el generador para el fondo oceánico, con un perfil diferente
     m_oceanFloorGenerator->SetSeed(seed + 1); // Semilla diferente

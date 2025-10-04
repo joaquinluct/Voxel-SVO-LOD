@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <d3d11.h>
 #include <d3dcommon.h>
-#include <Defines/Structs/PipelineResources.h>
+#include <Defines/Structs/Pipeline/PipelineResources.h>
 #include <dxgi.h>
 #include <vector>
 #include <wrl/client.h>

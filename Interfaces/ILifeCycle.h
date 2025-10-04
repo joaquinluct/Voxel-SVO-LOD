@@ -6,7 +6,7 @@
 #include "IRenderable.h"
 #include "IShutdownable.h"
 #include "IUpdatable.h"
-#include <Defines/EngineDefinition.h>
+#include <Defines//Context/EngineContext.h>
 
 class ILifeCycle : public IInitializable, public IEngineDependentInitializable, public IPostInitializable, public IUpdatable, public IRenderable, public IShutdownable
 {

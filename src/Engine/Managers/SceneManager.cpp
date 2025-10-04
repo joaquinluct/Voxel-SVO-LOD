@@ -9,9 +9,10 @@
 #include <Defines/Contants/Flags/ShaderResources.h>
 #include <Defines/Contants/Flags/World.h>
 #include <Defines/Contants/FrameState.h>
-#include <Defines/EngineDefinition.h>
-#include <Defines/Structs/PipelineResources.h>
-#include <Defines/Types/ThreadTypes.h>
+#include <Defines/Context/EngineContext.h>
+#include <Defines/Structs/Pipeline/PipelineResources.h>
+#include <Defines/Structs/RingBuffer.h>
+#include <Defines/Usings/ThreadTypes.h>
 #include <dxgiformat.h>
 #include <Game/GameEngineConfig.h>
 #include <Game/Systems/Chronos.h>
@@ -23,6 +24,7 @@
 #include <Locators/Registers/REGISTER_MANAGER_MACRO.h>
 #include <Locators/ServiceLocator/ServiceLocator.h>
 #include <Managers/CameraManager.h>
+#include <Managers/GigaBufferManager.h>
 #include <Managers/ManagerBase.h>
 #include <Managers/PipelineResourcesManager.h>
 #include <Managers/RenderManager/Jobs/Update/UpdateCameraJob.h>
@@ -33,7 +35,6 @@
 #include <Managers/RenderManager/Jobs/Update/UpdateRenderJob.h>
 #include <Managers/RenderManager/Jobs/Update/UpdateTerrainJob.h>
 #include <Managers/RenderManager/Pipeline/ConcreteOperations.h>
-#include <Managers/RenderState/FrameStates/ConstantsBufferFrameState.h>
 #include <Managers/RenderState/FrameStates/RenderFrameState.h>
 #include <Managers/UpdateManager.h>
 #include <map>
@@ -103,8 +104,9 @@ void SceneManager::RunLoop() {
 // -----------------------------------------------------------------
 HRESULT SceneManager::CreateContext() {
 
-    m_jobContext->deviceManager = m_deviceManager;
+    m_jobContext->bufferManager = m_bufferManager;
     m_jobContext->cameraManager = m_cameraManager;
+    m_jobContext->deviceManager = m_deviceManager;
     m_jobContext->chronos = ServiceLocator::GetService<Chronos>();
     m_jobContext->world = ServiceLocator::GetService<World>();
     m_jobContext->water = ServiceLocator::GetService<Water>();
@@ -301,6 +303,10 @@ HRESULT SceneManager::PostInit() {
     if (!m_updateManager) {
         return E_FAIL; // Update manager service not available
     }
+    m_bufferManager = ManagerLocator::GetManager<GigaBufferManager>();
+    if (!m_bufferManager) {
+        return E_FAIL; // Buffer manager service not available
+    }
 
     // Crea el contexto de las tareas
     CreateContext();
@@ -372,7 +378,7 @@ std::vector<MeshResource*> SceneManager::GetPassMeshes(RenderPassResource* pass)
     std::vector<MeshResource*> result;
     for (const auto& mesh : meshes) {
         if (mesh == nullptr) continue;
-        int index = mesh->mesh->GetReadIndex();
+        int index = mesh->mesh->GetWriteIndex();
         if (mesh->mesh->GetVertexCount(index) <= 0) continue;
         int passes = mesh->mesh->GetRenderPassesValue();
         bool isInPass = pass->id & passes;
@@ -470,30 +476,53 @@ void SceneManager::CreateMeshOperations(RenderPassResource* pass, MeshResource* 
         CreateShaderOperations(mesh->GetShaderAssetName());
     }
 
-    int index = mesh->GetReadIndex();
+    int index = mesh->GetWriteIndex();
 
-    ID3D11Buffer* vBuffer = mesh->GetVertexBuffer(index).Get();
+    // -------------------------------------------------------------------------
+     // ¡CORRECCIÓN CRÍTICA! Obtener el Ring Buffer y la Asignación
+     // -------------------------------------------------------------------------
+     // 1. Obtener el D3D11 Buffer del Ring Buffer global (es el mismo para todas las mallas de terreno)
+    ID3D11Buffer* vRingBuffer = mesh->GetVertexRingBuffer();
+    ID3D11Buffer* iRingBuffer = mesh->GetIndexRingBuffer(); // Asumiendo que existe
 
-    if (vBuffer == nullptr) return;
+    if (vRingBuffer == nullptr) return; // Fallback si el sistema no se inicializó
 
-    ID3D11Buffer* iBuffer = mesh->GetIndexBuffer(index).Get();
-    UINT stride = mesh->GetVertexTypeSize();
+    // 2. Obtener el desplazamiento (Offset) y el tamaño (Index Count) de esta malla
+    RingAllocation vAlloc = mesh->GetVertexAllocation();
+    RingAllocation iAlloc = mesh->GetIndexAllocation();
+
+    // Necesitas el contador de índices real, no el tamaño de la asignación
     UINT indexCount = mesh->GetIndexCount(index);
 
-    if (meshResource->textures.size() > 0) {
-        std::unique_ptr<SetTextureOperation> ssOper = std::make_unique<SetTextureOperation>(meshResource->textures, 6);
-        m_frameStateService->RenderState(false)->AddOperation(std::move(ssOper));
-    }
+    // El Stride es el mismo:
+    UINT stride = mesh->GetVertexTypeSize();
 
-    std::unique_ptr<SetVertexBufferOperation> vbOper = std::make_unique<SetVertexBufferOperation>(vBuffer, stride, 0);
+    // -------------------------------------------------------------------------
+    // 3. Crear Operaciones con el Ring Buffer
+    // -------------------------------------------------------------------------
+
+    // SET VERTEX BUFFER: Usar el Ring Buffer y el Offset
+    std::unique_ptr<SetVertexBufferOperation> vbOper = std::make_unique<SetVertexBufferOperation>(
+        vRingBuffer,
+        stride,
+        (UINT)vAlloc.OffsetInBytes // ¡El desplazamiento dentro del Ring Buffer!
+    );
     m_frameStateService->RenderState(false)->AddOperation(std::move(vbOper));
-    std::unique_ptr<SetIndexBufferOperation> ibOper = std::make_unique<SetIndexBufferOperation>(iBuffer, DXGI_FORMAT_R16_UINT, 0);
+
+    // SET INDEX BUFFER: Usar el Ring Buffer y el Offset
+    std::unique_ptr<SetIndexBufferOperation> ibOper = std::make_unique<SetIndexBufferOperation>(
+        iRingBuffer,
+        DXGI_FORMAT_R16_UINT,
+        (UINT)iAlloc.OffsetInBytes // ¡El desplazamiento dentro del Ring Buffer!
+    );
     m_frameStateService->RenderState(false)->AddOperation(std::move(ibOper));
 
-    std::unique_ptr<SetPrimitiveTopologyOperation > primiOper = std::make_unique<SetPrimitiveTopologyOperation>(mesh->GetPrimitiveTopology());
-    m_frameStateService->RenderState(false)->AddOperation(std::move(primiOper));
-
-    std::unique_ptr<DrawIndexedOperation> drawOper = std::make_unique<DrawIndexedOperation>(indexCount, 0, 0);
+    // DRAW CALL: Usar el Index Count normal y un Start Index Location de 0
+    std::unique_ptr<DrawIndexedOperation> drawOper = std::make_unique<DrawIndexedOperation>(
+        indexCount,
+        0, // StartIndexLocation: 0 (porque los índices ya se ajustaron en la CPU, como vimos)
+        0  // BaseVertexLocation: 0 (porque la data de cada chunk está contigua)
+    );
     m_frameStateService->RenderState(false)->AddOperation(std::move(drawOper));
 
 }
@@ -507,7 +536,9 @@ void SceneManager::CreatePassOperations() {
         if (pass == nullptr || !pass->enabled) continue;
 
         std::vector<MeshResource*> meshes = GetPassMeshes(pass);
-        if (!meshes.size()) continue;
+        if (!meshes.size()) {
+            continue;
+        };
 
         /*std::unique_ptr<CreateBlendStateOperation> blendOper = std::make_unique<CreateBlendStateOperation>(m_deviceManager->GetDevice().Get(), pass->blendDesc, pass->blendState);*/
 
@@ -529,7 +560,7 @@ void SceneManager::CreatePassOperations() {
 
         for (const auto& mesh : meshes) {
             if (mesh == nullptr) continue;
-            int index = mesh->mesh->GetReadIndex();
+            int index = mesh->mesh->GetWriteIndex();
             if (mesh->mesh->GetVertexCount(index) <= 0) continue;
             CreateMeshOperations(pass, mesh);
         }
@@ -539,8 +570,8 @@ void SceneManager::CreatePassOperations() {
     m_jobContext->shaders = m_resources->GetShaders();
     CreateJob<UpdateConstantBuffersJob>(FRAME_STATE_CONSTANT_BUFFERS.data(), u_constantBuffer);
 
-    m_jobContext->meshes = m_resources->GetMeshes();
-    CreateJob<UpdateMeshJob>(FRAME_STATE_MESHES.data(), u_mesh);
+    /*m_jobContext->meshes = m_resources->GetMeshes();
+    CreateJob<UpdateMeshJob>(FRAME_STATE_MESHES.data(), u_mesh);*/
 }
 
 // -----------------------------------------------------------------
@@ -558,6 +589,11 @@ void SceneManager::CreateScene() {
     // ------------------------------
     // 1.1 Obtener los mesh del mundo
     std::vector<MeshAssetBase*> meshes = m_jobContext->world->GetMeshes();
+
+    if (meshes.size() > 0) {
+        bool a = false;
+    }
+
     // 1.2 Obtener los mesh de la UI
     if (m_uiManager->IsRunnig()) {
         const auto& uiMesh = m_uiManager->GetUIMesh();

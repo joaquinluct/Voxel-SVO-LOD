@@ -10,6 +10,6 @@
 class IEngineLifeCycle : public IEngineDependentInitializable, public IPostInitializable, public IUpdatable, public IRenderable, public IShutdownable
 {
 public:
-	virtual HRESULT Init(EngineContext* context) override { return S_OK; }
-	virtual bool IsWindowDependent() const { return false; }
+    virtual HRESULT Init(EngineContext* context) override { return S_OK; }
+    virtual bool IsWindowDependent() const { return false; }
 };

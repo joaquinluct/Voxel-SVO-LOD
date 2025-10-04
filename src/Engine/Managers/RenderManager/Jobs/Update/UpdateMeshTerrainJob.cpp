@@ -1,58 +1,69 @@
 #include "UpdateMeshTerrainJob.h"
 #include <Assets/Base/MeshAssetBase.h>
-#include <chrono>
-#include <Defines/EngineDefinition.h>
-#include <Defines/Types/ThreadTypes.h>
+#include <cstdint>
+#include <Defines/Structs/RingBuffer.h>
+#include <Defines/Usings/ThreadTypes.h>
 #include <Game/Systems/Terrain.h>
 #include <Game/Systems/World.h>
-#include <Services/FrameStateService.h>
-#include <thread>
+#include <Managers/GigaBufferManager.h>
+#include <memory>
+#include <utility>
+#include <vector>
 
 bool UpdateMeshTerrainJob::Execute(JobContext* context)
 {
-    //if (m_isGenerating || context->frameStateService->IsRendering()) {
-    if (m_isGenerating) {
-        return false;
-    }
-    m_isGenerating = true;
+	if (m_isGenerating) {
+		return false;
+	}
+	m_isGenerating = true;
 
+	Terrain* terrain = context->world->GetTerrain().get();
 
-    // Obtener el terreno
-    Terrain* terrain = context->world->GetTerrain().get();
+	if (terrain->IsGenerating() || (terrain->GetTerrainMesh() != nullptr && terrain->GetTerrainMesh()->IsGenerating())) {
+		m_isGenerating = false;
+		return false;
+	}
 
-    if (terrain->IsGenerating() || terrain->GetTerrainMesh() != nullptr && terrain->GetTerrainMesh()->IsGenerating()) {
-        return false; // No actualizar si el terreno está generando
-    }
+	// 1. GENERACIÓN DE GEOMETRÍA (CPU-Bound)
+	terrain->GenerateMesh();
 
-    // Actualizar el terreno
-    //auto lock = context->frameStateService->LockAll();
+	MeshAssetBase* terrainMesh = terrain->GetTerrainMesh();
+	int index = terrainMesh->GetWriteIndex();
 
-    //context->frameStateService->Lock(FRAME_STATE_MESHES);
-    /*while (context->frameStateService->IsRendering()) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    }*/
+	// -------------------------------------------------------------------------
+	// 2. COPIA, TIPADO Y ENCOLADO SEGURO
+	// -------------------------------------------------------------------------
 
-    /*while (context->frameStateService->IsRendering()) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    }*/
-    terrain->GenerateMesh();
+	// VÉRTICES: Copia de la fuente (IVertex) a un shared_ptr.
+	// Usamos la versión de GetVertexData que devuelve std::vector<IVertex>.
+	const std::vector<uint8_t> vDataLocal = terrainMesh->GetVertexData(index); // Asumimos IVertex
+	auto sharedVData = std::make_shared<std::vector<uint8_t>>(vDataLocal);
 
-    MeshAssetBase* terrainMesh = terrain->GetTerrainMesh();
+	// ÍNDICES: Copia de la fuente (uint16_t) a un shared_ptr.
+	const std::vector<uint16_t> iDataLocal = terrainMesh->GetIndexData(index);
+	auto sharedIData = std::make_shared<std::vector<uint16_t>>(iDataLocal);
 
-    //context->frameStateService->Unlock(FRAME_STATE_MESHES);
-    int index = terrainMesh->GetWriteIndex();
+	// -------------------------------------------------------------------------
+	// 3. ASIGNACIÓN ATÓMICA Y ENCOLADO
+	// -------------------------------------------------------------------------
+	auto gigaManager = context->bufferManager;
 
-    if (!terrainMesh || terrainMesh->GetVertexCount(index) <= 0) {
-        m_isGenerating = false;
-        return false; // No hay malla de terreno o no está cargada
-    }
+	// El template se tipa como <IVertex> y calcula el tamaño (size() * sizeof(IVertex))
+	RingAllocation vAlloc = gigaManager->QueueUpload<uint8_t>(
+		gigaManager->GetVertexBufferRing(),
+		sharedVData
+	);
 
-    /*while (context->frameStateService->IsRendering()) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    }*/
-    terrainMesh->SwapBuffer();
+	// El template se tipa como <uint16_t> y calcula el tamaño (size() * sizeof(uint16_t))
+	RingAllocation iAlloc = gigaManager->QueueUpload<uint16_t>(
+		gigaManager->GetIndexBufferRing(),
+		sharedIData
+	);
 
-    m_isGenerating = false;
+	// Almacenar la nueva asignación
+	terrainMesh->SetVertexAllocation(vAlloc);
+	terrainMesh->SetIndexAllocation(iAlloc);
 
-    return true;
+	m_isGenerating = false;
+	return true;
 }

@@ -67,7 +67,7 @@ private:
     float					m_height = .0f;
     HWND* m_hwnd = nullptr;
     Microsoft::WRL::ComPtr<ID3D11Device> m_device = nullptr;
-    Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_context = nullptr;
+    Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_deciveContext = nullptr;
     Microsoft::WRL::ComPtr<IDXGISwapChain> m_swapChain = nullptr;
     D3D_FEATURE_LEVEL       m_featureLevel = D3D_FEATURE_LEVEL_11_0;
     ID3D11BlendState* m_alphaBlendState;    // Para blending con transparencia (UI, ...)

@@ -4,8 +4,8 @@
 #include <Defines/Matrix/MaterialMatrix.h>
 #include <Defines/Matrix/MatrixDefinition.h>
 #include <Defines/Matrix/MatrixDefinitionBase.h>
-#include <Defines/Structs/PipelineResources.h>
-#include <Defines/Types/ThreadTypes.h>
+#include <Defines/Structs/Pipeline/PipelineResources.h>
+#include <Defines/Usings/ThreadTypes.h>
 #include <DirectXMath.h>
 #include <Game/Systems/Terrain.h>
 #include <Game/Systems/World.h>
@@ -15,6 +15,7 @@
 #include <memory>
 #include <Services/FrameStateService.h>
 #include <string>
+#include <thread>
 #include <variant>
 #include <vector>
 
@@ -83,9 +84,13 @@ bool UpdateConstantBuffersJob::Execute(JobContext* context)
     params["WaterParams"] = std::make_shared<WaterMatrixParams>(waterParams);
 
     while (context->frameStateService->IsRendering()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 
-    for (auto& shader : shaders) {
+    for (auto shader : shaders) {
+        if (!shader || shader->constantBuffers.size() == 0) {
+            continue;
+        }
         auto& cBuffers = shader->constantBuffers;
         if (!cBuffers.size()) {
             continue;

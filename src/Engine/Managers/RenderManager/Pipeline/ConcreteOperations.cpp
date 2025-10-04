@@ -2,7 +2,7 @@
 #include <cstring>
 #include <d3d11.h>
 #include <Defines/Matrix/MatrixDefinitionBase.h>
-#include <Defines/Structs/PipelineResources.h>
+#include <Defines/Structs/Pipeline/PipelineResources.h>
 #include <stdexcept>
 #include <Windows.h>
 #include <wrl/client.h>

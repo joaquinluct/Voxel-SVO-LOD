@@ -3,6 +3,7 @@
 #include <Assets/Base/TerrainAsset.h>
 #include <ConfigLocator/ConfigLocator.h>
 #include <Defines/CameraDefinition.h>
+#include <Defines/Structs/BiomeTerrainDefinition.h>
 #include <Defines/WorldTerrain.h>
 #include <DirectXMathConvert.inl>
 #include <Game/Systems/Terrain/Chunk/Chunk.h>
@@ -16,7 +17,6 @@
 #include <Util/DirectXUtils.h>
 #include <Util/RayTracing/RayTracing.h>
 #include <vector>
-#include <Defines/Structs/BiomeTerrainDefinition.h>
 
 REGISTER_SERVICE_TYPE(Terrain, "Terrain")
 
@@ -126,6 +126,13 @@ void Terrain::GenerateMesh() {
     m_terrainAsset->GenerateMesh(chunks, m_terrainAsset->GetWriteIndex());
 }
 
+DirectX::XMFLOAT3 Terrain::GetTerrainNormal(float posX, float posZ) {
+    if (!m_chunkService) {
+        return { 0.0f, 1.0f, 0.0f };
+    }
+    return m_chunkService->GetTerrainNormal(posX, posZ);
+}
+
 // ------------------------------------------------------------------------------------------
 // Update
 // ------------------------------------------------------------------------------------------
@@ -155,6 +162,9 @@ std::vector<Chunk*> Terrain::GetVisibleChunks() {
     return m_chunkService->GetVisibleChunks();
 }
 
+// ------------------------------------------------------------------------------------------
+// Obtiene los chunks visibles desde la cámara, aplicando frustum culling y occlusion culling
+// ------------------------------------------------------------------------------------------
 std::vector<Chunk*> Terrain::GetChunks(std::shared_ptr<ICamera> camera) {
     if (!m_chunkService) {
         return {};
@@ -165,9 +175,6 @@ std::vector<Chunk*> Terrain::GetChunks(std::shared_ptr<ICamera> camera) {
 
     // 1. Extraer los planos del frustum
     m_cameraManager->ExtractCurrentFrustumPlanes(frustumPlanes);
-
-    /*m_numVisibleChunks = static_cast<int>(m_chunkService->GetChunksAsVector().size());
-    return m_chunkService->GetChunksAsVector();*/
 
     // 2. Obtener los chunks visibles en el frustum
     std::vector<Chunk*> visibleChunks = m_chunkService->GetFrustumChunks(frustumPlanes, cameraPosition);

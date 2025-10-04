@@ -1,16 +1,17 @@
 #pragma once
 
-#include <Defines/EngineDefinition.h>
-#include <Defines/Structs/PipelineResources.h>
+#include <Defines//Context/EngineContext.h>
+#include <Defines/Structs/Pipeline/PipelineResources.h>
 #include <Defines/Threading.h>
 #include <future>
 #include <memory>
 #include <PipelineResourcesManager.h>
 #include <vector>
 
-class DeviceManager;
 class CameraManager;
+class DeviceManager;
 class FrameStateService;
+class GigaBufferManager;
 class Water;
 class World;
 class Lighting;
@@ -24,6 +25,7 @@ using FutureUpdateJobs = std::vector<FutureUpdateJob>;
 
 struct JobContext {
     EngineContext* engineContext;
+    std::shared_ptr<GigaBufferManager> bufferManager;
     std::shared_ptr<DeviceManager> deviceManager;
     std::shared_ptr<CameraManager> cameraManager;
     std::shared_ptr<FrameStateService> frameStateService;

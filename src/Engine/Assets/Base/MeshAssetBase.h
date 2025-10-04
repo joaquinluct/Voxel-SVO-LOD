@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <d3d11.h>
 #include <Defines/Mesh.h>
+#include <Defines/Structs/RingBuffer.h>
 #include <Defines/VertexDefinition.h>
 #include <DirectXMath.h>
 #include <Game/Systems/Terrain/Chunk/Chunk.h>
@@ -18,6 +19,7 @@
 #include <vector>
 #include <Windows.h>
 #include <wrl/client.h>
+#include <DirectXMathMatrix.inl>
 
 class DeviceManager;
 class CameraManager;
@@ -90,6 +92,10 @@ protected:
 
     std::atomic<int> m_readIndex{ 1 };
     std::atomic<int> m_writeIndex{ 0 };
+
+    // RingBuffer: Almacena la ubicación actual de los datos en el Ring Buffer.
+    RingAllocation m_currentVertexAllocation;
+    RingAllocation m_currentIndexAllocation;
 public:
 
     MeshAssetBase() : AssetBase(),
@@ -174,11 +180,20 @@ public:
     }
     std::shared_ptr<MeshAssetConfigBase> GetConfig() const { return m_meshConfig; }
 
-    // Threading
+    // Threading: Doble buffering de los datos del mesh para evitar bloqueos
+    // Itentando substituirla por Ring Buffer PARA QUE QUEDE DEPRECATED el doble buffering
     std::unique_lock<std::mutex> LockBuffers();
 
     void SwapBuffer();
 
     int GetReadIndex() const { return m_readIndex.load(); }
     int GetWriteIndex() const { return m_writeIndex.load(); }
+
+    // Ring buffer - Técnica para evitar bloqueos en la actualización de buffers
+    void SetVertexAllocation(const RingAllocation& alloc) { m_currentVertexAllocation = alloc; }
+    const RingAllocation& GetVertexAllocation() const { return m_currentVertexAllocation; }
+    void SetIndexAllocation(const RingAllocation& alloc) { m_currentIndexAllocation = alloc; }
+    const RingAllocation& GetIndexAllocation() const { return m_currentIndexAllocation; }
+    ID3D11Buffer* GetVertexRingBuffer() const;
+    ID3D11Buffer* GetIndexRingBuffer() const;
 };

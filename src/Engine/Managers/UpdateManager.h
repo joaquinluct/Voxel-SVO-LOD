@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Defines/Types/ThreadTypes.h>
+#include <Defines/Usings/ThreadTypes.h>
 #include <functional>
 #include <ManagerBase.h>
 #include <map>
@@ -14,6 +14,7 @@
 // ---------------------------------------------------------------------------
 class FrameStateBase;
 class FrameStateService;
+class GigaBufferManager;
 class MeshAsset;
 struct RenderStateData;
 class CameraManager;
@@ -56,6 +57,8 @@ public:
     // Threads
     // -------
     FutureUpdateJob AddUpdateJob(const std::string& name, std::function<bool()> task, bool allowDuplicates);
+
+    void ProcessJobByName(std::string jobName);
 
     // Operacionesbásicas con los estados de Frame
     // -------------------------------------------
@@ -115,6 +118,9 @@ public:
     void Lock();
     void Unlock();
 
+    // Ring buffer
+    void ExecuteAllUploads();
+
 private:
     // Mesh a renderizar
     // -----------------
@@ -125,6 +131,7 @@ private:
     std::shared_ptr<CameraManager> m_cameraManager;         // Manager de las cámaras
     std::shared_ptr<ShaderManager> m_shaderManager;         // Manager de los shaders
     std::shared_ptr<SceneManager> m_sceneManager;           // Manager de la escena
+    std::shared_ptr<GigaBufferManager> m_bufferManager;          // Manager de GibaBuffers
 
     // Game services
     // -------------

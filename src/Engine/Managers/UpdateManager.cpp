@@ -1,9 +1,12 @@
 ﻿#include "UpdateManager.h"
 #include <../Includes/FrameStates.h>
 #include <Assets/Base/MeshAsset.h>
+#include <atomic>
 #include <CameraManager.h>
 #include <cstdlib>
+#include <d3d11.h>
 #include <Defines/Contants/FrameState.h>
+#include <Defines/Usings/ThreadTypes.h>
 #include <functional>
 #include <Game/Systems/Lighting.h>
 #include <Game/Systems/Skybox.h>
@@ -11,8 +14,10 @@
 #include <Game/Systems/World.h>
 #include <Locators/Registers/REGISTER_MANAGER_MACRO.h>
 #include <ManagerLocator/ManagerLocator.h>
+#include <Managers/GigaBufferManager.h>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <SceneManager.h>
 #include <ServiceLocator/ServiceLocator.h>
 #include <Services/ThreadPool.h>
@@ -104,6 +109,11 @@ HRESULT UpdateManager::PostInit()
     if (!m_sceneManager) {
         return E_FAIL;
     }
+    m_bufferManager = ManagerLocator::GetManager<GigaBufferManager>();
+    if (!m_bufferManager) {
+        return E_FAIL;
+    }
+
     return S_OK;
 }
 
@@ -337,12 +347,33 @@ UpdatedJobs UpdateManager::UpdateTerrainData(float deltaTime) {
     return UpdatedJobs{}; //{ FRAME_STATE_TERRAIN.data()};
 }
 
+// Este es el método que ejecuta la cola de subida y realiza el Map/Unmap.
+void UpdateManager::ExecuteAllUploads() {
+    //ID3D11DeviceContext* context = m_context->directX.GetContext();
+
+    //// Esta llamada es donde el Hilo de Update asume el potencial stall de la GPU,
+    //// garantizando que el Hilo de Render no lo haga.
+    //m_bufferManager->ExecutePendingUploads(context);
+}
+
+void UpdateManager::ProcessJobByName(std::string jobName) {
+    if (jobName == FRAME_STATE_TERRAIN) {
+        //ExecuteAllUploads();
+        m_bufferManager->ProcessStagingUploads(m_context->directX.GetDevice());
+    }
+    else {
+        m_frameStateService->SwapBuffer(jobName);
+    }
+}
+
 void UpdateManager::Update(float deltaTime) {
 
     // Si no hay futuros, salir
     if (m_futures.size() <= 0) {
         return;
     }
+
+    /*ExecuteAllUploads();*/
 
     std::map<int, FutureUpdateJob> finishedJobs;
 
@@ -375,13 +406,16 @@ void UpdateManager::Update(float deltaTime) {
             m_futures.erase(jobFinishedPair.first);
         if (job.isSuccessful) {
             std::string stateName = job.name;
-            if (job.name == FRAME_STATE_TERRAIN) {
-                /*m_frameStateService->SwapBuffer(FRAME_STATE_MESH);
-                m_frameStateService->SwapBuffer(FRAME_STATE_RENDER);*/
-                m_frameStateService->SwapBuffer(FRAME_STATE_PIPELINE);
-                continue;
-            }
-            m_frameStateService->SwapBuffer(job.name);
+
+            this->ProcessJobByName(job.name);
+
+            //if (job.name == FRAME_STATE_TERRAIN) {
+            //    /*m_frameStateService->SwapBuffer(FRAME_STATE_MESH);
+            //    m_frameStateService->SwapBuffer(FRAME_STATE_RENDER);*/
+            //    m_frameStateService->SwapBuffer(FRAME_STATE_PIPELINE);
+            //    continue;
+            //}
+            /*m_frameStateService->SwapBuffer(job.name);*/
         }
         //std::cout << "Trabajo '" << job.name << "' con resultado '" << job.result << "' ha sido procesado.\n";
     }

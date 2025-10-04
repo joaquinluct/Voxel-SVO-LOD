@@ -17,6 +17,7 @@ Config:
           - UIManager
           - MouseManager
           - SceneManager
+          - GigaBufferManager
           - PipelineResourcesManager
           # - InitPipelineManager
         managers_post_init:
@@ -44,27 +45,27 @@ Config:
         dependencies:        
           - Shadows
       
-      InitPipelineManager:
-        deviceAndSwapChain: SwapChainMain
-        rasterizedStates:
-          - RasterizedMainColorPass
-          - RasterizedShadowPass
-          - RasterizedUIPass
-        blendingStates:
-          - DisabledBlending
-          - BlendingUI
-        stencilViews:
-          - StencilViewMainColor
-          - StencilViewShadow
-        stencilStates:
-          - StencilStateRegular
-          - StencilStateUI
-        viewPortStates:
-          - ViewportMainColor
-          - ViewportShadow
-          - ViewportUI
-        dependencies:        
-          - Shadows
+      # InitPipelineManager:
+      #   deviceAndSwapChain: SwapChainMain
+      #   rasterizedStates:
+      #     - RasterizedMainColorPass
+      #     - RasterizedShadowPass
+      #     - RasterizedUIPass
+      #   blendingStates:
+      #     - DisabledBlending
+      #     - BlendingUI
+      #   stencilViews:
+      #     - StencilViewMainColor
+      #     - StencilViewShadow
+      #   stencilStates:
+      #     - StencilStateRegular
+      #     - StencilStateUI
+      #   viewPortStates:
+      #     - ViewportMainColor
+      #     - ViewportShadow
+      #     - ViewportUI
+      #   dependencies:        
+      #     - Shadows
       
       RenderManager:
         passes:
@@ -92,6 +93,10 @@ Config:
         dependencies:
           - CameraManager        
           - World
+        
+      GigaBufferManager:
+        dependencies:
+          - DeviceManager          
 
       PipelineResourcesManager:
         dependencies:
@@ -175,6 +180,8 @@ Config:
           inventory:
             - KEY_I
             - KEY_TAB
+          switch_camera:
+            - KEY_C
         dependencies:
           - Keybindings
           - Keyboard

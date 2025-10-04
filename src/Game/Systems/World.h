@@ -1,9 +1,9 @@
 #pragma once
-#include <Assets/Base/MeshAssetBase.h>
 #include <CameraManager.h>
 #include <chrono>
 #include <Config/Game/System/WorldConfig.h>
 #include <Defines/WorldDefinition.h>
+#include <DirectXMath.h>
 #include <Game/Systems/Biome.h>
 #include <Game/Systems/Chronos.h>
 #include <Game/Systems/Skybox.h>
@@ -13,7 +13,6 @@
 #include <string>
 #include <Threading/SyncFlagged.h>
 #include <UI/UIText.h>  
-#include <vector>
 #include <windows.h>
 
 class Mouse;
@@ -50,6 +49,7 @@ public:
     const std::chrono::system_clock::time_point& GetCurrentDateTime();
     const std::chrono::system_clock::time_point& GetCurrentSimulatedDateTime();
     const float GetCurrentLatitude() const { return m_latitude; }
+    DirectX::XMFLOAT3 GetTerrainNormal(float posX, float posZ);
 
     const std::vector<MeshAssetBase*> GetMeshes() const;
 
