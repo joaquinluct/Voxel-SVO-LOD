@@ -2,7 +2,6 @@
 #include <Assets/Base/MeshAssetBase.h>
 #include <Assets/Base/ShaderAsset.h>
 #include <d3d11.h>
-#include <Defines/Contants/Flags/ShaderResources.h>
 #include <Defines/EngineDefinition.h>
 #include <Defines/Enums/Matrix.h>
 #include <Defines/Matrix/MatrixDefinition.h>
@@ -18,7 +17,6 @@
 #include <Locators/ManagerLocator/ManagerLocator.h>
 #include <Locators/Pipeline/PipelineStateLocator.h>
 #include <Managers/ManagerBase.h>
-#include <Managers/RenderManager/Pipeline/ConcreteOperations.h>
 #include <Managers/RenderManager/Pipeline/ConcreteResources.h>
 #include <Managers/ShaderManager.h>
 #include <map>
@@ -91,7 +89,7 @@ void PipelineResourcesManager::InitConstantsBuffers(ID3D11DeviceContext* context
             }, *buffer);
         shaderResource->constantBuffers[name] = bufferResource;
     }
-    shaderResource->flags.SetFlag(FLAG_SHADER_HAS_CONSTANTS_BUFFERS_BINDED, true);
+    shaderResource->flags.SetFlag(SyncFlagIndex::HasConstsBufferBinded, true);
 }
 
 void PipelineResourcesManager::InitRaserizerState(std::string stateName, D3D11_RASTERIZER_DESC& desc, Microsoft::WRL::ComPtr<ID3D11RasterizerState>& rasterizerState)
@@ -402,8 +400,8 @@ ShaderResource* PipelineResourcesManager::CreateShaderResource(std::string shade
     std::shared_ptr<ShaderAsset> shader = m_shaderManager->LoadShaderByName(StringToWstring(shaderName));
     if (shader != nullptr) {
         ShaderResource* shaderResource = new ShaderResource();
-        shaderResource->flags.SetFlag(FLAG_SHADER_HAS_CONSTANTS_BUFFERS_DEFINED, false);
-        shaderResource->flags.SetFlag(FLAG_SHADER_HAS_CONSTANTS_BUFFERS_BINDED, false);
+        shaderResource->flags.SetFlag(SyncFlagIndex::HasConstsBufferDefined, false);
+        shaderResource->flags.SetFlag(SyncFlagIndex::HasConstsBufferBinded, false);
         shaderResource->shader = shader.get();
         shaderResource->id = shader->GetID();
         shaderResource->name = shaderName;
@@ -432,7 +430,7 @@ ShaderResource* PipelineResourcesManager::CreateShaderResource(std::string shade
             slot++;
         }
 
-        shaderResource->flags.SetFlag(FLAG_SHADER_HAS_CONSTANTS_BUFFERS_DEFINED, true);
+        shaderResource->flags.SetFlag(SyncFlagIndex::HasConstsBufferDefined, true);
         m_shaders[shaderName] = shaderResource;
         return shaderResource;
     }

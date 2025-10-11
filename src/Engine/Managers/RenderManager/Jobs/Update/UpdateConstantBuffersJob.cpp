@@ -64,8 +64,8 @@ bool UpdateConstantBuffersJob::Execute(JobContext* context)
     materialParams.materialMetallic = 0.01f;
     materialParams.materialAO = 0.7f;
     materialParams.materialF0 = XMFLOAT3(0.04f, 0.04f, 0.04f);
-    materialParams.terrainBlenderData = context->world->GetTerrain()->GetTerrainBlenderData();
-    materialParams.terrain2BlenderData = context->world->GetTerrain()->GetTerrain2BlenderData();
+    //materialParams.terrainBlenderData = context->world->GetTerrain()->GetTerrainBlenderData();
+    //materialParams.terrain2BlenderData = context->world->GetTerrain()->GetTerrain2BlenderData();
     materialParams.textureTransform = XMFLOAT4(0.03f, 0.03f, 0.0f, 0.0f);
     //materialParams.textureTransform = DirectXUtils::ToXMFLOAT4(context->world->GetTerrain()->GetTerrainMesh()->GetTextureTransforms());
     WaterMatrixParams waterParams = {};

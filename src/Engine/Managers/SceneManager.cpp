@@ -1,13 +1,12 @@
 ﻿#include "SceneManager.h"
 #include <Assets/Base/MeshAssetBase.h>
 #include <Assets/Base/ShaderAsset.h>
+#include <atomic>
 #include <Base/Managers/EngineConfig.h>
 #include <Base/Managers/RenderManagerConfig.h>
 #include <cstdlib>
 #include <d3d11.h>
-#include <Defines/Contants/Flags.h>
-#include <Defines/Contants/Flags/ShaderResources.h>
-#include <Defines/Contants/Flags/World.h>
+#include <Defines/Contants/Flags/SyncFlag.h>
 #include <Defines/Contants/FrameState.h>
 #include <Defines/EngineDefinition.h>
 #include <Defines/Structs/PipelineResources.h>
@@ -33,7 +32,6 @@
 #include <Managers/RenderManager/Jobs/Update/UpdateRenderJob.h>
 #include <Managers/RenderManager/Jobs/Update/UpdateTerrainJob.h>
 #include <Managers/RenderManager/Pipeline/ConcreteOperations.h>
-#include <Managers/RenderState/FrameStates/ConstantsBufferFrameState.h>
 #include <Managers/RenderState/FrameStates/RenderFrameState.h>
 #include <Managers/UpdateManager.h>
 #include <map>
@@ -75,7 +73,7 @@ SceneManager::SceneManager() :
     m_passConfig = PassConfigBase();
     m_engineConfig = EngineConfig();
 
-    SetFlag(FLAG_HAS_SCENE, false);
+    SetFlag(SyncFlagIndex::HasScene, false);
 }
 
 SceneManager::~SceneManager() {}
@@ -141,7 +139,7 @@ HRESULT SceneManager::InitStates() {
 
     //CreateJob<UpdateCameraJob>(FRAME_STATE_CAMERA.data(), u_camera);
 
-    config.hasTerrain = m_jobContext->world->flags.GetFlag(FLAG_WORLD_HAS_TERRAIN);
+    config.hasTerrain = m_jobContext->world->flags.GetFlag(SyncFlagIndex::HasTerrain);
 
     return S_OK;
 }
@@ -410,7 +408,7 @@ void SceneManager::CreateShaderOperations(std::string_view shaderName) {
 
     ShaderResource* shader = m_resources->GetShader(shaderName.data());
 
-    if (!shader || !shader->shader || shader && !shader->flags.GetFlag(FLAG_SHADER_HAS_CONSTANTS_BUFFERS_DEFINED)) {
+    if (!shader || !shader->shader || shader && !shader->flags.GetFlag(SyncFlagIndex::HasConstsBufferDefined)) {
         shader = m_resources->CreateShaderResource(shaderName.data());
         m_resources->SetShaderResource(shaderName.data(), shader);
     }
@@ -611,7 +609,7 @@ void SceneManager::CreateScene() {
         m_frameStateService->SwapBufferContent(FRAME_STATE_RENDER);
         config.isRenderStateInitialized = true;
     }
-    SetFlag(FLAG_HAS_SCENE, true);
+    SetFlag(SyncFlagIndex::HasScene, true);
 
     isGeneratingScene = false;
 }

@@ -3,7 +3,9 @@
 #include <Config/Assets/Base/MainIndexConfig.h>
 #include <Config/Base/Managers/EngineConfig.h>
 #include <Config/Services/ServiceConfig.h>
+#include <ConfigBase.h>
 #include <Defines/Components.h>
+#include <Game/GameEngineConfig.h>
 #include <InitManager/InitController.h>
 #include <InitPipelineManager.h>
 #include <Locators/AssetLocator/AssetLocator.h>
@@ -13,6 +15,7 @@
 #include <Locators/Pipeline/PipelineStateLocator.h>
 #include <Locators/Pipeline/RenderPassLocator.h>
 #include <Locators/ServiceLocator/ServiceLocator.h>
+#include <Locators/TerrainEngineLocator/TerrainEngineLocator.h>
 #include <Util/Text/Text.h>
 #include <Windows.h>
 
@@ -111,6 +114,7 @@ HRESULT InitManager::ExtractComponents() {
     components[COMPONENT_ASSET.data()] = m_assetConfig->mainIndex;
     components[COMPONENT_ASSET_BASE.data()].append_range(m_assetBaseConfig->index);
     components[COMPONENT_GAME_SERVICE.data()] = m_gameEngineConfig->services_init_order;
+    components[COMPONENT_GAME_TERRAIN_ENGINE.data()] = m_gameEngineConfig->terrain_engine_init_order;
 
     for (const auto& component : components) {
         const std::string& componentTypeName = component.first;
@@ -181,6 +185,14 @@ HRESULT InitManager::InitComponents(EngineContext* context)
         else if (componentType == COMPONENT_GAME_SERVICE) {
             // Inicializar el asset
             HRESULT hr = ServiceLocator::InitializeServices({ componentName });
+            if (FAILED(hr)) {
+                OutputDebugStringA(("[InitManager] Init: Failed to initialize game service " + componentName + "\n").c_str());
+                return hr;
+            }
+        }
+        else if (componentType == COMPONENT_GAME_TERRAIN_ENGINE) {
+            // Inicializar el asset
+            HRESULT hr = TerrainEngineLocator::CreateTerrainEngine(componentName);
             if (FAILED(hr)) {
                 OutputDebugStringA(("[InitManager] Init: Failed to initialize game service " + componentName + "\n").c_str());
                 return hr;

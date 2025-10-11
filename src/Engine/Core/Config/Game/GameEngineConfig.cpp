@@ -4,6 +4,10 @@
 REGISTER_CONFIG_TYPE(GameEngineConfig,"GameEngineConfig");
 
 GameEngineConfig::GameEngineConfig(){
+	terrain_engine_init_order = {
+		"TerrainChunkEngine",
+		"GeometryChunkEngine"
+	};
 	services_init_order = {
 		"Chronos",
 		"Lighting",

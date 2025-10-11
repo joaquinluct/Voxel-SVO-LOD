@@ -1,5 +1,4 @@
 #include "UpdateTerrainJob.h"
-#include <Assets/Base/MeshAssetBase.h>
 #include <Defines/EngineDefinition.h>
 #include <Defines/Types/ThreadTypes.h>
 #include <Game/Systems/Terrain.h>
@@ -7,31 +6,22 @@
 
 bool UpdateTerrainJob::Execute(JobContext* context)
 {
-	//if (m_isGenerating || context->frameStateService->IsRendering()) {
-	if (m_isGenerating) {
-		return false;
-	}
-	m_isGenerating = true;
+    //if (m_isGenerating || context->frameStateService->IsRendering()) {
+    if (m_isGenerating) {
+        return false;
+    }
+    m_isGenerating = true;
 
+    // Obtener el terreno
+    Terrain* terrain = context->world->GetTerrain().get();
 
-	// Obtener el terreno
-	Terrain* terrain = context->world->GetTerrain().get();
+    if (terrain->IsGenerating()) {
+        return false; // No actualizar si el terreno está generando
+    }
 
-	if (terrain->IsGenerating() || terrain->GetTerrainMesh() != nullptr && terrain->GetTerrainMesh()->IsGenerating()) {
-		return false; // No actualizar si el terreno está generando
-	}
+    terrain->Update(context->engineContext->deltaTime);
 
-	// Actualizar el terreno
-	//auto lock = context->frameStateService->LockAll();
+    m_isGenerating = false;
 
-	//context->frameStateService->Lock(FRAME_STATE_MESHES);
-	/*while (context->frameStateService->IsRendering()) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(1));
-	}*/
-
-	terrain->Update(context->engineContext->deltaTime);
-
-	m_isGenerating = false;
-
-	return true;
+    return true;
 }

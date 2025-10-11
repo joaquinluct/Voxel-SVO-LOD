@@ -30,6 +30,7 @@ MainIndexConfig::MainIndexConfig(){
 		"TerrainMesh",
 		"TerrainShader",
 		"Terrain2Shader",
+		"TerrainTessellation",
 		"ProceduralTerrainTexture",
 		"OceanShader",
 		"OceanMesh",

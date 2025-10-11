@@ -8,7 +8,7 @@
 #include <Defines/Mesh.h>
 #include <Defines/VertexDefinition.h>
 #include <DirectXMath.h>
-#include <Game/Systems/Terrain/Chunk/Chunk.h>
+class IChunk;
 #include <memory>
 #include <mutex>
 #include <Services/Material.h>
@@ -95,7 +95,7 @@ public:
     MeshAssetBase() : AssetBase(),
         m_material(nullptr), m_shadowMaterial(nullptr),
         m_vertexBuffer(), m_indexBuffer(),
-        m_meshConfig(nullptr), m_vertexes(), m_indexes(), m_vertexCount(0), m_indexCount(0), m_vertexTypeSize(0), m_meshType(Mesh::Type::None)
+        m_meshConfig(nullptr), m_vertexes(), m_indexes(), m_vertexCount(0), m_indexCount(0), m_vertexTypeSize(0), m_meshType(Mesh::Type::None), m_name(""), m_worldMatrix(DirectX::XMMatrixIdentity()), m_shaderName(L""), m_passes(1), m_shaderAssetName(""), m_textureType(""), m_textureAsset(nullptr), m_textureTransforms(), uniqueID(generateUID()), m_readIndex(1), m_writeIndex(0), m_mutex(), m_vertexData(2), m_indexData(2)
     {
     }
 
@@ -103,7 +103,7 @@ public:
         m_material(other->m_material), m_shadowMaterial(other->m_shadowMaterial),
         m_vertexBuffer(other->m_vertexBuffer), m_indexBuffer(other->m_indexBuffer),
         m_meshConfig(other->m_meshConfig), m_vertexes(other->m_vertexes), m_indexes(other->m_indexes),
-        m_vertexCount(other->m_vertexCount), m_indexCount(other->m_indexCount), m_vertexTypeSize(other->m_vertexTypeSize), m_meshType(other->m_meshType), m_name(other->m_name), m_worldMatrix(other->m_worldMatrix), m_shaderName(other->m_shaderName)
+        m_vertexCount(other->m_vertexCount), m_indexCount(other->m_indexCount), m_vertexTypeSize(other->m_vertexTypeSize), m_meshType(other->m_meshType), m_name(other->m_name), m_worldMatrix(other->m_worldMatrix), m_shaderName(other->m_shaderName), m_passes(other->m_passes), m_shaderAssetName(other->m_shaderAssetName), m_textureType(other->m_textureType), m_textureAsset(other->m_textureAsset), m_textureTransforms(other->m_textureTransforms), uniqueID(generateUID()), m_readIndex(1), m_writeIndex(0), m_mutex(), m_vertexData(2), m_indexData(2)
     {
     }
     ~MeshAssetBase() = default;
@@ -115,7 +115,7 @@ public:
     void Shutdown();
 
     // -----------------------------------------
-    // Inicialización
+    // Inicializaciï¿½n
     // -----------------------------------------
     HRESULT InitBuffers();
     HRESULT InitManagers();
@@ -124,10 +124,10 @@ public:
     HRESULT InitShadows();
 
     // -----------------------------------------
-    // Generación de Buffers del mesh
+    // Generaciï¿½n de Buffers del mesh
     // -----------------------------------------
     virtual void GenerateMesh() {};
-    virtual void GenerateMesh(std::vector<Chunk*> chunks, int indexBuffer) {};
+    virtual void GenerateMesh(std::vector<IChunk*> chunks, int indexBuffer) {};
     void ClearMeshData();
     virtual bool IsGenerating() const { return false; }
 
@@ -167,7 +167,7 @@ public:
     D3D11_PRIMITIVE_TOPOLOGY GetPrimitiveTopology() const;
 
     // -----------------------------------------
-    // Configuración
+    // Configuraciï¿½n
     // -----------------------------------------
     void SetConfig(std::shared_ptr<ConfigBase> config) override {
         m_meshConfig = std::dynamic_pointer_cast<MeshAssetConfigBase>(config);

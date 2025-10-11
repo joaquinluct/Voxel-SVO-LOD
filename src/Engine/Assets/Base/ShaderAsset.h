@@ -90,10 +90,19 @@ public:
     ID3DBlob* GetPixelShaderBlob() const {
         return pixelShaderBlobs;
     }
+    // Hull / Domain shader support (optional)
+    void SetHullShader(ID3D11HullShader* hullShader) { hullShaders = hullShader; }
+    ID3D11HullShader* GetHullShader() const { return hullShaders; }
+    void SetDomainShader(ID3D11DomainShader* domainShader) { domainShaders = domainShader; }
+    ID3D11DomainShader* GetDomainShader() const { return domainShaders; }
+    void SetHullShaderBlob(ID3DBlob* hullShaderBlob) { hullShaderBlobs = hullShaderBlob; }
+    ID3DBlob* GetHullShaderBlob() const { return hullShaderBlobs; }
+    void SetDomainShaderBlob(ID3DBlob* domainShaderBlob) { domainShaderBlobs = domainShaderBlob; }
+    ID3DBlob* GetDomainShaderBlob() const { return domainShaderBlobs; }
 
 
 private:
-    std::shared_ptr<IAssetShaderConfig> m_shaderConfig = nullptr; // Configuración del shader
+    std::shared_ptr<IAssetShaderConfig> m_shaderConfig = nullptr; // Configuraciï¿½n del shader
     std::string m_name = "ShaderAsset";
 
     std::unordered_map<std::string, ShaderSampler::SamplerDefinition> samplersDesc;
@@ -107,4 +116,9 @@ private:
 
     ID3DBlob* vertexShaderBlobs; // Nuevo mapa para los blobs VS
     ID3DBlob* pixelShaderBlobs;  // Nuevo mapa para los blobs PS
+    // Optional hull/domain shaders and blobs (may be null)
+    ID3D11HullShader* hullShaders = nullptr;
+    ID3D11DomainShader* domainShaders = nullptr;
+    ID3DBlob* hullShaderBlobs = nullptr;
+    ID3DBlob* domainShaderBlobs = nullptr;
 };

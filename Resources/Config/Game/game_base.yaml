@@ -2,6 +2,9 @@
 Config:
   Game:
     GameEngine:
+      terrain_engine_init_order:
+        - TerrainChunkEngine
+        - GeometryChunkEngine
       services_init_order:
         # - UIDebug
         # - TestingBasic2

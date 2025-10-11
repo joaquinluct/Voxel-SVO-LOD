@@ -1,69 +1,73 @@
 #pragma once
 
-#include <Defines/Procedural.h>
 #include <cstdint>
+#include <Defines/Procedural.h>
 
 namespace WorldTerrain
 {
-	enum class TerrainFlags
-	{
-		Undefined = 0,
-		Infinite = 1 << 0,
-		Procedural = 2 << 0,
-		Chunk = 3 << 0,
-		Voxel = 4 << 0,
-		LOD = 5 << 0
-	};
+    enum class WorldType
+    {
+        Undefined = 0,
+        Finite3D = 1,
+        Infinite3D = 2,
+        Finite2D = 3,
+        Infinite2D = 4,
+    };
 
-	inline bool IsInfiniteTerrain(int flags) {
-		return flags & static_cast<int>(TerrainFlags::Infinite);
-	}
+    enum class WorldGeometryType
+    {
+        Undefined = 0,
+        Chunk = 1,
+        Voxel = 2,
+        DualContouring = 3
+    }; ;
 
-	inline bool IsProceduralTerrain(int flags) {
-		return flags & static_cast<int>(TerrainFlags::Procedural);
-	}
+    enum class TerrainDistributionType
+    {
+        Undefined = 0,
+        Chunk = 1,
+        OctTree = 2,
+        QuadTree = 3,
+        Tiles = 4
+    };
 
-	inline bool IsChunksizedTerrain(int flags) {
-		return flags & static_cast<int>(TerrainFlags::Chunk);
-	}
+    enum class TerrainGeneratorType
+    {
+        Undefined = 0,
+        HDD = 1,
+        Procedural = 2,
+        HeightMap = 3,
+    };
 
-	inline bool IsVoxelizedTerrain(int flags) {
-		return flags & static_cast<int>(TerrainFlags::Voxel);
-	}
+    struct TerrainFiniteDefinition
+    {
+        float width;
+        float height;
+    };
 
-	inline bool IsLODTerrain(int flags) {
-		return flags & static_cast<int>(TerrainFlags::LOD);
-	}
+    struct TerrainProceduralDefinition
+    {
+        int32_t seed;
+        Procedural::ProceduralEngine engine;
 
-	struct TerrainFiniteDefinition
-	{
-		float width;
-		float height;
-	};
+        float terrainHeight; // Multipicador para la altura del terreno
+        float waterLevel;
 
-	struct TerrainProceduralDefinition
-	{
-		int32_t seed;
-		Procedural::ProceduralEngine engine;
+        float worldWidth;
+        float worldHeight;
+    };
 
-		float terrainHeight; // Multipicador para la altura del terreno
-		float waterLevel;
+    struct TerrainChunkDefinition
+    {
+        float chunSize;
+        int32_t initialRenderDistanceChunks;
+    };
 
-		float worldWidth;
-		float worldHeight;
-	};
-
-	struct TerrainChunkDefinition
-	{
-		float chunSize;
-		int32_t initialRenderDistanceChunks;
-	};
-
-	struct TerrainDefinition
-	{
-		TerrainFlags flags;
-		TerrainFiniteDefinition finiteDefinition;
-		TerrainProceduralDefinition proceduralDefinition;
-		TerrainChunkDefinition chunkDefinition;
-	};
+    struct TerrainDefinition
+    {
+        //TerrainFlags flags;
+        TerrainFiniteDefinition finiteDefinition;
+        TerrainProceduralDefinition proceduralDefinition;
+        TerrainChunkDefinition chunkDefinition;
+    };
 }

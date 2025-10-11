@@ -6,7 +6,7 @@ Config:
           - KeyBindings
           - Mouse 
           - Material
-          - ChunkService
+          # - ChunkService
           - ProceduralService
           - UIText
           - FrameStateService
@@ -18,7 +18,7 @@ Config:
           - Mouse
           - Keyboard
           - UIText
-          - ChunkService
+          # - ChunkService
           - ProceduralService
           - FrameStateService
           # - UIDebug
@@ -27,7 +27,7 @@ Config:
           - Keyboard
           - UIText
           - Material
-          - ChunkService
+          # - ChunkService
           - FrameStateService
           - ProceduralService
           # - UIDebug
@@ -72,10 +72,7 @@ Config:
       dependencies:
         - UIManager
 
-    ChunkService:
-      enabled: true
-      dependencies:
-        - CameraManager
+    # ChunkService removed: distribution engines and factories manage chunks now
 
     ProceduralService:
       enabled: true

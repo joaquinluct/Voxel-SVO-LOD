@@ -1,0 +1,44 @@
+﻿Config:
+  Game:
+    Terrain:
+      Procedural:
+        FastNoiseLite:
+          name: "FastNoiseLite"
+          enabled: true
+          engine: 1 # 1 = FastNoiseLite | 2 = DoubleLayerNoise
+          version: "1.0.0"
+          generation_frequency: 0.01            # Frecuencia base del ruido
+          generation_amplitude: 1.0             # Altura máxima del terreno
+          generation_octaves: 4                 # Número de capas de ruido
+          generation_lacunarity: 2.0            # Separación entre octavas
+          generation_gain: 0.5                  # Caída de amplitud por octava
+
+        DoubleLayerNoise:
+          name: "DoubleLayerNoise"
+          enabled: true
+          version: "1.0.0"
+          generation_frequency: 0.01            # Frecuencia base del ruido
+          generation_amplitude: 1.0             # Altura máxima del terreno
+          generation_octaves: 4                 # Número de capas de ruido
+          generation_lacunarity: 2.0            # Separación entre octavas
+          generation_gain: 0.5                  # Caída de amplitud por octava
+
+Definition:
+  Default:
+    language: 1 # C++
+    type: "Class"
+    needs_register: true
+    file_level: 3
+    register_include: "REGISTER_CONFIG_TYPE"
+    register_macro: "REGISTER_CONFIG_MACRO"
+    interface_name: "ConfigService"
+    class_suffix: "Config"
+    class_prefix: ""
+    inherits_properties:
+        - type
+        - enabled
+        - mesh
+        - shadow_pass
+        - dependencies 
+    #output_path: 'C:\Users\joaqu\source\repos\DirectX-Voxelado\TestConfig\Game\'
+    output_path: 'c:\Users\joaqu\source\repos\DirectX-Voxelado\src\Engine\Core\Config\Game\'

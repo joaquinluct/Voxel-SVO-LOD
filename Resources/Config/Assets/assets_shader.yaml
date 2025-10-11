@@ -95,7 +95,7 @@ Config:
           - ShaderAsset
 
       ShadowMapShader:
-        # Shader para la generación de mapas de sombras. No se usa directamente en la escena,  
+        # Shader para la generaciï¿½n de mapas de sombras. No se usa directamente en la escena,  
         # sino que se utiliza para generar mapas de sombras que luego son usados por otros shaders.
         type: "ShaderAsset"
         shader_path: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Shader\\ShadowMapShader.hlsl"
@@ -180,7 +180,21 @@ Config:
         dependencies:
           - ShaderAsset
 
-      # Nuevo: Shader del agua (reflejos, refracción)
+      TerrainTessellation:
+        type: "ShaderAsset"
+        shader_path: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Shader\\TerrainTessellation.hlsl"
+        vertex_def: "SimpleVertex"
+        matrix_slots:
+            - MatrixBufferType
+            - CameraData
+        sampler_slots:
+            - baseSampler
+        needs_shadow: false
+        name: "TerrainTessellation"
+        dependencies:
+          - ShaderAsset
+
+      # Nuevo: Shader del agua (reflejos, refracciï¿½n)
       OceanShader:
         type: "ShaderAsset"
         shader_path: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Shader\\OceanShader.hlsl"
@@ -196,7 +210,7 @@ Config:
         sampler_slots:
             - baseSampler
             # - ShadowMapSampler
-            # - WaterSampler # Nuevo sampler para reflejo/refracción
+            # - WaterSampler # Nuevo sampler para reflejo/refracciï¿½n
         name: "OceanShader"
         dependencies:
             - ShaderAsset
@@ -222,7 +236,7 @@ Config:
         dependencies:
           - ShaderAsset
 
-      # Nuevo: Shader para el pase de refracción
+      # Nuevo: Shader para el pase de refracciï¿½n
       WaterRefractionShader:
         type: "ShaderAsset"
         shader_path: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Shader\\WaterRefractionShader.hlsl"

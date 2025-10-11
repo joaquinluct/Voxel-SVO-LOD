@@ -149,7 +149,7 @@ void IsJobCompleted(std::string jobName) {
 // ----------------------------------------------------------------------------
 FrameStateBase* UpdateManager::UpdateTerrainState(float deltaTime) {
     TerrainFrameState* terrain = m_frameStateService->TerrainState(false);
-    terrain->SetChunks(m_world->GetTerrain()->GetChunks(m_cameraManager->GetCurrentCamera()));
+    //terrain->SetChunks(m_world->GetTerrain()->GetChunks(m_cameraManager->GetCurrentCamera()));
     return terrain;
 }
 FrameStateBase* UpdateManager::UpdateCameraState(float deltaTime) {

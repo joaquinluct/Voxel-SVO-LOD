@@ -13,7 +13,7 @@ BatchProcessor:
       - camera_config.yaml
       - engine_config.yaml
       - Engine\engine_render_pass.yaml
-      - Engine\engine_jobs.yaml
+      # - Engine\engine_jobs.yaml
       - Engine\Pipeline\engine_render_state.yaml
       - Engine\Pipeline\pipeline_slots_contract.yaml
       - Game\game_base.yaml
@@ -22,4 +22,6 @@ BatchProcessor:
       - Game\game_system.yaml
       - services_config.yaml
       - Game\Biomes\game_biomes.yaml
+      - Game\Terrain\terrain_engines.yaml
+      - Game\Terrain\geometry_engines.yaml
       # - Game\Biomes\game_biomes_textures.yaml

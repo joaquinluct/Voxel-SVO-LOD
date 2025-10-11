@@ -5,7 +5,8 @@
 
 #include <Defines/TerrainChunk.h>
 #include <Defines/Enums/Pass.h>
-#include <Game/Systems/Terrain/Chunk/Chunk.h>
+#include <Game/Systems/Terrain/Factory/IChunkFactory.h>
+class IChunk;
 #include <Config/Base/Managers/RenderManagerConfig.h>
 
 class Material;
@@ -14,7 +15,7 @@ class MeshAsset;
 namespace RenderPasses {
 
     struct ExecPassTerrainParams {
-		Chunk* chunk;
+		IChunk* chunk;
         Material* material;
         Material* shadowMaterial;
         std::shared_ptr<MeshAsset> mesh;

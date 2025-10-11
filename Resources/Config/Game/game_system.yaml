@@ -1,4 +1,4 @@
-Config:
+﻿Config:
   Game:
     System:
         World:
@@ -28,27 +28,58 @@ Config:
               - DeviceManager
 
         Terrain:
-            name: "Terrain"
+            name: Terrain
             enabled: true
-            version: "1.0.0"
-            flags: 7 # Infinite | Procedural | Chunk
-            seed: 1234567890
-            procedural_engine: 1 # FastNoiseLite base
-            #procedural_engine: 2 # DoubleLayerNoiseEngine
-            #procedural_engine: 3  # ProceuralBiomes
-            chunk_size: 128
-            # chunk_size: 64
-            initialRenderDistanceChunks: 120
-            # worldWidth: 2048.0
-            # worldHeight: 2048.0
-            # worldWidth: 4096.0
-            # worldHeight: 4096.0
-            # worldWidth: 16384.0
-            # worldHeight: 16384.0
-            worldWidth: 163840.0
-            worldHeight: 163840.0
-            terrainHeight: 3.164
-            waterLevel: -2.0
+            version: "1.0.0"            
+            # seed: 1234567890
+            # chunk_size: 128
+            # initialRenderDistanceChunks: 80
+            # worldWidth: 163840.0
+            # worldHeight: 163840.0
+            # terrainHeight: 3.164
+            # waterLevel: -2.0
+
+            # Cómo es el terreno: 23/3D finito/infinito
+            type: 1 # 1: Finite3D (Definición en src\Engine\Core\Defines\WorldTerrain.h)
+            # Cómo se genera la geometría: Chunk, voxel, dual-contorning, etc
+            geometry_type: 1 # 1: Chunk (Definición en src\Engine\Core\Defines\WorldTerrain.h)
+            # Cómo se distribuye el terreno: Chunk, OctTree, QuadTree, Tiles, ...
+            terrain_distribution:  1 # Chunk
+            # Como se genera el terreno: Fijo en disco duro, procedural, mápa de altura, ...
+            terrain_generator: 2 # Procedural
+
+            # Qué motor genera la geometría
+            geometry_engine: GeometryChunkEngine
+            # Qué motor generar el terreno
+            terrain_engine:  TerrainChunkEngine
+
+
+            procedural_engine: 1            # 1 = FastNoiseLite base | 2 = DoubleLayerNoiseEngine | 3 = ProceduralBiomes
+
+            geometry_lod_strategy: "Distance"       # Distance | ScreenSpace | Manual | GPUDriven
+            geometry_lod_thresholds: [0, 500, 1000, 2000, 4000]  # Opcional si strategy ≠ Manual
+            geometry_lod_blending: true             # true = geomorphing
+            
+            generation_type: "Procedural"         # Fixed | HeightMap | Procedural
+            generation_algorithm: 1               # 1 = FastNoiseLite | 2 = DoubleLayerNoise | 3 = BiomeEngine
+
+            generation_frequency: 0.01            # Frecuencia base del ruido
+            generation_amplitude: 1.0             # Altura máxima del terreno
+            generation_octaves: 4                 # Número de capas de ruido
+            generation_lacunarity: 2.0            # Separación entre octavas
+            generation_gain: 0.5                  # Caída de amplitud por octava
+
+            geometry_resolution: 1               # 1 = máxima | 2 = media | 3 = baja
+            geometry_normals: true               # true = calcular normales | false = sin normales
+            geometry_smooth: false               # true = suavizar normales | false = normales por cara
+
+            spatial_structure: "Chunk"           # Chunk | QuadTree | Grid | RegionTree
+            quad_tree_max_depth: 0               # Profundidad máxima del QuadTree (solo si spatial_structure = QuadTree)
+            quad_tree_min_size: 0                # Tamaño mínimo por nodo (solo si QuadTree)
+            quad_tree_lod_strategy: "None"       # None | Distance | ScreenSpace | Manual
+
+            buffer_layout: "Unified"             # Unified | DistanceSplit | PerChunk | PerNode
+            buffer_zones: 1                      # Número de zonas si se usa DistanceSplit
             dependencies:
               - ChunkService
               - CameraManager

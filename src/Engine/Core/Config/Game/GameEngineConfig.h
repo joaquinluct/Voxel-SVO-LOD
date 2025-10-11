@@ -13,6 +13,7 @@ public:
 		static const std::string className = "GameEngineConfig";
 		return className;
 	}
+	std::vector<std::string> terrain_engine_init_order;
 	std::vector<std::string> services_init_order;
 	std::vector<std::string> services_post_init;
 	std::vector<std::string> services_render_order;

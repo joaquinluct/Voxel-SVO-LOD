@@ -1,0 +1,159 @@
+Config:
+  Game:
+    System:
+        World:
+            name: "WorldMananger"
+            enabled: true
+            version: "1.0.0"
+            description: "Un mundo abierto."
+            gameType: 1 # Overworld
+            gameFlags: 15 # Chronos | Terrain | Skybox | Biome
+            # gameFlags: 3 # Chronos | Terrain
+            # gameFlags: 1 # Chronos
+            type: "VoxelWorld"
+            respawnTime: 5
+            dependencies:
+              - Chronos
+              - Terrain
+              # - Skybox
+              # - RenderManager
+              - UITextMesh
+
+        Renderer:
+            name: "Renderer"
+            enabled: true
+            version: "1.0.0"
+            type: "DeferredRendering"
+            dependencies:
+              - DeviceManager
+
+        Terrain:
+            name: "Terrain"
+            enabled: true
+            version: "1.0.0"
+            flags: 7 # Infinite | Procedural | Chunk
+            seed: 1234567890
+            procedural_engine: 1 # FastNoiseLite base
+            #procedural_engine: 2 # DoubleLayerNoiseEngine
+            #procedural_engine: 3  # ProceuralBiomes
+            chunk_size: 128            
+            initialRenderDistanceChunks: 80            
+            worldWidth: 163840.0
+            worldHeight: 163840.0
+            terrainHeight: 3.164
+            waterLevel: -2.0
+            dependencies:
+              - ChunkService
+              - CameraManager
+              - ShaderManager
+              - TerrainAsset
+              - ProceduralTerrain
+              - MeshAsset               
+        Water:
+            name: "Water"
+            enabled: true
+            version: "1.0.0"
+            type: "BasicWater"
+            waterLevel: -2.0
+            waveIntensity: 0.5
+            waveSpeed: 1.0
+            dependencies:              
+              - Terrain
+        Skybox:
+            name: "Skybox"
+            enabled: true
+            shadow_pass: false
+            version: "1.0.0"
+            type: "DefaultSkybox"
+            mesh: "ProcSkyboxMesh"
+            sky_color: [0.4, 0.4, 0.9, 1.0] # RGBA
+            sun_color: [1.0, 0.9, 0.6, 1.0] # RGBA
+            dependencies:
+              - ProcSkyboxMesh
+              - RenderManager
+        Physics:
+            name: "PhysicService"
+            enabled: true
+            version: "1.0.0"
+            type: "BasicPhysics"
+            properties:
+            gravity: [0.0, -9.81, 0.0]
+
+        Biome:
+            name: "Biome"
+            enabled: true
+            version: "1.0.0"
+            biome_type: 1 # Procedural
+            ocean_level: 0.0
+            max_height: 2000.0
+            min_height: -2000.0
+            biomes:
+              - Plains
+              - Forest              
+        Shadows:
+            name: "Shadows"
+            enabled: true
+            shadow_pass: false
+            version: "1.0.0"
+            type: "Shadows"
+            dependencies:
+              - ShaderManager
+        Lighting:
+            name: "LightService"
+            enabled: true
+            shadow_pass: false
+            version: "1.0.0"
+            type: "DirectionalLight"
+            properties:
+            ambient_light: [0.2, 0.2, 0.2]
+            directional_light: [0.5, 0.7, 0.5]
+            directional_light_color: [1.0, 1.0, 1.0, 1.0]
+            shadows: true
+            dependencies:
+                - KeyboardManager
+        Cycle:
+            name: "CycleService"
+            enabled: true
+            version: "1.0.0"
+            type: "DayNightCycle"
+            day_night_cycle: true
+            day_night_cycle_speed: 0.1
+            dependencies:
+                - World
+
+        Chronos:
+            name: "ChronosService"
+            enabled: true
+            version: "1.0.0"
+            startDate: "01/08/2025 10:00:00"
+            dependencies:
+                - None
+
+        Wheather:
+            name: "WheatherService"
+            enabled: true
+            version: "1.0.0"
+            type: "DynamicWeather"
+            properties:
+            rain_intensity: 0.3
+            snow_intensity: 0.1
+            fog_density: 0.2
+Definition:
+  Default:
+    language: 1 # C++
+    type: "Class"
+    needs_register: true
+    file_level: 3
+    register_include: "REGISTER_CONFIG_TYPE"
+    register_macro: "REGISTER_CONFIG_MACRO"
+    interface_name: "ConfigService"
+    class_suffix: "Config"
+    class_prefix: ""
+    inherits_properties:
+        - type
+        - enabled
+        - mesh
+        - shadow_pass
+        - dependencies 
+    #output_path: 'C:\Users\joaqu\source\repos\DirectX-Voxelado\TestConfig\Game\'
+    output_path: 'c:\Users\joaqu\source\repos\DirectX-Voxelado\src\Engine\Core\Config\Game\'

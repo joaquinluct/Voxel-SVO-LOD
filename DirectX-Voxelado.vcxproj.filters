@@ -234,15 +234,6 @@
     <ClCompile Include="src\Game\Systems\Terrain.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="src\Game\Systems\Terrain\Chunk\ProceduralSeedTerrain.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Game\Systems\Terrain\Chunk\Chunk.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Game\Systems\Terrain\ChunkService.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
     <ClCompile Include="src\Game\Systems\Terrain\ProceduralService.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
@@ -294,9 +285,6 @@
     <ClCompile Include="src\Engine\Managers\RenderManager\Jobs\Update\UpdateCameraJob.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engine\Core\Defines\Contants\Flags.h">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
     <ClCompile Include="src\Engine\Core\Defines\EngineDefinition.h">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
@@ -315,9 +303,6 @@
     <ClCompile Include="src\Engine\Assets\Base\MeshAssetBase.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="src\Game\Systems\Terrain\Chunk\ChunkBufferAllocator.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
     <ClCompile Include="Includes\stdafx.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
@@ -334,9 +319,6 @@
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Managers\RenderState\FrameStates\RenderFrameState.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\Core\Defines\Contants\Flags\ShaderResources.h">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Managers\RenderState\FrameStates\ConstantsBufferFrameState.cpp">
@@ -490,42 +472,6 @@
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Assets\Vertex\SkyboxCubeConfig.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\Core\Config\Base\Jobs\BiomeConfig.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\Core\Config\Base\Jobs\ChronosConfig.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\Core\Config\Base\Jobs\CycleConfig.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\Core\Config\Base\Jobs\LightingConfig.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\Core\Config\Base\Jobs\PhysicsConfig.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\Core\Config\Base\Jobs\RendererConfig.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\Core\Config\Base\Jobs\ShadowsConfig.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\Core\Config\Base\Jobs\SkyboxConfig.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\Core\Config\Base\Jobs\TerrainConfig.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\Core\Config\Base\Jobs\WaterConfig.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\Core\Config\Base\Jobs\WheatherConfig.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\Core\Config\Base\Jobs\WorldConfig.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Base\Managers\AssetManagerConfig.cpp">
@@ -750,9 +696,6 @@
     <ClCompile Include="src\Engine\Core\Config\Game\GameEngineConfig.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engine\Core\Config\Services\ChunkServiceConfig.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Services\FrameStateServiceConfig.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
@@ -799,6 +742,54 @@
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Game\Biomes\PlainsConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Systems\Terrain\Engines\Geometry\Chunk\GeometryChunkEngine.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Systems\Terrain\Factory\TerrainDistributionFactory.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Systems\Terrain\Factory\TerrainGeometryFactory.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Systems\Terrain\LODManager.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Systems\Terrain\TerrainAssetManager.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Game\GeometryEngines\GeomtryChunkEngineConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Game\TerrainEngines\TerrainChunkEngineConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Locators\TerrainEngineLocator\TerrainEngineLocator.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Systems\Terrain\Engines\Chunk\TessellationChunk.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Systems\Terrain\Engines\Chunk\AggregatedMeshChunk.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Systems\Terrain\Engines\Geometry\AggregatedGeometryEngine.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Systems\Terrain\Engines\Geometry\TessellationGeometryEngine.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Systems\Terrain\Factory\DefaultChunkFactory.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Assets\Shader\TerrainTessellationConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Game\GeometryEngines\TessellationGeometryEngineConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Systems\Terrain\Engines\Distribution\TerrainChunkEngine.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1508,13 +1499,7 @@
     <ClInclude Include="Interfaces\IChunk.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="src\Game\Systems\Terrain\Chunk\Chunk.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
     <ClInclude Include="src\Game\Systems\Terrain.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Game\Systems\Terrain\Chunk\ProceduralSeedTerrain.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="Interfaces\ITerrain.h">
@@ -1524,9 +1509,6 @@
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Core\Defines\Procedural.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Game\Systems\Terrain\ChunkService.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Core\Defines\TerrainChunk.h">
@@ -1730,9 +1712,6 @@
     <ClInclude Include="src\Engine\Core\Debug\Helpers\ScopedTimer.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="src\Game\Systems\Terrain\Chunk\ChunkBufferAllocator.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
     <ClInclude Include="src\Engine\Core\Helpers\PointerQueryRaw.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
@@ -1758,9 +1737,6 @@
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Managers\PipelineResourcesManager.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Core\Defines\Contants\Flags\World.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Assets\Base\UIAsset.h">
@@ -1935,42 +1911,6 @@
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Assets\Vertex\SkyboxCubeConfig.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Core\Config\Base\Jobs\BiomeConfig.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Core\Config\Base\Jobs\ChronosConfig.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Core\Config\Base\Jobs\CycleConfig.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Core\Config\Base\Jobs\LightingConfig.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Core\Config\Base\Jobs\PhysicsConfig.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Core\Config\Base\Jobs\RendererConfig.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Core\Config\Base\Jobs\ShadowsConfig.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Core\Config\Base\Jobs\SkyboxConfig.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Core\Config\Base\Jobs\TerrainConfig.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Core\Config\Base\Jobs\WaterConfig.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Core\Config\Base\Jobs\WheatherConfig.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Core\Config\Base\Jobs\WorldConfig.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Base\Managers\AssetManagerConfig.h">
@@ -2195,9 +2135,6 @@
     <ClInclude Include="src\Engine\Core\Config\Game\GameEngineConfig.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Core\Config\Services\ChunkServiceConfig.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Services\FrameStateServiceConfig.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
@@ -2262,6 +2199,93 @@
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Game\Biomes\PlainsConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Defines\Contants\Flags\SyncFlag.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Systems\Terrain\Defines\TerrainDistributionEngineBase.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Systems\Terrain\Defines\TerrainGeometryEngineBase.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Systems\Terrain\Engines\Geometry\Chunk\GeometryChunkEngine.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Systems\Terrain\Factory\TerrainDistributionFactory.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Systems\Terrain\Factory\TerrainGeometryFactory.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Systems\Terrain\LODManager.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Systems\Terrain\TerrainAssetManager.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Game\GeometryEngines\GeomtryChunkEngineConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Game\TerrainEngines\TerrainChunkEngineConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Locators\TerrainEngineLocator\TerrainEngineLocator.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Locators\Registers\REGISTER_TERRAIN_ENGINE_MACRO.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Systems\Terrain\Defines\TerrainEngineBase.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Systems\Terrain\Defines\Chunk\TerrainChunkConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Buffering\RingBuffer\Defines\RingBufferBase.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Buffering\RingBuffer\RingBufferGPU.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Buffering\RingBuffer\RingBufferMesh.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Systems\Terrain\Defines\Chunk\ChunkNeighborMask.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Systems\Terrain\Engines\Chunk\TessellationChunk.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Systems\Terrain\Engines\Chunk\AggregatedMeshChunk.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Systems\Terrain\Engines\Geometry\AggregatedGeometryEngine.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Systems\Terrain\Engines\Geometry\TessellationGeometryEngine.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Systems\Terrain\Factory\DefaultChunkFactory.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Systems\Terrain\Factory\ChunkMeshFactory.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Systems\Terrain\Factory\IChunkFactory.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Systems\Terrain\Buffer\InstancingRingBuffer.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Assets\Shader\TerrainTessellationConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Game\GeometryEngines\TessellationGeometryEngineConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Systems\Terrain\Engines\Distribution\TerrainChunkEngine.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
   </ItemGroup>
@@ -2495,6 +2519,13 @@
     <None Include="Assets\Textures\Rock\mossy_rock\mossy_rock.bin">
       <Filter>Archivos de recursos</Filter>
     </None>
+    <None Include="md\Memoria\HEAD\ANÁLISIS SNAPSHOT DE MEMORIA.md" />
+    <None Include="Resources\Config\Game\Terrain\terrain_engines.yaml" />
+    <None Include="Resources\Config\Game\Terrain\terrain_procedural.yaml" />
+    <None Include="Resources\Config\Game\Terrain\geometry_engines.yaml" />
+    <None Include="md\Terrain\TÉCNICAS PARA EL TERRENO.md" />
+    <None Include="md\Terrain\TIPO DE CHUNK.md" />
+    <None Include=".github\copilot-instructions.md" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="C:\Users\joaqu\Downloads\yaml-cpp-master-original\yaml-cpp-master\build\Debug\yaml-cppd.lib" />

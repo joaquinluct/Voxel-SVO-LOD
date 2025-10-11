@@ -18,7 +18,17 @@ namespace Util {
         XMFLOAT3 max;
         DirectX::XMFLOAT3 GetCenter() const {
             return XMFLOAT3((min.x + max.x) / 2.0f, (min.y + max.y) / 2.0f, (min.z + max.z) / 2.0f);
-		}
+        }
+        void GetCorners(DirectX::XMFLOAT3(&corners)[8]) const {
+            corners[0] = { min.x, min.y, min.z }; // Near bottom left
+            corners[1] = { max.x, min.y, min.z }; // Near bottom right
+            corners[2] = { max.x, max.y, min.z }; // Near top right
+            corners[3] = { min.x, max.y, min.z }; // Near top left
+            corners[4] = { min.x, min.y, max.z }; // Far bottom left
+            corners[5] = { max.x, min.y, max.z }; // Far bottom right
+            corners[6] = { max.x, max.y, max.z }; // Far top right
+            corners[7] = { min.x, max.y, max.z }; // Far top left
+        }
     };
 
     class RayTracing {

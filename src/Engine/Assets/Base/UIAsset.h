@@ -8,7 +8,7 @@
 #include <Defines/Mesh.h>
 #include <Defines/VertexDefinition.h>
 #include <DirectXMath.h>
-#include <Game/Systems/Terrain/Chunk/Chunk.h>
+// #include <Game/Systems/Terrain/Chunk/Chunk.h> // No longer needed - UIAsset doesn't use Chunk
 #include <memory>
 #include <mutex>
 #include <Services/Material.h>
@@ -116,7 +116,7 @@ public:
     // Generación de Buffers del mesh
     // -----------------------------------------
     virtual void GenerateMesh() {};
-    virtual void GenerateMesh(std::vector<Chunk*> chunks, int indexBuffer) {};
+    virtual void GenerateMesh(std::vector<IChunk*> chunks, int indexBuffer) {};
     void ClearMeshData();
     virtual bool IsGenerating() const { return false; }
 

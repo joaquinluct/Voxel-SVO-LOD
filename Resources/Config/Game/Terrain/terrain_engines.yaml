@@ -1,0 +1,34 @@
+# terrain_engines.yaml
+Config:
+  Terrain:
+    TerrainEngines:
+      TerrainChunkEngine:
+        name: "TerrainChunkEngine"
+        enabled: true
+        version: "1.0.0"            
+        description: "Motor de terreno basado en chunks"
+        seed: 1234567890            # Semilla para la generación procedural
+        chunk_size: 128.0           # Tamaño del chunk en unidades del mundo
+        chunk_radius: 8             # Radio máximo en chunks para cargar alrededor del jugador
+        world_width: 163840.0       # Ancho total del mundo en unidades del mundo
+        world_height: 163840.0      # Alto total del mundo en unidades del mundo        
+        terrain_height_mult: 3.164  # Multiplicador de altura del terreno
+        ocean_level: -2.0           # Nivel del agua en unidades del mundo
+        dependencies:
+            - DeviceManager
+            - TerrainAsset              
+Definition:
+  Default:
+    language: 1 # C++
+    type: "Class"
+    needs_register: true
+    file_level: 3
+    register_include: "REGISTER_CONFIG_TYPE"
+    register_macro: "REGISTER_CONFIG_MACRO"
+    interface_name: "ConfigService"
+    class_suffix: "Config"
+    class_prefix: ""
+    inherits_properties:
+        - enabled
+        - dependencies 
+    output_path: 'c:\Users\joaqu\source\repos\DirectX-Voxelado\src\Engine\Core\Config\Game\'

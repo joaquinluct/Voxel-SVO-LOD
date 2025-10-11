@@ -2,57 +2,95 @@
 #include <AssetLocator/AssetLocator.h>
 #include <Assets/Base/TerrainAsset.h>
 #include <ConfigLocator/ConfigLocator.h>
-#include <Defines/CameraDefinition.h>
+#include <Defines/Procedural.h>
 #include <Defines/WorldTerrain.h>
-#include <DirectXMathConvert.inl>
-#include <Game/Systems/Terrain/Chunk/Chunk.h>
+#include <DirectXMath.h>
+#include <Game/System/TerrainConfig.h>
+// #include <Game/Systems/Terrain/Chunk/IChunkFactory.h> // Moved to Factory/IChunkFactory.h
+class IChunk;
+// #include <Game/Systems/Terrain/ChunkService.h> // Removed - ChunkService eliminated
+#include <Game/Systems/Terrain/Factory/TerrainDistributionFactory.h>
+#include <Game/Systems/Terrain/Factory/TerrainGeometryFactory.h>
+#include <Game/Systems/Terrain/Engines/Geometry/TessellationGeometryEngine.h>
+#include <Game/Systems/Terrain/Engines/Geometry/AggregatedGeometryEngine.h>
 #include <Game/Systems/Terrain/Procedural/Engines/ProceduralEngineBase.h>
 #include <Game/Systems/Terrain/ProceduralService.h>
-#include <iCamera.h>
-#include <Locators/Registers/REGISTER_SERVICE_MACRO.h>
 #include <ManagerLocator/ManagerLocator.h>
-#include <memory>
+#include <Managers/CameraManager.h>
+#include <REGISTER_SERVICE_MACRO.h>
 #include <ServiceLocator/ServiceLocator.h>
 #include <Util/DirectXUtils.h>
-#include <Util/RayTracing/RayTracing.h>
 #include <vector>
-#include <Defines/Structs/BiomeTerrainDefinition.h>
+#include <Windows.h>
 
 REGISTER_SERVICE_TYPE(Terrain, "Terrain")
 
 Terrain::Terrain()
-    : m_config{}, m_def{}, m_proceduralService{}, m_cameraManager{},
-    m_chunkService{}, m_dirty{ true }, m_isGenerating{ false }, m_lastCameraPosition{ 0.0f, 0.0f, 0.0f }, m_chunkSize{ 10.0f }, m_materTerrainHeight{ 1.0f }, m_numChunks{ 0 }, m_numVisibleChunks{ 0 }
+    : m_config{}, m_proceduralService{}, m_cameraManager{},
+    m_terrainAsset(nullptr), m_chunkSize(10.0f), m_dirty(true), m_isGenerating(false),
+    m_lastCameraPosition{ 0.0f, 0.0f, 0.0f }, m_geometryFactory{ nullptr }, m_terrainFactory{ nullptr }
 {
 }
 
-Terrain::~Terrain()
+Terrain::~Terrain() {}
+
+HRESULT Terrain::Init()
 {
+    HRESULT hr = InitConfig();
+    if (FAILED(hr)) return hr;
+
+    hr = InitServices();
+    if (FAILED(hr)) return hr;
+
+    //hr = InitMesh();
+
+    return S_OK;
+}
+
+HRESULT Terrain::InitMesh()
+{
+    m_terrainAsset = AssetLocator::GetTerrainAsset(m_config->shader).get();
+    if (!m_terrainAsset) {
+        return E_FAIL;
+    }
+    return m_terrainAsset->Init();
 }
 
 HRESULT Terrain::InitServices()
 {
     m_cameraManager = ManagerLocator::GetManager<CameraManager>();
-    if (!m_cameraManager) {
-        OutputDebugStringA("Terrain: Register camera manager fail.\n");
-        return E_FAIL;
-    }
-    m_chunkService = ServiceLocator::GetService<ChunkService>();
-    if (!m_chunkService) {
-        OutputDebugStringA("Terrain: Register render manager fail.\n");
-        return E_FAIL;
-    }
+    // ChunkService removed: engines and factories provide chunk management via IChunkFactory
     m_proceduralService = ServiceLocator::GetService<ProceduralService>();
-    if (!m_proceduralService) {
-        return E_FAIL;
-    }
-    m_terrainAsset = AssetLocator::GetTerrainAsset("ProceduralTerrain").get();
-    HRESULT hr = m_terrainAsset->Init();
-    if (FAILED(hr)) {
-        return hr;
+    m_terrainFactory = new TerrainDistributionFactory();
+    m_geometryFactory = new TerrainGeometryFactory();
+
+    // Inicializar engines simples segÃºn config (demo)
+    if (m_config) {
+        if (m_config->geometry_engine == "TessellationGeometryEngine") {
+            // Static engine instance (see TerrainGeometryFactory.cpp)
+            extern TessellationGeometryEngine s_tessEngine; // forward to static
+            s_tessEngine.Init(m_config.get());
+            OutputDebugStringA("[Terrain] TessellationGeometryEngine initialized from config.\n");
+        }
+        else if (m_config->geometry_engine == "AggregatedGeometryEngine") {
+            extern AggregatedGeometryEngine s_aggEngine;
+            s_aggEngine.Init(m_config.get());
+            OutputDebugStringA("[Terrain] AggregatedGeometryEngine initialized from config.\n");
+        }
     }
 
-    m_chunkService->SetTerrainAsset(m_terrainAsset);
+    if (!m_cameraManager || !m_proceduralService)
+        return E_FAIL;
+
+    //HRESULT hr = m_terrainAsset->Init();
+    //if (FAILED(hr)) return hr;
+
+    //m_chunkService->SetTerrainAsset(m_terrainAsset);
+
+    m_terrainFactory->Init(m_config.get());
+
+    //m_chunkSize = m_terrainFactory->
+
 
     return S_OK;
 }
@@ -60,287 +98,90 @@ HRESULT Terrain::InitServices()
 HRESULT Terrain::InitConfig()
 {
     m_config = ConfigLocator::GetConfig<TerrainConfig>();
+    if (!m_config) return E_FAIL;
 
-    if (m_config == nullptr) {
-        return E_FAIL;
-    }
+    //m_chunkSize = static_cast<float>(m_config->chunk_size);
 
-    HRESULT hr = S_OK;
-    int flags = m_config->flags;
+    m_terrainEngineName = m_config->terrain_engine;
 
-    if (WorldTerrain::IsProceduralTerrain(flags)) {
-        m_def.proceduralDefinition = {};
-        m_def.proceduralDefinition.seed = m_config->seed;
-        m_def.proceduralDefinition.engine = static_cast<Procedural::ProceduralEngine>(m_config->procedural_engine);
-        m_def.proceduralDefinition.terrainHeight = m_config->terrainHeight;
-        m_def.proceduralDefinition.waterLevel = m_config->waterLevel;
-        m_def.proceduralDefinition.worldHeight = m_config->worldHeight;
-        m_def.proceduralDefinition.worldWidth = m_config->worldWidth;
-        hr = m_proceduralService->Init(m_def.proceduralDefinition);
-        if (FAILED(hr)) {
-            OutputDebugStringA("Terrain: Init procedural service fail.\n");
-            return hr;
-        }
-    }
-    if (WorldTerrain::IsChunksizedTerrain(flags)) {
-        m_def.chunkDefinition = {};
-        m_def.chunkDefinition.chunSize = static_cast<float>(m_config->chunk_size);
-        m_chunkSize = m_def.chunkDefinition.chunSize;
-        m_def.chunkDefinition.initialRenderDistanceChunks = m_config->initialRenderDistanceChunks;
-        hr = m_chunkService->Init(m_def.chunkDefinition);
-        if (FAILED(hr)) {
-            OutputDebugStringA("Terrain: Init chunk service fail.\n");
-            return hr;
-        }
-        if (m_proceduralService) {
-            m_chunkService->SetProceduralService(m_proceduralService);
-        }
-    }
+    /*HRESULT hr = m_proceduralService->Init({
+        .seed = m_config->seed,
+        .engine = static_cast<Procedural::ProceduralEngine>(m_config->procedural_engine),
+        .terrainHeight = m_config->terrainHeight,
+        .waterLevel = m_config->waterLevel,
+        .worldWidth = m_config->worldWidth,
+        .worldHeight = m_config->worldHeight,
+        });
+    if (FAILED(hr)) return hr;
+
+    hr = m_chunkService->Init({
+        .chunSize = m_chunkSize,
+        .initialRenderDistanceChunks = m_config->initialRenderDistanceChunks
+        });
+    if (FAILED(hr)) return hr;
+
+    m_chunkService->SetProceduralService(m_proceduralService);*/
     return S_OK;
 }
 
-HRESULT Terrain::Init()
-{
-    HRESULT hr = InitServices();
-    if (FAILED(hr)) {
-        OutputDebugStringA("Terrain: Init services fail.\n");
-        return hr;
-    }
-
-    hr = InitConfig();
-    if (FAILED(hr)) {
-        OutputDebugStringA("Terrain: Init date and time fail.\n");
-        return hr;
-    }
-
-    return hr;
-}
-
-MeshAssetBase* Terrain::GetTerrainMesh() const {
-    return (m_terrainAsset ? m_terrainAsset : nullptr);
-}
-
-void Terrain::GenerateMesh() {
-    //std::vector<Chunk*> chunks = GetRawChunks(m_cameraManager->GetCurrentCamera());
-    std::vector<Chunk*> chunks = GetChunks(m_cameraManager->GetCurrentCamera());
-    m_terrainAsset->GenerateMesh(chunks, m_terrainAsset->GetWriteIndex());
-}
-
-// ------------------------------------------------------------------------------------------
-// Update
-// ------------------------------------------------------------------------------------------
 void Terrain::Update(float deltaTime)
 {
     XMFLOAT3 cameraPos = m_cameraManager->GetCurrentCameraPosition();
-
-    if (DirectXUtils::Distance(cameraPos, m_lastCameraPosition) > m_chunkSize) {
-        m_lastCameraPosition = cameraPos;
-        m_dirty = true;
-    }
-    /*else {
-        m_dirty = m_chunkService->IsDirty();
-    }*/
-
-
-    if (m_dirty && !m_isGenerating) {
-        m_isGenerating = true;
-        m_chunkService->UpdateChunks(cameraPos);
-        m_numChunks = m_chunkService->GetNumChunks();
-        m_dirty = false;
-        m_isGenerating = false;
-    }
+    m_terrainFactory->UpdateTerrain(m_terrainEngineName, cameraPos);
 }
 
-std::vector<Chunk*> Terrain::GetVisibleChunks() {
-    return m_chunkService->GetVisibleChunks();
-}
-
-std::vector<Chunk*> Terrain::GetChunks(std::shared_ptr<ICamera> camera) {
-    if (!m_chunkService) {
-        return {};
-    }
-
-    std::vector<CameraDefinition::FrustumPlane> frustumPlanes;
-    XMFLOAT3 cameraPosition = m_cameraManager->GetCurrentCameraPosition();
-
-    // 1. Extraer los planos del frustum
-    m_cameraManager->ExtractCurrentFrustumPlanes(frustumPlanes);
-
-    /*m_numVisibleChunks = static_cast<int>(m_chunkService->GetChunksAsVector().size());
-    return m_chunkService->GetChunksAsVector();*/
-
-    // 2. Obtener los chunks visibles en el frustum
-    std::vector<Chunk*> visibleChunks = m_chunkService->GetFrustumChunks(frustumPlanes, cameraPosition);
-
-    // # CODIGO PARA DEBUG
-    m_numVisibleChunks = static_cast<int>(visibleChunks.size());
-    return visibleChunks;
-    // #FIN CODIGO PARA DEBUG
-
-    // 3. Ordenar por distancia (los chunks más cercanos primero)
-    std::sort(visibleChunks.begin(), visibleChunks.end(), [&camera](const auto& a, const auto& b) {
-        return a->GetDistanceToCamera(camera) < b->GetDistanceToCamera(camera);
-        });
-
-    // 4. Aplicar Occlusion Culling
-    std::vector<Chunk*> finalVisibleChunks;
-    Util::RayTracing rayTracer;
-    const DirectX::XMFLOAT3 cameraPos = camera->GetPosition();
-
-    // Aquí está el cambio clave: crea una lista de oclusores.
-    // Los primeros 20 chunks son candidatos a ocluir a otros.
-    // Puedes ajustar este número para equilibrar rendimiento y precisión.
-    int numOccluders = static_cast<int>(std::min(visibleChunks.size(), static_cast<size_t>(10)));
-    std::vector<Chunk*> occluderChunks;
-    for (int i = 0; i < numOccluders; ++i) {
-        occluderChunks.push_back(visibleChunks[i]);
-    }
-
-    for (const auto& chunk : visibleChunks) {
-        bool isOccluded = false;
-
-        // Vector de dirección de la cámara al centro del chunk actual
-        DirectX::XMFLOAT3 chunkCenter = chunk->GetAABB().GetCenter();
-        DirectX::XMFLOAT3 dir = {
-            chunkCenter.x - cameraPos.x,
-            chunkCenter.y - cameraPos.y,
-            chunkCenter.z - cameraPos.z
-        };
-        float maxDistance = rayTracer.Distance(cameraPos, chunkCenter);
-        DirectX::XMVECTOR normalizedDir = DirectX::XMVector3Normalize(DirectX::XMLoadFloat3(&dir));
-        DirectX::XMStoreFloat3(&dir, normalizedDir);
-
-        // Iterar sobre la lista de oclusores, no sobre la lista de chunks ya visibles
-        for (const auto& occluderChunk : occluderChunks) {
-            // Evita que un chunk se ocluya a sí mismo
-            if (chunk == occluderChunk) continue;
-
-            // Usa la función Trace de tu clase RayTracing
-            float intersectionDistance = rayTracer.Trace(cameraPos, dir, maxDistance, occluderChunk->GetAABB());
-
-            // Si hay una intersección y ocurre ANTES de que el rayo llegue al chunk actual...
-            if (intersectionDistance > 0.0f && intersectionDistance < maxDistance) {
-                isOccluded = true;
-                break;
-            }
-        }
-
-        if (!isOccluded) {
-            finalVisibleChunks.push_back(chunk);
-        }
-    }
-    m_numVisibleChunks = static_cast<int>(finalVisibleChunks.size());
-    return finalVisibleChunks;
-}
-
-TextureDefines::CBTerrainBlendBuffer Terrain::GetTerrainBlenderData() {
-    TextureDefines::CBTerrainBlendBuffer data = {};
-    data.dirtHeight = 0.0f; // Default value, can be set later
-    data.grassHeight = 50.0f;
-    data.slopeEnd = 0.5f;
-    data.slopeStart = 0.8f;
-    data.snowHeight = 160.0f;
-    data.terrainScale = 0.03f; // Default value, can be set later
-    return data;
-}
-
-TextureDefines::CBTerrain2BlendBuffer Terrain::GetTerrain2BlenderData() {
-    TextureDefines::CBTerrain2BlendBuffer data = {};
-    data.grassTransitionHeight = 0.0f; // La hierba empieza desde la base
-    data.grassTransitionSlope = 0.4f;  // Se mezcla a pendientes moderadas
-
-    data.dirtTransitionHeight = 50.0f;  // La tierra empieza a aparecer a partir de 5m de altura
-    data.dirtTransitionSlope = 0.5f;   // Se mezcla en pendientes moderadas a altas
-
-    data.rockTransitionHeight = 150.0f; // La roca empieza a aparecer a 10m de altura
-    data.rockTransitionSlope = 0.8f;   // Se mezcla en pendientes altas
-
-    data.snowTransitionHeight = 200.0f; // La nieve aparece a partir de 15m de altura
-    data.snowTransitionSlope = 0.4f;   // La nieve se acumula en pendientes bajas
-
-    data.beachTransitionHeight = -10.0f; // La playa empieza desde la base
-    data.beachTransitionSlope = 0.2f; // Se mezcla en pendientes suaves
-
-    data.terrainScale = 0.0013f; // Un valor bajo para que las texturas no se vean demasiado estiradas
-    return data;
-}
-TextureDefines::TerrainBiomeBufferData Terrain::GetTerrainBiomeBufferData() {
-    // =========================================================================
-    // ASIGNACIÓN DE ÍNDICES DE TEXTURA EN EL ARRAY (Mismo ejemplo de distribución)
-    // =========================================================================
-    // Indices base: Coastal (0, 5, 10), Rock (15), Snow (20), Plain (25, 30, 35), Mountain (40, 45, 50)
-    // =========================================================================
-
-    BiomeTerrainDefinition temperateIslandBiome = {
-        // ----------------------------------------------------------------------
-        // 5.1) Texturas de Costa (Coastal Sets)
-        // ----------------------------------------------------------------------
-        .coastalSets = {
-            {.baseAtlasIndex = 0 },  // Arena clara
-            {.baseAtlasIndex = 5 },  // Grava/Arena oscura
-            {.baseAtlasIndex = 10 }  // Arena con barro
-        },
-        .numCoastalSets = 3,
-        .paddingCoastal = {0.0f, 0.0f, 0.0f},
-
-        // ----------------------------------------------------------------------
-        // 5.2) Texturas de Llanura (Plain Sets)
-        // ----------------------------------------------------------------------
-        .plainSets = {
-            {.baseAtlasIndex = 25 }, // Hierba de pradera
-            {.baseAtlasIndex = 30 }, // Hierba seca / con maleza
-            {.baseAtlasIndex = 35 }  // Tierra con poca hierba
-        },
-        .numPlainSets = 3,
-        .paddingPlain = {0.0f, 0.0f, 0.0f},
-
-        // ----------------------------------------------------------------------
-        // 5.3) Texturas de Montañas (Mountain Sets)
-        // ----------------------------------------------------------------------
-        .mountainSets = {
-            {.baseAtlasIndex = 40 }, // Tierra de montaña con rocas
-            {.baseAtlasIndex = 45 }, // Tierra erosionada grisácea
-            {.baseAtlasIndex = 50 }  // Roca con musgo
-        },
-        .numMountainSets = 3,
-        .paddingMountain = {0.0f, 0.0f, 0.0f},
-
-        // ----------------------------------------------------------------------
-        // 3. PARÁMETROS GLOBALES DE BIOMA
-        // ----------------------------------------------------------------------
-        .minChunks = 2,
-        .maxChunks = 8,
-        .biomeSeed = 12345,
-        .noiseEngineID = 0,
-
-        // ----------------------------------------------------------------------
-        // Nuevas texturas GLOBALES por bioma (Usaremos las globales estándar)
-        // ----------------------------------------------------------------------
-        // NOTA: Estos índices *podrían* ser globales o específicos del bioma.
-        // Para este ejemplo, apuntaremos a las texturas que el shader espera.
-        .biomeRockSet = {.baseAtlasIndex = 15 },
-        .biomeSnowSet = {.baseAtlasIndex = 20 },
-
-        // Relleno final
-        .paddingFinal = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}
-    };
-    //return temperateIslandBiome;
-    return {};
+std::vector<IChunk*> Terrain::GetVisibleChunks()
+{
+    // ChunkService removed - chunks now managed by TerrainDistributionFactory
+    return std::vector<IChunk*>{};
 }
 
 float Terrain::GetTerrainHeight(float x, float z) const
 {
     if (m_proceduralService) {
-        std::shared_ptr<ProceduralEngineBase> engine = m_proceduralService->GetEngine();
-        return engine->GetHeight(x, z) * m_materTerrainHeight;
+        //return m_proceduralService->GetEngine()->GetHeight(x, z) * m_config->terrainHeight;
     }
-    return 0.0f; // Default value if procedural service is not available
+    return 0.0f;
 }
 
-void Terrain::EmptyRecycleBin()
-{
-    if (m_chunkService)
-    {
-        m_chunkService->EmptyRecycleBin();
+void Terrain::Generate() {
+    const auto& camera = m_cameraManager->GetCurrentCamera();
+    m_terrainFactory->Generate(m_terrainEngineName, camera.get());
+}
+
+void Terrain::Render() {
+    if (!m_terrainFactory) {
+        OutputDebugStringA("[Terrain] No terrain factory available for rendering\n");
+        return;
     }
+
+    const auto& camera = m_cameraManager->GetCurrentCamera();
+    if (!camera) {
+        OutputDebugStringA("[Terrain] No active camera available for rendering\n");
+        return;
+    }
+
+    OutputDebugStringA("[Terrain] Rendering terrain with engine: ");
+    OutputDebugStringA(m_terrainEngineName.c_str());
+    OutputDebugStringA("\n");
+
+    m_terrainFactory->Render(m_terrainEngineName, camera.get());
+}
+
+void Terrain::BindForRender(ID3D11DeviceContext* context) {
+    if (!m_config || !context) return;
+
+    // TODO: Buffer binding is now handled by the specific chunk implementations
+    // through the TerrainDistributionFactory and TerrainGeometryFactory
+    // Each engine (TessellationGeometryEngine, AggregatedGeometryEngine) 
+    // should handle its own buffer binding strategy
+
+    // Fallback: if config requests Tessellation engine, bind engine resources
+    if (m_config->geometry_engine == "TessellationGeometryEngine") {
+        extern TessellationGeometryEngine s_tessEngine; // forward to static
+        s_tessEngine.Bind(context);
+        return;
+    }
+
+    // Otherwise no-op - specific engines handle their own binding
 }

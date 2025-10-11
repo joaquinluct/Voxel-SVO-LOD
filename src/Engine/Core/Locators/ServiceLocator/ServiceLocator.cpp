@@ -5,7 +5,7 @@
 #include <string> // Para std::to_string
 
 std::map<std::string, ServiceLocator::ServiceEntry>& ServiceLocator::GetServiceEntries() {
-    static std::map<std::string, ServiceEntry> s_serviceEntries; 
+    static std::map<std::string, ServiceEntry> s_serviceEntries;
     return s_serviceEntries;
 }
 
@@ -25,7 +25,7 @@ void ServiceLocator::RegisterServiceCreator(
         OutputDebugStringA(("WARNING: Service creator for '" + name + "' already registered. Overwriting.\n").c_str());
     }
     //s_serviceCreators[name] = { createFn, initFn };
-    entries[name] = {nullptr, createFn, initFn, renderFn, updateFn};
+    entries[name] = { nullptr, createFn, initFn, renderFn, updateFn };
 }
 
 HRESULT ServiceLocator::InitializeServices(const std::vector<std::string>& orderList) {
@@ -33,10 +33,10 @@ HRESULT ServiceLocator::InitializeServices(const std::vector<std::string>& order
     for (const std::string& serviceName : orderList) {
         auto it = entries.find(serviceName);
         if (it != entries.end()) {
-			// 0. Obtener la configuración específica del servicio si existe
+            // 0. Obtener la configuración específica del servicio si existe
             const std::string configName = serviceName + "Config";
             std::shared_ptr<ConfigService> config = ConfigLocator::GetConfig<ConfigService>(configName);
-            
+
             // 1. Crear la instancia del manager
             it->second.instance = it->second.creator();
             if (!it->second.instance) {
@@ -44,8 +44,8 @@ HRESULT ServiceLocator::InitializeServices(const std::vector<std::string>& order
                 return E_FAIL;
             }
 
-			// 1.1 Aplicar la configuración si existe
-			config && config.get()->enabled ? it->second.instance->Start() : it->second.instance->Stop();
+            // 1.1 Aplicar la configuración si existe
+            config&& config.get()->enabled ? it->second.instance->Start() : it->second.instance->Stop();
 
             // 2. Inicializar la instancia (pasando la sub-nodo de configuración específica si existe)
             // configRoot[serviceName] asegura que se le pasa solo la configuración relevante a ese manager.
@@ -54,7 +54,7 @@ HRESULT ServiceLocator::InitializeServices(const std::vector<std::string>& order
                 OutputDebugStringA(("ERROR: Failed to initialize service '" + serviceName + "'\n").c_str());
                 return hr;
             }
-            
+
             std::shared_ptr<IService> service = std::static_pointer_cast<IService>(it->second.instance);
             service->SetNeedsShadowPass(config && config->shadow_pass);
         }
@@ -130,7 +130,7 @@ HRESULT ServiceLocator::UpdateServices(const std::vector<std::string>& orderList
 
 void ServiceLocator::Shutdown() {
     auto& entries = ServiceLocator::GetServiceEntries();
-	entries.clear(); // Limpia las entradas de servicios
-    
+    entries.clear(); // Limpia las entradas de servicios
+
     OutputDebugStringA("ServiceLocator: All services and creators shut down.\n");
 }

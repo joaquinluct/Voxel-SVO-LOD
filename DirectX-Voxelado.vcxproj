@@ -192,6 +192,7 @@
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\SkyboxShaderConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\Terrain2ShaderConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\TerrainShaderConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Assets\Shader\TerrainTessellationConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\TextureBasicShaderConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\TextureMapShaderConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\WaterReflectionShaderConfig.cpp" />
@@ -209,18 +210,6 @@
     <ClCompile Include="src\Engine\Core\Config\Assets\Texture\TextureTextUIConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Vertex\FloorVertexConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Vertex\SkyboxCubeConfig.cpp" />
-    <ClCompile Include="src\Engine\Core\Config\Base\Jobs\BiomeConfig.cpp" />
-    <ClCompile Include="src\Engine\Core\Config\Base\Jobs\ChronosConfig.cpp" />
-    <ClCompile Include="src\Engine\Core\Config\Base\Jobs\CycleConfig.cpp" />
-    <ClCompile Include="src\Engine\Core\Config\Base\Jobs\LightingConfig.cpp" />
-    <ClCompile Include="src\Engine\Core\Config\Base\Jobs\PhysicsConfig.cpp" />
-    <ClCompile Include="src\Engine\Core\Config\Base\Jobs\RendererConfig.cpp" />
-    <ClCompile Include="src\Engine\Core\Config\Base\Jobs\ShadowsConfig.cpp" />
-    <ClCompile Include="src\Engine\Core\Config\Base\Jobs\SkyboxConfig.cpp" />
-    <ClCompile Include="src\Engine\Core\Config\Base\Jobs\TerrainConfig.cpp" />
-    <ClCompile Include="src\Engine\Core\Config\Base\Jobs\WaterConfig.cpp" />
-    <ClCompile Include="src\Engine\Core\Config\Base\Jobs\WheatherConfig.cpp" />
-    <ClCompile Include="src\Engine\Core\Config\Base\Jobs\WorldConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\Managers\AssetManagerConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\Managers\CameraManagerConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\Managers\DeviceManagerConfig.cpp" />
@@ -286,6 +275,8 @@
     <ClCompile Include="src\Engine\Core\Config\Game\GameObjectsBase\LineConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Game\GameObjects\TestingBasic2Config.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Game\GameObjects\TestingFloorConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Game\GeometryEngines\GeomtryChunkEngineConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Game\GeometryEngines\TessellationGeometryEngineConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Game\System\BiomeConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Game\System\ChronosConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Game\System\CycleConfig.cpp" />
@@ -298,7 +289,7 @@
     <ClCompile Include="src\Engine\Core\Config\Game\System\WaterConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Game\System\WheatherConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Game\System\WorldConfig.cpp" />
-    <ClCompile Include="src\Engine\Core\Config\Services\ChunkServiceConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Game\TerrainEngines\TerrainChunkEngineConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Services\FrameStateServiceConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Services\KeyBindingsConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Services\KeyboardConfig.cpp" />
@@ -310,11 +301,10 @@
     <ClCompile Include="src\Engine\Core\Config\Services\UIBaseConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Services\UIDebugConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Services\UITextConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Locators\TerrainEngineLocator\TerrainEngineLocator.cpp" />
     <ClCompile Include="src\Engine\Managers\RenderManager\Jobs\Update\UpdateMeshJob.cpp" />
     <ClCompile Include="src\Engine\Managers\RenderManager\Jobs\Update\UpdateMeshTerrainJob.cpp" />
     <ClCompile Include="src\Engine\Managers\RenderState\FrameStates\ConstantsBufferFrameState.cpp" />
-    <ClCompile Include="src\Engine\Core\Defines\Contants\Flags.h" />
-    <ClCompile Include="src\Engine\Core\Defines\Contants\Flags\ShaderResources.h" />
     <ClCompile Include="src\Engine\Core\Defines\EngineDefinition.h" />
     <ClCompile Include="src\Engine\Assets\Base\MeshAssetBase.cpp" />
     <ClCompile Include="src\Engine\Managers\PipelineResourcesManager.cpp" />
@@ -406,10 +396,17 @@
     <ClCompile Include="src\Engine\Util\IGPUCreateCommand.cpp" />
     <ClCompile Include="src\Engine\Managers\UIManager.cpp" />
     <ClCompile Include="src\Game\Systems\Terrain.cpp" />
-    <ClCompile Include="src\Game\Systems\Terrain\ChunkService.cpp" />
-    <ClCompile Include="src\Game\Systems\Terrain\Chunk\ChunkBufferAllocator.cpp" />
-    <ClCompile Include="src\Game\Systems\Terrain\Chunk\ProceduralSeedTerrain.cpp" />
-    <ClCompile Include="src\Game\Systems\Terrain\Chunk\Chunk.cpp" />
+    <ClCompile Include="src\Game\Systems\Terrain\Engines\Chunk\AggregatedMeshChunk.cpp" />
+    <ClCompile Include="src\Game\Systems\Terrain\Engines\Chunk\TessellationChunk.cpp" />
+    <ClCompile Include="src\Game\Systems\Terrain\Engines\Distribution\TerrainChunkEngine.cpp" />
+    <ClCompile Include="src\Game\Systems\Terrain\Engines\Geometry\AggregatedGeometryEngine.cpp" />
+    <ClCompile Include="src\Game\Systems\Terrain\Engines\Geometry\Chunk\GeometryChunkEngine.cpp" />
+    <ClCompile Include="src\Game\Systems\Terrain\Engines\Geometry\TessellationGeometryEngine.cpp" />
+    <ClCompile Include="src\Game\Systems\Terrain\Factory\DefaultChunkFactory.cpp" />
+    <ClCompile Include="src\Game\Systems\Terrain\Factory\TerrainDistributionFactory.cpp" />
+    <ClCompile Include="src\Game\Systems\Terrain\Factory\TerrainGeometryFactory.cpp" />
+    <ClCompile Include="src\Game\Systems\Terrain\LODManager.cpp" />
+    <ClCompile Include="src\Game\Systems\Terrain\TerrainAssetManager.cpp" />
     <ClCompile Include="src\Game\Systems\Terrain\ProceduralService.cpp" />
     <ClCompile Include="src\Game\Systems\Terrain\Procedural\Engines\DoubleLayerNoiseEngine.cpp" />
     <ClCompile Include="src\Game\Systems\Terrain\Procedural\Engines\FastNoiseLiteEngine.cpp" />
@@ -481,6 +478,9 @@
     <ClInclude Include="src\Engine\Assets\Base\MeshAssetBase.h" />
     <ClInclude Include="src\Engine\Assets\Base\UIAsset.h" />
     <ClInclude Include="src\Engine\Core\Base\Enum.h" />
+    <ClInclude Include="src\Engine\Core\Buffering\RingBuffer\Defines\RingBufferBase.h" />
+    <ClInclude Include="src\Engine\Core\Buffering\RingBuffer\RingBufferGPU.h" />
+    <ClInclude Include="src\Engine\Core\Buffering\RingBuffer\RingBufferMesh.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Base\BaseIndexConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Base\MainIndexConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Base\MeshAssetConfig.h" />
@@ -508,6 +508,7 @@
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\SkyboxShaderConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\Terrain2ShaderConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\TerrainShaderConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Assets\Shader\TerrainTessellationConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\TextureBasicShaderConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\TextureMapShaderConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\WaterReflectionShaderConfig.h" />
@@ -525,18 +526,6 @@
     <ClInclude Include="src\Engine\Core\Config\Assets\Texture\TextureTextUIConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Vertex\FloorVertexConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Vertex\SkyboxCubeConfig.h" />
-    <ClInclude Include="src\Engine\Core\Config\Base\Jobs\BiomeConfig.h" />
-    <ClInclude Include="src\Engine\Core\Config\Base\Jobs\ChronosConfig.h" />
-    <ClInclude Include="src\Engine\Core\Config\Base\Jobs\CycleConfig.h" />
-    <ClInclude Include="src\Engine\Core\Config\Base\Jobs\LightingConfig.h" />
-    <ClInclude Include="src\Engine\Core\Config\Base\Jobs\PhysicsConfig.h" />
-    <ClInclude Include="src\Engine\Core\Config\Base\Jobs\RendererConfig.h" />
-    <ClInclude Include="src\Engine\Core\Config\Base\Jobs\ShadowsConfig.h" />
-    <ClInclude Include="src\Engine\Core\Config\Base\Jobs\SkyboxConfig.h" />
-    <ClInclude Include="src\Engine\Core\Config\Base\Jobs\TerrainConfig.h" />
-    <ClInclude Include="src\Engine\Core\Config\Base\Jobs\WaterConfig.h" />
-    <ClInclude Include="src\Engine\Core\Config\Base\Jobs\WheatherConfig.h" />
-    <ClInclude Include="src\Engine\Core\Config\Base\Jobs\WorldConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\Managers\AssetManagerConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\Managers\CameraManagerConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\Managers\DeviceManagerConfig.h" />
@@ -602,6 +591,8 @@
     <ClInclude Include="src\Engine\Core\Config\Game\GameObjectsBase\LineConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Game\GameObjects\TestingBasic2Config.h" />
     <ClInclude Include="src\Engine\Core\Config\Game\GameObjects\TestingFloorConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Game\GeometryEngines\GeomtryChunkEngineConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Game\GeometryEngines\TessellationGeometryEngineConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Game\System\BiomeConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Game\System\ChronosConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Game\System\CycleConfig.h" />
@@ -614,7 +605,7 @@
     <ClInclude Include="src\Engine\Core\Config\Game\System\WaterConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Game\System\WheatherConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Game\System\WorldConfig.h" />
-    <ClInclude Include="src\Engine\Core\Config\Services\ChunkServiceConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Game\TerrainEngines\TerrainChunkEngineConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Services\FrameStateServiceConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Services\KeyBindingsConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Services\KeyboardConfig.h" />
@@ -627,8 +618,8 @@
     <ClInclude Include="src\Engine\Core\Config\Services\UIDebugConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Services\UITextConfig.h" />
     <ClInclude Include="src\Engine\Core\Debug\Helpers\ScopedTimer.h" />
+    <ClInclude Include="src\Engine\Core\Defines\Contants\Flags\SyncFlag.h" />
     <ClInclude Include="src\Engine\Core\Defines\Enums\Biome.h" />
-    <ClInclude Include="src\Engine\Core\Defines\Contants\Flags\World.h" />
     <ClInclude Include="src\Engine\Core\Defines\Contants\FrameState.h" />
     <ClInclude Include="src\Engine\Core\Defines\Enums\Matrix.h" />
     <ClInclude Include="src\Engine\Core\Defines\Enums\Pass.h" />
@@ -637,7 +628,27 @@
     <ClInclude Include="src\Engine\Core\Defines\Structs\Material\PbrTextureSet.h" />
     <ClInclude Include="src\Engine\Core\Defines\Structs\PipelineResources.h" />
     <ClInclude Include="src\Engine\Core\Defines\Structs\Procedural\AreaMapping.h" />
+    <ClInclude Include="src\Engine\Core\Locators\Registers\REGISTER_TERRAIN_ENGINE_MACRO.h" />
+    <ClInclude Include="src\Engine\Core\Locators\TerrainEngineLocator\TerrainEngineLocator.h" />
     <ClInclude Include="src\Engine\Managers\RenderManager\Jobs\Update\UpdateMeshTerrainJob.h" />
+    <ClInclude Include="src\Game\Systems\Terrain\Buffer\InstancingRingBuffer.h" />
+    <ClInclude Include="src\Game\Systems\Terrain\Defines\Chunk\ChunkNeighborMask.h" />
+    <ClInclude Include="src\Game\Systems\Terrain\Defines\Chunk\TerrainChunkConfig.h" />
+    <ClInclude Include="src\Game\Systems\Terrain\Defines\TerrainDistributionEngineBase.h" />
+    <ClInclude Include="src\Game\Systems\Terrain\Defines\TerrainGeometryEngineBase.h" />
+    <ClInclude Include="src\Game\Systems\Terrain\Engines\Chunk\AggregatedMeshChunk.h" />
+    <ClInclude Include="src\Game\Systems\Terrain\Engines\Chunk\TessellationChunk.h" />
+    <ClInclude Include="src\Game\Systems\Terrain\Engines\Distribution\TerrainChunkEngine.h" />
+    <ClInclude Include="src\Game\Systems\Terrain\Engines\Geometry\AggregatedGeometryEngine.h" />
+    <ClInclude Include="src\Game\Systems\Terrain\Engines\Geometry\Chunk\GeometryChunkEngine.h" />
+    <ClInclude Include="src\Game\Systems\Terrain\Engines\Geometry\TessellationGeometryEngine.h" />
+    <ClInclude Include="src\Game\Systems\Terrain\Factory\ChunkMeshFactory.h" />
+    <ClInclude Include="src\Game\Systems\Terrain\Factory\DefaultChunkFactory.h" />
+    <ClInclude Include="src\Game\Systems\Terrain\Factory\IChunkFactory.h" />
+    <ClInclude Include="src\Game\Systems\Terrain\Factory\TerrainDistributionFactory.h" />
+    <ClInclude Include="src\Game\Systems\Terrain\Factory\TerrainGeometryFactory.h" />
+    <ClInclude Include="src\Game\Systems\Terrain\LODManager.h" />
+    <ClInclude Include="src\Game\Systems\Terrain\TerrainAssetManager.h" />
     <ClInclude Include="src\Game\Systems\Terrain\Procedural\Engines\ProceduralBiomaEngine.h" />
     <ClInclude Include="src\Engine\Core\Defines\Types\Sampler.h" />
     <ClInclude Include="src\Engine\Core\Helpers\PointerQuery.h" />
@@ -903,10 +914,6 @@
     <ClInclude Include="src\Engine\Util\Utils.h" />
     <ClInclude Include="src\Engine\Util\VisibleNodeInfo.h" />
     <ClInclude Include="src\Game\Systems\Terrain.h" />
-    <ClInclude Include="src\Game\Systems\Terrain\ChunkService.h" />
-    <ClInclude Include="src\Game\Systems\Terrain\Chunk\ChunkBufferAllocator.h" />
-    <ClInclude Include="src\Game\Systems\Terrain\Chunk\ProceduralSeedTerrain.h" />
-    <ClInclude Include="src\Game\Systems\Terrain\Chunk\Chunk.h" />
     <ClInclude Include="src\Game\Systems\Terrain\ProceduralService.h" />
     <ClCompile Include="src\Game\Systems\Terrain\Procedural\Engines\ProceduralBiomaEngine.cpp" />
     <ClInclude Include="src\Game\Systems\Terrain\Procedural\Engines\DoubleLayerNoiseEngine.h" />
@@ -921,6 +928,7 @@
     <ClInclude Include="src\UI\UIBase.h" />
     <ClInclude Include="src\UI\UIText.h" />
     <ClInclude Include="Includes\stdafx.h" />
+    <ClInclude Include="src\Game\Systems\Terrain\Defines\TerrainEngineBase.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Assets\Shader\MyProceduralSkyboxShader.hlsl">
@@ -1072,6 +1080,7 @@
     <Image Include="Resources\Textures\Rock\Coast sand rock\coast_sand_rocks_02_rough_4k.jpg" />
   </ItemGroup>
   <ItemGroup>
+    <None Include=".github\copilot-instructions.md" />
     <None Include="Assets\Textures\Brick\Poliigon_BrickWallReclaimed_8320.mtlx" />
     <None Include="Assets\Textures\DefaultSkybox\build_dds.bat" />
     <None Include="Assets\Textures\Rock\aerial_rocks\aerial_rocks_02.bin" />
@@ -1096,6 +1105,7 @@
     <None Include="Libs\DirectX\DirectXTex\Shaders\Compiled\BC7Encode_TryMode456CS_cs40.inc" />
     <None Include="Libs\DirectX\DirectXTex\Shaders\CompileShaders.cmd" />
     <None Include="md\CUBEMAPS_SKYBOX.md" />
+    <None Include="md\Memoria\HEAD\ANÁLISIS SNAPSHOT DE MEMORIA.md" />
     <None Include="md\Pipeline\ETAPAS DEL PIPELINE - DIRECTX-11.md" />
     <None Include="md\PIPE-LINE.md" />
     <None Include="md\Pipeline\FRAME BASE OPERACIONES.md" />
@@ -1113,6 +1123,8 @@
     <None Include="md\SVO.md" />
     <None Include="md\SVO_TRIÁNGULOS.md" />
     <None Include="md\Terrain\DawIndexedIndirect.md" />
+    <None Include="md\Terrain\TIPO DE CHUNK.md" />
+    <None Include="md\Terrain\TÉCNICAS PARA EL TERRENO.md" />
     <None Include="md\Teselación\TESELACIÓN.md" />
     <None Include="md\VOXEL-CHUNKS.md" />
     <None Include="READ.md" />
@@ -1141,6 +1153,9 @@
     <None Include="Resources\Config\Game\game_object.yaml" />
     <None Include="Resources\Config\Game\game_object_base.yaml" />
     <None Include="Resources\Config\Game\game_system.yaml" />
+    <None Include="Resources\Config\Game\Terrain\terrain_engines.yaml" />
+    <None Include="Resources\Config\Game\Terrain\terrain_procedural.yaml" />
+    <None Include="Resources\Config\Game\Terrain\geometry_engines.yaml" />
     <None Include="Resources\Config\index_config.yaml" />
     <None Include="Resources\Config\services_config.yaml" />
     <None Include="Resources\Config\UI\ui_item_config.yaml" />

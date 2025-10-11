@@ -28,7 +28,7 @@ ShaderManager::ShaderManager() {
 ShaderManager::~ShaderManager() {}
 
 HRESULT ShaderManager::LoadShader(Microsoft::WRL::ComPtr<ID3D11Device> device, std::shared_ptr<ShaderAsset>& shader, std::wstring shaderName, std::wstring vsPath, std::wstring psPath, D3D11_INPUT_ELEMENT_DESC layoutDesc[], UINT numElements) {
-    // Verificar si el shader ya está cargado
+    // Verificar si el shader ya estï¿½ cargado
     if (vertexShaders.find(shaderName) != vertexShaders.end()) {
         return S_OK;
     }
@@ -61,6 +61,21 @@ HRESULT ShaderManager::LoadShader(Microsoft::WRL::ComPtr<ID3D11Device> device, s
         return hr;
     }
 
+    // Intentar compilar Hull Shader (opcional)
+    ID3DBlob* hsBlob = nullptr;
+    hr = D3DCompileFromFile(vsPath.c_str(), nullptr, nullptr, "HSMain", "hs_5_0", 0, 0, &hsBlob, &errorBlob);
+    if (FAILED(hr)) {
+        // Si no existe HSMain no es un error; liberamos errorBlob si existe y continuamos.
+        if (errorBlob) { errorBlob->Release(); errorBlob = nullptr; }
+    }
+
+    // Intentar compilar Domain Shader (opcional)
+    ID3DBlob* dsBlob = nullptr;
+    hr = D3DCompileFromFile(vsPath.c_str(), nullptr, nullptr, "DSMain", "ds_5_0", 0, 0, &dsBlob, &errorBlob);
+    if (FAILED(hr)) {
+        if (errorBlob) { errorBlob->Release(); errorBlob = nullptr; }
+    }
+
     // Crear Vertex Shader
     hr = device->CreateVertexShader(vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), nullptr, &vs);
     if (FAILED(hr)) {
@@ -76,6 +91,27 @@ HRESULT ShaderManager::LoadShader(Microsoft::WRL::ComPtr<ID3D11Device> device, s
         psBlob->Release();
         vs->Release();
         return hr;
+    }
+
+    // Crear Hull/Domain shaders si fueron compilados
+    ID3D11HullShader* hs = nullptr;
+    ID3D11DomainShader* ds = nullptr;
+    if (hsBlob) {
+        hr = device->CreateHullShader(hsBlob->GetBufferPointer(), hsBlob->GetBufferSize(), nullptr, &hs);
+        if (FAILED(hr)) {
+            // no fatal: liberamos blob y seguimos
+            hsBlob->Release();
+            hsBlob = nullptr;
+            hs = nullptr;
+        }
+    }
+    if (dsBlob) {
+        hr = device->CreateDomainShader(dsBlob->GetBufferPointer(), dsBlob->GetBufferSize(), nullptr, &ds);
+        if (FAILED(hr)) {
+            dsBlob->Release();
+            dsBlob = nullptr;
+            ds = nullptr;
+        }
     }
 
     // Crear Input Layout
@@ -94,6 +130,10 @@ HRESULT ShaderManager::LoadShader(Microsoft::WRL::ComPtr<ID3D11Device> device, s
     shader->SetInputLayout(layout);
     shader->SetVertexShaderBlob(vsBlob); // Guardar el blob del VS
     shader->SetPixelShaderBlob(psBlob);   // Guardar el blob del PS
+    if (hs) shader->SetHullShader(hs);
+    if (ds) shader->SetDomainShader(ds);
+    if (hsBlob) shader->SetHullShaderBlob(hsBlob);
+    if (dsBlob) shader->SetDomainShaderBlob(dsBlob);
 
     //vertexShaders[shaderName] = vs;
     //pixelShaders[shaderName] = ps;
@@ -102,7 +142,7 @@ HRESULT ShaderManager::LoadShader(Microsoft::WRL::ComPtr<ID3D11Device> device, s
     //pixelShaderBlobs[shaderName] = psBlob;   // Guardar el blob del PS
 
     // Los blobs ahora se liberan al destruir el ShaderManager o cuando se recargan los shaders.
-    // No los liberamos aquí para poder usarlos para crear el Input Layout si es necesario.
+    // No los liberamos aquï¿½ para poder usarlos para crear el Input Layout si es necesario.
 
     return S_OK;
 }
@@ -154,9 +194,9 @@ void ShaderManager::GetMatrixDefinitions(std::wstring shaderName, std::map<int, 
 std::shared_ptr<MatrixDefinition::AnyMatrixBuffer> ShaderManager::GetConstantsBuffer(std::string matrixName) {
     auto it = constantsBuffers.find(matrixName);
     if (it == constantsBuffers.end()) {
-        std::string msg = "Error: No se encontró el buffer de constantes para la matriz: " + matrixName + ".\n";
+        std::string msg = "Error: No se encontrï¿½ el buffer de constantes para la matriz: " + matrixName + ".\n";
         OutputDebugStringA(msg.c_str());
-        // Lanzar una excepción es la forma idiomática de indicar un fallo en este caso
+        // Lanzar una excepciï¿½n es la forma idiomï¿½tica de indicar un fallo en este caso
         throw std::runtime_error(msg);
     }
     return it->second; // Devuelve una referencia constante al mapa interno
@@ -170,7 +210,7 @@ std::map<int, std::pair<std::string, std::shared_ptr<MatrixDefinition::AnyMatrix
     if (it == matrixShaders.end()) {
         std::string msg = "Error: No se encontraron buffers de matrices para el shader: " + WstringToString(shaderName) + ".\n";
         OutputDebugStringA(msg.c_str());
-        // Lanzar una excepción es la forma idiomática de indicar un fallo en este caso
+        // Lanzar una excepciï¿½n es la forma idiomï¿½tica de indicar un fallo en este caso
         throw std::runtime_error(msg);
     }
     return it->second; // Devuelve una referencia constante al mapa interno
@@ -179,7 +219,7 @@ std::map<int, std::pair<std::string, std::shared_ptr<MatrixDefinition::AnyMatrix
 //void ShaderManager::SetConstantsBuffers(std::wstring shaderName, MatrixDefinitionBase::MatrixParams& matrixParams, std::map<std::string, Microsoft::WRL::ComPtr<ID3D11Buffer>>& constantBuffers, Microsoft::WRL::ComPtr<ID3D11DeviceContext> context) {
 //
 //    D3D11_MAPPED_SUBRESOURCE mapped = {};
-//    // Accedemos al mapa de matrices específico para este shader
+//    // Accedemos al mapa de matrices especï¿½fico para este shader
 //    std::map<int, std::pair<std::string, std::shared_ptr<MatrixDefinition::AnyMatrixBuffer>>>& matrices = matrixShaders[shaderName];
 //
 //    // Iteramos sobre cada tipo de buffer de constante que este shader requiere
@@ -188,35 +228,35 @@ std::map<int, std::pair<std::string, std::shared_ptr<MatrixDefinition::AnyMatrix
 //        // Buscamos el ID3D11Buffer correspondiente en nuestro mapa de buffers globales
 //        auto bufferComPtrIt = constantBuffers.find(matrixName);
 //        if (bufferComPtrIt == constantBuffers.end()) {
-//            // Si no se encuentra el buffer (por ejemplo, no se creó durante la inicialización),
+//            // Si no se encuentra el buffer (por ejemplo, no se creï¿½ durante la inicializaciï¿½n),
 //            // lo saltamos y continuamos con el siguiente.
 //            continue;
 //        }
 //
-//        // Obtenemos el puntero raw del ComPtr para usarlo con los métodos de DirectX
+//        // Obtenemos el puntero raw del ComPtr para usarlo con los mï¿½todos de DirectX
 //        ID3D11Buffer* pBuffer = bufferComPtrIt->second.Get();
 //
 //        // Mapeamos el buffer de constante para escritura.
 //        // D3D11_MAP_WRITE_DISCARD es eficiente si el buffer se actualiza cada frame.
 //        HRESULT hr = context->Map(pBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
 //        if (FAILED(hr)) {
-//            // Manejar error de mapeo, quizás con un log o assert.
+//            // Manejar error de mapeo, quizï¿½s con un log o assert.
 //            continue;
 //        }
 //
 //        std::string matrixType = "";
 //
-//        // Usamos std::visit para aplicar el método SetMatrixData correcto
-//        // a la estructura de buffer de constante específica (MatrixBufferType, DirectionalLight, etc.).
+//        // Usamos std::visit para aplicar el mï¿½todo SetMatrixData correcto
+//        // a la estructura de buffer de constante especï¿½fica (MatrixBufferType, DirectionalLight, etc.).
 //        std::visit([&](auto& currentMatrixStruct) {
 //            // Llamamos a SetMatrixData para rellenar la estructura con los datos actuales
-//            // de MatrixParams. Cada estructura sabe qué datos de MatrixParams necesita.
+//            // de MatrixParams. Cada estructura sabe quï¿½ datos de MatrixParams necesita.
 //            //currentMatrixStruct.SetMatrixData(matrixParams);
 //            matrixType = currentMatrixStruct.MatrixType();
 //            size_t size = currentMatrixStruct.Size();
 //            //size_t size = sizeof(currentMatrixStruct);
 //            // Copiamos los datos de nuestra estructura C++ a la memoria mapeada de la GPU.
-//            // Asegúrate de que el tamaño de la estructura coincida con el tamaño del buffer en la GPU.
+//            // Asegï¿½rate de que el tamaï¿½o de la estructura coincida con el tamaï¿½o del buffer en la GPU.
 //            //memcpy(mapped.pData, &currentMatrixStruct, sizeof(std::decay_t<decltype(currentMatrixStruct)>));
 //            memcpy(mapped.pData, &currentMatrixStruct, size);
 //            }, *matrix.second); // Accedemos al contenido del shared_ptr<AnyMatrixBuffer>
@@ -225,23 +265,23 @@ std::map<int, std::pair<std::string, std::shared_ptr<MatrixDefinition::AnyMatrix
 //        context->Unmap(pBuffer, 0);
 //
 //        // --- ENLACE DE LOS CONSTANT BUFFERS A LOS SHADERS ---
-//        // Aquí decidimos a qué estadio del pipeline se enlaza cada buffer.
-//        // Lo más común es:
-//        // - Matrices de transformación (World, View, Projection): Vertex Shader.
-//        // - Datos de cámara, luz, material: Pixel Shader (para cálculos de iluminación).
+//        // Aquï¿½ decidimos a quï¿½ estadio del pipeline se enlaza cada buffer.
+//        // Lo mï¿½s comï¿½n es:
+//        // - Matrices de transformaciï¿½n (World, View, Projection): Vertex Shader.
+//        // - Datos de cï¿½mara, luz, material: Pixel Shader (para cï¿½lculos de iluminaciï¿½n).
 //
 //        if (matrixType == MATRIX_TYPE_VERTEX.data() || matrixType == MATRIX_TYPE_MIXED.data()) {
-//            // Estos buffers contienen matrices de transformación que suelen usarse en el Vertex Shader.
+//            // Estos buffers contienen matrices de transformaciï¿½n que suelen usarse en el Vertex Shader.
 //            context->VSSetConstantBuffers(slot, 1, &pBuffer);
 //        }
 //
 //        if (matrixType == MATRIX_TYPE_PIXEL.data() || matrixType == MATRIX_TYPE_MIXED.data()) {
-//            // Estos buffers contienen datos que son cruciales para los cálculos de iluminación
+//            // Estos buffers contienen datos que son cruciales para los cï¿½lculos de iluminaciï¿½n
 //            // y propiedades de superficie, que se realizan en el Pixel Shader.
 //            context->PSSetConstantBuffers(slot, 1, &pBuffer);
 //        }
-//        // Nota: Si un buffer como "CameraData" también se necesitara en el Vertex Shader (ej. para billboarding),
-//        // podrías añadir otra línea: context->VSSetConstantBuffers(nSlot, 1, &pBuffer);
+//        // Nota: Si un buffer como "CameraData" tambiï¿½n se necesitara en el Vertex Shader (ej. para billboarding),
+//        // podrï¿½as aï¿½adir otra lï¿½nea: context->VSSetConstantBuffers(nSlot, 1, &pBuffer);
 //    }
 //}
 
@@ -260,21 +300,21 @@ std::shared_ptr<ShaderAsset> ShaderManager::LoadShaderByName(std::wstring shader
         OutputDebugStringA("No se encontraron shaders para cargar.\n");
         return nullptr;
     }
-    // Configuración del Shader
+    // Configuraciï¿½n del Shader
     std::shared_ptr<IAssetShaderConfig> config = shader->GetConfig();
     if (!config || config->vertex_def.empty()) {
-        OutputDebugStringA("Error: Configuración del shader no encontrada.\n");
-        return nullptr; // Saltar este shader si no tiene configuración
+        OutputDebugStringA("Error: Configuraciï¿½n del shader no encontrada.\n");
+        return nullptr; // Saltar este shader si no tiene configuraciï¿½n
     }
 
-    // Obtener valores de configuración
+    // Obtener valores de configuraciï¿½n
     std::string vertexDef = config->vertex_def;
     std::vector<std::string> matrixDef = config->matrix_slots;
     std::vector<std::string> samplerDef = config->sampler_slots;
 
     std::shared_ptr<IVertex> vertex = DefineLocator::GetVertexDefine(vertexDef);
     if (!vertex) {
-        OutputDebugStringA("Error: Configuración del shader: Definición de vértices no encontrada.\n");
+        OutputDebugStringA("Error: Configuraciï¿½n del shader: Definiciï¿½n de vï¿½rtices no encontrada.\n");
         return nullptr;
     }
 
@@ -413,7 +453,7 @@ std::vector<ShaderSampler::SamplerDefinition> ShaderManager::GetAllSamplersDesc(
                 }
             }
             if (!found) {
-                // Si no se ha encontrado, lo añadimos a la lista de samplers
+                // Si no se ha encontrado, lo aï¿½adimos a la lista de samplers
                 allSamplers.push_back(samplerDef);
             }
         }
@@ -440,7 +480,7 @@ SamplerStates ShaderManager::GetSamplersStates(std::wstring shaderName, SamplerS
             result[samplerDef.name] = stateIt->second;
         }
         else {
-            // Si no se encuentra, añadir un ComPtr vacío (nullptr) para mantener la clave
+            // Si no se encuentra, aï¿½adir un ComPtr vacï¿½o (nullptr) para mantener la clave
             result[samplerDef.name] = nullptr;
         }
     }
@@ -467,7 +507,7 @@ bool ShaderManager::NeedsShadow(std::wstring shaderName) {
             }
         }
     }
-    return false; // No se encontró ninguna matriz de sombra
+    return false; // No se encontrï¿½ ninguna matriz de sombra
 }
 
 void ShaderManager::Shutdown() {

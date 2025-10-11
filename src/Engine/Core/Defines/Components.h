@@ -7,3 +7,4 @@ inline constexpr std::string_view COMPONENT_SERVICE = "Service";
 inline constexpr std::string_view COMPONENT_ASSET = "Asset";
 inline constexpr std::string_view COMPONENT_ASSET_BASE = "AssetBase";
 inline constexpr std::string_view COMPONENT_GAME_SERVICE = "GameService";
+inline constexpr std::string_view COMPONENT_GAME_TERRAIN_ENGINE = "TerrainEngine";

@@ -9,7 +9,6 @@ ServiceConfig::ServiceConfig(){
 		"KeyBindings",
 		"Mouse",
 		"Material",
-		"ChunkService",
 		"ProceduralService",
 		"UIText",
 		"FrameStateService",
@@ -22,7 +21,6 @@ ServiceConfig::ServiceConfig(){
 		"Mouse",
 		"Keyboard",
 		"UIText",
-		"ChunkService",
 		"ProceduralService",
 		"FrameStateService"
 	};
@@ -31,7 +29,6 @@ ServiceConfig::ServiceConfig(){
 		"Keyboard",
 		"UIText",
 		"Material",
-		"ChunkService",
 		"FrameStateService",
 		"ProceduralService"
 	};
