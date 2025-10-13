@@ -15,8 +15,16 @@ public:
     }
 
     void Start() {
+        // NOTE: For AAA threading refactor we disable automatic creation
+        // of dedicated threads inside ThreadedService::Start().
+        // This allows a safe, reversible migration to the model where
+        // the main thread runs game logic and only a dedicated render
+        // thread exists. To rollback simply run: `git checkout .`.
         m_running = true;
-        m_thread = std::thread([this] { RunLoop(); });
+        // m_thread = std::thread([this] { RunLoop(); });
+        // If you need to re-enable per-manager threads, uncomment the
+        // line above. Prefer creating explicit threads from Engine
+        // (or another orchestrator) instead of relying on Start().
     }
 
     void Stop() {
