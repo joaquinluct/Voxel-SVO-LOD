@@ -45,6 +45,11 @@ Listado (cronológico, más reciente al final):
    - fecha: 2025-10-13
    - descripción: Introducido `IUpdateSystem` y `UpdateSystem` (delegando en `UpdateManager` durante la migración). Engine ahora usa `UpdateSystem` en `UpdateGameLogic`. Compilación verificada y commit creado.
 
+8. commit 317d264
+   - mensaje: refactor/ui-step-1: start UI subsystem and pause terrain integration
+   - fecha: 2025-10-13
+   - descripción: Se inició la base del subsistema UI (API en `UIManager` para generar comandos, integración con SceneManager). La integración del terreno queda en stand-by hasta validar el render pipeline con la UI.
+
 
 ---
 
