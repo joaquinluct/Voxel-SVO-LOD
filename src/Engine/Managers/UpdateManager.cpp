@@ -41,15 +41,12 @@ UpdateManager::~UpdateManager()
 // ---------------------------------------------------------------------------
 void UpdateManager::RunLoop()
 {
-    // Bucle principal de actualización
-    while (m_running) {
-
-        // Ejecutar los Jobs que nos envía la SceneManager
-        Update(m_context->deltaTime);
-
-        // Pequeña pausa para evitar el uso excesivo de la CPU
-        //std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    }
+    // NOTE: Migrated to AAA threading model. UpdateManager no longer runs
+    // a dedicated thread. Update() must be called from the Engine main loop
+    // (Engine::MainLoop) on the main thread. Keep RunLoop() as a no-op to
+    // preserve compatibility with ManagerBase/ThreadedService lifecycle.
+    (void)m_running;
+    return;
 
 }
 

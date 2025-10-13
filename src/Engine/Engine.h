@@ -74,6 +74,7 @@ public:
     void SetRunning(bool running) { m_context->isRunning = running; }
 
     void SetDeltaTime(float deltaTime) { m_context->deltaTime = deltaTime; }
+    float GetDeltaTime() const { return m_context ? m_context->deltaTime : 0.0f; }
 
     // THREADING AAA
     void MainLoop();

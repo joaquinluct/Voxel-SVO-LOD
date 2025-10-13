@@ -255,19 +255,40 @@ void Engine::Shutdown() {
 void Engine::MainLoop() {
     OutputDebugStringA("[Engine] MainLoop AAA iniciado.\n");
 
-    while (m_context && m_context->isRunning) {
+    // Procesar mensajes de Windows dentro del MainLoop
+    MSG msg = { 0 };
+    auto previousTime = std::chrono::high_resolution_clock::now();
+
+    while (m_context && m_context->isRunning && (WM_QUIT != msg.message)) {
+        // Procesar mensajes pendientes
+        while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
+
         auto frameStart = std::chrono::high_resolution_clock::now();
+
+        // Calcular deltaTime
+        std::chrono::duration<float> delta = frameStart - previousTime;
+        previousTime = frameStart;
+        float deltaTime = delta.count();
+
+        // Aplicar límites
+        if (deltaTime > MAX_DELTA_TIME) deltaTime = MAX_DELTA_TIME;
+        else if (deltaTime < MIN_DELTA_TIME) deltaTime = MIN_DELTA_TIME;
+
+        if (m_context) m_context->deltaTime = deltaTime;
 
         // 1. INPUT (Main Thread)
         HandleInput();
 
         // 2. GAME LOGIC UPDATE (Main Thread)
-        UpdateGameLogic(m_context->deltaTime);
+        UpdateGameLogic(deltaTime);
 
-        // 3. SCENE UPDATE (Main Thread)  
-    if (m_sceneManager) {
-        m_sceneManager->Update(m_context->deltaTime);
-    }
+        // 3. SCENE UPDATE (Main Thread)
+        if (m_sceneManager) {
+            m_sceneManager->Update(deltaTime);
+        }
 
         // 4. SUBMIT RENDER COMMANDS
         SubmitRenderCommands();

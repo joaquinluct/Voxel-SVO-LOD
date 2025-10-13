@@ -68,51 +68,13 @@ int MainWindow::Create(int width, int height) {
         return 1;
     }
 
-    // ---------------------------------
-    // Bucle principal de la aplicación.
-    // NUEVO: Usar MainLoop AAA o bucle legacy
-    // ---------------------------------
-    bool useNewMainLoop = true;  // Flag para testing gradual
-
-    // THREADING AAA: Desactivado temporalmente para mantener compilación
-    if (false) {
-        // Código AAA threading comentado temporalmente
-    }
-    else {
-        //==============================================================================
-        // MODELO LEGACY: Para compatibilidad durante migración
-        //==============================================================================
-        OutputDebugStringA("[MainWindow] Usando bucle legacy.\n");
-
-        while (WM_QUIT != msg.message) {
-            if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
-                TranslateMessage(&msg);
-                DispatchMessage(&msg);
-            }
-            else {
-                // Calcula el tiempo delta.
-                LARGE_INTEGER currentTime;
-                QueryPerformanceCounter(&currentTime);
-                float delta = (float)(currentTime.QuadPart - previousTime.QuadPart) / frequency.QuadPart;
-                previousTime = currentTime;
-
-                // Aplica un límite al tiempo delta.
-                if (delta > MAX_DELTA_TIME) {
-                    delta = MAX_DELTA_TIME;
-                }
-                else if (delta < MIN_DELTA_TIME) {
-                    delta = MIN_DELTA_TIME;
-                }
-
-                m_context->deltaTime = delta;
-                m_gameEngine->SetDeltaTime(delta);
-                this->m_deltaTime = delta;
-
-                // AAA: Llamar a Tick por frame (game logic ejecutado en main thread)
-                m_gameEngine->Tick(delta);
-            }
-        }
-    }
+    // ---------------------------------------------------------------
+    // Usar MainLoop AAA por defecto: consolidamos input/update/scene
+    // en el hilo principal y dejamos solo el render thread aparte.
+    // ---------------------------------------------------------------
+    OutputDebugStringA("[MainWindow] Usando MainLoop AAA por defecto.\n");
+    // MainLoop se encarga de procesar mensajes y ejecutar la lógica del juego en el hilo principal.
+    m_gameEngine->MainLoop();
     m_context->isRunning = false;
     OutputDebugStringA("[MainWindow] Finalizando Aplicación ...\n");
     return (int)msg.wParam;

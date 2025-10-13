@@ -84,16 +84,11 @@ SceneManager::~SceneManager() {}
 const float MAX_DELTA_TIME = 0.1f;
 const float MIN_DELTA_TIME = 0.0042f;
 void SceneManager::RunLoop() {
-    while (m_running) {
-        float deltaTime = m_context->deltaTime;
-        if (deltaTime > MAX_DELTA_TIME) {
-            deltaTime = MAX_DELTA_TIME;
-        }
-        else if (deltaTime < MIN_DELTA_TIME) {
-            deltaTime = MIN_DELTA_TIME;
-        }
-        Update(deltaTime);
-    }
+    // NOTE: Migrated to AAA threading model. SceneManager no longer runs a
+    // dedicated thread. SceneManager::Update() must be invoked from the
+    // Engine main loop (Engine::MainLoop) on the main thread.
+    (void)m_running;
+    return;
 }
 
 // -----------------------------------------------------------------

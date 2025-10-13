@@ -136,7 +136,25 @@ Remove-Item -Recurse -Force .\src\Engine\Core\Config\*
 ```
 Incluye variantes concretas si quieres que arme un script `regen_configs.ps1` en el repo.
 
-Si quieres, integro ahora una plantilla mínima para crear un nuevo Service + Config y un pequeño script PowerShell `regen_configs.ps1` que ejecute `YamlToStruct.exe` con rutas del proyecto.
+ 
+ Mecánica de trabajo recomendada para refactorings (especialmente threading)
+ ---------------------------------------------------------------------
+ Para cambios grandes (p. ej. migración a modelo AAA de threading) seguir esta mecánica para minimizar riesgo y facilitar rollback:
+ 
+ - Dividir el refactor en pasos cortos y numerados (Step 1, Step 2, ...). Cada paso debe ser pequeño y compilar limpio.
+ - Después de aplicar cada paso:
+   - Ejecutar la compilación del workspace (msbuild / Visual Studio). Si falla, revertir el cambio o arreglar inmediatamente.
+   - Crear un commit con mensaje claro y estandarizado: `refactor/threading-step-<n>: <breve-descripción>`.
+   - Empujar el commit si procede (remote branch). Esto permite volver a un punto seguro si algo sale mal.
+ - Mantener un archivo de notas `md/Threading/ESTO ES LO QUE QUIERO.md` con la lista de pasos y el estado (pendiente/completado) para guiar el trabajo.
+ - Cuando se introduzcan cambios invasivos (eliminación de clases, cambio de firmas públicas), añadir una etiqueta `BREAKING` en el mensaje del commit y documentar cómo volver al estado anterior.
+ - Automatizar la verificación: antes de cada merge, ejecutar `run_build`/CI para asegurar que todos los pasos generan builds limpios.
+ 
+ Regla práctica para la IA:
+ - Nunca agrupar más de una intención arquitectónica en un único commit. Cada commit debe implementar y verificar una única idea.
+ - Si un cambio requiere tocar múltiples subsistemas, crear una rama `refactor/threading` y trabajar por commits numerados.
+ 
+ Aplicación inmediata: al migrar `UpdateManager` y `SceneManager` a sistemas sin hilo, implementar y compilar por pasos (por ejemplo: 1) convertir RunLoop a no-op, 2) llamar Update desde Engine::MainLoop, 3) eliminar ThreadedService y actualizar ManagerBase, 4) limpiar y documentar). Cada paso deberá tener su propio commit.
 
 -- ARQUITECTURA DE TERRENO MODULAR (OBJETIVO PRINCIPAL DEL FRAMEWORK) --
 =========================================================================
