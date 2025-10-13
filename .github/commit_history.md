@@ -30,6 +30,16 @@ Listado (cronológico, más reciente al final):
    - fecha: 2025-10-13
    - descripción: Implementación de `Engine::RenderLoop`, `SubmitRenderCommands` y ejecución de `RenderCommandPacket` en el render thread. Compilación verificada localmente (build limpia). Push a rama `terrain`.
 
+5. commit f8f275d
+   - mensaje: refactor/threading-step-4: migrate UpdateManager and SceneManager to main thread
+   - fecha: 2025-10-13
+   - descripción: Migración de `UpdateManager` y `SceneManager` para ejecutar su lógica en el hilo principal. `RunLoop()` se mantiene como no-op para compatibilidad. Compilación verificada y push a rama `terrain`.
+
+6. commit 17dfbd6
+   - mensaje: chore: add post-commit hook to auto-update commit_history
+   - fecha: 2025-10-13
+   - descripción: Añadido `.githooks/post-commit` que automatiza la adición de entradas en `.github/commit_history.md` tras cada commit. Instrucciones: copiar a `.git/hooks/post-commit` y marcar ejecutable localmente.
+
 
 ---
 

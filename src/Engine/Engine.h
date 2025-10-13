@@ -133,7 +133,7 @@ private:
     //--------------------------------------------------------------------------------------
     // NUEVO: Sistemas AAA (reemplazan managers threading)
     //--------------------------------------------------------------------------------------
-    //std::unique_ptr<UpdateSystem> m_updateSystem;     // Sin thread propio
+    std::unique_ptr<class UpdateSystem> m_updateSystem;     // Sin thread propio
     //std::unique_ptr<SceneSystem> m_sceneSystem;       // Sin thread propio
     //std::unique_ptr<RenderCommandSystem> m_renderCommandSystem;
 

@@ -346,6 +346,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <UseStandardPreprocessor Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</UseStandardPreprocessor>
     </ClCompile>
+    <ClCompile Include="src\Engine\Systems\UpdateSystem.cpp" />
     <ClCompile Include="src\Game\GameObjects\Line.cpp" />
     <ClCompile Include="src\Game\GameObjects\TestingFloor.cpp" />
     <ClCompile Include="src\Game\Systems\Chronos.cpp" />
@@ -633,6 +634,8 @@
     <ClInclude Include="src\Engine\Core\Locators\TerrainEngineLocator\TerrainEngineLocator.h" />
     <ClInclude Include="src\Engine\Managers\RenderManager\Jobs\Update\UpdateMeshTerrainJob.h" />
     <ClInclude Include="src\Engine\Rendering\RenderCommand.h" />
+    <ClInclude Include="src\Engine\Systems\IUpdateSystem.h" />
+    <ClInclude Include="src\Engine\Systems\UpdateSystem.h" />
     <ClInclude Include="src\Game\Systems\Terrain\Buffer\InstancingRingBuffer.h" />
     <ClInclude Include="src\Game\Systems\Terrain\Defines\Chunk\ChunkNeighborMask.h" />
     <ClInclude Include="src\Game\Systems\Terrain\Defines\Chunk\TerrainChunkConfig.h" />
@@ -1084,6 +1087,7 @@
   <ItemGroup>
     <None Include=".clang-format" />
     <None Include=".gitattributes" />
+    <None Include=".githooks\post-commit" />
     <None Include=".github\commit_history.md" />
     <None Include=".github\copilot-instructions.md" />
     <None Include="Assets\Textures\Brick\Poliigon_BrickWallReclaimed_8320.mtlx" />
@@ -1129,6 +1133,7 @@
     <None Include="md\SVO.md" />
     <None Include="md\SVO_TRIÁNGULOS.md" />
     <None Include="md\Terrain\DawIndexedIndirect.md" />
+    <None Include="md\Terrain\EROSION HIDRÁULICA.md" />
     <None Include="md\Threading\ESTO ES LO QUE QUIERO.md" />
     <None Include="md\Terrain\TIPO DE CHUNK.md" />
     <None Include="md\Terrain\TÉCNICAS PARA EL TERRENO.md" />

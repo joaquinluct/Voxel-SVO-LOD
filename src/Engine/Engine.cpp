@@ -1,5 +1,6 @@
 #include "Engine.h"
 #include "InitManager.h"
+#include "Systems/UpdateSystem.h"
 #include "Locators/ManagerLocator/ManagerLocator.h"
 #include "MainManagers/InputManager.h"
 #include "Managers/DeviceManager.h"
@@ -67,6 +68,8 @@ bool Engine::InitManagers() {
     if (!m_renderManager) return false;
     m_updateManager = ManagerLocator::GetManager<UpdateManager>();
     if (!m_updateManager) return false;
+    // Create update system wrapper delegating to legacy manager during migration
+    m_updateSystem = std::make_unique<UpdateSystem>(m_updateManager.get());
     //if (FAILED(m_updateManager->Init())) return false;
     m_sceneManager = ManagerLocator::GetManager<SceneManager>();
     if (!m_sceneManager) return false;
@@ -350,7 +353,9 @@ void Engine::RenderLoop() {
 //--------------------------------------------------------------------------------------
 void Engine::UpdateGameLogic(float deltaTime) {
     // Consolidar lo que antes hacían UpdateManager/SceneManager threads
-    if (m_updateManager) {
+    if (m_updateSystem) {
+        m_updateSystem->Update(deltaTime);
+    } else if (m_updateManager) {
         m_updateManager->Update(deltaTime);
     }
 }
