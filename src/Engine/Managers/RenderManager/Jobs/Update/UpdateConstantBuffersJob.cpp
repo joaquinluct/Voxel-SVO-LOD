@@ -7,8 +7,7 @@
 #include <Defines/Structs/PipelineResources.h>
 #include <Defines/Types/ThreadTypes.h>
 #include <DirectXMath.h>
-#include <Game/Systems/Terrain.h>
-#include <Game/Systems/World.h>
+#include <DirectXMathMatrix.inl>
 #include <IJob.h>
 #include <Managers/RenderState/FrameStates/ConstantsBufferFrameState.h>
 #include <map>
@@ -49,7 +48,7 @@ bool UpdateConstantBuffersJob::Execute(JobContext* context)
     LightMatrixParams lightParams = {};
     lightParams.lightColor = context->ligting->GetLightColor();
     lightParams.lightDirection = context->ligting->GetLightDirection();
-    lightParams.fogStartDistance = farPlane - (farPlane / 1.1); // Empieza a desvanecer la geometría
+    lightParams.fogStartDistance = farPlane - (farPlane / 1.1f); // Empieza a desvanecer la geometría
     lightParams.fogEndDistance = farPlane; // Totalmente gris, ocultando el fallo del LOD
     //lightParams.fogDensity = -100.0f; // Controla la densidad general de la niebla
     lightParams.fogDensity = -10000.0f; // Para que no aparezca en el suelo

@@ -1,14 +1,21 @@
 #include "Engine.h"
+#include <chrono>
 #include <InitManager.h>
 #include <Locators/ManagerLocator/ManagerLocator.h>
 #include <MainManagers/InputManager.h>
 #include <Managers/DeviceManager.h>
 #include <Managers/SceneManager.h>
 #include <Managers/UpdateManager.h>
+#include <mutex>
 #include <RenderManager/RenderManager.h>
 #include <ServiceLocator/ServiceLocator.h>
 #include <Services/ThreadPool.h>
 #include <Util/DirectXDebug.h>
+
+// NUEVO: Includes para sistemas AAA
+// #include <Systems/UpdateSystem.h>     // Se creará después
+// #include <Systems/SceneSystem.h>      // Se creará después
+// #include <Systems/RenderCommandSystem.h>  // Se creará después
 //--------------------------------------------------------------------------------------
 // Constructor: Inicializa las variables miembro.
 //--------------------------------------------------------------------------------------
@@ -19,7 +26,7 @@ Engine::Engine() :
     m_renderManager(nullptr),
     m_updateManager(nullptr),
     m_threadPool(nullptr),
-    m_updateThread(nullptr),
+    //m_updateThread(nullptr),
     m_renderThread(nullptr),
     m_sceneManager(nullptr)
 {
@@ -70,7 +77,7 @@ bool Engine::InitManagers() {
 }
 
 //--------------------------------------------------------------------------------------
-// Inicializa el ThreadPool y los hilos de actualización y renderizado.
+// NUEVO: Inicializa threading AAA - Solo Render Thread + ThreadPool
 //--------------------------------------------------------------------------------------
 bool Engine::InitThreads() {
     // Creación del ThreadPool
@@ -87,21 +94,41 @@ bool Engine::InitThreads() {
         return false;
     }
 
-    if (
-        !m_sceneManager->IsInitialized() ||
-        !m_updateManager->IsInitialized() ||
-        !m_renderManager->IsInitialized()
-        ) {
-        OutputDebugStringA("[Engine] Thread - ERROR - Managers no inicializados.\n");
-        return false;
-    }
+    if (m_useNewThreading) {
+        //--------------------------------------------------------------------------------------
+        // NUEVA ARQUITECTURA AAA: Solo Render Thread
+        //--------------------------------------------------------------------------------------
+        OutputDebugStringA("[Engine] Thread - Usando Nueva Arquitectura AAA.\n");
 
-    // Inicia los hilos de actualización y renderizado. (bucles principales separados)
-    /*m_updateThread = std::make_unique<std::thread>(&Engine::UpdateLoop, this);
-    m_renderThread = std::make_unique<std::thread>(&Engine::RenderLoop, this);*/
-    m_sceneManager->Start();
-    m_updateManager->Start();
-    m_renderManager->Start();
+        // Inicializar sistemas AAA (sin threads propios)
+        if (!InitAAASystems()) {
+            OutputDebugStringA("[Engine] Thread - ERROR - Inicializando Sistemas AAA.\n");
+            return false;
+        }
+
+        // Solo iniciar render thread
+        m_renderThread = std::make_unique<std::thread>(&Engine::RenderLoop, this);
+
+        OutputDebugStringA("[Engine] Thread - Render Thread iniciado (AAA).\n");
+    }
+    else {
+        //--------------------------------------------------------------------------------------
+        // ARQUITECTURA LEGACY: Para compatibilidad durante migración
+        //--------------------------------------------------------------------------------------
+        OutputDebugStringA("[Engine] Thread - Usando Arquitectura Legacy.\n");
+
+        if (!m_sceneManager->IsInitialized() ||
+            !m_updateManager->IsInitialized() ||
+            !m_renderManager->IsInitialized()) {
+            OutputDebugStringA("[Engine] Thread - ERROR - Managers no inicializados.\n");
+            return false;
+        }
+
+        // Inicia los hilos legacy
+        m_sceneManager->Start();
+        m_updateManager->Start();
+        m_renderManager->Start();
+    }
 
     return true;
 }
@@ -224,21 +251,38 @@ void Engine::Resume() {
 //}
 
 //--------------------------------------------------------------------------------------
-// Apaga los hilos de forma segura.
+// ACTUALIZADO: Apaga los hilos de forma segura (AAA + Legacy)
 //--------------------------------------------------------------------------------------
 void Engine::ShutdownThreads() {
     m_context->isRunning = false;
 
-    m_sceneManager->Stop();
-    m_updateManager->Stop();
-    m_renderManager->Stop();
+    if (m_useNewThreading) {
+        //--------------------------------------------------------------------------------------
+        // NUEVO: Shutdown AAA Threading
+        //--------------------------------------------------------------------------------------
+        OutputDebugStringA("[Engine] Shutdown - Nueva Arquitectura AAA.\n");
 
-    /*if (m_updateThread && m_updateThread->joinable()) {
-        m_updateThread->join();
+        // Notificar al render thread que termine
+        m_renderCondition.notify_all();
+
+        // Esperar a que termine el render thread
+        if (m_renderThread && m_renderThread->joinable()) {
+            m_renderThread->join();
+        }
+
+        OutputDebugStringA("[Engine] Shutdown - Render Thread terminado.\n");
+
     }
-    if (m_renderThread && m_renderThread->joinable()) {
-        m_renderThread->join();
-    }*/
+    else {
+        //--------------------------------------------------------------------------------------
+        // LEGACY: Shutdown old threading
+        //--------------------------------------------------------------------------------------
+        OutputDebugStringA("[Engine] Shutdown - Arquitectura Legacy.\n");
+
+        if (m_sceneManager) m_sceneManager->Stop();
+        if (m_updateManager) m_updateManager->Stop();
+        if (m_renderManager) m_renderManager->Stop();
+    }
 }
 
 void Engine::Shutdown() {
@@ -271,4 +315,181 @@ void Engine::Shutdown() {
     ReportLiveObjects();
 
     OutputDebugStringA("[Engine] Shutdown complete.\n");
+}
+
+//====================================================================================
+// NUEVA IMPLEMENTACIÓN THREADING AAA
+//====================================================================================
+
+//--------------------------------------------------------------------------------------
+// NUEVO: MainLoop consolidado - Game Logic en Main Thread (Estándar AAA)
+//--------------------------------------------------------------------------------------
+void Engine::MainLoop() {
+    OutputDebugStringA("[Engine] MainLoop AAA iniciado.\n");
+
+    while (m_context->isRunning) {
+        auto frameStart = std::chrono::high_resolution_clock::now();
+
+        // 1. INPUT (Main Thread)
+        HandleInput();
+
+        // 2. GAME LOGIC UPDATE (Main Thread)
+        UpdateGameLogic(m_context->deltaTime);
+
+        // 3. SCENE UPDATE (Main Thread)  
+        //if (m_useNewThreading && m_sceneSystem) {
+        //    m_sceneSystem->Update(m_context->deltaTime);  // Se implementará
+        //}
+        //else if (m_sceneManager) {
+        //    // Legacy: usar SceneManager existente sin thread
+        //    m_sceneManager->Update(m_context->deltaTime);
+        //}
+
+        // 4. SUBMIT RENDER COMMANDS
+        SubmitRenderCommands();
+
+        // 5. WAIT FOR VSYNC/FRAME LIMIT
+        WaitForFrameLimit(frameStart);
+
+        m_frameCounter++;
+    }
+
+    OutputDebugStringA("[Engine] MainLoop AAA terminado.\n");
+}
+
+//--------------------------------------------------------------------------------------
+// NUEVO: Inicializar sistemas AAA (sin threads propios)
+//--------------------------------------------------------------------------------------
+bool Engine::InitAAASystems() {
+    // TODO: Implementar cuando creemos los sistemas
+    // m_updateSystem = std::make_unique<UpdateSystem>();
+    // m_sceneSystem = std::make_unique<SceneSystem>();
+    // m_renderCommandSystem = std::make_unique<RenderCommandSystem>();
+
+    OutputDebugStringA("[Engine] Sistemas AAA inicializados (placeholder).\n");
+    return true;
+}
+
+//--------------------------------------------------------------------------------------
+// NUEVO: RenderThread puro - Solo renderizado (Estándar AAA)
+//--------------------------------------------------------------------------------------
+void Engine::RenderLoop() {
+    // Inicialización del render thread
+    OutputDebugStringA("[Engine] RenderLoop AAA iniciado.\n");
+
+    // Configurar prioridad del thread
+    SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
+
+    while (m_context->isRunning) {
+        // 1. WAIT FOR RENDER COMMANDS
+        WaitForRenderCommands();
+
+        // 2. EXECUTE RENDER COMMANDS
+        ExecuteRenderCommands();
+
+        // 3. PRESENT
+        if (m_renderManager) {
+            // Usar RenderManager existente para present
+            // m_renderManager->Present();  // Se implementará
+        }
+
+        // 4. SIGNAL FRAME COMPLETE
+        SignalFrameComplete();
+    }
+
+    OutputDebugStringA("[Engine] RenderLoop AAA terminado.\n");
+}
+
+//--------------------------------------------------------------------------------------
+// NUEVO: Update Game Logic en Main Thread
+//--------------------------------------------------------------------------------------
+void Engine::UpdateGameLogic(float deltaTime) {
+    //if (m_useNewThreading && m_updateSystem) {
+    //    // TODO: m_updateSystem->Update(deltaTime);
+    //}
+    //else {
+    //    // Legacy: usar managers existentes
+    //    // Consolidar lo que antes hacían UpdateManager/SceneManager threads
+    //    // TODO: Implementar consolidación
+    //}
+}
+
+//--------------------------------------------------------------------------------------
+// NUEVO: Handle Input en Main Thread
+//--------------------------------------------------------------------------------------
+void Engine::HandleInput() {
+    // Input ya se maneja en MainWindow, aquí podemos agregar lógica adicional
+    // TODO: Consolidar input handling si es necesario
+}
+
+//--------------------------------------------------------------------------------------
+// NUEVO: Submit Commands del Main Thread al Render Thread
+//--------------------------------------------------------------------------------------
+void Engine::SubmitRenderCommands() {
+    std::lock_guard<std::mutex> lock(m_renderQueueMutex);
+
+    // TODO: Recopilar comandos de todos los sistemas
+    // auto sceneCommands = m_sceneSystem->GetRenderCommands();
+    // auto terrainCommands = GetTerrainRenderCommands();
+
+    // Crear packet de frame
+    /*RenderCommandPacket framePacket;
+    framePacket.frameId = m_frameCounter;*/
+    // framePacket.commands.insert(framePacket.commands.end(), 
+    //                            sceneCommands.begin(), sceneCommands.end());
+
+    /*m_renderQueue.push(std::move(framePacket));*/
+    m_renderCondition.notify_one();
+}
+
+//--------------------------------------------------------------------------------------
+// NUEVO: Wait for Frame Limit (60 FPS target)
+//--------------------------------------------------------------------------------------
+void Engine::WaitForFrameLimit(std::chrono::high_resolution_clock::time_point frameStart) {
+    const auto targetFrameTime = std::chrono::microseconds(16667); // 60 FPS
+
+    auto frameEnd = std::chrono::high_resolution_clock::now();
+    auto frameTime = frameEnd - frameStart;
+
+    if (frameTime < targetFrameTime) {
+        std::this_thread::sleep_for(targetFrameTime - frameTime);
+    }
+}
+
+//--------------------------------------------------------------------------------------
+// NUEVO: Wait for Render Commands en Render Thread
+//--------------------------------------------------------------------------------------
+void Engine::WaitForRenderCommands() {
+    /*std::unique_lock<std::mutex> lock(m_renderQueueMutex);
+    m_renderCondition.wait(lock, [this] {
+        return !m_renderQueue.empty() || !m_context->isRunning;
+        });*/
+}
+
+//--------------------------------------------------------------------------------------
+// NUEVO: Execute Render Commands en Render Thread
+//--------------------------------------------------------------------------------------
+void Engine::ExecuteRenderCommands() {
+    //std::unique_lock<std::mutex> lock(m_renderQueueMutex);
+
+    //while (!m_renderQueue.empty()) {
+    //    RenderCommandPacket packet = std::move(m_renderQueue.front());
+    //    m_renderQueue.pop();
+    //    lock.unlock();
+
+    //    // TODO: Ejecutar comandos
+    //    // for (auto& command : packet.commands) {
+    //    //     command->Execute(deviceContext);
+    //    // }
+
+    //    lock.lock();
+    //}
+}
+
+//--------------------------------------------------------------------------------------
+// NUEVO: Signal Frame Complete
+//--------------------------------------------------------------------------------------
+void Engine::SignalFrameComplete() {
+    m_frameReady = true;
+    // TODO: Notificar al main thread si es necesario
 }

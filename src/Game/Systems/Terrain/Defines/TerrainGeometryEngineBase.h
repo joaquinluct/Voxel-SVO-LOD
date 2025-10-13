@@ -8,6 +8,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <Windows.h>
 
 /**
  * Interfaz base para todos los motores de geometría del terreno.

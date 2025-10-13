@@ -1,4 +1,5 @@
 #include "TerrainDistributionFactory.h"
+#include <debugapi.h>
 #include <Game/System/TerrainConfig.h>
 #include <Game/Systems/Terrain/Defines/TerrainDistributionEngineBase.h>
 #include <Locators/TerrainEngineLocator/TerrainEngineLocator.h>

@@ -7,6 +7,7 @@
 #include <functional>
 #include <Game/System/TerrainConfig.h>
 #include <Locators/Registers/REGISTER_TERRAIN_ENGINE_MACRO.h>
+#include <string>
 #include <unordered_map>
 #include <vector>
 #include <Windows.h>
@@ -81,10 +82,14 @@ void GeometryChunkEngine::GenerateMesh(
     // Paso 2: generar índices
     for (int z = 0; z < gridSize; ++z) {
         for (int x = 0; x < gridSize; ++x) {
-            UINT topLeft = vertexIndexGrid[z][x];
-            UINT topRight = vertexIndexGrid[z][x + 1];
-            UINT bottomLeft = vertexIndexGrid[z + 1][x];
-            UINT bottomRight = vertexIndexGrid[z + 1][x + 1];
+            UINT ux = static_cast<UINT>(x);
+            UINT uz = static_cast<UINT>(z);
+            UINT ux1 = ux + 1;
+            UINT uz1 = uz + 1;
+            UINT topLeft = vertexIndexGrid[uz][ux];
+            UINT topRight = vertexIndexGrid[uz][ux1];
+            UINT bottomLeft = vertexIndexGrid[uz1][ux];
+            UINT bottomRight = vertexIndexGrid[uz1][ux1];
 
             index.push_back(topLeft);
             index.push_back(bottomLeft);

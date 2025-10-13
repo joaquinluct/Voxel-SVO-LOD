@@ -27,20 +27,20 @@ private:
 
 struct PipelinePassStateData
 {
-    int id;
-    bool enabled;
-    std::string viewport;
-    std::string shader;
-    std::string material;
-    std::string rasterizedState;
-    std::string viewPortState;
-    std::string stencilState;
-    std::string stencilDef;
-    std::string shaderViewState;
-    bool shadowTextureView;
-    std::string blendState;
-    int primitiveTopology;
-    int resolution;
+    int id = 0;
+    bool enabled = false;
+    std::string viewport = "";
+    std::string shader = "";
+    std::string material = "";
+    std::string rasterizedState = "";
+    std::string viewPortState = "";
+    std::string stencilState = "";
+    std::string stencilDef = "";
+    std::string shaderViewState = "";
+    bool shadowTextureView = false;
+    std::string blendState = "";
+    int primitiveTopology = 0;
+    int resolution = 0;
 };
 
 // CONTROL DE ESTADOS DEL PIPELINE

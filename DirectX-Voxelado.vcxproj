@@ -327,6 +327,7 @@
     <ClCompile Include="src\Engine\Managers\RenderManager\Pipeline\ConcreteResources.cpp" />
     <ClCompile Include="src\Engine\Managers\RenderState\FrameStates\MeshesFrameState.cpp" />
     <ClCompile Include="src\Engine\Managers\RenderState\FrameStates\RenderFrameState.cpp" />
+    <ClCompile Include="src\Engine\Rendering\RenderCommand.cpp" />
     <ClCompile Include="src\Engine\Services\ThreadPool.cpp" />
     <ClCompile Include="src\Engine\Engine.cpp" />
     <ClCompile Include="src\Engine\Managers\MainManagers\InputManager.cpp" />
@@ -631,6 +632,7 @@
     <ClInclude Include="src\Engine\Core\Locators\Registers\REGISTER_TERRAIN_ENGINE_MACRO.h" />
     <ClInclude Include="src\Engine\Core\Locators\TerrainEngineLocator\TerrainEngineLocator.h" />
     <ClInclude Include="src\Engine\Managers\RenderManager\Jobs\Update\UpdateMeshTerrainJob.h" />
+    <ClInclude Include="src\Engine\Rendering\RenderCommand.h" />
     <ClInclude Include="src\Game\Systems\Terrain\Buffer\InstancingRingBuffer.h" />
     <ClInclude Include="src\Game\Systems\Terrain\Defines\Chunk\ChunkNeighborMask.h" />
     <ClInclude Include="src\Game\Systems\Terrain\Defines\Chunk\TerrainChunkConfig.h" />
@@ -1080,6 +1082,7 @@
     <Image Include="Resources\Textures\Rock\Coast sand rock\coast_sand_rocks_02_rough_4k.jpg" />
   </ItemGroup>
   <ItemGroup>
+    <None Include=".gitattributes" />
     <None Include=".github\copilot-instructions.md" />
     <None Include="Assets\Textures\Brick\Poliigon_BrickWallReclaimed_8320.mtlx" />
     <None Include="Assets\Textures\DefaultSkybox\build_dds.bat" />
@@ -1106,6 +1109,7 @@
     <None Include="Libs\DirectX\DirectXTex\Shaders\CompileShaders.cmd" />
     <None Include="md\CUBEMAPS_SKYBOX.md" />
     <None Include="md\Memoria\HEAD\ANÁLISIS SNAPSHOT DE MEMORIA.md" />
+    <None Include="md\ORIENTACIÓN DEL FRAMEWORK - PENDIENTE DE IMPLEMENTAR.md" />
     <None Include="md\Pipeline\ETAPAS DEL PIPELINE - DIRECTX-11.md" />
     <None Include="md\PIPE-LINE.md" />
     <None Include="md\Pipeline\FRAME BASE OPERACIONES.md" />

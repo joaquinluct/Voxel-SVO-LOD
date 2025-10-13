@@ -28,7 +28,7 @@ public:
     void PrepareForFrame(const DirectX::XMFLOAT3& cameraPos) override;
     void Draw() override;
     void Bind(ID3D11DeviceContext* context) override;
-    
+
     // Método específico para renderizar chunks con tessellation
     void RenderChunks(const std::vector<TerrainChunk::ChunkID>& chunkIds, const DirectX::XMFLOAT3& cameraPos);
 private:

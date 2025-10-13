@@ -792,6 +792,9 @@
     <ClCompile Include="src\Game\Systems\Terrain\Engines\Distribution\TerrainChunkEngine.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="src\Engine\Rendering\RenderCommand.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Interfaces\IManager.h">
@@ -2288,6 +2291,9 @@
     <ClInclude Include="src\Game\Systems\Terrain\Engines\Distribution\TerrainChunkEngine.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="src\Engine\Rendering\RenderCommand.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\Shaders\BasicShader.hlsl" />
@@ -2526,6 +2532,8 @@
     <None Include="md\Terrain\TÉCNICAS PARA EL TERRENO.md" />
     <None Include="md\Terrain\TIPO DE CHUNK.md" />
     <None Include=".github\copilot-instructions.md" />
+    <None Include="md\ORIENTACIÓN DEL FRAMEWORK - PENDIENTE DE IMPLEMENTAR.md" />
+    <None Include=".gitattributes" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="C:\Users\joaqu\Downloads\yaml-cpp-master-original\yaml-cpp-master\build\Debug\yaml-cppd.lib" />

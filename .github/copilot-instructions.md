@@ -479,3 +479,209 @@ SceneManager::Update()
 ## Comando especial para IA:
 **Cuando el usuario diga: "Me ha salido lo de que se acaba la conversación"**
 → Actualizar automáticamente esta sección con el estado exacto donde se quedó el trabajo.
+
+-- ARQUITECTURA THREADING AAA - NUEVO OBJETIVO PRIORITARIO --
+============================================================
+
+### **CRÍTICO: Refactoring Threading Model a Estándar AAA**
+
+**PROBLEMA IDENTIFICADO**: El modelo de threading actual no cumple estándares de frameworks AAA. Mezcla threads dedicados innecesarios con ThreadPool sin justificación clara.
+
+**ARQUITECTURA ACTUAL (PROBLEMÁTICA)**:
+```
+MainWindow (hilo principal)
+├── Cálculo de deltaTime  
+├── Manejo de mensajes Windows
+└── Engine::InitThreads()
+    ├── SceneManager::Start() [Thread dedicado ❌]
+    ├── UpdateManager::Start() [Thread dedicado ❌] 
+    └── RenderManager::Start() [Thread dedicado ❌]
+    
++ ThreadPool para jobs asíncronos
+= 4 + N threads (EXCESIVO)
+```
+
+**ARQUITECTURA OBJETIVO (ESTÁNDAR AAA)**:
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   Main Thread   │────▶│   Render Thread  │    │   ThreadPool    │
+│                 │    │                  │    │                 │
+│ • Input         │    │ • CommandLists   │    │ • Terrain Jobs  │
+│ • Timing        │    │ • GPU Submit     │    │ • Asset Loading │
+│ • Game Logic    │    │ • Present        │    │ • Physics       │
+│ • Scene Update  │    │                  │    │ • Audio         │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+
+= 2 threads principales + ThreadPool workers (EFICIENTE)
+```
+
+### **CAMBIOS OBLIGATORIOS PARA THREADING AAA**
+
+**1. CONSOLIDAR MAIN THREAD**:
+- ❌ **ELIMINAR**: UpdateManager thread dedicado
+- ❌ **ELIMINAR**: SceneManager thread dedicado  
+- ✅ **MOVER**: Toda la lógica de update al main thread
+- ✅ **MANTENER**: Solo RenderThread separado
+
+**2. RENDERTHREAD PURO**:
+- ✅ **SOLO**: Ejecutar command lists y present
+- ✅ **RECIBIR**: Comandos del main thread via producer-consumer
+- ✅ **SINCRONIZAR**: Con main thread via condition variables
+
+**3. THREADPOOL ESPECIALIZADO**:
+- ✅ **USAR PARA**: Terrain chunk generation, Asset streaming, Physics, Audio
+- ❌ **NO USAR PARA**: Update logic básico (debe ir en main thread)
+
+### **PATRONES DE DISEÑO ADICIONALES REQUERIDOS**
+
+**COMMAND PATTERN** (Crítico para render pipeline):
+```cpp
+class IRenderCommand {
+    virtual void Execute(ID3D11DeviceContext* context) = 0;
+    virtual uint32_t GetSortKey() const = 0;  // Para batching
+};
+
+class CommandBuffer {
+    std::vector<std::unique_ptr<IRenderCommand>> m_commands;
+    void ExecuteAll(ID3D11DeviceContext* context);
+    void SortForOptimalExecution();  // Minimiza state changes
+};
+```
+
+**FLYWEIGHT PATTERN** (Para chunk data):
+```cpp
+class ChunkIntrinsicState {  // Datos compartidos entre chunks
+    std::shared_ptr<TerrainShader> shader;
+    std::shared_ptr<MaterialData> material;
+    std::array<MeshTemplate, MAX_LODS> lodMeshTemplates;
+};
+
+class ChunkExtrinsicState {  // Datos únicos por chunk
+    TerrainChunk::ChunkID chunkId;
+    DirectX::XMFLOAT3 worldPosition;
+    const ChunkIntrinsicState* intrinsicState;
+};
+```
+
+**VISITOR PATTERN** (Para algoritmos de terreno):
+```cpp
+class ITerrainVisitor {
+    virtual void Visit(AggregatedMeshChunk& chunk) = 0;
+    virtual void Visit(TessellationChunk& chunk) = 0;
+};
+
+class LODUpdateVisitor : public ITerrainVisitor {
+    // Algoritmo específico para cada tipo de chunk
+};
+```
+
+**OBJECT POOL PATTERN** (Para performance):
+```cpp
+template<typename TChunk>
+class ChunkPool {
+    std::queue<std::unique_ptr<TChunk>> m_availableChunks;
+    std::unique_ptr<TChunk> Acquire(TerrainChunk::ChunkID id);
+    void Release(std::unique_ptr<TChunk> chunk);
+};
+```
+
+### **FLUJO DE REFACTORING OBLIGATORIO**
+
+**Paso 1: Preparar Threading Infrastructure**
+```cpp
+class Engine {
+    std::unique_ptr<std::thread> m_renderThread;      // Solo render thread
+    std::queue<RenderCommandPacket> m_renderQueue;    // Producer-Consumer
+    std::mutex m_renderQueueMutex;
+    std::condition_variable m_renderCondition;
+    
+    void MainLoop();      // Game logic en main thread
+    void RenderLoop();    // Solo renderizado en thread separado
+};
+```
+
+**Paso 2: Convertir Managers en Systems**
+```cpp
+// ❌ ELIMINAR: UpdateManager como ThreadedService
+// ✅ CREAR: UpdateSystem sin thread propio
+class UpdateSystem {  // No hereda de ThreadedService
+    void Update(float deltaTime);           // Llamado desde MainLoop
+    void SubmitAsyncJob(UpdateJob job);     // Para jobs pesados
+};
+```
+
+**Paso 3: Implementar Command Buffer System**
+```cpp
+struct RenderCommandPacket {
+    int frameId;
+    std::vector<RenderCommand> commands;
+    std::chrono::high_resolution_clock::time_point submitTime;
+};
+
+void Engine::SubmitRenderCommands() {
+    // Recopilar comandos de todos los sistemas
+    RenderCommandPacket framePacket;
+    framePacket.commands = m_sceneManager->GetRenderCommands();
+    m_renderQueue.push(std::move(framePacket));
+    m_renderCondition.notify_one();
+}
+```
+
+### **BENEFICIOS ESPERADOS DEL REFACTORING**
+
+**Performance**:
+- ✅ Reducción de threads: De 4+N a 2+N
+- ✅ Mejor CPU cache: Menos context switching
+- ✅ Command batching: Minimiza GPU state changes
+
+**Arquitectura**:
+- ✅ Sincronización clara: Producer-Consumer explícito
+- ✅ Compatible AAA: Patrón usado por Unreal, CryEngine
+- ✅ Mejor debugging: Game logic en main thread
+
+**Escalabilidad**:
+- ✅ ThreadPool maneja trabajo paralelo eficientemente
+- ✅ Flyweight reduce memory footprint masivamente
+- ✅ Object pools eliminan allocation overhead
+
+### **PRIORIDAD DE IMPLEMENTACIÓN**
+
+**FASE 1 (CRÍTICA)**: Threading Infrastructure
+1. Crear nuevo MainLoop consolidado
+2. Implementar RenderThread puro con command buffer
+3. Migrar UpdateManager/SceneManager a sistemas sin threads
+
+**FASE 2 (ALTA)**: Design Patterns
+1. Implementar Command Pattern para render pipeline
+2. Añadir Flyweight Pattern para chunk data
+3. Crear Object Pool para chunk management
+
+**FASE 3 (MEDIA)**: Advanced Patterns
+1. Visitor Pattern para algoritmos de terreno
+2. Strategy Pattern con hot-swapping
+3. Composite Pattern para scene hierarchy
+
+**REGLA FUNDAMENTAL**: Todo nuevo código relacionado con threading debe seguir el modelo AAA (Main + Render + ThreadPool). No crear nuevos threads dedicados sin justificación arquitectónica sólida.
+
+### **CONFIGURACIÓN YAML PARA THREADING**
+```yaml
+Threading:
+  main_thread:
+    target_fps: 60
+    frame_limit_enabled: true
+    
+  render_thread:
+    priority: "time_critical"
+    affinity_mask: 2  # CPU core 1
+    
+  thread_pool:
+    worker_count: -1  # hardware_concurrency() - 2
+    terrain_workers: 4
+    asset_workers: 2
+    
+  frame_sync:
+    max_frames_ahead: 2
+    vsync_enabled: true
+```
+
+Este refactoring es **OBLIGATORIO** para cumplir estándares AAA y debe implementarse antes de añadir nuevas features significativas al framework.

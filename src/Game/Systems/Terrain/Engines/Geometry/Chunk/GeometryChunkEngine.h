@@ -4,6 +4,7 @@
 #include <Defines/VertexDefinition.h>
 #include <Game/System/TerrainConfig.h>
 #include <Game/Systems/Terrain/Defines/TerrainGeometryEngineBase.h>
+#include <string>
 #include <unordered_map>
 #include <vector>
 #include <Windows.h>

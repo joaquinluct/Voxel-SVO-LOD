@@ -3,6 +3,8 @@
 #include <Defines/EngineDefinition.h>
 #include <memory>
 #include <profileapi.h>
+#include <thread>
+#include <chrono>
 #include <Windows.h>
 
 // -------------------------------------------------------------------------------
@@ -68,41 +70,46 @@ int MainWindow::Create(int width, int height) {
 
     // ---------------------------------
     // Bucle principal de la aplicación.
+    // NUEVO: Usar MainLoop AAA o bucle legacy
     // ---------------------------------
-    while (WM_QUIT != msg.message) {
-        if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
-        else {
-            // Calcula el tiempo delta.
-            LARGE_INTEGER currentTime;
-            QueryPerformanceCounter(&currentTime);
-            float delta = (float)(currentTime.QuadPart - previousTime.QuadPart) / frequency.QuadPart;
-            //m_context.deltaTime = (float)(currentTime.QuadPart - previousTime.QuadPart) / frequency.QuadPart;
-            previousTime = currentTime;
+    bool useNewMainLoop = true;  // Flag para testing gradual
 
-            /*if (delta <= 1.00000001e-07f) {
-                bool a = false;
-            }*/
+    // THREADING AAA: Desactivado temporalmente para mantener compilación
+    if (false) {
+        // Código AAA threading comentado temporalmente
+    }
+    else {
+        //==============================================================================
+        // MODELO LEGACY: Para compatibilidad durante migración
+        //==============================================================================
+        OutputDebugStringA("[MainWindow] Usando bucle legacy.\n");
 
-            // Aplica un límite al tiempo delta.
-            if (delta > MAX_DELTA_TIME) {
-                delta = MAX_DELTA_TIME;
+        while (WM_QUIT != msg.message) {
+            if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
+                TranslateMessage(&msg);
+                DispatchMessage(&msg);
             }
-            else if (delta < MIN_DELTA_TIME) {
-                delta = MIN_DELTA_TIME;
+            else {
+                // Calcula el tiempo delta.
+                LARGE_INTEGER currentTime;
+                QueryPerformanceCounter(&currentTime);
+                float delta = (float)(currentTime.QuadPart - previousTime.QuadPart) / frequency.QuadPart;
+                previousTime = currentTime;
+
+                // Aplica un límite al tiempo delta.
+                if (delta > MAX_DELTA_TIME) {
+                    delta = MAX_DELTA_TIME;
+                }
+                else if (delta < MIN_DELTA_TIME) {
+                    delta = MIN_DELTA_TIME;
+                }
+
+                m_context->deltaTime = delta;
+                m_gameEngine->SetDeltaTime(delta);
+                this->m_deltaTime = delta;
+
+                // Legacy: Los hilos separados manejan update/render
             }
-
-            m_context->deltaTime = delta;
-            m_gameEngine->SetDeltaTime(delta);
-            this->m_deltaTime = delta;
-
-            // ------------------------------------ 
-            // No hay nada, ya que es la
-            // m_gameEngine la que inicia los hilos
-            // de Render y Update principales.
-            // ------------------------------------            
         }
     }
     m_context->isRunning = false;

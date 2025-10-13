@@ -1,0 +1,25 @@
+# file: .gitattributes
+# Normaliza finales de línea para el repositorio
+# Forzar CRLF en fuentes C/C++/headers para Windows/Visual Studio
+* text=auto eol=crlf
+*.cpp text eol=crlf
+*.c text eol=crlf
+*.h text eol=crlf
+*.hpp text eol=crlf
+*.inl text eol=crlf
+*.rc text eol=crlf
+*.ps1 text eol=crlf
+
+# Mantener LF en scripts UNIX / markdown / YAML
+*.sh text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Binarios y directorios generados
+*.exe binary
+*.dll binary
+*.pdb binary
+bin/ binary
+build/ binary
+obj/ binary

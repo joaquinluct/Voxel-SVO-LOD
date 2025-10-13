@@ -47,8 +47,8 @@ public:
 
     std::shared_ptr<Terrain> GetTerrain() const { return m_terrain; }
 
-    const std::chrono::system_clock::time_point& GetCurrentDateTime();
-    const std::chrono::system_clock::time_point& GetCurrentSimulatedDateTime();
+    const std::chrono::system_clock::time_point GetCurrentDateTime();
+    const std::chrono::system_clock::time_point GetCurrentSimulatedDateTime();
     const float GetCurrentLatitude() const { return m_latitude; }
 
     const std::vector<MeshAssetBase*> GetMeshes() const;

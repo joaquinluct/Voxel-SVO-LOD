@@ -4,6 +4,7 @@
 #include <Defines/TerrainChunk.h>
 
 std::unique_ptr<IChunk> DefaultChunkFactory::CreateChunk(const TerrainChunk::ChunkID& id, float chunkSize) {
-    // Default to aggregated mesh chunk for now
-    return std::make_unique<AggregatedMeshChunk>(id, chunkSize);
+    // SOLUCIÓN MÍNIMA: Usar new directamente en lugar de make_unique para evitar template issues
+    AggregatedMeshChunk* chunk = new AggregatedMeshChunk(id, chunkSize);
+    return std::unique_ptr<IChunk>(chunk);
 }

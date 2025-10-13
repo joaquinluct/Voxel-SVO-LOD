@@ -4,6 +4,7 @@
 #include <Defines/TimeDefinition.h>
 #include <Defines/WaterDefinition.h>
 #include <DirectXMath.h>
+#include <DirectXMathMatrix.inl>
 #include <memory>
 #include <string_view>
 
@@ -136,32 +137,34 @@ namespace MatrixDefinitionBase {
     };
 
     struct LightMatrixParams : public IMatrixParams {
-        LightMatrixParams() = default;
-        LightMatrixParams(LightMatrixParams*) : lightColor(), lightDirection() {
-            this->lightDirection = lightDirection;
-            this->lightColor = lightColor;
-            this->fogStartDistance = fogStartDistance;
-            this->fogEndDistance = fogEndDistance;
-            this->fogColor = fogColor;
-            this->fogHeightFalloff = fogHeightFalloff;
-            this->fogDensity = fogDensity;
+        LightMatrixParams()
+            : lightDirection{ .1f, .1f, .1f },
+            lightColor{ .1f, .1f, .1f, .1f },
+            fogStartDistance(3000.0f),
+            fogEndDistance(5000.0f),
+            fogHeightFalloff(0.0f),
+            fogColor{ .1f, .1f, .1f },
+            fogDensity(1.0f)
+        {
+        }
+        LightMatrixParams(LightMatrixParams* params) {
+            this->lightDirection = params->lightDirection;
+            this->lightColor = params->lightColor;
+            this->fogStartDistance = params->fogStartDistance;
+            this->fogEndDistance = params->fogEndDistance;
+            this->fogColor = params->fogColor;
+            this->fogHeightFalloff = params->fogHeightFalloff;
+            this->fogDensity = params->fogDensity;
         }
         LightMatrixParams(const LightMatrixParams&) = default;
-        //      LightMatrixParams()
-        //          : lightDirection(0.0f, -1.0f, 0.0f), // Luz direccional apuntando hacia abajo por defecto
-        //          lightColor(1.0f, 1.0f, 1.0f, 1.0f) // Luz blanca por defecto
-        //      {
-              //}
-              // 
-        // Datos para DirectionalLight
-        DirectX::XMFLOAT3 lightDirection;
-        DirectX::XMFLOAT4 lightColor; // El color de la luz direccional
-        // Datos para niebla
-        float fogStartDistance;         // Distancia donde la niebla empieza a aparecer (ej: 1000.0f)
-        float fogEndDistance;           // Distancia donde la niebla es 100% opaca (ej: 3000.0f)
-        float fogHeightFalloff;   // Controla cómo la altura afecta la densidad de la niebla (no siempre se usa)
-        DirectX::XMFLOAT3 fogColor;     // Color de la niebla (El gris que quieres en el horizonte)
-        float fogDensity;               // Se usa para calcular niebla más avanzada, aquí lo dejamos en float.
+
+        DirectX::XMFLOAT3 lightDirection = { .1f, .1f, .1f };
+        DirectX::XMFLOAT4 lightColor = { .1f, .1f, .1f, .1f };
+        float fogStartDistance = 3000.0f;
+        float fogEndDistance = 5000.0f;
+        float fogHeightFalloff = 0.0f;
+        DirectX::XMFLOAT3 fogColor = { .1f, .1f, .1f };
+        float fogDensity = 1.0f;
     };
 
     struct WaterMatrixParams : public IMatrixParams {

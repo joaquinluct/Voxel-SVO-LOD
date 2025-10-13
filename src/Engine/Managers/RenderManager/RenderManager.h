@@ -1,21 +1,29 @@
 #pragma once
 
 #include "BaseRenderManager.h"
+#include "Pipeline/ConcreteOperations.h"
 #include "RenderPass.h"
 #include "SceneManager.h"
+#include <Assets/Base/MeshAsset.h>
 #include <CameraManager.h>
 #include <Config/Base/Managers/EngineConfig.h>
 #include <Config/Base/Managers/RenderManagerConfig.h>
 #include <Config/PassConfigBase.h>
 #include <Config/Services/ServiceConfig.h>
+#include <d3d11.h>
+#include <Defines/EngineDefinition.h>
 #include <DeviceManager.h>
 #include <IRenderPass.h>
 #include <ManagerBase.h>
+#include <map>
 #include <memory>
+#include <PipelineResourcesManager.h>
 #include <RenderManager/Pipeline/PipelineState.h>
 #include <Services/FrameStateService.h>
 #include <string>
 #include <vector>
+#include <Windows.h>
+#include <wrl/client.h>
 
 // Forward declarations
 class World;
@@ -36,8 +44,7 @@ public:
     // --------------------
     HRESULT Init(EngineContext* context) override;
     void Shutdown() override;
-    void Render() override;
-    void EndRender();
+    void Render() override;    
 
     void Update(float deltaTime) override;
 
@@ -70,6 +77,7 @@ public:
     void BeginRender();
     void BeginPass(std::string passName);
     void BeginMesh(MeshAsset* mesh);
+    void EndRender();
 
 
     // ----------------------------------------

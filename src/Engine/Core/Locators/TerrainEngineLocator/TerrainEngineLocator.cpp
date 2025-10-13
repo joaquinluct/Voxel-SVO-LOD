@@ -1,5 +1,7 @@
 // TerrainEngineLocator.cpp
 #include "TerrainEngineLocator.h"
+#include <debugapi.h>
+#include <map>
 #include <string> // Para std::to_string
 #include <windows.h> // Para OutputDebugStringA
 

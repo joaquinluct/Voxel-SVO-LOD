@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Assets/Base/MeshAssetBase.h>
+#include <cstdint>
 #include <Defines/CameraDefinition.h>
 #include <Defines/TerrainChunk.h>
 #include <DirectXMath.h>
@@ -11,6 +13,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <Windows.h>
 
 // Forward declarations
 class TerrainConfig;

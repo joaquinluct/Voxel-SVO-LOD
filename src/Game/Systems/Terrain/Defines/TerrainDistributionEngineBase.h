@@ -16,15 +16,15 @@
 class TerrainDistributionEngineBase : public TerrainEngineBase
 {
 protected:
-    std::vector<MeshAssetBase*> m_meshes;
+    std::vector<MeshAssetBase*> m_meshes{};
 
-    TerrainGeometryEngineBase* m_geometryFactory;
-    TerrainChunkConfig m_chunkConfig;
+    TerrainGeometryEngineBase* m_geometryFactory{};
+    TerrainChunkConfig m_chunkConfig{};
 
-    bool m_isDirty;
-    bool m_isGeneratingDistribution;
+    bool m_isDirty = true;
+    bool m_isGeneratingDistribution = false;
 
-    DirectX::XMFLOAT3 m_lastWorldPosition;
+    DirectX::XMFLOAT3 m_lastWorldPosition{};
 public:
     void Init(TerrainConfig* config) override {
         std::string geometryEngineName = config->geometry_engine;

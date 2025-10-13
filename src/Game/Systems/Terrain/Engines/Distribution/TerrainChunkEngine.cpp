@@ -1,5 +1,10 @@
-#include "TerrainChunkEngine.h"
+ï»¿#include "TerrainChunkEngine.h"
+#include <Assets/Base/MeshAssetBase.h>
 #include <cmath>
+#include <cstdio>
+#include <debugapi.h>
+#include <Defines/CameraDefinition.h>
+#include <Defines/TerrainChunk.h>
 #include <DirectXMath.h>
 #include <Engine/Core/Config/Game/TerrainEngines/TerrainChunkEngineConfig.h>
 #include <exception>
@@ -8,9 +13,12 @@
 #include <Game/Systems/Terrain/Engines/Geometry/TessellationGeometryEngine.h>
 #include <Game/Systems/Terrain/Factory/DefaultChunkFactory.h>
 #include <iCamera.h>
-#include <IChunk.h>
 #include <Locators/ConfigLocator/ConfigLocator.h>
 #include <Locators/Registers/REGISTER_TERRAIN_ENGINE_MACRO.h>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 #include <Windows.h>
 
 using namespace DirectX;
@@ -39,7 +47,7 @@ void TerrainChunkEngine::Init(TerrainConfig* config) {
     m_terrainConfig = config;
     OutputDebugStringA("[TerrainChunkEngine] Initializing with TerrainConfig\n");
 
-    // Cargar configuración específica del engine desde YAML
+    // Cargar configuraciÃ³n especÃ­fica del engine desde YAML
     try {
         m_engineConfig = ConfigLocator::GetConfig<TerrainChunkEngineConfig>().get();
         if (m_engineConfig) {
@@ -54,15 +62,15 @@ void TerrainChunkEngine::Init(TerrainConfig* config) {
         OutputDebugStringA("[TerrainChunkEngine] WARNING: Failed to load TerrainChunkEngineConfig, using defaults\n");
     }
 
-    // Inicializar chunk factory basado en configuración del terreno
+    // Inicializar chunk factory basado en configuraciÃ³n del terreno
     std::string chunkType = "DefaultChunk"; // Default fallback
     if (m_terrainConfig && !m_terrainConfig->terrain_engine.empty()) {
-        // Extraer tipo de chunk de la configuración si está disponible
+        // Extraer tipo de chunk de la configuraciÃ³n si estÃ¡ disponible
         chunkType = "DefaultChunk"; // Por ahora usar default, se puede extender en el futuro
     }
     LoadChunkFactory(chunkType);
 
-    // Inicializar geometry engine basado en configuración del terreno  
+    // Inicializar geometry engine basado en configuraciÃ³n del terreno  
     std::string geometryEngine = "AggregatedGeometryEngine"; // Default fallback
     if (m_terrainConfig && !m_terrainConfig->geometry_engine.empty()) {
         geometryEngine = m_terrainConfig->geometry_engine;
@@ -75,7 +83,7 @@ void TerrainChunkEngine::Init(TerrainConfig* config) {
 void TerrainChunkEngine::InitializeFromConfig() {
     if (!m_engineConfig) return;
 
-    // Extraer parámetros del config YAML generado
+    // Extraer parÃ¡metros del config YAML generado
     m_chunkSize = m_engineConfig->chunk_size;
     m_chunkRadius = m_engineConfig->chunk_radius;
     m_worldWidth = m_engineConfig->world_width;
@@ -93,7 +101,8 @@ void TerrainChunkEngine::InitializeFromConfig() {
 void TerrainChunkEngine::LoadChunkFactory(const std::string& chunkType) {
     OutputDebugStringA(("[TerrainChunkEngine] Loading chunk factory: " + chunkType + "\n").c_str());
 
-    // TODO: Usar TerrainEngineLocator para resolver la factory por nombre cuando esté implementado
+    // TODO: Usar TerrainEngineLocator para resolver la factory por nombre cuando estÃ© implementado
+    // TODO: Usar ChunkFactory locator para obtener factory especÃ­fica basada en config YAML
     // Por ahora usar factory por defecto
     m_chunkFactory = std::make_shared<DefaultChunkFactory>();
 
@@ -108,7 +117,7 @@ void TerrainChunkEngine::LoadChunkFactory(const std::string& chunkType) {
 void TerrainChunkEngine::LoadGeometryEngine(const std::string& geometryEngine) {
     OutputDebugStringA(("[TerrainChunkEngine] Loading geometry engine: " + geometryEngine + "\n").c_str());
 
-    // TODO: Usar TerrainEngineLocator para resolver el engine por nombre cuando esté implementado
+    // TODO: Usar TerrainEngineLocator para resolver el engine por nombre cuando estÃ© implementado
     // Por ahora usar referencias directas a las instancias globales
     extern TessellationGeometryEngine s_tessEngine;
     extern AggregatedGeometryEngine s_aggEngine;
@@ -137,18 +146,18 @@ std::vector<MeshAssetBase*> TerrainChunkEngine::GetVisibleMeshes(std::vector<Cam
     std::vector<TerrainChunk::ChunkID> visibleChunkIds = GetVisibleChunkIds(frustumPlanes, zone);
 
     // TODO: Convertir chunks visibles a mesh assets cuando la interfaz IChunk lo soporte
-    // Por ahora retornar vacío, el renderizado se maneja directamente en Render()
+    // Por ahora retornar vacÃ­o, el renderizado se maneja directamente en Render()
 
     return visibleMeshes;
 }
 
 void TerrainChunkEngine::UpdateTerrain(const DirectX::XMFLOAT3& worldPosition) {
-    // Verificar si la posición ha cambiado lo suficiente para requerir actualización
+    // Verificar si la posiciÃ³n ha cambiado lo suficiente para requerir actualizaciÃ³n
     float dx = worldPosition.x - m_lastPlayerPosition.x;
     float dz = worldPosition.z - m_lastPlayerPosition.z;
     float distanceMoved = std::sqrt(dx * dx + dz * dz);
 
-    // Solo actualizar si se ha movido más de medio chunk
+    // Solo actualizar si se ha movido mÃ¡s de medio chunk
     if (distanceMoved > m_chunkSize * 0.5f) {
         m_lastPlayerPosition = worldPosition;
         m_isDirty = true;
@@ -183,16 +192,16 @@ void TerrainChunkEngine::Generate(ICamera* camera) {
     std::vector<CameraDefinition::FrustumPlane> frustumPlanes;
     camera->ExtractFrustumPlanes(frustumPlanes);
 
-    // ? CORRECCIÓN: Trabajar directamente con m_activeChunks
+    // âœ… CORRECCIÃ“N: Trabajar directamente con m_activeChunks
     int chunksGenerated = 0;
-    
+
     for (const auto& [id, chunk] : m_activeChunks) {
         if (!chunk) continue;
 
         // Frustum culling
         if (!IsChunkInFrustum(id, frustumPlanes)) continue;
 
-        // TODO: Verificar si el chunk necesita regenerar geometría
+        // TODO: Verificar si el chunk necesita regenerar geometrÃ­a
         // TODO: Llamar al geometry engine para generar la malla del chunk
         chunksGenerated++;
     }
@@ -212,7 +221,7 @@ void TerrainChunkEngine::Render(ICamera* camera) {
     std::vector<CameraDefinition::FrustumPlane> frustumPlanes;
     camera->ExtractFrustumPlanes(frustumPlanes);
 
-    // ? CORRECCIÓN: Trabajar directamente con m_activeChunks en lugar de duplicar
+    // âœ… CORRECCIÃ“N: Trabajar directamente con m_activeChunks en lugar de duplicar
     // Recopilar IDs de chunks visibles directamente
     std::vector<TerrainChunk::ChunkID> chunkIds;
 
@@ -234,7 +243,7 @@ void TerrainChunkEngine::Render(ICamera* camera) {
 
     DirectX::XMFLOAT3 cameraPos = camera->GetPosition();
 
-    // Delegar renderizado al geometry engine específico
+    // Delegar renderizado al geometry engine especÃ­fico
     if (auto tessEngine = dynamic_cast<TessellationGeometryEngine*>(m_geometryEngine)) {
         tessEngine->RenderChunks(chunkIds, cameraPos);
     }
@@ -242,7 +251,7 @@ void TerrainChunkEngine::Render(ICamera* camera) {
         aggEngine->RenderChunks(chunkIds, cameraPos);
     }
     else {
-        // Fallback al método Draw() base
+        // Fallback al mÃ©todo Draw() base
         m_geometryEngine->Draw();
     }
 
@@ -259,7 +268,7 @@ void TerrainChunkEngine::LoadChunksInRadius(const DirectX::XMFLOAT3& centerPosit
         for (int z = centerChunk.z - m_chunkRadius; z <= centerChunk.z + m_chunkRadius; ++z) {
             TerrainChunk::ChunkID chunkId = { x, 0, z };
 
-            // Verificar si el chunk ya está cargado
+            // Verificar si el chunk ya estÃ¡ cargado
             if (m_activeChunks.count(chunkId) == 0) {
                 if (SUCCEEDED(LoadSingleChunk(chunkId))) {
                     chunksLoaded++;
@@ -287,7 +296,7 @@ void TerrainChunkEngine::UnloadChunksOutsideRadius(const DirectX::XMFLOAT3& cent
         }
     }
 
-    // Mover chunks a la cola de eliminación
+    // Mover chunks a la cola de eliminaciÃ³n
     for (const TerrainChunk::ChunkID& id : chunksToUnload) {
         auto it = m_activeChunks.find(id);
         if (it != m_activeChunks.end()) {
@@ -314,10 +323,10 @@ HRESULT TerrainChunkEngine::LoadSingleChunk(const TerrainChunk::ChunkID& id) {
         return E_FAIL;
     }
 
-    // TODO: Configurar chunk con procedural engine y otros parámetros
+    // TODO: Configurar chunk con procedural engine y otros parÃ¡metros
     // TODO: Inicializar el chunk
 
-    // Añadir a chunks activos
+    // AÃ±adir a chunks activos
     m_activeChunks[id] = std::move(chunk);
 
     return S_OK;
@@ -349,8 +358,8 @@ bool TerrainChunkEngine::IsChunkInFrustum(const TerrainChunk::ChunkID& id, const
 
     // Test contra cada plano del frustum
     for (const auto& plane : frustumPlanes) {
-        // TODO: Implementar test de intersección AABB vs plano
-        // Por ahora, asumir que todos los chunks están visibles
+        // TODO: Implementar test de intersecciÃ³n AABB vs plano
+        // Por ahora, asumir que todos los chunks estÃ¡n visibles
     }
 
     return true; // Temporal - asumir todos visibles

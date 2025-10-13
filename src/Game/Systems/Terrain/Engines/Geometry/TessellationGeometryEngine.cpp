@@ -39,7 +39,8 @@ void TessellationGeometryEngine::Init(TerrainConfig* config) {
             // Si el geometry_engine contiene 'Tessellation' usamos el shader por convención
             if (m_config->geometry_engine.find("Tessellation") != std::string::npos) {
                 shaderName = "TerrainTessellation";
-            } else {
+            }
+            else {
                 // fallback: conservar default o mapear según convención futura
                 shaderName = "TerrainTessellation";
             }
@@ -54,7 +55,7 @@ void TessellationGeometryEngine::Init(TerrainConfig* config) {
     //     OutputDebugStringA(err.c_str());
     //     return;
     // }
-    
+
     // Por ahora, inicializar los recursos básicos sin shaders
     OutputDebugStringA("[TessellationGeometryEngine] Initializing basic resources without shaders\n");
 
@@ -86,16 +87,16 @@ void TessellationGeometryEngine::Init(TerrainConfig* config) {
     //     m_inputLayout = layoutFromAsset;
     // } else {
         // Create a simple input layout for now
-        D3D11_INPUT_ELEMENT_DESC layoutDesc[] = {
-            { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        };
-        // TODO: Create with proper VS blob when available
-        // device->CreateInputLayout(layoutDesc, ARRAYSIZE(layoutDesc), vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), m_inputLayout.GetAddressOf());
-        OutputDebugStringA("[TessellationGeometryEngine] Warning: InputLayout creation temporarily disabled\n");
+    D3D11_INPUT_ELEMENT_DESC layoutDesc[] = {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    };
+    // TODO: Create with proper VS blob when available
+    // device->CreateInputLayout(layoutDesc, ARRAYSIZE(layoutDesc), vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), m_inputLayout.GetAddressOf());
+    OutputDebugStringA("[TessellationGeometryEngine] Warning: InputLayout creation temporarily disabled\n");
     // }
 
     // Create a unit quad patch (4 control points) in local space - positions only
-    struct CP { float x,y,z; } quad[4] = {
+    struct CP { float x, y, z; } quad[4] = {
         { 0.0f, 0.0f, 0.0f },
         { 1.0f, 0.0f, 0.0f },
         { 0.0f, 0.0f, 1.0f },
@@ -209,66 +210,66 @@ void TessellationGeometryEngine::GenerateMesh(
     std::vector<UINT>& localIndices,
     const TerrainChunk::ChunkID& chunkId,
     int zone) {
-    
+
     // Para tessellation, generamos una malla base simple de 4 vértices (quad)
     // que luego será subdividida por el tessellation shader
-    
+
         // Calcular posición del chunk en el mundo
-        float chunkSize = 32.0f; // Tamaño default del chunk
-        // TODO: Obtener chunk_size de la configuración correcta cuando esté disponible
-    
+    float chunkSize = 32.0f; // Tamaño default del chunk
+    // TODO: Obtener chunk_size de la configuración correcta cuando esté disponible
+
     float worldX = chunkId.x * chunkSize;
     float worldZ = chunkId.z * chunkSize;
-    
-        // Crear 4 vértices de esquina para el quad del chunk
-        VertexDefinition::TextureMapVertex vertices[4];
-        
-        for (int i = 0; i < 4; ++i) {
-            // Inicializar tangent y debugColor con valores por defecto
-            vertices[i].tangent[0] = 1.0f; vertices[i].tangent[1] = 0.0f; vertices[i].tangent[2] = 0.0f;
-            vertices[i].debugColor[0] = 1.0f; vertices[i].debugColor[1] = 1.0f; vertices[i].debugColor[2] = 1.0f; vertices[i].debugColor[3] = 1.0f;
-        }
-        
-        // Esquina inferior izquierda
-        vertices[0].position[0] = worldX; vertices[0].position[1] = 0.0f; vertices[0].position[2] = worldZ;
-        vertices[0].normal[0] = 0.0f; vertices[0].normal[1] = 1.0f; vertices[0].normal[2] = 0.0f;
-        vertices[0].texCoord[0] = 0.0f; vertices[0].texCoord[1] = 1.0f;
-        
-        // Esquina inferior derecha
-        vertices[1].position[0] = worldX + chunkSize; vertices[1].position[1] = 0.0f; vertices[1].position[2] = worldZ;
-        vertices[1].normal[0] = 0.0f; vertices[1].normal[1] = 1.0f; vertices[1].normal[2] = 0.0f;
-        vertices[1].texCoord[0] = 1.0f; vertices[1].texCoord[1] = 1.0f;
-        
-        // Esquina superior izquierda
-        vertices[2].position[0] = worldX; vertices[2].position[1] = 0.0f; vertices[2].position[2] = worldZ + chunkSize;
-        vertices[2].normal[0] = 0.0f; vertices[2].normal[1] = 1.0f; vertices[2].normal[2] = 0.0f;
-        vertices[2].texCoord[0] = 0.0f; vertices[2].texCoord[1] = 0.0f;
-        
-        // Esquina superior derecha
-        vertices[3].position[0] = worldX + chunkSize; vertices[3].position[1] = 0.0f; vertices[3].position[2] = worldZ + chunkSize;
-        vertices[3].normal[0] = 0.0f; vertices[3].normal[1] = 1.0f; vertices[3].normal[2] = 0.0f;
-        vertices[3].texCoord[0] = 1.0f; vertices[3].texCoord[1] = 0.0f;
-    
+
+    // Crear 4 vértices de esquina para el quad del chunk
+    VertexDefinition::TextureMapVertex vertices[4];
+
+    for (int i = 0; i < 4; ++i) {
+        // Inicializar tangent y debugColor con valores por defecto
+        vertices[i].tangent[0] = 1.0f; vertices[i].tangent[1] = 0.0f; vertices[i].tangent[2] = 0.0f;
+        vertices[i].debugColor[0] = 1.0f; vertices[i].debugColor[1] = 1.0f; vertices[i].debugColor[2] = 1.0f; vertices[i].debugColor[3] = 1.0f;
+    }
+
+    // Esquina inferior izquierda
+    vertices[0].position[0] = worldX; vertices[0].position[1] = 0.0f; vertices[0].position[2] = worldZ;
+    vertices[0].normal[0] = 0.0f; vertices[0].normal[1] = 1.0f; vertices[0].normal[2] = 0.0f;
+    vertices[0].texCoord[0] = 0.0f; vertices[0].texCoord[1] = 1.0f;
+
+    // Esquina inferior derecha
+    vertices[1].position[0] = worldX + chunkSize; vertices[1].position[1] = 0.0f; vertices[1].position[2] = worldZ;
+    vertices[1].normal[0] = 0.0f; vertices[1].normal[1] = 1.0f; vertices[1].normal[2] = 0.0f;
+    vertices[1].texCoord[0] = 1.0f; vertices[1].texCoord[1] = 1.0f;
+
+    // Esquina superior izquierda
+    vertices[2].position[0] = worldX; vertices[2].position[1] = 0.0f; vertices[2].position[2] = worldZ + chunkSize;
+    vertices[2].normal[0] = 0.0f; vertices[2].normal[1] = 1.0f; vertices[2].normal[2] = 0.0f;
+    vertices[2].texCoord[0] = 0.0f; vertices[2].texCoord[1] = 0.0f;
+
+    // Esquina superior derecha
+    vertices[3].position[0] = worldX + chunkSize; vertices[3].position[1] = 0.0f; vertices[3].position[2] = worldZ + chunkSize;
+    vertices[3].normal[0] = 0.0f; vertices[3].normal[1] = 1.0f; vertices[3].normal[2] = 0.0f;
+    vertices[3].texCoord[0] = 1.0f; vertices[3].texCoord[1] = 0.0f;
+
     // Agregar vértices al pool global
     UINT baseIndex = static_cast<UINT>(globalVertexPool.size());
     for (int i = 0; i < 4; ++i) {
         globalVertexPool.push_back(vertices[i]);
     }
-    
+
     // Crear índices para dos triángulos que forman el quad
     // Triángulo 1: 0, 1, 2
     localIndices.push_back(baseIndex + 0);
-    localIndices.push_back(baseIndex + 1); 
+    localIndices.push_back(baseIndex + 1);
     localIndices.push_back(baseIndex + 2);
-    
+
     // Triángulo 2: 2, 1, 3
     localIndices.push_back(baseIndex + 2);
     localIndices.push_back(baseIndex + 1);
     localIndices.push_back(baseIndex + 3);
-    
+
     std::ostringstream ss;
-    ss << "[TessellationGeometryEngine] Generated mesh for chunk (" << chunkId.x << ", " << chunkId.z 
-       << ") with " << 4 << " vertices and " << 6 << " indices\n";
+    ss << "[TessellationGeometryEngine] Generated mesh for chunk (" << chunkId.x << ", " << chunkId.z
+        << ") with " << 4 << " vertices and " << 6 << " indices\n";
     OutputDebugStringA(ss.str().c_str());
 }
 
@@ -281,38 +282,38 @@ void TessellationGeometryEngine::RenderChunks(const std::vector<TerrainChunk::Ch
     if (chunkIds.empty()) {
         return;
     }
-    
+
     auto deviceManager = ManagerLocator::GetDeviceManager();
     auto ctx = deviceManager->GetContext().Get();
     if (!ctx) {
         OutputDebugStringA("[TessellationGeometryEngine] No D3D context available for rendering\n");
         return;
     }
-    
+
     // Preparar matrices de instancia para todos los chunks
     m_instanceMatrices.clear();
     m_instanceMatrices.reserve(chunkIds.size());
-    
+
     float chunkSize = 32.0f; // TODO: Obtener de configuración
-    
+
     for (const auto& chunkId : chunkIds) {
         DirectX::XMFLOAT4X4 worldMatrix;
         float worldX = chunkId.x * chunkSize;
         float worldZ = chunkId.z * chunkSize;
-        
+
         // Crear matriz de transformación para este chunk
-        DirectX::XMStoreFloat4x4(&worldMatrix, 
+        DirectX::XMStoreFloat4x4(&worldMatrix,
             DirectX::XMMatrixTranslation(worldX, 0.0f, worldZ));
-        
+
         m_instanceMatrices.push_back(worldMatrix);
     }
-    
-    OutputDebugStringA(("[TessellationGeometryEngine] Rendering " + 
+
+    OutputDebugStringA(("[TessellationGeometryEngine] Rendering " +
         std::to_string(chunkIds.size()) + " chunks with tessellation\n").c_str());
-    
+
     // Configurar el pipeline de tessellation
     Bind(ctx);
-    
+
     // Renderizar todos los chunks como instancias
     for (size_t i = 0; i < m_instanceMatrices.size(); ++i) {
         // Actualizar constant buffer de instancia
@@ -325,17 +326,17 @@ void TessellationGeometryEngine::RenderChunks(const std::vector<TerrainChunk::Ch
                 memcpy(mapped.pData, &cb, sizeof(cb));
                 ctx->Unmap(m_instanceCB.Get(), 0);
             }
-            
+
             // Vincular constant buffer al domain shader
             ctx->DSSetConstantBuffers(1, 1, m_instanceCB.GetAddressOf());
         }
-        
+
         // Dibujar como patch tessellated
         if (m_indexCount > 0) {
             ctx->DrawIndexedInstanced(m_indexCount, 1, 0, 0, 0);
         }
     }
-    
+
     // Limpiar pipeline de tessellation
     ctx->HSSetShader(nullptr, nullptr, 0);
     ctx->DSSetShader(nullptr, nullptr, 0);

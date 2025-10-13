@@ -2,6 +2,7 @@
 #include <Assets/Base/MeshAssetBase.h>
 #include <chrono>
 #include <ConfigLocator/ConfigLocator.h>
+#include <Defines/Contants/Flags/SyncFlag.h>
 #include <Defines/WorldDefinition.h>
 #include <Game/System/WorldConfig.h>
 #include <Game/Systems/Biome.h>
@@ -209,20 +210,17 @@ void World::Update(float deltaTime)
     );*/
 }
 
-const std::chrono::system_clock::time_point& World::GetCurrentDateTime() {
-    std::chrono::system_clock::time_point result = std::chrono::system_clock::now();
+const std::chrono::system_clock::time_point World::GetCurrentDateTime() {
     if (m_chronos) {
-        result = m_chronos->GetCurrentDateTime();
+        return m_chronos->GetCurrentDateTime();
     }
-
-    return result;
+    return std::chrono::system_clock::now();
 }
-const std::chrono::system_clock::time_point& World::GetCurrentSimulatedDateTime() {
-    std::chrono::system_clock::time_point result = std::chrono::system_clock::now();
+const std::chrono::system_clock::time_point World::GetCurrentSimulatedDateTime() {
     if (m_chronos) {
-        result = m_chronos->GetCurrentSimulatedDateTime();
+        return m_chronos->GetCurrentSimulatedDateTime();
     }
-    return result;
+    return std::chrono::system_clock::now();
 }
 
 // ----------------------------------------------------------------

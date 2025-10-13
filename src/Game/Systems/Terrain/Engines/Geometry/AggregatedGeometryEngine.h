@@ -19,7 +19,7 @@ public:
         int zone = 0) override;
     std::string GetMeshAssetName() const override;
     void Draw() override;
-    
+
     // Método específico para renderizar chunks con mallas agregadas
     void RenderChunks(const std::vector<TerrainChunk::ChunkID>& chunkIds, const DirectX::XMFLOAT3& cameraPos);
 private:

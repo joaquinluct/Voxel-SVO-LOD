@@ -31,7 +31,7 @@ public:
     HRESULT Init() override;
     TerrainChunk::ChunkID GetID() const override { return m_id; }
     DirectX::XMFLOAT3 GetCenter() const override;
-    const Util::BoundingBox& GetBoundingBox() const override; // TODO: Implement when BoundingBox is available
+    const Util::BoundingBox& GetBoundingBox() const override;
     float GetChunkSize() const override { return m_chunkSize; }
     
     bool IsInFrustum(const std::vector<CameraDefinition::FrustumPlane>& frustumPlanes) const override;

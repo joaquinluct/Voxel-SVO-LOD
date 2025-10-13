@@ -1,29 +1,44 @@
 #include "REGISTER_MANAGER_MACRO.h"
 #include "RenderManager.h"
-#include <../Includes/FrameStates.h>
+#include "RenderPass.h"
+#include <Assets/Base/MeshAsset.h>
 #include <Base/Managers/RenderManagerConfig.h>
 #include <chrono>
 #include <Config/Base/Managers/EngineConfig.h>
 #include <Config/Base/Pipeline/PipelineConfig.h>
 #include <Config/PassConfigBase.h>
 #include <d3d11.h>
+#include <debugapi.h>
 #include <Defines/Contants/Flags/SyncFlag.h>
+#include <Defines/EngineDefinition.h>
+#include <Defines/Matrix/CameraMatrix.h>
+#include <Defines/Matrix/MatrixDefinition.h>
+#include <DirectXMathMatrix.inl>
 #include <Game/Systems/World.h>
 #include <Helpers/PipelineHelper.h>
 #include <iostream>
 #include <Locators/ConfigLocator/ConfigLocator.h>
 #include <Locators/ManagerLocator/ManagerLocator.h>
 #include <Locators/ServiceLocator/ServiceLocator.h>
+#include <Managers/ManagerBase.h>
+#include <Managers/RenderManager/BaseRenderManager.h>
 #include <Managers/RenderManager/Pipeline/ConcreteOperations.h>
+#include <Managers/RenderState/FrameStates/CameraFrameState.h>
+#include <Managers/RenderState/FrameStates/PipelineFrameState.h>
 #include <Managers/SceneManager.h>
 #include <memory>
 #include <Pipeline/RenderPassLocator.h>
+#include <PipelineResourcesManager.h>
+#include <RenderManager/Pipeline/PipelineState.h>
 #include <RenderState/FrameStates/ConstantsBufferFrameState.h>
 #include <RenderState/FrameStates/MeshesFrameState.h>
 #include <RenderState/FrameStates/RenderFrameState.h>
 #include <Services/FrameStateService.h>
+#include <Services/ServiceConfig.h>
+#include <string>
 #include <Text/Text.h>
 #include <vector>
+#include <Windows.h>
 #include <wrl/client.h>
 
 REGISTER_MANAGER_TYPE(RenderManager, "RenderManager")
@@ -64,7 +79,9 @@ void RenderManager::RunLoop() {
     }*/
     // Bucle principal de render
     while (m_running) {
+        BeginRender();
         Render();
+        EndRender();
     }
 }
 
@@ -266,13 +283,9 @@ void RenderManager::InitShader() {
 // --------------------------------------------------------------------------
 // BeginRender
 // 
-// Ejecutar el render base (clear, set rt, etc)
+// Aquí se resuelven los contants buffers y vertext e index buffers
 // --------------------------------------------------------------------------
 void RenderManager::BeginRender() {
-
-    /*AddOperation(PipelineOperationType::Device_SetRenderTarget);
-    AddOperation(PipelineOperationType::Device_Clear);
-    m_frameStateService->PipelineState()->ResetAllConstantBufferUpdateFlag();*/
 }
 
 // --------------------------------------------------------------------------
@@ -292,37 +305,29 @@ void RenderManager::BeginPass(std::string passName) {
 // BeginMesh
 // --------------------------------------------------------------------------
 void RenderManager::BeginMesh(MeshAsset* mesh) {
-    //const Material* material = mesh->GetMaterial();
-    //if (material) {
-    //    std::string shaderName = WstringToString(material->GetShaderName());
-    //    m_pipelineState->SetShader(shaderName);
-    //    std::shared_ptr<ShaderManager> shaderManager = ManagerLocator::GetManager<ShaderManager>();
-    //    shaderManager->GetSamplersDescAsVector(material->GetShaderName());
-    //    //m_frameStateService->PipelineState()->SetSamplerState()
-    //}
 
-    // Actualizar los constant buffers del FrameState
-    /*std::vector<std::string> buffers = material->GetConstantBufferNames();
-    for (const std::string& bufferName : buffers) {
-        m_frameStateService->UpdateConstantBuffer(bufferName);
-    }*/
 }
 
 
 // --------------------------------------------------------------------------
-// EndPass
+// EndRender
+//
+// Aquí se reinician los estados del pipeline si es necesario
 // --------------------------------------------------------------------------
 void RenderManager::EndRender() {
-    //PipelinePresentSwapChain param = {};
-    //param.data = m_deviceManager->GetSwapChain();
-    //param.data = m_frameStateService->CommonState()->GetSwapChain();
-    //AddOperation(PipelineOperationType::Device_PresentSwapChain);
+
 }
 
 // --------------------------------------------------------------------------
 // RENDER GENERAL
+//
+// Se encarga de ejecutar el render completo, incluyendo:
+// - Clear del render target y depth stencil
+// - Ejecutar las operaciones diferidas por cada Pase de renderizado
+// - Present del swap chain
 // --------------------------------------------------------------------------
 void RenderManager::Render() {
+
     // Paso 1: Obtener el RenderFrameState del lado de lectura.
     ID3D11DeviceContext* context = m_context.Get();
     RenderFrameState* renderState = m_frameStateService->RenderState(true);
@@ -354,27 +359,27 @@ void RenderManager::Render() {
 
     // Paso 3: Actualizar los constant buffers que hayan cambiado
     //m_frameStateService->Lock(FRAME_STATE_CONSTANT_BUFFERS);
-    ConstantsBufferFrameState* cbState = m_frameStateService->ConstantBuffersState(true);
-    if (cbState && cbState->HasOperations()) {
-        //std::vector<PipelineConstantBufferResource> constantBuffers = cbState->GetConstantBuffers().emplace(;
-        cbState->ExecuteMapUnmapOperations(context, cbState->GetConstantBuffers());
-        OutputDebugStringA(("Frame ConstantBuffers: " + ParseInt(m_frameCount) + "\n").c_str());
-    }
-    else {
-        bool a = false;
-    }
+    //ConstantsBufferFrameState* cbState = m_frameStateService->ConstantBuffersState(true);
+    //if (cbState && cbState->HasOperations()) {
+    //    //std::vector<PipelineConstantBufferResource> constantBuffers = cbState->GetConstantBuffers().emplace(;
+    //    cbState->ExecuteMapUnmapOperations(context, cbState->GetConstantBuffers());
+    //    OutputDebugStringA(("Frame ConstantBuffers: " + ParseInt(m_frameCount) + "\n").c_str());
+    //}
+    //else {
+    //    bool a = false;
+    //}
     //m_frameStateService->Unlock(FRAME_STATE_CONSTANT_BUFFERS);
 
     // Paso 3.1: Actualiar los v�rtices e �ndices de los meshes
     //m_frameStateService->Lock(FRAME_STATE_MESHES);
-    MeshesFrameState* meshState = m_frameStateService->MeshesState(true);
+    /*MeshesFrameState* meshState = m_frameStateService->MeshesState(true);
     if (meshState && meshState->HasOperations()) {
         meshState->ExecuteMapUnmapOperations(context);
         OutputDebugStringA(("Frame Mesh: " + ParseInt(m_frameCount) + "\n").c_str());
     }
     else {
         bool a = false;
-    }
+    }*/
     //m_frameStateService->Unlock(FRAME_STATE_MESHES);
 
     // Paso 4.1: Obtener la lista de comandos grabada por el hilo de actualizaci�n.

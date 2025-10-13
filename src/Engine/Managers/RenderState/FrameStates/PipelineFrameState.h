@@ -23,7 +23,7 @@ struct PipelineConstantBufferFrameState {
     std::string name;
     bool updated = false;
     std::string matrixType; // "MATRIX_TYPE_VERTEX", "MATRIX_TYPE_PIXEL", "MATRIX_TYPE_MIXED"
-    MatrixBufferTypeEnum bufferType; // Static o Dynamic
+    MatrixBufferTypeEnum bufferType{}; // Static o Dynamic
     unsigned int slot;
     // CORRECCIÓN: Ya no es un puntero.
     MatrixDefinition::AnyMatrixBuffer data;
