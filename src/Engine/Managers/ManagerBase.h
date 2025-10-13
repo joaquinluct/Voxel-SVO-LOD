@@ -22,4 +22,5 @@ public:
     void SetInitialized(bool initialized) { if (m_context) m_context->isInitialized = initialized; }
 
     EngineContext* Context() const { return m_context; }
+
 };

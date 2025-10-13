@@ -414,4 +414,5 @@ void UpdateManager::Shutdown()
     m_world = nullptr;
     m_water = nullptr;
     m_frameStateService = nullptr;
+    m_running = false; // Remove this line
 }

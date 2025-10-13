@@ -44,6 +44,7 @@
 #include <vector>
 #include <Windows.h>
 #include <wrl/client.h>
+#include <Engine/Rendering/RenderCommand.h>
 
 
 REGISTER_MANAGER_TYPE(SceneManager, "SceneManager")
@@ -73,7 +74,32 @@ SceneManager::SceneManager() :
     m_passConfig = PassConfigBase();
     m_engineConfig = EngineConfig();
 
-    SetFlag(SyncFlagIndex::HasScene, false);
+    this->SetFlag(SyncFlagIndex::HasScene, false);
+}
+
+void SceneManager::FillRenderPacket(RenderCommandPacket& packet) {
+    // Populate packet with simple draw commands based on the current
+    // pipeline resources. This is a minimal first step: we add a
+    // DrawIndexedCommand per mesh in each enabled pass.
+    try {
+        std::vector<RenderPassResource*> passes = m_resources->GetPasses();
+        for (const auto& pass : passes) {
+            if (!pass || !pass->enabled) continue;
+            std::vector<MeshResource*> meshes = this->GetPassMeshes(pass);
+            for (const auto& meshRes : meshes) {
+                if (!meshRes || !meshRes->mesh) continue;
+                int index = meshRes->mesh->GetReadIndex();
+                UINT indexCount = meshRes->mesh->GetIndexCount(index);
+                // Create a simple DrawIndexed command. More complex commands
+                // (SetVertexBuffer, SetInputLayout, SetShader, etc.) will be
+                // added in future iterations.
+                packet.commands.emplace_back(std::make_unique<DrawIndexedCommand>(indexCount, 0, 0));
+            }
+        }
+    }
+    catch (...) {
+        // Silent catch to avoid throwing in render path during early refactor.
+    }
 }
 
 SceneManager::~SceneManager() {}
@@ -604,7 +630,7 @@ void SceneManager::CreateScene() {
         m_frameStateService->SwapBufferContent(FRAME_STATE_RENDER);
         config.isRenderStateInitialized = true;
     }
-    SetFlag(SyncFlagIndex::HasScene, true);
+    this->SetFlag(SyncFlagIndex::HasScene, true);
 
     isGeneratingScene = false;
 }
@@ -700,7 +726,6 @@ FutureUpdateJob SceneManager::AddUpdateJob(const std::string& name, std::functio
 // Libera los recursos y detiene el bucle de actualizacións
 // ----------------------------------------------------------------
 void SceneManager::Shutdown() {
-    m_running = false;
     m_frameStateService->Shutdown();
     ManagerBase::Shutdown();
 }

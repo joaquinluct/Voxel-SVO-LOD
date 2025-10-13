@@ -13,6 +13,7 @@
 #include <Managers/PipelineResourcesManager.h>
 #include <Managers/UIManager.h>
 #include <Managers/UpdateManager.h>
+#include <Engine/Rendering/RenderCommand.h>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -61,6 +62,8 @@ public:
     // Interfaz ThreadedService
     // ------------------------
     void RunLoop() override;
+    // Llenar el paquete de comandos de render para el frame actual.
+    void FillRenderPacket(RenderCommandPacket& packet);
 
     // -----------------
     // Inicialización

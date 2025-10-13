@@ -389,6 +389,13 @@ void Engine::SubmitRenderCommands() {
     framePacket.frameId = m_frameCounter;
     framePacket.submitTime = std::chrono::high_resolution_clock::now();
 
+    // Allow SceneManager (or future SceneSystem) to fill the packet with
+    // render commands collected during Update(). This is a lightweight
+    // integration point for the command buffer system.
+    if (m_sceneManager) {
+        m_sceneManager->FillRenderPacket(framePacket);
+    }
+
     m_renderQueue.push(std::move(framePacket));
     m_renderCondition.notify_one();
 }

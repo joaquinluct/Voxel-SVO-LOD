@@ -4,6 +4,7 @@
 #include <vector>
 #include <chrono>
 #include <d3d11.h>
+#include <algorithm>
 
 // ===============================================================================
 // COMMAND PATTERN PARA RENDER PIPELINE AAA
@@ -122,3 +123,6 @@ public:
     uint32_t GetSortKey() const override;
     size_t GetMemoryFootprint() const override { return sizeof(DrawIndexedCommand); }
 };
+
+// Implementations are provided in RenderCommand.cpp to avoid multiple
+// definition issues when this header is included in multiple translation units.

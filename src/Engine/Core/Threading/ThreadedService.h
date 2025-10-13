@@ -4,6 +4,10 @@
 #include <thread>
 #include <unordered_map>
 
+// Deprecated: ThreadedService helper kept for reference. After migration
+// managers should not spawn dedicated threads; main Engine loop will
+// call their Update()/Render() methods. This file remains to avoid
+// breaking includes but contains no active threading primitives.
 class ThreadedService : public SyncFlagged {
 protected:
     std::thread m_thread;
