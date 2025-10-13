@@ -1,0 +1,22 @@
+#!/bin/sh
+# Post-commit hook: append latest commit entry to .github/commit_history.md
+# and create a secondary commit marking the history update.
+# Avoid infinite loops by tagging the history-commit with [ch-history].
+
+# Get the latest commit message and skip if it's the history update itself
+MSG=$(git log -1 --pretty=%B)
+printf "%s" "$MSG" | grep -q "\[ch-history\]" && exit 0
+
+HASH=$(git rev-parse --short HEAD)
+DATE=$(git show -s --format=%ci HEAD | awk '{print $1}')
+SUBJECT=$(git log -1 --pretty=%s)
+
+FILE=".github/commit_history.md"
+if [ -f "$FILE" ]; then
+    printf "\ncommit %s\n   - mensaje: %s\n   - fecha: %s\n   - descripción: Auto-generated entry by git hook.\n" "$HASH" "$SUBJECT" "$DATE" >> "$FILE"
+    git add "$FILE"
+    # Create a small commit to record the update; tag it so we don't loop.
+    git commit -m "[ch-history] update commit_history for %s" --no-verify -q || true
+fi
+
+exit 0
