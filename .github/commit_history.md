@@ -40,6 +40,11 @@ Listado (cronológico, más reciente al final):
    - fecha: 2025-10-13
    - descripción: Añadido `.githooks/post-commit` que automatiza la adición de entradas en `.github/commit_history.md` tras cada commit. Instrucciones: copiar a `.git/hooks/post-commit` y marcar ejecutable localmente.
 
+7. commit ef8b34a
+   - mensaje: refactor/threading-step-5: introduce UpdateSystem and switch flag in Engine::Init
+   - fecha: 2025-10-13
+   - descripción: Introducido `IUpdateSystem` y `UpdateSystem` (delegando en `UpdateManager` durante la migración). Engine ahora usa `UpdateSystem` en `UpdateGameLogic`. Compilación verificada y commit creado.
+
 
 ---
 
