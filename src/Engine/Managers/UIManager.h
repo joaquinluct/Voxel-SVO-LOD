@@ -1,6 +1,7 @@
 // UIManager.h
 #pragma once
 #include <Assets/Base/UIAsset.h>
+#include <Engine/Rendering/RenderCommand.h>
 #include <Defines/EngineDefinition.h>
 #include <Defines/VertexDefinition.h>
 #include <directxmath.h>
@@ -15,6 +16,7 @@
 class DeviceManager;
 class MeshAsset;
 //class UIText;
+class CommandBuffer;
 
 class UIManager : public ManagerBase
 {
@@ -33,10 +35,15 @@ public:
 
     HRESULT Init(EngineContext* context) override;
     UIText* InitText(std::shared_ptr<MeshAsset> mesh, std::vector<std::shared_ptr<VertexDefinition::VertexVariant>>& vertexDef);
+    // Convenience: create a label entry (will require a mesh to render)
+    UIText* CreateLabel(const std::string& name, const std::string& text);
     void Render() override;
     void Update(float deltaTime) override {};
     UIText* UpdateText(std::string meshName, std::string text);
     void Shutdown() override;
+
+    // Produce UI render commands into a CommandBuffer (called by SceneManager)
+    void FillCommandBuffer(CommandBuffer& buffer);
 
     //void SetText(const std::wstring& text);
     /*void AddElement(UIElement* element);

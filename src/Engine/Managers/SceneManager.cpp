@@ -100,6 +100,20 @@ void SceneManager::FillRenderPacket(RenderCommandPacket& packet) {
     catch (...) {
         // Silent catch to avoid throwing in render path during early refactor.
     }
+
+    // Append UI mesh if UIManager provided a mesh asset
+    // UIManager exposes GetUIMesh() which returns a MeshAssetBase* (or nullptr)
+    MeshAssetBase* uiMesh = nullptr;
+    if (m_uiManager) {
+        uiMesh = m_uiManager->GetUIMesh();
+    }
+    if (uiMesh) {
+        int index = uiMesh->GetReadIndex();
+        UINT indexCount = uiMesh->GetIndexCount(index);
+        packet.commands.emplace_back(std::make_unique<DrawIndexedCommand>(indexCount, 0, 0));
+    }
+
+    // Note: UIManager integration is handled via GetUIMesh() above.
 }
 
 SceneManager::~SceneManager() {}

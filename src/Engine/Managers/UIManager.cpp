@@ -1,5 +1,6 @@
 // UIManager.cpp
 #include "UIManager.h"
+#include <Engine/Rendering/RenderCommand.h>
 #include <Assets/Base/MeshAsset.h>
 #include <DeviceManager.h>
 #include <ManagerLocator/ManagerLocator.h>
@@ -11,6 +12,36 @@
 REGISTER_MANAGER_TYPE(UIManager, "UIManager")
 
 UIManager::UIManager() : m_deviceManager(nullptr), m_orthoMatrix{}, m_uiAsset{ nullptr } {
+}
+
+UIText* UIManager::CreateLabel(const std::string& name, const std::string& text) {
+    // If mesh is already registered under the name, update text
+    auto it = m_textElements.find(name);
+    if (it != m_textElements.end()) {
+        it->second->SetText(text);
+        return it->second;
+    }
+
+    // Otherwise create a simple UIText placeholder (without mesh)
+    UIText* label = new UIText();
+    label->Init();
+    label->SetText(text);
+    m_textElements[name] = label;
+    return label;
+}
+
+void UIManager::FillCommandBuffer(CommandBuffer& buffer) {
+    // Iterate registered text elements; if they have an associated mesh, add draw commands
+    for (auto& kv : m_textElements) {
+        UIText* t = kv.second;
+        if (!t) continue;
+        auto mesh = t->GetMesh();
+        if (mesh) {
+            int index = mesh->GetReadIndex();
+            UINT indexCount = mesh->GetIndexCount(index);
+            buffer.AddCommand<DrawIndexedCommand>(indexCount, 0, 0);
+        }
+    }
 }
 
 UIManager::~UIManager()

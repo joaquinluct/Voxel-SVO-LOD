@@ -2303,6 +2303,9 @@
     <ClInclude Include="src\Engine\Systems\UpdateSystem.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="src\Engine\UI\UIManager.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\Shaders\BasicShader.hlsl" />

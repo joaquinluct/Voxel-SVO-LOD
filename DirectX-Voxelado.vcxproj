@@ -636,6 +636,7 @@
     <ClInclude Include="src\Engine\Rendering\RenderCommand.h" />
     <ClInclude Include="src\Engine\Systems\IUpdateSystem.h" />
     <ClInclude Include="src\Engine\Systems\UpdateSystem.h" />
+    <ClInclude Include="src\Engine\UI\UIManager.h" />
     <ClInclude Include="src\Game\Systems\Terrain\Buffer\InstancingRingBuffer.h" />
     <ClInclude Include="src\Game\Systems\Terrain\Defines\Chunk\ChunkNeighborMask.h" />
     <ClInclude Include="src\Game\Systems\Terrain\Defines\Chunk\TerrainChunkConfig.h" />

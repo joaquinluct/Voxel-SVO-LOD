@@ -22,6 +22,30 @@ public:
 };
 
 //--------------------------------------------------------------------------------------
+// DrawQuadCommand: simple UI quad draw command (placeholder)
+//--------------------------------------------------------------------------------------
+class DrawQuadCommand : public IRenderCommand {
+private:
+    float m_x, m_y, m_w, m_h;
+public:
+    DrawQuadCommand(float x, float y, float w, float h)
+        : m_x(x), m_y(y), m_w(w), m_h(h) {}
+
+    void Execute(ID3D11DeviceContext* /*context*/) override {
+        // Placeholder: actual quad rendering requires vertex buffers/shaders.
+        // Implementations will be provided by UIRenderer using device resources.
+        // For now, this is a no-op to allow pipeline verification.
+    }
+
+    uint32_t GetSortKey() const override {
+        // UI quads should render late in the frame; use moderate sort key.
+        return 0xFFFF0000;
+    }
+
+    size_t GetMemoryFootprint() const override { return sizeof(DrawQuadCommand); }
+};
+
+//--------------------------------------------------------------------------------------
 // Tipos de comandos específicos
 //--------------------------------------------------------------------------------------
 enum class RenderCommandType {

@@ -25,6 +25,7 @@
 #include <vector>
 #include <Windows.h>
 
+
 class IService;
 class CameraManager;
 class DeviceManager;
@@ -179,4 +180,6 @@ private:
     std::shared_ptr<ThreadPool> m_threadPool;               // Servicio de hilos
     std::mutex m_mutex; // El mutex para proteger la variable compartida
     std::map<int, FutureUpdateJob> m_futures;
+
+    
 };
