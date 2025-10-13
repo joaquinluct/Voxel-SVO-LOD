@@ -25,10 +25,10 @@ Listado (cronológico, más reciente al final):
    - fecha: 2025-10-13
    - descripción: Se añadió la mecánica obligatoria de commits pequeños y compilaciones limpias al principio de `.github/copilot-instructions.md` y se añadió la sección "Por dónde vamos" indicando el siguiente paso (implementación de `RenderLoop`).
 
-4. pending: refactor/threading-step-3 (no commit hash yet)
+4. commit 43b8562
    - mensaje: refactor/threading-step-3: execute render packets in render thread
    - fecha: 2025-10-13
-   - descripción: Implementación de `Engine::RenderLoop`, `SubmitRenderCommands` y ejecución de `RenderCommandPacket` en el render thread. Compilación verificada localmente (build limpia). Añadir hash tras commit.
+   - descripción: Implementación de `Engine::RenderLoop`, `SubmitRenderCommands` y ejecución de `RenderCommandPacket` en el render thread. Compilación verificada localmente (build limpia). Push a rama `terrain`.
 
 
 ---

@@ -336,51 +336,35 @@ UpdatedJobs UpdateManager::UpdateTerrainData(float deltaTime) {
 
 void UpdateManager::Update(float deltaTime) {
 
-    // Si no hay futuros, salir
-    if (m_futures.size() <= 0) {
-        return;
-    }
+    // Ejecutar las actualizaciones sincronas necesarias en el hilo principal
+    // (antes estas podían residir en tareas dedicadas). Estas funciones
+    // actualizan los frame states y llaman a FrameStateService::SetData.
+    UpdatedJobs mainUpdated = UpdateMainData(deltaTime);
+    UpdatedJobs terrainUpdated = UpdateTerrainData(deltaTime);
 
+    // Procesar futuros completados en segundo plano (si los hay)
     std::map<int, FutureUpdateJob> finishedJobs;
-
-    // Bucle seguro con iteradores para modificar el mapa mientras se recorre.
-    //// El bucle empieza con 'it' y lo incrementa al final (a menos que se borre).
     std::lock_guard<std::mutex> lock(m_mutex);
     for (auto it = m_futures.begin(); it != m_futures.end(); ) {
         auto& future = it->second;
-
-        // 1. Verificamos si el futuro es válido y está listo.
-        //if (future.valid() && future.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
         if (future.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
-            // 2. Si está listo, movemos el trabajo al mapa de terminados.
             finishedJobs.emplace(it->first, std::move(future));
-
-            // 3. Borramos el elemento del mapa principal de forma segura
-            // y actualizamos el iterador para que apunte al siguiente elemento.
             it = m_futures.erase(it);
         }
         else {
-            // 4. Si no está listo o es inválido, simplemente avanzamos el iterador.
             ++it;
         }
     }
-    // Procesamos los trabajos terminados.
+
     for (auto& jobFinishedPair : finishedJobs) {
-        // Obtener el resultado final.
         UpdateJob job = jobFinishedPair.second.get();
-        if (m_futures.count(jobFinishedPair.first) > 0)
-            m_futures.erase(jobFinishedPair.first);
         if (job.isSuccessful) {
-            std::string stateName = job.name;
             if (job.name == FRAME_STATE_TERRAIN) {
-                /*m_frameStateService->SwapBuffer(FRAME_STATE_MESH);
-                m_frameStateService->SwapBuffer(FRAME_STATE_RENDER);*/
                 m_frameStateService->SwapBuffer(FRAME_STATE_PIPELINE);
                 continue;
             }
             m_frameStateService->SwapBuffer(job.name);
         }
-        //std::cout << "Trabajo '" << job.name << "' con resultado '" << job.result << "' ha sido procesado.\n";
     }
 
 }
@@ -414,5 +398,6 @@ void UpdateManager::Shutdown()
     m_world = nullptr;
     m_water = nullptr;
     m_frameStateService = nullptr;
-    m_running = false; // Remove this line
+    // Intentionally do not toggle ThreadedService::m_running here; managers
+    // are controlled via Engine context isRunning flag.
 }

@@ -18,11 +18,13 @@ Reglas rápidas:
 - No agrupar múltiples intenciones arquitectónicas en un único commit.
 - Antes de mergear, ejecutar `run_build`/CI para asegurar que la rama compila limpia.
 
- Por dónde vamos (siguiente paso)
- --------------------------------
- - Siguiente paso previsto: implementar `RenderLoop` en `Engine` para que consuma `RenderCommandPacket` desde `m_renderQueue` y ejecute los comandos usando el contexto proporcionado por `DeviceManager`. Este cambio es el "Step 3" del refactor threading y el commit propuesto será:
-   - mensaje de commit sugerido: `refactor/threading-step-3: execute render packets in render thread`
-   - Después de aplicar el cambio: compilar completo y, si pasa, añadir entrada en `.github/commit_history.md` con hash, mensaje y fecha.
+ Por dónde vamos (estado y siguiente paso)
+ --------------------------------------
+ - Estado: `Step 3` completado — `RenderLoop` implementado y commit realizado (`43b8562`, 2025-10-13). La implementación incluye `Engine::RenderLoop`, `SubmitRenderCommands` y la ejecución de `RenderCommandPacket` en el render thread. Compilación verificada (build limpia) y cambios empujados a la rama `terrain`.
+ - Siguiente paso (Step 4): migrar `UpdateManager` y `SceneManager` para que ejecuten su lógica en el hilo principal (Main thread) y eliminar sus hilos dedicados.
+   - objetivo: convertir `UpdateManager` y `SceneManager` a sistemas sin hilo propio y llamar sus `Update()` desde `Engine::MainLoop`.
+   - mensaje de commit sugerido: `refactor/threading-step-4: migrate UpdateManager and SceneManager to main thread`.
+   - flujo: aplicar cambio pequeño → compilar workspace completo → crear commit con mensaje estandarizado → actualizar `.github/commit_history.md` con hash y fecha.
 
 
 - Arquitectura general (panorama):
