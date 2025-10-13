@@ -1,0 +1,6 @@
+BasedOnStyle: Microsoft
+SortIncludes: true
+IncludeBlocks: Regroup
+IndentWidth: 4
+ColumnLimit: 120
+*** End Patch

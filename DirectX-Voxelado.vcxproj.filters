@@ -2534,6 +2534,8 @@
     <None Include=".github\copilot-instructions.md" />
     <None Include="md\ORIENTACIÓN DEL FRAMEWORK - PENDIENTE DE IMPLEMENTAR.md" />
     <None Include=".gitattributes" />
+    <None Include="md\Threading\ESTO ES LO QUE QUIERO.md" />
+    <None Include=".clang-format" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="C:\Users\joaqu\Downloads\yaml-cpp-master-original\yaml-cpp-master\build\Debug\yaml-cppd.lib" />

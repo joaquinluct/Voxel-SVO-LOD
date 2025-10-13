@@ -48,6 +48,29 @@ Este fichero contiene la mínima información práctica que una IA necesita para
   - Uso intensivo de smart pointers (`std::shared_ptr`) y dinámicas con `dynamic_pointer_cast` en locators.
   - Mensajes de debug con `OutputDebugStringA` o `std::cerr` en puntos críticos (InitController, MainController) — usar esto para traza al modificar inicialización.
 
+Regla de orden de includes (convención)
+-------------------------------------
+Se recomienda agrupar y ordenar los includes para mejorar legibilidad y evitar diffs ruidosos.
+
+- Orden esperado en cada fichero C/C++/H:
+  1. Includes locales del proyecto entre comillas (`"..."`) — orden alfabético.
+  2. Includes de sistema entre angulares (`<...>`) — orden alfabético.
+  3. Separar los dos bloques con una línea en blanco.
+
+- Excepción: archivos auto-generados (por ejemplo los de `YamlToStruct.exe` en `src/Engine/Core/Config`) no deben modificarse manualmente; no aplicar reordenación automática sobre ellos.
+
+- Automatización: se recomienda usar `clang-format` para aplicar la convención de forma automática. Crear un `.clang-format` con `SortIncludes: true` y `IncludeBlocks: Regroup` aplicará reglas coherentes.
+
+Ejemplo:
+
+// Locales
+"Engine/Rendering/RenderCommand.h"
+"Managers/RenderManager/RenderManager.h"
+
+// Sistema
+<algorithm>
+<vector>
+
 Si alguna sección quedó incompleta o quieres que añada ejemplos concretos (por ejemplo: plantilla mínima para registrar un nuevo Service/Manager o fragmentos de YAML de config), dime cuál y lo añado ahora.
 
 -- Objetivos del proyecto (útiles para agentes de IA):

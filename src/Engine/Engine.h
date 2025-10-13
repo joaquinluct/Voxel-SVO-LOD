@@ -1,11 +1,16 @@
 #pragma once
 
+#include "Defines/EngineDefinition.h"
+#include "Engine/Rendering/RenderCommand.h"
+
+#include <atomic>
 #include <chrono>
-#include <Defines/EngineDefinition.h>
+#include <condition_variable>
 #include <memory>
 #include <mutex>
 #include <queue>
 #include <thread>
+
 #include <windows.h>
 
 class DeviceManager;
@@ -70,8 +75,10 @@ public:
 
     void SetDeltaTime(float deltaTime) { m_context->deltaTime = deltaTime; }
 
-    // THREADING AAA: Comentado temporalmente para mantener compilación
+    // THREADING AAA
     void MainLoop();
+    // Ejecuta una iteración de juego (Game logic) — llamada por MainWindow por frame
+    void Tick(float deltaTime);
 
 private:
     //--------------------------------------------------------------------------------------
@@ -88,14 +95,17 @@ private:
     std::unique_ptr<std::thread> m_renderThread;      // Solo render thread
     std::shared_ptr<ThreadPool> m_threadPool;         // Jobs asíncronos
 
-    // Sincronización Update ? Render (Producer-Consumer)
-    //std::queue<RenderCommandPacket> m_renderQueue;
+    // Producer-Consumer queue: Main thread produce render packets, Render thread consume
+    std::queue<RenderCommandPacket> m_renderQueue;
     std::mutex m_renderQueueMutex;
     std::condition_variable m_renderCondition;
 
     // Frame synchronization
     std::atomic<bool> m_frameReady{ false };
     std::atomic<int> m_frameCounter{ 0 };
+
+    // Engine running flag (main + render threads check this)
+    std::atomic<bool> m_isRunning{ false };
 
     //--------------------------------------------------------------------------------------
     // NUEVO: Threading AAA Methods
@@ -134,14 +144,9 @@ private:
     std::shared_ptr<InitManager> m_initManager;
     std::shared_ptr<RenderManager> m_renderManager;   // Mantener para compatibilidad
 
-    // LEGACY: Mantener para migración gradual
+    // LEGACY: Mantener referencias de managers (se llamarán desde MainLoop)
     std::shared_ptr<UpdateManager> m_updateManager;   // Temporal durante migración
     std::shared_ptr<SceneManager> m_sceneManager;     // Temporal durante migración
-
-    //--------------------------------------------------------------------------------------
-    // Control threading flags
-    //--------------------------------------------------------------------------------------
-    bool m_useNewThreading = true;  // Flag para cambio gradual
 
     //--------------------------------------------------------------------------------------
     // Métodos para el control de los hilos.

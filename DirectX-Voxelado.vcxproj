@@ -1082,6 +1082,7 @@
     <Image Include="Resources\Textures\Rock\Coast sand rock\coast_sand_rocks_02_rough_4k.jpg" />
   </ItemGroup>
   <ItemGroup>
+    <None Include=".clang-format" />
     <None Include=".gitattributes" />
     <None Include=".github\copilot-instructions.md" />
     <None Include="Assets\Textures\Brick\Poliigon_BrickWallReclaimed_8320.mtlx" />
@@ -1127,6 +1128,7 @@
     <None Include="md\SVO.md" />
     <None Include="md\SVO_TRIÁNGULOS.md" />
     <None Include="md\Terrain\DawIndexedIndirect.md" />
+    <None Include="md\Threading\ESTO ES LO QUE QUIERO.md" />
     <None Include="md\Terrain\TIPO DE CHUNK.md" />
     <None Include="md\Terrain\TÉCNICAS PARA EL TERRENO.md" />
     <None Include="md\Teselación\TESELACIÓN.md" />

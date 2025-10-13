@@ -108,7 +108,8 @@ int MainWindow::Create(int width, int height) {
                 m_gameEngine->SetDeltaTime(delta);
                 this->m_deltaTime = delta;
 
-                // Legacy: Los hilos separados manejan update/render
+                // AAA: Llamar a Tick por frame (game logic ejecutado en main thread)
+                m_gameEngine->Tick(delta);
             }
         }
     }
