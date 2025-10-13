@@ -26,6 +26,23 @@ Reglas rápidas:
    - mensaje de commit sugerido: `refactor/threading-step-4: migrate UpdateManager and SceneManager to main thread`.
    - flujo: aplicar cambio pequeño → compilar workspace completo → crear commit con mensaje estandarizado → actualizar `.github/commit_history.md` con hash y fecha.
 
+Por dónde vamos (actualizado)
+--------------------------------------
+ - Estado actual: `Step 5` completado — `UpdateSystem` introducido y `Engine::UpdateGameLogic` ya usa el sistema de actualización (delegando aún en `UpdateManager` durante la migración). Compilación verificada y commits realizados en la rama `terrain`.
+ - Siguiente paso (Step 6): pausar temporalmente la integración del subsistema de terreno y validar el pipeline de render completo mediante un pase de UI "Hello World".
+   - objetivo: comprobar end-to-end el flujo AAA (Main -> SubmitRenderCommands -> RenderThread -> Execute -> Present) usando un pase sencillo de UI que dibuje un texto o quad con "Hola Mundo".
+   - razones: aislar la verificación del pipeline y la infraestructura (hilos, colas, CommandBuffer, orden de pases, sincronización de frame state) sin el ruido de la generación de terreno, que añadirá complejidad y ruido en esta fase.
+   - pasos:
+     1. Implementar un `RenderPass` de UI ligero que genere comandos básicos (set shaders, set vb/ib, draw) o un `DrawText` simplificado en `SceneManager::FillRenderPacket`.
+     2. Asegurar que los comandos se agrupan por pase y que `Engine::RenderLoop` ejecuta los pases en el orden configurado.
+     3. Ejecutar la aplicación localmente y verificar visualmente el "Hola Mundo" en pantalla.
+     4. Crear commit: `refactor/threading-step-6: validate render pipeline with UI HelloWorld pass` y actualizar `.github/commit_history.md`.
+   - criterios de éxito: build limpia, el render thread consume paquetes y en pantalla aparece el texto/quad "Hola Mundo"; no hay data-races ni bloqueos detectables en ejecución.
+
+ Regla rápida para este paso:
+ - Mantener el cambio pequeño: un pase UI minimal y wiring del pipeline. No integrar la lógica de terreno en este commit.
+ - Compilar y verificar antes de commitear. Usar mensaje estandarizado y actualizar `.github/commit_history.md`.
+
 
 - Arquitectura general (panorama):
   - Motor modular con tres tipos principales de componentes: Managers, Services y Assets.
