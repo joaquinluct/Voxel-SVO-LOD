@@ -2536,6 +2536,7 @@
     <None Include=".gitattributes" />
     <None Include="md\Threading\ESTO ES LO QUE QUIERO.md" />
     <None Include=".clang-format" />
+    <None Include=".github\commit_history.md" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="C:\Users\joaqu\Downloads\yaml-cpp-master-original\yaml-cpp-master\build\Debug\yaml-cppd.lib" />

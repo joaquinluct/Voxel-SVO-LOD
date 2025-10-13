@@ -2,6 +2,29 @@
 
 Este fichero contiene la mínima información práctica que una IA necesita para ser productiva en este código base. Responde siempre en español.
 
+1) Mecánica obligatoria: commits pequeños y compilaciones limpias (PRIMERA REGLA)
+--------------------------------------------------------------------------
+Antes de tocar cualquier código importante, seguir este flujo sin excepción:
+- Dividir el cambio en pasos pequeños e independientes (Step 1, Step 2, ...).
+- Aplicar un solo paso y ejecutar la compilación completa del workspace.
+  - Si la compilación falla, arreglar antes de continuar.
+- Crear un commit con el formato estandarizado: `refactor/<topic>-step-<n>: <breve-descripción>`
+  - Ejemplo: `refactor/threading-step-3: execute render packets in render thread`.
+- Actualizar `.github/commit_history.md` con la entrada del commit (hash, mensaje, fecha y breve descripción).
+- Escribir en el fichero de instrucciones (este archivo) un breve "por dónde vamos" indicando el siguiente paso.
+
+Reglas rápidas:
+- Siempre compilar entre pasos. No acumular cambios que rompan la build.
+- No agrupar múltiples intenciones arquitectónicas en un único commit.
+- Antes de mergear, ejecutar `run_build`/CI para asegurar que la rama compila limpia.
+
+ Por dónde vamos (siguiente paso)
+ --------------------------------
+ - Siguiente paso previsto: implementar `RenderLoop` en `Engine` para que consuma `RenderCommandPacket` desde `m_renderQueue` y ejecute los comandos usando el contexto proporcionado por `DeviceManager`. Este cambio es el "Step 3" del refactor threading y el commit propuesto será:
+   - mensaje de commit sugerido: `refactor/threading-step-3: execute render packets in render thread`
+   - Después de aplicar el cambio: compilar completo y, si pasa, añadir entrada en `.github/commit_history.md` con hash, mensaje y fecha.
+
+
 - Arquitectura general (panorama):
   - Motor modular con tres tipos principales de componentes: Managers, Services y Assets.
   - Localizadores (Singleton registries) orquestan creación/obtención:
@@ -726,3 +749,12 @@ Threading:
 ```
 
 Este refactoring es **OBLIGATORIO** para cumplir estándares AAA y debe implementarse antes de añadir nuevas features significativas al framework.
+
+## Historial de commits y puntos de retorno
+
+Mantener un historial centralizado de commits importantes facilita rollback y trazabilidad. Se ha añadido un fichero dedicado en `.github/commit_history.md` donde se registran los commits relevantes (hash, mensaje breve y descripción).
+
+Regla rápida:
+- El asistente actualizará `.github/commit_history.md` después de cada cambio relevante. Si añades commits manualmente, añade también la entrada correspondiente en ese fichero.
+
+Ver `.github/commit_history.md` para el historial actual y para las instrucciones sobre cómo anotar nuevos commits.

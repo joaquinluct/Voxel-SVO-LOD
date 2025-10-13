@@ -1084,6 +1084,7 @@
   <ItemGroup>
     <None Include=".clang-format" />
     <None Include=".gitattributes" />
+    <None Include=".github\commit_history.md" />
     <None Include=".github\copilot-instructions.md" />
     <None Include="Assets\Textures\Brick\Poliigon_BrickWallReclaimed_8320.mtlx" />
     <None Include="Assets\Textures\DefaultSkybox\build_dds.bat" />
