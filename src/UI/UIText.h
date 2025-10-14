@@ -63,6 +63,8 @@ public:
     void SetColor(float r, float g, float b, float a);
     void SetFontSize(float size);
     const std::string& GetText() const { return m_text; }
+    float GetFontSize() const { return m_fontSize; }
+    DirectX::XMFLOAT4 GetColor() const { return m_color; }
 
 	void SetMesh(std::shared_ptr<MeshAsset> mesh) { m_mesh = mesh; }
     void CreateMesh(std::vector<std::shared_ptr<VertexDefinition::VertexVariant>>& pVertexData);

@@ -298,32 +298,98 @@ void UIRenderer::ExecuteUICommands(const RenderCommandPacket& packet) {
 
             // If we have an atlas and glyph metrics, render per-character using dynamic VB
             if (m_uiAtlasSRV && !m_glyphs.empty()) {
-                // Build a temporary CPU-side vertex array
                 struct UIVertex { DirectX::XMFLOAT3 pos; DirectX::XMFLOAT2 uv; DirectX::XMFLOAT4 color; };
                 std::vector<UIVertex> vertices;
-                vertices.reserve(1024);
+                vertices.reserve(4096);
+
+                // Collect text from UIManager
                 for (auto& mesh : pair.second) {
                     if (!mesh) continue;
-                    // Assume mesh represents a UIText via MeshAsset wrapper; find the UIText owning it
-                    // We don't have direct access to text string here; fallback to reading mesh->GetVertexData() if available
-                    auto vdata = mesh->GetVertexData(mesh->GetReadIndex());
-                    // If the mesh contains TextVertex variants, fall back to drawing as-is
-                    if (vdata.empty()) continue;
-                    // For simplicity, we assume mesh was created from UIText::CreateMesh with TextVertex layout
-                    // So we can bind its VB directly
-                    ID3D11Buffer* vb = mesh->GetVertexBuffer(mesh->GetReadIndex()).Get();
-                    ID3D11Buffer* ib = mesh->GetIndexBuffer(mesh->GetReadIndex()).Get();
-                    if (vb) {
-                        UINT stride = mesh->GetVertexTypeSize();
+                    // Try to find owning UIText by searching UIManager entries
+                    UIText* owner = nullptr;
+                    auto uiMgr = ManagerLocator::GetManager<UIManager>();
+                    if (uiMgr) {
+                        for (auto& kv : uiMgr->GetTextElements()) {
+                            if (kv.second && kv.second->GetMesh() == mesh) {
+                                owner = kv.second;
+                                break;
+                            }
+                        }
+                    }
+                    if (!owner) continue;
+
+                    std::string text = owner->GetText();
+                    float x = roundf(owner->GetPosition().x);
+                    float y = roundf(owner->GetPosition().y);
+                    float fontSize = owner->GetFontSize();
+                    DirectX::XMFLOAT4 color = owner->GetColor();
+
+                    for (char c : text) {
+                        int code = static_cast<unsigned char>(c);
+                        auto it = m_glyphs.find(code);
+                        int gx = 0, gy = 0, gw = m_atlasCellSize, gh = m_atlasCellSize, adv = gw;
+                        if (it != m_glyphs.end()) {
+                            gx = it->second.x; gy = it->second.y; gw = it->second.w; gh = it->second.h; adv = it->second.advance;
+                        }
+                        float u0 = (float)gx / (float)m_atlasTextureSize;
+                        float v0 = (float)gy / (float)m_atlasTextureSize;
+                        float u1 = (float)(gx + gw) / (float)m_atlasTextureSize;
+                        float v1 = (float)(gy + gh) / (float)m_atlasTextureSize;
+
+                        float w = (float)gw * (fontSize / (float)m_atlasCellSize);
+                        float h = (float)gh * (fontSize / (float)m_atlasCellSize);
+
+                        DirectX::XMFLOAT3 p1 = { x, y, 0.0f };
+                        DirectX::XMFLOAT3 p2 = { x + w, y, 0.0f };
+                        DirectX::XMFLOAT3 p3 = { x, y + h, 0.0f };
+
+                        vertices.push_back({ p1, {u0, v0}, color });
+                        vertices.push_back({ p2, {u1, v0}, color });
+                        vertices.push_back({ p3, {u0, v1}, color });
+                        vertices.push_back({ {x, y + h, 0.0f}, {u0, v1}, color });
+                        vertices.push_back({ {x + w, y, 0.0f}, {u1, v0}, color });
+                        vertices.push_back({ {x + w, y + h, 0.0f}, {u1, v1}, color });
+
+                        x += adv * (fontSize / (float)m_atlasCellSize);
+                    }
+                }
+
+                if (!vertices.empty()) {
+                    // Ensure vertex buffer capacity
+                    size_t vbNeeded = vertices.size();
+                    if (vbNeeded > m_vbCapacityVertices) {
+                        D3D11_BUFFER_DESC vbNew = {};
+                        vbNew.Usage = D3D11_USAGE_DYNAMIC;
+                        vbNew.ByteWidth = static_cast<UINT>(sizeof(UIVertex) * vbNeeded);
+                        vbNew.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+                        vbNew.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+                        vbNew.MiscFlags = 0;
+                        ID3D11Buffer* newBuf = nullptr;
+                        m_device->CreateBuffer(&vbNew, nullptr, &newBuf);
+                        m_vertexBuffer.Attach(newBuf);
+                        m_vbCapacityVertices = vbNeeded;
+                    }
+
+                    // Map and upload
+                    D3D11_MAPPED_SUBRESOURCE mapped = {};
+                    HRESULT mr = m_context->Map(m_vertexBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+                    if (SUCCEEDED(mr)) {
+                        memcpy(mapped.pData, vertices.data(), sizeof(UIVertex) * vertices.size());
+                        m_context->Unmap(m_vertexBuffer.Get(), 0);
+
+                        UINT stride = sizeof(UIVertex);
                         UINT offset = 0;
-                        m_context->IASetVertexBuffers(0, 1, &vb, &stride, &offset);
+                        ID3D11Buffer* vbRaw = m_vertexBuffer.Get();
+                        m_context->IASetVertexBuffers(0, 1, &vbRaw, &stride, &offset);
+                        m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+                        // Bind atlas
+                        ID3D11ShaderResourceView* atlas = m_uiAtlasSRV.Get();
+                        m_context->PSSetShaderResources(0, 1, &atlas);
+                        ID3D11SamplerState* s = m_samplerState.Get();
+                        m_context->PSSetSamplers(0, 1, &s);
+
+                        m_context->Draw(static_cast<UINT>(vertices.size()), 0);
                     }
-                    if (ib) {
-                        m_context->IASetIndexBuffer(ib, DXGI_FORMAT_R16_UINT, 0);
-                    }
-                    m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-                    UINT indexCount = mesh->GetIndexCount(mesh->GetReadIndex());
-                    if (indexCount > 0) m_context->DrawIndexed(indexCount, 0, 0);
                 }
             } else {
                 for (auto& mesh : pair.second) {
