@@ -105,27 +105,30 @@ void UIRenderer::ExecuteUICommands(const RenderCommandPacket& packet) {
     auto uiManager = ManagerLocator::GetManager<UIManager>();
     if (uiManager) {
         const auto& texts = uiManager->GetTextElements();
+
+        // Bind shader and input layout once for all UI meshes to minimize state changes
+        if (m_vertexShader) m_context->VSSetShader(m_vertexShader.Get(), nullptr, 0);
+        if (m_pixelShader) m_context->PSSetShader(m_pixelShader.Get(), nullptr, 0);
+        if (m_inputLayout) m_context->IASetInputLayout(m_inputLayout.Get());
+
+        // Update ortho matrix constant (slot b13 as shader expects)
+        XMMATRIX ortho = uiManager->GetOrthoMatrix();
+        XMMATRIX orthoT = DirectX::XMMatrixTranspose(ortho);
+        if (m_constantBuffer) {
+            m_context->UpdateSubresource(m_constantBuffer.Get(), 0, nullptr, &orthoT, 0, 0);
+            ID3D11Buffer* cb = m_constantBuffer.Get();
+            m_context->VSSetConstantBuffers(13, 1, &cb);
+        }
+
         for (const auto& kv : texts) {
             UIText* txt = kv.second;
             if (!txt) continue;
             auto mesh = txt->GetMesh();
             if (!mesh) continue;
-            // Bind shader and input layout
-            if (m_vertexShader) m_context->VSSetShader(m_vertexShader.Get(), nullptr, 0);
-            if (m_pixelShader) m_context->PSSetShader(m_pixelShader.Get(), nullptr, 0);
-            if (m_inputLayout) m_context->IASetInputLayout(m_inputLayout.Get());
 
-            // Update ortho matrix constant (slot b13 as shader expects)
-            XMMATRIX ortho = uiManager->GetOrthoMatrix();
-            XMMATRIX orthoT = DirectX::XMMatrixTranspose(ortho);
-            if (m_constantBuffer) {
-                m_context->UpdateSubresource(m_constantBuffer.Get(), 0, nullptr, &orthoT, 0, 0);
-                ID3D11Buffer* cb = m_constantBuffer.Get();
-                m_context->VSSetConstantBuffers(13, 1, &cb);
-            }
             // Bind vertex/index buffers from mesh and draw
-            auto vb = mesh->GetVertexBuffer(mesh->GetReadIndex()).Get();
-            auto ib = mesh->GetIndexBuffer(mesh->GetReadIndex()).Get();
+            ID3D11Buffer* vb = mesh->GetVertexBuffer(mesh->GetReadIndex()).Get();
+            ID3D11Buffer* ib = mesh->GetIndexBuffer(mesh->GetReadIndex()).Get();
             if (vb) {
                 UINT stride = mesh->GetVertexTypeSize();
                 UINT offset = 0;
