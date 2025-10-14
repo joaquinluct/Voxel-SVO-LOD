@@ -324,6 +324,16 @@ void UIRenderer::ExecuteUICommands(const RenderCommandPacket& packet) {
                     float fontSize = owner->GetFontSize();
                     DirectX::XMFLOAT4 color = owner->GetColor();
 
+                    // Convert from top-left pixel coords to centered orthographic coords used by UI shaders
+                    std::shared_ptr<DeviceManager> dev = ManagerLocator::GetDeviceManager();
+                    if (dev) {
+                        float sw = static_cast<float>(dev->GetWidth());
+                        float sh = static_cast<float>(dev->GetHeight());
+                        // Owner positions are expected in pixels from top-left; convert to centered origin (X right, Y down -> Y up)
+                        x = x - (sw * 0.5f);
+                        y = (sh * 0.5f) - y;
+                    }
+
                     for (char c : text) {
                         int code = static_cast<unsigned char>(c);
                         auto it = m_glyphs.find(code);
