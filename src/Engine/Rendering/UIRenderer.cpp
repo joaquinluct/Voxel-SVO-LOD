@@ -8,6 +8,11 @@
 #include <DirectXMath.h>
 #include <Managers/DeviceManager.h>
 #include <Engine/Rendering/RenderCommand.h>
+#include <Defines/VertexDefinition.h>
+#include <wrl/client.h>
+#include <ManagerLocator/ManagerLocator.h>
+#include <Managers/UIManager.h>
+#include <Assets/Base/MeshAsset.h>
 
 HRESULT UIRenderer::Init(ID3D11Device* device, ID3D11DeviceContext* context) {
     if (!device || !context) return E_FAIL;
@@ -85,11 +90,9 @@ HRESULT UIRenderer::Init(ID3D11Device* device, ID3D11DeviceContext* context) {
     ID3D11Buffer* cb = nullptr;
     hr = m_device->CreateBuffer(&cbDesc, &initData, &cb);
     if (SUCCEEDED(hr)) {
-        // Bind to slot b13 as TextShader expects
-        m_context->VSSetConstantBuffers(13, 1, &cb);
-        // store local ref so Shutdown can release
-        Microsoft::WRL::ComPtr<ID3D11Buffer> cbPtr(cb);
-        // keep a reference via m_vertexBuffer as placeholder (no member for cb)
+        m_constantBuffer.Attach(cb);
+        ID3D11Buffer* cbRaw = m_constantBuffer.Get();
+        m_context->VSSetConstantBuffers(13, 1, &cbRaw);
     }
 
     return S_OK;
@@ -98,14 +101,44 @@ HRESULT UIRenderer::Init(ID3D11Device* device, ID3D11DeviceContext* context) {
 void UIRenderer::ExecuteUICommands(const RenderCommandPacket& packet) {
     if (!m_context) return;
 
-    // Bind UI shaders/layout if available
-    if (m_inputLayout) {
-        m_context->IASetInputLayout(m_inputLayout.Get());
-    }
+    // Prefer to render UIText meshes if UIManager provides them
+    auto uiManager = ManagerLocator::GetManager<UIManager>();
+    if (uiManager) {
+        const auto& texts = uiManager->GetTextElements();
+        for (const auto& kv : texts) {
+            UIText* txt = kv.second;
+            if (!txt) continue;
+            auto mesh = txt->GetMesh();
+            if (!mesh) continue;
+            // Bind shader and input layout
+            if (m_vertexShader) m_context->VSSetShader(m_vertexShader.Get(), nullptr, 0);
+            if (m_pixelShader) m_context->PSSetShader(m_pixelShader.Get(), nullptr, 0);
+            if (m_inputLayout) m_context->IASetInputLayout(m_inputLayout.Get());
 
-    for (const auto& cmd : packet.commands) {
-        // For now, commands Execute() are no-op placeholders; call them to keep pipeline
-        if (cmd) cmd->Execute(m_context);
+            // Update ortho matrix constant (slot b13 as shader expects)
+            XMMATRIX ortho = uiManager->GetOrthoMatrix();
+            XMMATRIX orthoT = DirectX::XMMatrixTranspose(ortho);
+            if (m_constantBuffer) {
+                m_context->UpdateSubresource(m_constantBuffer.Get(), 0, nullptr, &orthoT, 0, 0);
+                ID3D11Buffer* cb = m_constantBuffer.Get();
+                m_context->VSSetConstantBuffers(13, 1, &cb);
+            }
+            // Bind vertex/index buffers from mesh and draw
+            auto vb = mesh->GetVertexBuffer(mesh->GetReadIndex()).Get();
+            auto ib = mesh->GetIndexBuffer(mesh->GetReadIndex()).Get();
+            if (vb) {
+                UINT stride = mesh->GetVertexTypeSize();
+                UINT offset = 0;
+                m_context->IASetVertexBuffers(0, 1, &vb, &stride, &offset);
+            }
+            if (ib) {
+                m_context->IASetIndexBuffer(ib, DXGI_FORMAT_R16_UINT, 0);
+            }
+            m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+            UINT indexCount = mesh->GetIndexCount(mesh->GetReadIndex());
+            if (indexCount > 0) m_context->DrawIndexed(indexCount, 0, 0);
+        }
+        return;
     }
 }
 

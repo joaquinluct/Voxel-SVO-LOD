@@ -68,6 +68,12 @@ HRESULT UIManager::Init(EngineContext* context)
 
     OutputDebugStringA("Incializando UIManager...\n");
     m_deviceManager = ManagerLocator::GetManager<DeviceManager>();
+    if (m_deviceManager) {
+        UINT width = static_cast<UINT>(m_deviceManager->GetWidth());
+        UINT height = static_cast<UINT>(m_deviceManager->GetHeight());
+        // Orthographic projection: left=0, right=width, top=0, bottom=height
+        m_orthoMatrix = DirectX::XMMatrixOrthographicOffCenterLH(0.0f, (float)width, (float)height, 0.0f, 0.0f, 1.0f);
+    }
     //// Crear matriz de proyección ortográfica
     //UINT width = static_cast<UINT>(m_deviceManager->GetWidth());
     //UINT height = static_cast<UINT>(m_deviceManager->GetHeight());

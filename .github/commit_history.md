@@ -55,6 +55,11 @@ Listado (cronológico, más reciente al final):
    - fecha: 2025-10-13
    - descripción: Añadido `DrawTextCommand` placeholder y wiring en `UIManager` para crear panels y asociar labels; `FillCommandBuffer` ahora emite comandos de texto/quad para el pipeline UI.
 
+10. commit 6e91c54
+   - mensaje: refactor/ui-step-3: implement UIRenderer VB/draw plumbing and create hello-world panel
+   - fecha: 2025-10-14
+   - descripción: Añadido `UIRenderer` (creación de input layout, VB dinámico y binding de shaders) y registro de un panel "Hola Mundo" en `SceneManager::PostInit`. Compilación verificada.
+
 
 ---
 
