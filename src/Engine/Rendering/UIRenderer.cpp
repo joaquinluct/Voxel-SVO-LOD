@@ -151,6 +151,13 @@ HRESULT UIRenderer::Init(ID3D11Device* device, ID3D11DeviceContext* context) {
         atlasTex->Release();
     }
 
+    // If a real atlas file exists in Assets, notify (automatic WIC loader not available here)
+    std::wstring atlasFile = L"Assets\\Textures\\UI\\atlas_ui.png";
+    DWORD attrs = GetFileAttributesW(atlasFile.c_str());
+    if (attrs != INVALID_FILE_ATTRIBUTES) {
+        OutputDebugStringA("UIRenderer: Found Assets/Textures/UI/atlas_ui.png — loading via AssetManager recommended. Using POC atlas for now.\n");
+    }
+
     // Create simple point sampler for UI
     D3D11_SAMPLER_DESC sampDesc = {};
     sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
