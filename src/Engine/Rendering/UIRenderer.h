@@ -29,4 +29,5 @@ private:
     Microsoft::WRL::ComPtr<ID3D11Buffer> m_constantBuffer; // matrix buffer (ortho)
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_whiteTextureSRV;
     Microsoft::WRL::ComPtr<ID3D11SamplerState> m_samplerState;
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_uiAtlasSRV;
 };

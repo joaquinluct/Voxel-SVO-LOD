@@ -124,6 +124,33 @@ HRESULT UIRenderer::Init(ID3D11Device* device, ID3D11DeviceContext* context) {
         tex->Release();
     }
 
+    // Create a simple UI atlas (256x256 white) as POC
+    D3D11_TEXTURE2D_DESC atlasDesc = {};
+    atlasDesc.Width = 256;
+    atlasDesc.Height = 256;
+    atlasDesc.MipLevels = 1;
+    atlasDesc.ArraySize = 1;
+    atlasDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    atlasDesc.SampleDesc.Count = 1;
+    atlasDesc.Usage = D3D11_USAGE_DEFAULT;
+    atlasDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    atlasDesc.CPUAccessFlags = 0;
+
+    std::vector<UINT32> atlasData(256 * 256, 0xFFFFFFFF);
+    D3D11_SUBRESOURCE_DATA atlasInit = {};
+    atlasInit.pSysMem = atlasData.data();
+    atlasInit.SysMemPitch = 256 * 4;
+    ID3D11Texture2D* atlasTex = nullptr;
+    hr = m_device->CreateTexture2D(&atlasDesc, &atlasInit, &atlasTex);
+    if (SUCCEEDED(hr) && atlasTex) {
+        ID3D11ShaderResourceView* atlasSrv = nullptr;
+        hr = m_device->CreateShaderResourceView(atlasTex, nullptr, &atlasSrv);
+        if (SUCCEEDED(hr)) {
+            m_uiAtlasSRV.Attach(atlasSrv);
+        }
+        atlasTex->Release();
+    }
+
     // Create simple point sampler for UI
     D3D11_SAMPLER_DESC sampDesc = {};
     sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
@@ -185,7 +212,11 @@ void UIRenderer::ExecuteUICommands(const RenderCommandPacket& packet) {
         // Iterate groups and bind textures per-group
         for (auto& pair : groups) {
             ID3D11ShaderResourceView* srv = pair.first;
-            if (srv) {
+            // Prefer UI atlas if available
+            if (m_uiAtlasSRV) {
+                ID3D11ShaderResourceView* a = m_uiAtlasSRV.Get();
+                m_context->PSSetShaderResources(0, 1, &a);
+            } else if (srv) {
                 m_context->PSSetShaderResources(0, 1, &srv);
             } else if (m_whiteTextureSRV) {
                 ID3D11ShaderResourceView* w = m_whiteTextureSRV.Get();
