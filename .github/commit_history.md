@@ -50,6 +50,11 @@ Listado (cronológico, más reciente al final):
    - fecha: 2025-10-13
    - descripción: Se inició la base del subsistema UI (API en `UIManager` para generar comandos, integración con SceneManager). La integración del terreno queda en stand-by hasta validar el render pipeline con la UI.
 
+9. commit 4fe939d
+   - mensaje: refactor/ui-step-2: add DrawTextCommand and panel-label wiring
+   - fecha: 2025-10-13
+   - descripción: Añadido `DrawTextCommand` placeholder y wiring en `UIManager` para crear panels y asociar labels; `FillCommandBuffer` ahora emite comandos de texto/quad para el pipeline UI.
+
 
 ---
 

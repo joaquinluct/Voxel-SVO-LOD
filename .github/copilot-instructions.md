@@ -31,11 +31,14 @@ Por dónde vamos (actualizado)
  - Estado actual: `Step 5` completado — `UpdateSystem` introducido y `Engine::UpdateGameLogic` ya usa el sistema de actualización (delegando aún en `UpdateManager` durante la migración). Compilación verificada y commits realizados en la rama `terrain`.
  - Estado actual: `Step 6` iniciado — `UI subsystem` base creado (`UIManager` API ampliada) y la integración de terreno se pone en stand-by. Compilación verificada y commit `refactor/ui-step-1` creado.
  - Siguiente paso (Step 6 continuation): implementar widgets básicos (`UILabel`, `UIPanel`) y el `UIRenderer` para ejecutar `DrawTextCommand`/`DrawQuadCommand` en el render thread. Validar visualmente un panel con texto "Hola Mundo" con color y posicionamiento configurables.
+ - Estado actual: `Step 6` en progreso — `DrawTextCommand` añadido y `UIManager` puede crear panels y asociar labels. Commit `refactor/ui-step-2` creado (`4fe939d`).
+ - Siguiente paso (Step 6 continuation): implementar `UIRenderer` que ejecute `DrawTextCommand`/`DrawQuadCommand` en el render thread y crear un panel de prueba "Hola Mundo".
    - objetivo: comprobar end-to-end el flujo AAA (Main -> SubmitRenderCommands -> RenderThread -> Execute -> Present) usando un pase sencillo de UI que dibuje un texto o quad con "Hola Mundo".
    - razones: aislar la verificación del pipeline y la infraestructura (hilos, colas, CommandBuffer, orden de pases, sincronización de frame state) sin el ruido de la generación de terreno, que añadirá complejidad y ruido en esta fase.
    - pasos:
-     1. Implementar widgets retenidos (`UILabel`, `UIPanel`) y que `UIManager` pueda generar `DrawTextCommand` y `DrawQuadCommand` en `FillCommandBuffer`.
-     2. Asegurar que los comandos se agrupan por pase y que `Engine::RenderLoop` ejecuta los pases en el orden configurado.
+     1. Implementar `UIRenderer` y mapear `DrawTextCommand` y `DrawQuadCommand` a operaciones D3D concretas (shaders, vb/ib updates) en el render thread.
+     2. Crear un panel de ejemplo "Hola Mundo" en `SceneManager::PostInit()` o `Engine::InitManagers()` usando `UIManager::CreatePanel` y `CreateLabel`.
+     3. Asegurar que los comandos se agrupan por pase y que `Engine::RenderLoop` ejecuta los pases en el orden configurado.
      3. Ejecutar la aplicación localmente y verificar visualmente el panel con "Hola Mundo" en la posición y color definidos.
      4. Crear commit: `refactor/ui-step-2: add basic widgets and UIRenderer; hello-world panel` y actualizar `.github/commit_history.md`.
    - criterios de éxito: build limpia, el render thread consume paquetes y en pantalla aparece el texto/quad "Hola Mundo"; no hay data-races ni bloqueos detectables en ejecución.
