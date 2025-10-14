@@ -88,8 +88,11 @@ void UIText::CreateMesh(std::vector<std::shared_ptr<VertexDefinition::VertexVari
     float charWidth =  m_fontSize;
     float charHeight = m_fontSize;
 
-    int atlasColumns = 16;
-    int atlasRows = 16;
+    // Atlas configuration: should match UIRenderer POC atlas (256x256) with 16x16 cells
+    const int atlasTextureSize = 256; // pixels
+    const int atlasCellSize = 16;     // pixels per glyph cell
+    int atlasColumns = atlasTextureSize / atlasCellSize;
+    int atlasRows = atlasTextureSize / atlasCellSize;
         
     float x = roundf(GetPosition().x);
     float y = roundf(GetPosition().y);
@@ -103,10 +106,11 @@ void UIText::CreateMesh(std::vector<std::shared_ptr<VertexDefinition::VertexVari
         int charColumn = charIndex % atlasColumns;
         int charRow = charIndex / atlasColumns;
 
-        float u0 = static_cast<float>(charColumn) / static_cast<float>(atlasColumns);
-        float v0 = static_cast<float>(charRow) / static_cast<float>(atlasRows);
-        float u1 = static_cast<float>(charColumn + 1) / static_cast<float>(atlasColumns);
-        float v1 = static_cast<float>(charRow + 1) / static_cast<float>(atlasRows);
+        // Compute UVs using pixel cell size to map correctly to atlas texture
+        float u0 = (charColumn * (float)atlasCellSize) / (float)atlasTextureSize;
+        float v0 = (charRow * (float)atlasCellSize) / (float)atlasTextureSize;
+        float u1 = ((charColumn + 1) * (float)atlasCellSize) / (float)atlasTextureSize;
+        float v1 = ((charRow + 1) * (float)atlasCellSize) / (float)atlasTextureSize;
 
         DirectX::XMFLOAT3 p1 = { x, y, 0.0f };
         DirectX::XMFLOAT3 p2 = { x + charWidth, y, 0.0f };
