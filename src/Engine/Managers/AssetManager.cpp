@@ -158,15 +158,28 @@ ID3D11ShaderResourceView* AssetManager::LoadTexture(std::string assetName) {
         OutputDebugStringA("ERROR: DeviceManager not found.\n");
         return nullptr;
 	}
-    //auto asset = AssetLocator::GetAssetBase(assetName);
+    // Try to resolve TextureAsset via AssetLocator
+    std::shared_ptr<TextureAsset> textureAsset = AssetLocator::GetTextureAsset(assetName);
+    if (!textureAsset) {
+        OutputDebugStringA(("AssetManager::LoadTexture - TextureAsset '" + assetName + "' not found.\n").c_str());
+        return nullptr;
+    }
 
-    //std::shared_ptr<TextureAsset> textureAsset = std::dynamic_pointer_cast<TextureAsset>(asset);
+    // Ensure the asset has been initialized (may create D3D resources)
+    HRESULT hr = textureAsset->Init();
+    if (FAILED(hr)) {
+        OutputDebugStringA(("AssetManager::LoadTexture - Failed to Init TextureAsset '" + assetName + "'.\n").c_str());
+        // Still try to get any existing SRV
+    }
 
-    //if (textureAsset) { // Si el cast fue exitoso (no es nullptr)
-    //    std::shared_ptr<ITextureConfig> config = ConfigLocator::GetConfig<ITextureConfig>(assetName + "Config");
-    //    std::string path = config->file_path;
-    //}
-    return nullptr;
+    // Ask the TextureAsset for a shader resource view. Use default params (empty strings)
+    ID3D11ShaderResourceView* srv = textureAsset->GetTextureView("", "");
+    if (!srv) {
+        OutputDebugStringA(("AssetManager::LoadTexture - TextureAsset '" + assetName + "' returned null SRV.\n").c_str());
+        return nullptr;
+    }
+
+    return srv;
 }
 
 
