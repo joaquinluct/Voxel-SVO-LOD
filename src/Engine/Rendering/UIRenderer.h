@@ -3,6 +3,7 @@
 #include <Engine/Rendering/RenderCommand.h>
 #include <wrl/client.h>
 #include <d3d11.h>
+#include <map>
 
 // Minimal UIRenderer executed on the render thread. Implements basic
 // shader loading and input-layout creation for UI TextVertex.
@@ -30,4 +31,14 @@ private:
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_whiteTextureSRV;
     Microsoft::WRL::ComPtr<ID3D11SamplerState> m_samplerState;
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_uiAtlasSRV;
+    // Atlas metrics
+    struct GlyphMetric {
+        int x; int y; int w; int h; int advance;
+    };
+    std::map<int, GlyphMetric> m_glyphs;
+    int m_atlasTextureSize = 256;
+    int m_atlasCellSize = 16;
+
+    // Dynamic VB tracking
+    size_t m_vbCapacityVertices = 0;
 };

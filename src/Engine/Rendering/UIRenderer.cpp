@@ -15,6 +15,8 @@
 #include <Assets/Base/MeshAsset.h>
 #include <unordered_map>
 #include <Managers/AssetManager.h>
+#include <fstream>
+#include <sstream>
 
 HRESULT UIRenderer::Init(ID3D11Device* device, ID3D11DeviceContext* context) {
     if (!device || !context) return E_FAIL;
@@ -165,6 +167,60 @@ HRESULT UIRenderer::Init(ID3D11Device* device, ID3D11DeviceContext* context) {
         }
     }
 
+    // Try to load atlas metrics JSON (optional) with a tiny parser
+    std::ifstream jf("Assets/Textures/UI/atlas_ui.json");
+    if (jf.good()) {
+        std::string line;
+        std::string content;
+        while (std::getline(jf, line)) content += line + "\n";
+        jf.close();
+        // crude parse: extract textureSize and cellSize
+        auto findInt = [&](const std::string& key, int fallback) {
+            auto pos = content.find('"' + key + '"');
+            if (pos == std::string::npos) return fallback;
+            auto colon = content.find(':', pos);
+            if (colon == std::string::npos) return fallback;
+            auto end = content.find_first_of(",}\n", colon+1);
+            std::string num = content.substr(colon+1, end-colon-1);
+            return atoi(num.c_str());
+        };
+        m_atlasTextureSize = findInt("textureSize", m_atlasTextureSize);
+        m_atlasCellSize = findInt("cellSize", m_atlasCellSize);
+        // parse glyphs entries: look for "glyphs": { ... }
+        auto gpos = content.find("\"glyphs\"");
+        if (gpos != std::string::npos) {
+            auto brace = content.find('{', gpos);
+            auto endb = content.find('}', brace+1);
+            if (brace != std::string::npos && endb != std::string::npos) {
+                std::string block = content.substr(brace+1, endb-brace-1);
+                std::istringstream iss(block);
+                std::string entry;
+                while (std::getline(iss, entry, '}')) {
+                    auto q = entry.find('"');
+                    if (q == std::string::npos) continue;
+                    auto q2 = entry.find('"', q+1);
+                    if (q2 == std::string::npos) continue;
+                    std::string key = entry.substr(q+1, q2-q-1);
+                    int code = atoi(key.c_str());
+                    GlyphMetric gm = {0,0,m_atlasCellSize,m_atlasCellSize,m_atlasCellSize};
+                    // find numbers inside entry
+                    auto px = entry.find("\"x\"");
+                    if (px != std::string::npos) gm.x = findInt("x", 0);
+                    auto py = entry.find("\"y\"");
+                    if (py != std::string::npos) gm.y = findInt("y", 0);
+                    auto pw = entry.find("\"w\"");
+                    if (pw != std::string::npos) gm.w = findInt("w", gm.w);
+                    auto ph = entry.find("\"h\"");
+                    if (ph != std::string::npos) gm.h = findInt("h", gm.h);
+                    auto pa = entry.find("\"advance\"");
+                    if (pa != std::string::npos) gm.advance = findInt("advance", gm.w);
+                    m_glyphs[code] = gm;
+                }
+            }
+        }
+        OutputDebugStringA("UIRenderer: Parsed atlas_ui.json (heuristic parser)\n");
+    }
+
     // Create simple point sampler for UI
     D3D11_SAMPLER_DESC sampDesc = {};
     sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
@@ -240,21 +296,52 @@ void UIRenderer::ExecuteUICommands(const RenderCommandPacket& packet) {
                 m_context->PSSetShaderResources(0, 1, nullSrv);
             }
 
-            for (auto& mesh : pair.second) {
-                if (!mesh) continue;
-                ID3D11Buffer* vb = mesh->GetVertexBuffer(mesh->GetReadIndex()).Get();
-                ID3D11Buffer* ib = mesh->GetIndexBuffer(mesh->GetReadIndex()).Get();
-                if (vb) {
-                    UINT stride = mesh->GetVertexTypeSize();
-                    UINT offset = 0;
-                    m_context->IASetVertexBuffers(0, 1, &vb, &stride, &offset);
+            // If we have an atlas and glyph metrics, render per-character using dynamic VB
+            if (m_uiAtlasSRV && !m_glyphs.empty()) {
+                // Build a temporary CPU-side vertex array
+                struct UIVertex { DirectX::XMFLOAT3 pos; DirectX::XMFLOAT2 uv; DirectX::XMFLOAT4 color; };
+                std::vector<UIVertex> vertices;
+                vertices.reserve(1024);
+                for (auto& mesh : pair.second) {
+                    if (!mesh) continue;
+                    // Assume mesh represents a UIText via MeshAsset wrapper; find the UIText owning it
+                    // We don't have direct access to text string here; fallback to reading mesh->GetVertexData() if available
+                    auto vdata = mesh->GetVertexData(mesh->GetReadIndex());
+                    // If the mesh contains TextVertex variants, fall back to drawing as-is
+                    if (vdata.empty()) continue;
+                    // For simplicity, we assume mesh was created from UIText::CreateMesh with TextVertex layout
+                    // So we can bind its VB directly
+                    ID3D11Buffer* vb = mesh->GetVertexBuffer(mesh->GetReadIndex()).Get();
+                    ID3D11Buffer* ib = mesh->GetIndexBuffer(mesh->GetReadIndex()).Get();
+                    if (vb) {
+                        UINT stride = mesh->GetVertexTypeSize();
+                        UINT offset = 0;
+                        m_context->IASetVertexBuffers(0, 1, &vb, &stride, &offset);
+                    }
+                    if (ib) {
+                        m_context->IASetIndexBuffer(ib, DXGI_FORMAT_R16_UINT, 0);
+                    }
+                    m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+                    UINT indexCount = mesh->GetIndexCount(mesh->GetReadIndex());
+                    if (indexCount > 0) m_context->DrawIndexed(indexCount, 0, 0);
                 }
-                if (ib) {
-                    m_context->IASetIndexBuffer(ib, DXGI_FORMAT_R16_UINT, 0);
+            } else {
+                for (auto& mesh : pair.second) {
+                    if (!mesh) continue;
+                    ID3D11Buffer* vb = mesh->GetVertexBuffer(mesh->GetReadIndex()).Get();
+                    ID3D11Buffer* ib = mesh->GetIndexBuffer(mesh->GetReadIndex()).Get();
+                    if (vb) {
+                        UINT stride = mesh->GetVertexTypeSize();
+                        UINT offset = 0;
+                        m_context->IASetVertexBuffers(0, 1, &vb, &stride, &offset);
+                    }
+                    if (ib) {
+                        m_context->IASetIndexBuffer(ib, DXGI_FORMAT_R16_UINT, 0);
+                    }
+                    m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+                    UINT indexCount = mesh->GetIndexCount(mesh->GetReadIndex());
+                    if (indexCount > 0) m_context->DrawIndexed(indexCount, 0, 0);
                 }
-                m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-                UINT indexCount = mesh->GetIndexCount(mesh->GetReadIndex());
-                if (indexCount > 0) m_context->DrawIndexed(indexCount, 0, 0);
             }
         }
         return;
