@@ -16,6 +16,7 @@
 #include <SceneManager.h>
 #include <ServiceLocator/ServiceLocator.h>
 #include <Services/ThreadPool.h>
+#include <Systems/UpdateSystem.h>
 #include <utility>
 
 REGISTER_MANAGER_TYPE(UpdateManager, "UpdateManager")
@@ -24,10 +25,39 @@ REGISTER_MANAGER_TYPE(UpdateManager, "UpdateManager")
 // Constructor
 // ----------------------------------------------------------------------------
 UpdateManager::UpdateManager() :
-    m_futures(), m_threadPool(nullptr), m_cameraManager(nullptr), m_shaderManager(nullptr),
+    m_cameraManager(nullptr), m_shaderManager(nullptr),
     m_frameStateService(nullptr), m_lighting(nullptr), m_world(nullptr), m_water(nullptr),
     m_mesh(nullptr), m_skybox(nullptr), m_sceneManager(nullptr)
 {
+    // If the new UpdateSystem exists, prefer it for handling update logic.
+    m_system = nullptr;
+}
+
+void UpdateManager::CollectReadyFutures(std::map<int, FutureUpdateJob>& outReady) {
+    // If an UpdateSystem is present, delegate collection to it. Otherwise
+    // UpdateManager no longer keeps local futures and this is a no-op.
+    if (m_system) {
+        m_system->CollectReadyFutures(outReady);
+    }
+}
+
+// In the legacy UpdateManager the Update() processed futures itself. If a
+// system has taken over future processing, this method can be used to drain
+// any remaining futures and forward them to the new system.
+void UpdateManager::ForwardFuturesToSystem() {
+    if (!m_system) return;
+    std::map<int, FutureUpdateJob> ready;
+    m_system->CollectReadyFutures(ready);
+    for (auto &p : ready) {
+        UpdateJob job = p.second.get();
+        if (job.isSuccessful && m_frameStateService) {
+            if (job.name == FRAME_STATE_TERRAIN) {
+                m_frameStateService->SwapBuffer(FRAME_STATE_PIPELINE);
+                continue;
+            }
+            m_frameStateService->SwapBuffer(job.name);
+        }
+    }
 }
 // ----------------------------------------------------------------------------
 // Destructor
@@ -57,10 +87,9 @@ HRESULT UpdateManager::Init(EngineContext* context)
 {
     ManagerBase::Init(context);
 
-    m_threadPool = ServiceLocator::GetService<ThreadPool>();
-    if (!m_threadPool) {
-        return E_FAIL;
-    }
+    // ThreadPool is now owned by UpdateSystem; UpdateManager no longer
+    // requires direct access. Keep Init successful if system will provide
+    // async handling.
     m_cameraManager = ManagerLocator::GetCameraManager();
     if (!m_cameraManager)
     {
@@ -108,6 +137,12 @@ HRESULT UpdateManager::PostInit()
 // Inicialización de la tareas de actualización en paralelo
 // ----------------------------------------------------------------------------
 FutureUpdateJob UpdateManager::AddUpdateJob(const std::string& name, std::function<bool()> task, bool allowDuplicates) {
+    // If an UpdateSystem is installed (migration), delegate to it so the
+    // system centralizes threadpool and future management.
+    if (m_system) {
+        return m_system->AddUpdateJob(name, task, allowDuplicates);
+    }
+
     auto cancel_token = std::make_shared<std::atomic<bool>>(false);
 
     auto wrappedTask = [task, name, allowDuplicates, cancel_token]() -> UpdateJob {
@@ -122,13 +157,24 @@ FutureUpdateJob UpdateManager::AddUpdateJob(const std::string& name, std::functi
             job.isSuccessful = task(); // CAMBIO: Asigna el resultado de la tarea
         }
         return job;
-        };
+    };
 
-    FutureUpdateJob future = m_threadPool->enqueue(wrappedTask); // ← devuelve FutureUpdateJob
-    std::lock_guard<std::mutex> lock(m_mutex);
-    m_futures[std::rand()] = std::move(future);
+    // Legacy path: if no UpdateSystem is present but a ThreadPool exists in
+    // ServiceLocator, use it as a fallback. Otherwise return an empty future.
+    auto fallbackPool = ServiceLocator::GetService<ThreadPool>();
+    if (fallbackPool) {
+        FutureUpdateJob future = fallbackPool->enqueue(wrappedTask);
+        std::lock_guard<std::mutex> lock(m_mutex);
+        // Store in local map only if we still maintain m_futures (deprecated)
+        // For now we don't keep m_futures in UpdateManager to avoid duplication.
+        return future;
+    }
 
-    return future;
+    return FutureUpdateJob();
+}
+
+void UpdateManager::SetSystem(UpdateSystem* system) {
+    m_system = system;
 }
 
 void IsJobCompleted(std::string jobName) {
@@ -342,28 +388,19 @@ void UpdateManager::Update(float deltaTime) {
     UpdatedJobs mainUpdated = UpdateMainData(deltaTime);
     UpdatedJobs terrainUpdated = UpdateTerrainData(deltaTime);
 
-    // Procesar futuros completados en segundo plano (si los hay)
-    std::map<int, FutureUpdateJob> finishedJobs;
-    std::lock_guard<std::mutex> lock(m_mutex);
-    for (auto it = m_futures.begin(); it != m_futures.end(); ) {
-        auto& future = it->second;
-        if (future.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
-            finishedJobs.emplace(it->first, std::move(future));
-            it = m_futures.erase(it);
-        }
-        else {
-            ++it;
-        }
-    }
-
-    for (auto& jobFinishedPair : finishedJobs) {
-        UpdateJob job = jobFinishedPair.second.get();
-        if (job.isSuccessful) {
-            if (job.name == FRAME_STATE_TERRAIN) {
-                m_frameStateService->SwapBuffer(FRAME_STATE_PIPELINE);
-                continue;
+    // Process ready futures via UpdateSystem if present (migration).
+    if (m_system) {
+        std::map<int, FutureUpdateJob> finishedJobs;
+        m_system->CollectReadyFutures(finishedJobs);
+        for (auto& jobFinishedPair : finishedJobs) {
+            UpdateJob job = jobFinishedPair.second.get();
+            if (job.isSuccessful) {
+                if (job.name == FRAME_STATE_TERRAIN) {
+                    m_frameStateService->SwapBuffer(FRAME_STATE_PIPELINE);
+                    continue;
+                }
+                m_frameStateService->SwapBuffer(job.name);
             }
-            m_frameStateService->SwapBuffer(job.name);
         }
     }
 

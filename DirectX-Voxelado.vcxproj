@@ -328,6 +328,8 @@
     <ClCompile Include="src\Engine\Managers\RenderState\FrameStates\MeshesFrameState.cpp" />
     <ClCompile Include="src\Engine\Managers\RenderState\FrameStates\RenderFrameState.cpp" />
     <ClCompile Include="src\Engine\Rendering\RenderCommand.cpp" />
+    <ClCompile Include="src\Engine\Rendering\RenderCommandSystem.cpp" />
+    <ClCompile Include="src\Engine\Rendering\UIRenderer.cpp" />
     <ClCompile Include="src\Engine\Services\ThreadPool.cpp" />
     <ClCompile Include="src\Engine\Engine.cpp" />
     <ClCompile Include="src\Engine\Managers\MainManagers\InputManager.cpp" />
@@ -477,6 +479,7 @@
     <ClInclude Include="Interfaces\IJob.h" />
     <ClInclude Include="Interfaces\IPostInitalizable.h" />
     <ClInclude Include="Interfaces\Pipeline\IBackBufferState.h" />
+    <ClInclude Include="nlohmann\json.hpp" />
     <ClInclude Include="src\Engine\Assets\Base\MeshAssetBase.h" />
     <ClInclude Include="src\Engine\Assets\Base\UIAsset.h" />
     <ClInclude Include="src\Engine\Core\Base\Enum.h" />
@@ -634,6 +637,8 @@
     <ClInclude Include="src\Engine\Core\Locators\TerrainEngineLocator\TerrainEngineLocator.h" />
     <ClInclude Include="src\Engine\Managers\RenderManager\Jobs\Update\UpdateMeshTerrainJob.h" />
     <ClInclude Include="src\Engine\Rendering\RenderCommand.h" />
+    <ClInclude Include="src\Engine\Rendering\RenderCommandSystem.h" />
+    <ClInclude Include="src\Engine\Rendering\UIRenderer.h" />
     <ClInclude Include="src\Engine\Systems\IUpdateSystem.h" />
     <ClInclude Include="src\Engine\Systems\UpdateSystem.h" />
     <ClInclude Include="src\Engine\UI\UIManager.h" />
@@ -999,6 +1004,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
+    <FxCompile Include="Assets\Shader\TextSDF.hlsl" />
     <FxCompile Include="Assets\Shader\TextShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
@@ -1072,6 +1078,7 @@
     <Image Include="Assets\Textures\Rock\Coast_sand_rock\coast_sand_rocks_02_nor_dx_4k.jpg" />
     <Image Include="Assets\Textures\Rock\Coast_sand_rock\coast_sand_rocks_02_nor_gl_4k.jpg" />
     <Image Include="Assets\Textures\Rock\Coast_sand_rock\coast_sand_rocks_02_rough_4k.jpg" />
+    <Image Include="Assets\Textures\UI\atlas_ui_sdf.png" />
     <Image Include="Assets\Textures\UI\DejaVuSansMono.jpg" />
     <Image Include="Resources\DejaVuSansMono.bmp" />
     <Image Include="Resources\DejaVuSansMono.jpg" />
@@ -1096,6 +1103,10 @@
     <None Include="Assets\Textures\Rock\aerial_rocks\aerial_rocks_02.bin" />
     <None Include="Assets\Textures\Rock\dry_riverbed\dry_riverbed_rock.bin" />
     <None Include="Assets\Textures\Rock\mossy_rock\mossy_rock.bin" />
+    <None Include="Assets\Textures\UI\atlas_ui.json" />
+    <None Include="Assets\Textures\UI\atlas_ui.meta" />
+    <None Include="Assets\Textures\UI\atlas_ui_sdf.meta" />
+    <None Include="Assets\Textures\UI\atlas_ui_sdf.png.b64" />
     <None Include="copy_debug_to_root.bat" />
     <None Include="cpp.hint" />
     <None Include="Libs\DirectX\DirectXTex\DirectXTex.inl" />
@@ -1173,6 +1184,8 @@
     <None Include="Resources\Config\services_config.yaml" />
     <None Include="Resources\Config\UI\ui_item_config.yaml" />
     <None Include="src\Engine\Assets\Base\ObjFormat\MUCHOS OBJETOS.md" />
+    <None Include="tools\generate_sdf_atlas.ps1" />
+    <None Include="tools\generate_sdf_font_atlas.ps1" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="C:\Users\joaqu\Downloads\yaml-cpp-master-original\yaml-cpp-master\build\Debug\yaml-cppd.lib" />

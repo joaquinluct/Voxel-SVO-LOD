@@ -78,7 +78,11 @@ HRESULT UIText::Init() {
 
 void UIText::SetText(const std::string& text) {
     m_text = text;
-    m_mesh->UpdateTextMesh(this, text);
+    if (m_mesh) {
+        m_mesh->UpdateTextMesh(this, text);
+    } else {
+        OutputDebugStringA("UIText::SetText - m_mesh is null, deferring mesh update until mesh is set\n");
+    }
 
 	//m_uiManager->UpdateText(GetMesh()->GetName(), text);
     //m_text = text;
@@ -405,4 +409,11 @@ void UIText::SetVertexBuffer(Microsoft::WRL::ComPtr < ID3D11DeviceContext> conte
 
 void UIText::Shutdown() {
     SafeRelease(m_vertexBuffer);
+}
+
+void UIText::SetMesh(std::shared_ptr<MeshAsset> mesh) {
+    m_mesh = mesh;
+    if (!m_text.empty() && m_mesh) {
+        m_mesh->UpdateTextMesh(this, m_text);
+    }
 }

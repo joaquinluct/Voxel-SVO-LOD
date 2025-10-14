@@ -28,6 +28,7 @@ private:
     Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pixelShader;
     Microsoft::WRL::ComPtr<ID3D11Buffer> m_vertexBuffer;
     Microsoft::WRL::ComPtr<ID3D11Buffer> m_constantBuffer; // matrix buffer (ortho)
+    Microsoft::WRL::ComPtr<ID3D11Buffer> m_sdfParamsBuffer; // SDF params buffer (b14)
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_whiteTextureSRV;
     Microsoft::WRL::ComPtr<ID3D11SamplerState> m_samplerState;
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_uiAtlasSRV;
@@ -38,6 +39,11 @@ private:
     std::map<int, GlyphMetric> m_glyphs;
     int m_atlasTextureSize = 256;
     int m_atlasCellSize = 16;
+
+    // SDF params defaults
+    float m_sdfEdge = 0.5f;
+    float m_sdfOutlineWidth = 0.05f;
+    float m_sdfSmoothness = 1.0f;
 
     // Dynamic VB tracking
     size_t m_vbCapacityVertices = 0;

@@ -22,6 +22,7 @@ Reglas rápidas:
  --------------------------------------
  - Estado: `Step 3` completado — `RenderLoop` implementado y commit realizado (`43b8562`, 2025-10-13). La implementación incluye `Engine::RenderLoop`, `SubmitRenderCommands` y la ejecución de `RenderCommandPacket` en el render thread. Compilación verificada (build limpia) y cambios empujados a la rama `terrain`.
  - Siguiente paso (Step 4): migrar `UpdateManager` y `SceneManager` para que ejecuten su lógica en el hilo principal (Main thread) y eliminar sus hilos dedicados.
+ - Siguiente paso (Step 4): migrar `UpdateManager` y `SceneManager` para que ejecuten su lógica en el hilo principal (Main thread) y eliminar sus hilos dedicados.
    - objetivo: convertir `UpdateManager` y `SceneManager` a sistemas sin hilo propio y llamar sus `Update()` desde `Engine::MainLoop`.
    - mensaje de commit sugerido: `refactor/threading-step-4: migrate UpdateManager and SceneManager to main thread`.
    - flujo: aplicar cambio pequeño → compilar workspace completo → crear commit con mensaje estandarizado → actualizar `.github/commit_history.md` con hash y fecha.
@@ -45,6 +46,9 @@ Por dónde vamos (actualizado)
    - Mantener commits pequeños y compilar entre pasos.
    - Actualizar `.github/commit_history.md` tras cada commit relevante (ya se añadieron entradas recientes para los commits de POC).
 
++ - Estado reciente: `Step 7` iniciado — `UpdateSystem` implementado como wrapper que delega en `UpdateManager` durante la migración. Engine crea e inicializa `UpdateSystem`. Compilación verificada.
++ - Siguiente paso recomendado: completar la migración de `UpdateManager` a `UpdateSystem` (extraer lógica, procesar futures dentro del system y exponer API de jobs). Commit sugerido: `refactor/threading-step-8: migrate UpdateManager logic into UpdateSystem`.
++
  Regla rápida para este paso:
  - Mantener el cambio pequeño: un pase UI minimal y wiring del pipeline. No integrar la lógica de terreno en este commit.
  - Compilar y verificar antes de commitear. Usar mensaje estandarizado y actualizar `.github/commit_history.md`.
@@ -163,13 +167,13 @@ Los siguientes elementos tienen el typo `GeomtryChunkEngine` (falta "e" en "Geom
 ### **Acción requerida para corregir el typo**:
 1. **Buscar en `Resources/Config/`** el archivo YAML que define `GeomtryChunkEngineConfig`
 2. **Renombrar** `GeomtryChunkEngine` → `GeometryChunkEngine` en el YAML
-3. **Ejecutar** `YamlToStruct.exe` para regenerar los configs C++
+3. **Ejecutar** `YamlToStruct.exe` para regenerar los configs C++`
 4. **Recompilar** para que la corrección sea efectiva
 
 ### **Implicaciones del typo**:
-- Inconsistencia entre nombres de archivos físicos y clases C++
-- Potenciales errores de resolución por nombre en factories/locators
-- Confusión en documentación y referencias cruzadas
+- Inconsistencia entre nombres de archivos físicos y clases C++.
+- Potenciales errores de resolución por nombre en factories/locators.
+- Confusión en documentación y referencias cruzadas.
 
 -- Recomendaciones prácticas para agentes:
   - Cuando modifiques un Config o introduzcas un nuevo tipo de config: actualiza primero el YAML en `Resources/Config`, luego ejecuta `YamlToStruct.exe` para regenerar `src/Engine/Core/Config` y compilar.

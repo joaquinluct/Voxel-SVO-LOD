@@ -69,6 +69,9 @@ public:
 
     MeshAssetBase* GetUIMesh() const { return  m_uiAsset; }
 
+    // Expose text elements for renderers to consume
+    const std::map<std::string, UIText*>& GetTextElements() const { return m_textElements; }
+
 private:
     UIAsset* m_uiAsset = nullptr;
 

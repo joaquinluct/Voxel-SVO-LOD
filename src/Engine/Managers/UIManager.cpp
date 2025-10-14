@@ -1,13 +1,13 @@
-// UIManager.cpp
 #include "UIManager.h"
-#include <Engine/Rendering/RenderCommand.h>
 #include <Assets/Base/MeshAsset.h>
 #include <DeviceManager.h>
+#include <Engine/Rendering/RenderCommand.h>
 #include <ManagerLocator/ManagerLocator.h>
 #include <UI/UIText.h>
 //#include <UI/UIElement.h>
 
 #include <REGISTER_MANAGER_MACRO.h>
+#include <Windows.h>
 
 REGISTER_MANAGER_TYPE(UIManager, "UIManager")
 
@@ -22,8 +22,14 @@ UIText* UIManager::CreateLabel(const std::string& name, const std::string& text)
         return it->second;
     }
 
-    // Otherwise create a simple UIText placeholder (without mesh)
+    // Otherwise create a simple UIText and ensure it has a MeshAsset before setting text
     UIText* label = new UIText();
+    // Create a MeshAsset to back this UIText so SetText can update geometry immediately
+    std::shared_ptr<MeshAsset> mesh = std::make_shared<MeshAsset>();
+    // assign a name so MeshAsset::Init does not early-out
+    mesh->SetAssetName(name);
+    mesh->Init();
+    label->SetMesh(mesh);
     label->Init();
     label->SetText(text);
     m_textElements[name] = label;
@@ -192,3 +198,4 @@ void UIManager::Shutdown()
 //        }
 //    }
 //}
+

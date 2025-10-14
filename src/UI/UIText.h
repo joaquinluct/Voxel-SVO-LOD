@@ -66,7 +66,7 @@ public:
     float GetFontSize() const { return m_fontSize; }
     DirectX::XMFLOAT4 GetColor() const { return m_color; }
 
-	void SetMesh(std::shared_ptr<MeshAsset> mesh) { m_mesh = mesh; }
+    void SetMesh(std::shared_ptr<MeshAsset> mesh);
     void CreateMesh(std::vector<std::shared_ptr<VertexDefinition::VertexVariant>>& pVertexData);
 
     // Render ahora solo toma la matriz ortográfica global (o específica para esta capa de UI)

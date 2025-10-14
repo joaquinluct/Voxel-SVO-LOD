@@ -57,6 +57,17 @@ public:
     // -------
     FutureUpdateJob AddUpdateJob(const std::string& name, std::function<bool()> task, bool allowDuplicates);
 
+    // Migration helper: set the new UpdateSystem instance so AddUpdateJob can
+    // delegate during migration.
+    void SetSystem(class UpdateSystem* system);
+
+    // Collect futures that are ready and remove them from internal storage.
+    void CollectReadyFutures(std::map<int, FutureUpdateJob>& outReady);
+
+    // Drain any remaining futures and forward results to the new UpdateSystem
+    // during migration (helper).
+    void ForwardFuturesToSystem();
+
     // Operacionesbásicas con los estados de Frame
     // -------------------------------------------
     void ResetState(std::string stateName);
@@ -135,10 +146,10 @@ private:
 
     std::shared_ptr<FrameStateService> m_frameStateService; // Servicio para gestionar el estado de frame
 
-    // Threading    
-    // ---------
-    std::shared_ptr<ThreadPool> m_threadPool;               // Servicio de hilos
-    //std::vector<FutureUpdateJob> m_futures;
+    // Threading: migrated to UpdateSystem. During migration UpdateManager
+    // delegates async job handling to UpdateSystem.
     std::mutex m_mutex; // El mutex para proteger la variable compartida
-    std::map<int, FutureUpdateJob> m_futures;
+
+    // Migration: delegate to UpdateSystem implementation
+    class UpdateSystem* m_system = nullptr;
 };

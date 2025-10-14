@@ -71,3 +71,12 @@ uint32_t DrawIndexedCommand::GetSortKey() const {
     // Draw commands van al final después de todos los state changes
     return 0xFFFFFF00 + m_indexCount;  // Higher number = later execution
 }
+
+// Placeholder execution for UI commands. Actual rendering is handled by UIRenderer
+void DrawTextCommand::Execute(ID3D11DeviceContext* /*context*/) {
+    // no-op; UIRenderer will process DrawTextCommand specifically
+}
+
+void DrawQuadCommand::Execute(ID3D11DeviceContext* /*context*/) {
+    // no-op; UIRenderer will process DrawQuadCommand specifically
+}

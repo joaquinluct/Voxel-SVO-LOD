@@ -77,10 +77,8 @@ SceneManager::SceneManager() :
     this->SetFlag(SyncFlagIndex::HasScene, false);
 }
 
-void SceneManager::FillRenderPacket(RenderCommandPacket& packet) {
-    // Populate packet with simple draw commands based on the current
-    // pipeline resources. This is a minimal first step: we add a
-    // DrawIndexedCommand per mesh in each enabled pass.
+void SceneManager::FillCommandBuffer(CommandBuffer& buffer) {
+    // Populate CommandBuffer with draw commands based on pipeline resources.
     try {
         std::vector<RenderPassResource*> passes = m_resources->GetPasses();
         for (const auto& pass : passes) {
@@ -90,30 +88,25 @@ void SceneManager::FillRenderPacket(RenderCommandPacket& packet) {
                 if (!meshRes || !meshRes->mesh) continue;
                 int index = meshRes->mesh->GetReadIndex();
                 UINT indexCount = meshRes->mesh->GetIndexCount(index);
-                // Create a simple DrawIndexed command. More complex commands
-                // (SetVertexBuffer, SetInputLayout, SetShader, etc.) will be
-                // added in future iterations.
-                packet.commands.emplace_back(std::make_unique<DrawIndexedCommand>(indexCount, 0, 0));
+                // Add a DrawIndexedCommand to the buffer. Future: add state-change commands.
+                buffer.AddCommand<DrawIndexedCommand>(indexCount, 0, 0);
             }
         }
     }
     catch (...) {
-        // Silent catch to avoid throwing in render path during early refactor.
+        // Avoid throwing in render path during early refactor.
     }
 
-    // Append UI mesh if UIManager provided a mesh asset
-    // UIManager exposes GetUIMesh() which returns a MeshAssetBase* (or nullptr)
-    MeshAssetBase* uiMesh = nullptr;
+    // Append UI meshes via UIManager's command emission path
     if (m_uiManager) {
-        uiMesh = m_uiManager->GetUIMesh();
-    }
-    if (uiMesh) {
-        int index = uiMesh->GetReadIndex();
-        UINT indexCount = uiMesh->GetIndexCount(index);
-        packet.commands.emplace_back(std::make_unique<DrawIndexedCommand>(indexCount, 0, 0));
+        // Allow UIManager to add its commands into the buffer
+        m_uiManager->FillCommandBuffer(buffer);
     }
 
-    // Note: UIManager integration is handled via GetUIMesh() above.
+    // For backwards compatibility, register a transient contributor with
+    // the RenderCommandSystem so SceneManager's FillCommandBuffer can also
+    // be invoked through the centralized system if needed.
+    // (No-op here; registration is done externally by Init sequence if desired)
 }
 
 SceneManager::~SceneManager() {}
@@ -666,17 +659,20 @@ void SceneManager::CreateScene() {
 // ----------------------------------------------------------------
 void SceneManager::ProcessJobs() {
     std::lock_guard<std::mutex> lock(m_mutex);
-    for (auto it = m_futures.begin(); it != m_futures.end(); ) {
-        FutureUpdateJob& future = it->second;
-        if (future.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
-            UpdateJob job = future.get(); // Obtener el resultado de la tarea
-            // Aquí puedes manejar el resultado de la tarea si es necesario
-            it = m_futures.erase(it); // Eliminar el futuro completado del mapa
+    // During migration, UpdateSystem centralizes futures. If SceneManager
+    // still enqueued futures locally, drain them as before; otherwise
+    // delegate to UpdateManager/UpdateSystem if available.
+    if (m_updateManager) {
+        // If UpdateManager is managing futures, forward any ready futures to it.
+        std::map<int, FutureUpdateJob> ready;
+        m_updateManager->CollectReadyFutures(ready);
+        for (auto &p : ready) {
+            UpdateJob job = p.second.get();
+            (void)job; // legacy placeholder: UpdateManager/UpdateSystem handles swaps
         }
-        else {
-            ++it; // Avanzar al siguiente futuro
-        }
+        return;
     }
+    // No local futures to process; UpdateManager/UpdateSystem handles them.
 }
 
 // ----------------------------------------------------------------
@@ -724,27 +720,12 @@ void SceneManager::Update(float deltaTime) {
 
 
 FutureUpdateJob SceneManager::AddUpdateJob(const std::string& name, std::function<bool()> task, bool allowDuplicates) {
-    auto cancel_token = std::make_shared<std::atomic<bool>>(false);
-
-    auto wrappedTask = [task, name, allowDuplicates, cancel_token]() -> UpdateJob {
-        UpdateJob job;
-        job.name = name;
-        job.allowDuplicates = allowDuplicates;
-        job.startTime = std::chrono::high_resolution_clock::now();
-        job.cancel_token = cancel_token;
-        job.isSuccessful = false; // Valor por defecto
-
-        if (!cancel_token->load()) {
-            job.isSuccessful = task(); // CAMBIO: Asigna el resultado de la tarea
-        }
-        return job;
-        };
-
-    FutureUpdateJob future = m_threadPool->enqueue(wrappedTask); // ← devuelve FutureUpdateJob
-    std::lock_guard<std::mutex> lock(m_mutex);
-    m_futures[std::rand()] = std::move(future);
-
-    return future;
+    // Delegate to UpdateManager (which may forward to UpdateSystem).
+    if (m_updateManager) {
+        return m_updateManager->AddUpdateJob(name, task, allowDuplicates);
+    }
+    // No update manager available: fallback to no-op future.
+    return FutureUpdateJob();
 }
 
 // ----------------------------------------------------------------

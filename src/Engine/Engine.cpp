@@ -10,6 +10,8 @@
 #include "ServiceLocator/ServiceLocator.h"
 #include "Services/ThreadPool.h"
 #include "Util/DirectXDebug.h"
+#include "Rendering/UIRenderer.h"
+#include "Rendering/RenderCommandSystem.h"
 
 #include <chrono>
 #include <mutex>
@@ -69,7 +71,16 @@ bool Engine::InitManagers() {
     m_updateManager = ManagerLocator::GetManager<UpdateManager>();
     if (!m_updateManager) return false;
     // Create update system wrapper delegating to legacy manager during migration
-    m_updateSystem = std::make_unique<UpdateSystem>(m_updateManager.get());
+    // Create UpdateSystem delegating to legacy UpdateManager during migration
+    m_updateSystem = std::make_unique<UpdateSystem>();
+    if (m_updateSystem) {
+        m_updateSystem->Init(m_context);
+        m_updateSystem->PostInit();
+    }
+    // Link legacy manager to system for migration compatibility
+    if (m_updateManager) {
+        m_updateManager->SetSystem(m_updateSystem.get());
+    }
     //if (FAILED(m_updateManager->Init())) return false;
     m_sceneManager = ManagerLocator::GetManager<SceneManager>();
     if (!m_sceneManager) return false;
@@ -287,6 +298,7 @@ void Engine::MainLoop() {
 
         // 2. GAME LOGIC UPDATE (Main Thread)
         UpdateGameLogic(deltaTime);
+    // UpdateSystem::Update already processes completed async jobs, no-op here.
 
         // 3. SCENE UPDATE (Main Thread)
         if (m_sceneManager) {
@@ -389,18 +401,13 @@ void Engine::HandleInput() {
 void Engine::SubmitRenderCommands() {
     std::lock_guard<std::mutex> lock(m_renderQueueMutex);
 
-    // Crear packet de frame simple (por ahora vacío)
-    RenderCommandPacket framePacket;
-    framePacket.frameId = m_frameCounter;
-    framePacket.submitTime = std::chrono::high_resolution_clock::now();
+    // Use CommandBuffer to collect frame commands, then convert to packet
+    CommandBuffer cmdBuffer;
+    // Use RenderCommandSystem to aggregate commands from subsystems
+    // Use RenderCommandSystem singleton to aggregate commands
+    RenderCommandSystem::Get().Aggregate(cmdBuffer);
 
-    // Allow SceneManager (or future SceneSystem) to fill the packet with
-    // render commands collected during Update(). This is a lightweight
-    // integration point for the command buffer system.
-    if (m_sceneManager) {
-        m_sceneManager->FillRenderPacket(framePacket);
-    }
-
+    RenderCommandPacket framePacket = cmdBuffer.CreatePacket(m_frameCounter);
     m_renderQueue.push(std::move(framePacket));
     m_renderCondition.notify_one();
 }
@@ -443,15 +450,29 @@ void Engine::ExecuteRenderCommands() {
         // Ejecutar comandos del paquete si los hay
         if (!packet.commands.empty()) {
             // Obtener contexto inmediato (ID3D11DeviceContext) desde DeviceManager.
-            // En arquitectura AAA, solo el RenderThread debe usar el contexto inmediato.
             ID3D11DeviceContext* deviceContext = nullptr;
+            ID3D11Device* device = nullptr;
             if (m_deviceManager) {
                 auto ctx = m_deviceManager->GetContext();
                 if (ctx) deviceContext = ctx.Get();
+                auto dev = m_deviceManager->GetDevice();
+                if (dev) device = dev.Get();
             }
 
-            for (auto& cmd : packet.commands) {
-                if (cmd) cmd->Execute(deviceContext);
+            // Lazy init UIRenderer
+            static std::unique_ptr<UIRenderer> s_uiRenderer;
+            if (!s_uiRenderer) {
+                s_uiRenderer = std::make_unique<UIRenderer>();
+                if (device && deviceContext) s_uiRenderer->Init(device, deviceContext);
+            }
+
+            // Let UIRenderer handle UI-specific commands, otherwise execute generically
+            if (s_uiRenderer) {
+                s_uiRenderer->ExecuteUICommands(packet);
+            } else {
+                for (auto& cmd : packet.commands) {
+                    if (cmd) cmd->Execute(deviceContext);
+                }
             }
         }
 

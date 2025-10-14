@@ -17,6 +17,7 @@
 #include <Managers/AssetManager.h>
 #include <fstream>
 #include <sstream>
+#include "../../../nlohmann/json.hpp"
 
 HRESULT UIRenderer::Init(ID3D11Device* device, ID3D11DeviceContext* context) {
     if (!device || !context) return E_FAIL;
@@ -30,11 +31,25 @@ HRESULT UIRenderer::Init(ID3D11Device* device, ID3D11DeviceContext* context) {
         return E_FAIL;
     }
 
-    std::wstring name = L"ShaderTextUI";
-    std::shared_ptr<ShaderAsset> shaderAsset = shaderManager->LoadShaderByName(name);
+    // Prefer SDF/text shader if available, fall back to legacy UI text shader
+    std::wstring preferredNames[] = { L"ShaderTextSDF", L"ShaderTextUI" };
+    std::wstring selectedName;
+    std::shared_ptr<ShaderAsset> shaderAsset = nullptr;
+    for (auto& n : preferredNames) {
+        shaderAsset = shaderManager->LoadShaderByName(n);
+        if (shaderAsset) {
+            selectedName = n;
+            break;
+        }
+    }
     if (!shaderAsset) {
-        OutputDebugStringA("UIRenderer: Failed to load ShaderTextUI via ShaderManager\n");
+        OutputDebugStringA("UIRenderer: Failed to load ShaderTextSDF/ShaderTextUI via ShaderManager\n");
         // Not fatal for now
+    } else {
+        std::string msg = "UIRenderer: Loaded shader ";
+        msg += std::string(WstringToString(selectedName));
+        msg += " via ShaderManager\n";
+        OutputDebugStringA(msg.c_str());
     }
 
     // Create input layout using VertexDefinition::TextVertex
@@ -47,10 +62,12 @@ HRESULT UIRenderer::Init(ID3D11Device* device, ID3D11DeviceContext* context) {
     }
 
     // Try to get VS bytecode and shader objects from ShaderManager
-    ID3DBlob* vsBlob = shaderManager->GetVertexShaderBytecode(name);
-    UINT vsSize = shaderManager->GetVertexShaderBytecodeLength(name);
-    auto vsObj = shaderManager->GetVertexShader(name);
-    auto psObj = shaderManager->GetPixelShader(name);
+    // Use selectedName if set, otherwise default to ShaderTextUI
+    std::wstring useName = selectedName.empty() ? L"ShaderTextUI" : selectedName;
+    ID3DBlob* vsBlob = shaderManager->GetVertexShaderBytecode(useName);
+    UINT vsSize = shaderManager->GetVertexShaderBytecodeLength(useName);
+    auto vsObj = shaderManager->GetVertexShader(useName);
+    auto psObj = shaderManager->GetPixelShader(useName);
     if (vsObj) m_vertexShader = vsObj;
     if (psObj) m_pixelShader = psObj;
 
@@ -97,6 +114,28 @@ HRESULT UIRenderer::Init(ID3D11Device* device, ID3D11DeviceContext* context) {
         m_constantBuffer.Attach(cb);
         ID3D11Buffer* cbRaw = m_constantBuffer.Get();
         m_context->VSSetConstantBuffers(13, 1, &cbRaw);
+    }
+
+    // Create SDF params constant buffer (b14)
+    struct SDFParamsCB { float edge; float outlineWidth; float smoothness; float pad; } sdfInit;
+    sdfInit.edge = m_sdfEdge;
+    sdfInit.outlineWidth = m_sdfOutlineWidth;
+    sdfInit.smoothness = m_sdfSmoothness;
+    sdfInit.pad = 0.0f;
+
+    D3D11_BUFFER_DESC sdfDesc = {};
+    sdfDesc.Usage = D3D11_USAGE_DEFAULT;
+    sdfDesc.ByteWidth = sizeof(SDFParamsCB);
+    sdfDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    sdfDesc.CPUAccessFlags = 0;
+    D3D11_SUBRESOURCE_DATA sdfData = {};
+    sdfData.pSysMem = &sdfInit;
+    ID3D11Buffer* sdfBuf = nullptr;
+    hr = m_device->CreateBuffer(&sdfDesc, &sdfData, &sdfBuf);
+    if (SUCCEEDED(hr) && sdfBuf) {
+        m_sdfParamsBuffer.Attach(sdfBuf);
+        ID3D11Buffer* p = m_sdfParamsBuffer.Get();
+        m_context->PSSetConstantBuffers(14, 1, &p);
     }
 
     // Create a 1x1 white texture SRV for UI fallback
@@ -167,58 +206,62 @@ HRESULT UIRenderer::Init(ID3D11Device* device, ID3D11DeviceContext* context) {
         }
     }
 
-    // Try to load atlas metrics JSON (optional) with a tiny parser
+    // Try to load atlas metrics JSON (optional) using nlohmann::json for robustness
     std::ifstream jf("Assets/Textures/UI/atlas_ui.json");
     if (jf.good()) {
-        std::string line;
-        std::string content;
-        while (std::getline(jf, line)) content += line + "\n";
-        jf.close();
-        // crude parse: extract textureSize and cellSize
-        auto findInt = [&](const std::string& key, int fallback) {
-            auto pos = content.find('"' + key + '"');
-            if (pos == std::string::npos) return fallback;
-            auto colon = content.find(':', pos);
-            if (colon == std::string::npos) return fallback;
-            auto end = content.find_first_of(",}\n", colon+1);
-            std::string num = content.substr(colon+1, end-colon-1);
-            return atoi(num.c_str());
-        };
-        m_atlasTextureSize = findInt("textureSize", m_atlasTextureSize);
-        m_atlasCellSize = findInt("cellSize", m_atlasCellSize);
-        // parse glyphs entries: look for "glyphs": { ... }
-        auto gpos = content.find("\"glyphs\"");
-        if (gpos != std::string::npos) {
-            auto brace = content.find('{', gpos);
-            auto endb = content.find('}', brace+1);
-            if (brace != std::string::npos && endb != std::string::npos) {
-                std::string block = content.substr(brace+1, endb-brace-1);
-                std::istringstream iss(block);
-                std::string entry;
-                while (std::getline(iss, entry, '}')) {
-                    auto q = entry.find('"');
-                    if (q == std::string::npos) continue;
-                    auto q2 = entry.find('"', q+1);
-                    if (q2 == std::string::npos) continue;
-                    std::string key = entry.substr(q+1, q2-q-1);
+        try {
+            std::string content((std::istreambuf_iterator<char>(jf)), std::istreambuf_iterator<char>());
+            jf.close();
+
+            // strip simple '//' style comments so files with comments remain valid
+            auto stripComments = [](const std::string& src) {
+                std::string out;
+                std::istringstream iss(src);
+                std::string line;
+                while (std::getline(iss, line)) {
+                    size_t pos = line.find("//");
+                    if (pos != std::string::npos) line.erase(pos);
+                    out += line;
+                    out.push_back('\n');
+                }
+                return out;
+            };
+
+            std::string filtered = stripComments(content);
+            using nlohmann::json;
+            json j = json::parse(filtered);
+
+            if (j.contains("textureSize") && j["textureSize"].is_number_integer()) {
+                m_atlasTextureSize = j["textureSize"].get<int>();
+            }
+            if (j.contains("cellSize") && j["cellSize"].is_number_integer()) {
+                m_atlasCellSize = j["cellSize"].get<int>();
+            }
+
+            if (j.contains("glyphs") && j["glyphs"].is_object()) {
+                m_glyphs.clear();
+                for (const auto& kv : j["glyphs"].items()) {
+                    const std::string& key = kv.first;
                     int code = atoi(key.c_str());
+                    const auto& val = kv.second;
                     GlyphMetric gm = {0,0,m_atlasCellSize,m_atlasCellSize,m_atlasCellSize};
-                    // find numbers inside entry
-                    auto px = entry.find("\"x\"");
-                    if (px != std::string::npos) gm.x = findInt("x", 0);
-                    auto py = entry.find("\"y\"");
-                    if (py != std::string::npos) gm.y = findInt("y", 0);
-                    auto pw = entry.find("\"w\"");
-                    if (pw != std::string::npos) gm.w = findInt("w", gm.w);
-                    auto ph = entry.find("\"h\"");
-                    if (ph != std::string::npos) gm.h = findInt("h", gm.h);
-                    auto pa = entry.find("\"advance\"");
-                    if (pa != std::string::npos) gm.advance = findInt("advance", gm.w);
+                    if (val.contains("x") && val["x"].is_number_integer()) gm.x = val["x"].get<int>();
+                    if (val.contains("y") && val["y"].is_number_integer()) gm.y = val["y"].get<int>();
+                    if (val.contains("w") && val["w"].is_number_integer()) gm.w = val["w"].get<int>();
+                    if (val.contains("h") && val["h"].is_number_integer()) gm.h = val["h"].get<int>();
+                    if (val.contains("advance") && val["advance"].is_number_integer()) gm.advance = val["advance"].get<int>();
                     m_glyphs[code] = gm;
                 }
             }
+
+            OutputDebugStringA("UIRenderer: Parsed atlas_ui.json (nlohmann::json)\n");
         }
-        OutputDebugStringA("UIRenderer: Parsed atlas_ui.json (heuristic parser)\n");
+        catch (const std::exception& e) {
+            std::string msg = "UIRenderer: Failed to parse atlas_ui.json: ";
+            msg += e.what();
+            msg += "\n";
+            OutputDebugStringA(msg.c_str());
+        }
     }
 
     // Create simple point sampler for UI

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 #include <vector>
 #include <chrono>
 #include <d3d11.h>
@@ -37,10 +38,14 @@ public:
         m_color[0] = r; m_color[1] = g; m_color[2] = b; m_color[3] = a;
     }
 
-    void Execute(ID3D11DeviceContext* /*context*/) override {
-        // Placeholder: actual text rendering requires font atlas, shaders and vertex uploads.
-        // UIRenderer will implement the real execution using device resources.
-    }
+    void Execute(ID3D11DeviceContext* /*context*/) override;
+
+    // Accessors for renderer
+    const std::string& GetText() const { return m_text; }
+    float GetX() const { return m_x; }
+    float GetY() const { return m_y; }
+    float GetFontSize() const { return m_fontSize; }
+    void GetColor(float out[4]) const { out[0]=m_color[0]; out[1]=m_color[1]; out[2]=m_color[2]; out[3]=m_color[3]; }
 
     uint32_t GetSortKey() const override {
         // Text should be rendered after most geometry
@@ -60,11 +65,13 @@ public:
     DrawQuadCommand(float x, float y, float w, float h)
         : m_x(x), m_y(y), m_w(w), m_h(h) {}
 
-    void Execute(ID3D11DeviceContext* /*context*/) override {
-        // Placeholder: actual quad rendering requires vertex buffers/shaders.
-        // Implementations will be provided by UIRenderer using device resources.
-        // For now, this is a no-op to allow pipeline verification.
-    }
+    void Execute(ID3D11DeviceContext* /*context*/) override;
+
+    // Accessors for renderer
+    float GetX() const { return m_x; }
+    float GetY() const { return m_y; }
+    float GetW() const { return m_w; }
+    float GetH() const { return m_h; }
 
     uint32_t GetSortKey() const override {
         // UI quads should render late in the frame; use moderate sort key.

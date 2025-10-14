@@ -798,6 +798,12 @@
     <ClCompile Include="src\Engine\Systems\UpdateSystem.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="src\Engine\Rendering\UIRenderer.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Rendering\RenderCommandSystem.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Interfaces\IManager.h">
@@ -2306,6 +2312,15 @@
     <ClInclude Include="src\Engine\UI\UIManager.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="src\Engine\Rendering\UIRenderer.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="nlohmann\json.hpp">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Rendering\RenderCommandSystem.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\Shaders\BasicShader.hlsl" />
@@ -2326,6 +2341,7 @@
     <FxCompile Include="Assets\Shader\OceanShader.hlsl" />
     <FxCompile Include="Assets\Shader\Terrain3Shader.hlsl" />
     <FxCompile Include="Assets\Shader\TerrainBiomeShader.hlsl" />
+    <FxCompile Include="Assets\Shader\TextSDF.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\DejaVuSansMono.png">
@@ -2422,6 +2438,9 @@
       <Filter>Archivos de recursos</Filter>
     </Image>
     <Image Include="Assets\Textures\Rock\aerial_rocks\1k\aerial_rocks_04_rough_1k.jpg">
+      <Filter>Archivos de recursos</Filter>
+    </Image>
+    <Image Include="Assets\Textures\UI\atlas_ui_sdf.png">
       <Filter>Archivos de recursos</Filter>
     </Image>
   </ItemGroup>
@@ -2551,6 +2570,12 @@
     <None Include=".github\commit_history.md" />
     <None Include=".githooks\post-commit" />
     <None Include="md\Terrain\EROSION HIDRÁULICA.md" />
+    <None Include="Assets\Textures\UI\atlas_ui.meta" />
+    <None Include="Assets\Textures\UI\atlas_ui.json" />
+    <None Include="Assets\Textures\UI\atlas_ui_sdf.meta" />
+    <None Include="Assets\Textures\UI\atlas_ui_sdf.png.b64" />
+    <None Include="tools\generate_sdf_atlas.ps1" />
+    <None Include="tools\generate_sdf_font_atlas.ps1" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="C:\Users\joaqu\Downloads\yaml-cpp-master-original\yaml-cpp-master\build\Debug\yaml-cppd.lib" />
