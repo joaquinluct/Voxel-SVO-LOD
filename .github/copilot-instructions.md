@@ -28,20 +28,22 @@ Reglas rápidas:
 
 Por dónde vamos (actualizado)
 --------------------------------------
- - Estado actual: `Step 5` completado — `UpdateSystem` introducido y `Engine::UpdateGameLogic` ya usa el sistema de actualización (delegando aún en `UpdateManager` durante la migración). Compilación verificada y commits realizados en la rama `terrain`.
- - Estado actual: `Step 6` iniciado — `UI subsystem` base creado (`UIManager` API ampliada) y la integración de terreno se pone en stand-by. Compilación verificada y commit `refactor/ui-step-1` creado.
- - Siguiente paso (Step 6 continuation): implementar widgets básicos (`UILabel`, `UIPanel`) y el `UIRenderer` para ejecutar `DrawTextCommand`/`DrawQuadCommand` en el render thread. Validar visualmente un panel con texto "Hola Mundo" con color y posicionamiento configurables.
- - Estado actual: `Step 6` en progreso — `DrawTextCommand` añadido y `UIManager` puede crear panels y asociar labels. Commit `refactor/ui-step-2` creado (`4fe939d`).
- - Siguiente paso (Step 6 continuation): implementar `UIRenderer` que ejecute `DrawTextCommand`/`DrawQuadCommand` en el render thread y crear un panel de prueba "Hola Mundo".
-   - objetivo: comprobar end-to-end el flujo AAA (Main -> SubmitRenderCommands -> RenderThread -> Execute -> Present) usando un pase sencillo de UI que dibuje un texto o quad con "Hola Mundo".
-   - razones: aislar la verificación del pipeline y la infraestructura (hilos, colas, CommandBuffer, orden de pases, sincronización de frame state) sin el ruido de la generación de terreno, que añadirá complejidad y ruido en esta fase.
-   - pasos:
-     1. Implementar `UIRenderer` y mapear `DrawTextCommand` y `DrawQuadCommand` a operaciones D3D concretas (shaders, vb/ib updates) en el render thread.
-     2. Crear un panel de ejemplo "Hola Mundo" en `SceneManager::PostInit()` o `Engine::InitManagers()` usando `UIManager::CreatePanel` y `CreateLabel`.
-     3. Asegurar que los comandos se agrupan por pase y que `Engine::RenderLoop` ejecuta los pases en el orden configurado.
-     3. Ejecutar la aplicación localmente y verificar visualmente el panel con "Hola Mundo" en la posición y color definidos.
-     4. Crear commit: `refactor/ui-step-2: add basic widgets and UIRenderer; hello-world panel` y actualizar `.github/commit_history.md`.
-   - criterios de éxito: build limpia, el render thread consume paquetes y en pantalla aparece el texto/quad "Hola Mundo"; no hay data-races ni bloqueos detectables en ejecución.
+ - Estado actual: `Step 6` en progreso — subtareas completadas:
+   - `AssetManager::LoadTexture` y wiring para devolver SRV desde `TextureAsset` (soporte para cargar `UIAtlas`).
+   - Registro del `UIAtlas` en los assets (YAML) y Preferencia de atlas gestionado por AssetManager frente al atlas POC.
+   - `UIText` lee metadatos del atlas (`Assets/Textures/UI/atlas_ui.meta`) y `UIRenderer` parsea métricas (`Assets/Textures/UI/atlas_ui.json`) para poblar `GlyphMetric`.
+   - Implementación del render por carácter: `UIRenderer` genera quads por glyph, ajusta VB dinámico (redimensiona si hace falta), hace Map/Write/Unmap y dibuja en un único Draw; además ajusta posiciones a la matriz ortográfica.
+
+ - Siguiente paso (Step 6 continuation — Step 6c): consolidar POC a producción
+   1. Generar o integrar un atlas de glyphs real (preferible: generar con FreeType) y producir `atlas_ui.png` + `atlas_ui.json` métricas en `Assets/Textures/UI/`.
+   2. Sustituir el parser heurístico por un parser JSON robusto (`nlohmann::json` o similar) o mantener JSON sencillo y fiable.
+   3. Añadir shader SDF/alpha-test y declarar el shader en `Resources/Config/Assets/assets_shader.yaml` para gestionarlo con `ShaderManager`.
+   4. Ajustar kerning/advance usando las métricas y verificar la calidad visual a diferentes tamaños.
+   5. Commit sugerido: `refactor/ui-step-6c: integrate glyph atlas and metrics (FreeType/SDF)`.
+
+ - Notas prácticas:
+   - Mantener commits pequeños y compilar entre pasos.
+   - Actualizar `.github/commit_history.md` tras cada commit relevante (ya se añadieron entradas recientes para los commits de POC).
 
  Regla rápida para este paso:
  - Mantener el cambio pequeño: un pase UI minimal y wiring del pipeline. No integrar la lógica de terreno en este commit.
@@ -171,6 +173,17 @@ Los siguientes elementos tienen el typo `GeomtryChunkEngine` (falta "e" en "Geom
 
 -- Recomendaciones prácticas para agentes:
   - Cuando modifiques un Config o introduzcas un nuevo tipo de config: actualiza primero el YAML en `Resources/Config`, luego ejecuta `YamlToStruct.exe` para regenerar `src/Engine/Core/Config` y compilar.
+
+Mejora opcional para `UIRenderer`: renderizado por carácter (per-character quads)
+-------------------------------------------------------------------
+- Enfoque: en lugar de usar meshes preconstruidas, el `UIRenderer` puede generar quads por carácter en tiempo de render (cada carácter -> 6 vértices) y subirlos a un VB dinámico.
+- Ventajas: batching eficiente, control de kerning/espaciado, SDF text support, posibilidad de atlas único para toda la UI.
+- Pasos para implementar:
+  1. Preparar un atlas de fuentes (bitmap o SDF) y declarar el sampler/texture en `assets_shader.yaml` y `Assets/Shader`.
+  2. En `UIRenderer::ExecuteUICommands`, iterar los `DrawTextCommand`, descomponer el string en glyphs, calcular posiciones UV por glyph y escribir las 6 vértices por glyph en el VB dinámico (Map/Write/Unmap).
+  3. Usar un shader SDF/alpha-test para renderizar texto con buen antialiasing; crear entrada en YAML y compilar el HLSL siguiendo la pipeline de assets.
+  4. Añadir batching por textura/atlas y sorting por material para minimizar cambios de estado.
+- Cuando implementar: marcar como mejora del Step 6b y realizar en pequeños commits (POC glyph-atlas → batching → SDF shader).
   - Para cambios en nombres de componentes (Service/Manager/Asset): revisar `*IndexConfig` y los vectors (`services_init`, `managers_init_order`, etc.) — `InitController` usa esas entradas para calcular el orden.
   - Mantener las macros `REGISTER_SERVICE_TYPE` / `REGISTER_MANAGER_TYPE` para el registro estático; preferir este patrón sobre registrar manualmente en runtime.
 
