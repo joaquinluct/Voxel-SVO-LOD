@@ -27,4 +27,6 @@ private:
     Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pixelShader;
     Microsoft::WRL::ComPtr<ID3D11Buffer> m_vertexBuffer;
     Microsoft::WRL::ComPtr<ID3D11Buffer> m_constantBuffer; // matrix buffer (ortho)
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_whiteTextureSRV;
+    Microsoft::WRL::ComPtr<ID3D11SamplerState> m_samplerState;
 };

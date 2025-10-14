@@ -96,6 +96,51 @@ HRESULT UIRenderer::Init(ID3D11Device* device, ID3D11DeviceContext* context) {
         m_context->VSSetConstantBuffers(13, 1, &cbRaw);
     }
 
+    // Create a 1x1 white texture SRV for UI fallback
+    D3D11_TEXTURE2D_DESC texDesc = {};
+    texDesc.Width = 1;
+    texDesc.Height = 1;
+    texDesc.MipLevels = 1;
+    texDesc.ArraySize = 1;
+    texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    texDesc.SampleDesc.Count = 1;
+    texDesc.Usage = D3D11_USAGE_DEFAULT;
+    texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    texDesc.CPUAccessFlags = 0;
+
+    UINT32 whitePixel[1] = { 0xFFFFFFFF };
+    D3D11_SUBRESOURCE_DATA texInit = {};
+    texInit.pSysMem = whitePixel;
+    texInit.SysMemPitch = 4;
+
+    ID3D11Texture2D* tex = nullptr;
+    hr = m_device->CreateTexture2D(&texDesc, &texInit, &tex);
+    if (SUCCEEDED(hr) && tex) {
+        ID3D11ShaderResourceView* srv = nullptr;
+        hr = m_device->CreateShaderResourceView(tex, nullptr, &srv);
+        if (SUCCEEDED(hr)) {
+            m_whiteTextureSRV.Attach(srv);
+        }
+        tex->Release();
+    }
+
+    // Create simple point sampler for UI
+    D3D11_SAMPLER_DESC sampDesc = {};
+    sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+    sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+    sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+    sampDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+    sampDesc.MinLOD = 0;
+    sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+    ID3D11SamplerState* sampler = nullptr;
+    hr = m_device->CreateSamplerState(&sampDesc, &sampler);
+    if (SUCCEEDED(hr)) {
+        m_samplerState.Attach(sampler);
+        ID3D11SamplerState* s = m_samplerState.Get();
+        m_context->PSSetSamplers(0, 1, &s);
+    }
+
     return S_OK;
 }
 
@@ -142,8 +187,10 @@ void UIRenderer::ExecuteUICommands(const RenderCommandPacket& packet) {
             ID3D11ShaderResourceView* srv = pair.first;
             if (srv) {
                 m_context->PSSetShaderResources(0, 1, &srv);
+            } else if (m_whiteTextureSRV) {
+                ID3D11ShaderResourceView* w = m_whiteTextureSRV.Get();
+                m_context->PSSetShaderResources(0, 1, &w);
             } else {
-                // Unbind texture slot 0
                 ID3D11ShaderResourceView* nullSrv[1] = { nullptr };
                 m_context->PSSetShaderResources(0, 1, nullSrv);
             }
@@ -174,4 +221,7 @@ void UIRenderer::Shutdown() {
     if (m_inputLayout) m_inputLayout.Reset();
     if (m_vertexShader) m_vertexShader.Reset();
     if (m_pixelShader) m_pixelShader.Reset();
+    if (m_constantBuffer) m_constantBuffer.Reset();
+    if (m_whiteTextureSRV) m_whiteTextureSRV.Reset();
+    if (m_samplerState) m_samplerState.Reset();
 }
