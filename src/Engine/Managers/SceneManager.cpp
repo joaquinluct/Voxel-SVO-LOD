@@ -348,6 +348,17 @@ HRESULT SceneManager::PostInit() {
 
     config.isInitialized = true;
 
+    // Create a simple UI panel with a label "Hola Mundo" for visual validation
+    if (m_uiManager) {
+        UIManager::UIPanelDesc pnl{};
+        pnl.x = 0.1f; pnl.y = 0.1f; pnl.w = 0.25f; pnl.h = 0.12f;
+        pnl.color[0] = 0.1f; pnl.color[1] = 0.1f; pnl.color[2] = 0.8f; pnl.color[3] = 0.9f;
+        m_uiManager->CreatePanel("helloPanel", pnl);
+        UIText* lbl = m_uiManager->CreateLabel("helloLabel", "Hola Mundo");
+        lbl->SetPosition(20.0f, 20.0f);
+        m_uiManager->AddLabelToPanel("helloPanel", "helloLabel");
+    }
+
     return S_OK;
 }
 
