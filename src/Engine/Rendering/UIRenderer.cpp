@@ -13,6 +13,7 @@
 #include <ManagerLocator/ManagerLocator.h>
 #include <Managers/UIManager.h>
 #include <Assets/Base/MeshAsset.h>
+#include <unordered_map>
 
 HRESULT UIRenderer::Init(ID3D11Device* device, ID3D11DeviceContext* context) {
     if (!device || !context) return E_FAIL;
@@ -106,12 +107,28 @@ void UIRenderer::ExecuteUICommands(const RenderCommandPacket& packet) {
     if (uiManager) {
         const auto& texts = uiManager->GetTextElements();
 
-        // Bind shader and input layout once for all UI meshes to minimize state changes
+        // Group meshes by their first texture SRV to minimize PS state changes
+        std::unordered_map<ID3D11ShaderResourceView*, std::vector<std::shared_ptr<MeshAsset>>> groups;
+        for (const auto& kv : texts) {
+            UIText* txt = kv.second;
+            if (!txt) continue;
+            auto mesh = txt->GetMesh();
+            if (!mesh) continue;
+            const Material* mat = mesh->GetMaterial();
+            ID3D11ShaderResourceView* key = nullptr;
+            if (mat) {
+                auto texs = mat->GetTextures();
+                if (!texs.empty()) key = texs[0];
+            }
+            groups[key].push_back(mesh);
+        }
+
+        // Bind shader and input layout once for all UI meshes
         if (m_vertexShader) m_context->VSSetShader(m_vertexShader.Get(), nullptr, 0);
         if (m_pixelShader) m_context->PSSetShader(m_pixelShader.Get(), nullptr, 0);
         if (m_inputLayout) m_context->IASetInputLayout(m_inputLayout.Get());
 
-        // Update ortho matrix constant (slot b13 as shader expects)
+        // Update ortho matrix constant once
         XMMATRIX ortho = uiManager->GetOrthoMatrix();
         XMMATRIX orthoT = DirectX::XMMatrixTranspose(ortho);
         if (m_constantBuffer) {
@@ -120,26 +137,33 @@ void UIRenderer::ExecuteUICommands(const RenderCommandPacket& packet) {
             m_context->VSSetConstantBuffers(13, 1, &cb);
         }
 
-        for (const auto& kv : texts) {
-            UIText* txt = kv.second;
-            if (!txt) continue;
-            auto mesh = txt->GetMesh();
-            if (!mesh) continue;
+        // Iterate groups and bind textures per-group
+        for (auto& pair : groups) {
+            ID3D11ShaderResourceView* srv = pair.first;
+            if (srv) {
+                m_context->PSSetShaderResources(0, 1, &srv);
+            } else {
+                // Unbind texture slot 0
+                ID3D11ShaderResourceView* nullSrv[1] = { nullptr };
+                m_context->PSSetShaderResources(0, 1, nullSrv);
+            }
 
-            // Bind vertex/index buffers from mesh and draw
-            ID3D11Buffer* vb = mesh->GetVertexBuffer(mesh->GetReadIndex()).Get();
-            ID3D11Buffer* ib = mesh->GetIndexBuffer(mesh->GetReadIndex()).Get();
-            if (vb) {
-                UINT stride = mesh->GetVertexTypeSize();
-                UINT offset = 0;
-                m_context->IASetVertexBuffers(0, 1, &vb, &stride, &offset);
+            for (auto& mesh : pair.second) {
+                if (!mesh) continue;
+                ID3D11Buffer* vb = mesh->GetVertexBuffer(mesh->GetReadIndex()).Get();
+                ID3D11Buffer* ib = mesh->GetIndexBuffer(mesh->GetReadIndex()).Get();
+                if (vb) {
+                    UINT stride = mesh->GetVertexTypeSize();
+                    UINT offset = 0;
+                    m_context->IASetVertexBuffers(0, 1, &vb, &stride, &offset);
+                }
+                if (ib) {
+                    m_context->IASetIndexBuffer(ib, DXGI_FORMAT_R16_UINT, 0);
+                }
+                m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+                UINT indexCount = mesh->GetIndexCount(mesh->GetReadIndex());
+                if (indexCount > 0) m_context->DrawIndexed(indexCount, 0, 0);
             }
-            if (ib) {
-                m_context->IASetIndexBuffer(ib, DXGI_FORMAT_R16_UINT, 0);
-            }
-            m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-            UINT indexCount = mesh->GetIndexCount(mesh->GetReadIndex());
-            if (indexCount > 0) m_context->DrawIndexed(indexCount, 0, 0);
         }
         return;
     }
