@@ -5,6 +5,9 @@ Config:
       TextureTextUIMap:
         texture_type: "JPG"
         albedo: "Assets\\Textures\\UI\\DejaVuSansMono.jpg"
+      UIAtlasMap:
+        texture_type: "PNG"
+        albedo: "Assets\\Textures\\UI\\atlas_ui.png"
       TextureGrassDiffuseMap:
          texture_type: "JPG"
          albedo: "C:\\Users\\joaqu\\source\\repos\\DirectX-Voxelado\\Assets\\Textures\\Rock\\Coast_sand_rock\\coast_sand_rocks_02_diff_4k.jpg"

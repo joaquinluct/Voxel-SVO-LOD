@@ -56,6 +56,17 @@ Config:
         dependencies:
           - DeviceManager
           - TextureAsset
+      UIAtlas:
+        type: "TextureAsset"
+        map: "UIAtlasMap"
+        texture_desc: Texture2D_Simple_Png
+        x_scale: 1.0
+        y_scale: 1.0
+        x_offset: 0.0
+        y_offset: 0.0
+        dependencies:
+          - DeviceManager
+          - TextureAsset
 Definition:
   Default:
     language: 1 # C++

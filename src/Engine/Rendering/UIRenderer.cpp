@@ -14,6 +14,7 @@
 #include <Managers/UIManager.h>
 #include <Assets/Base/MeshAsset.h>
 #include <unordered_map>
+#include <Managers/AssetManager.h>
 
 HRESULT UIRenderer::Init(ID3D11Device* device, ID3D11DeviceContext* context) {
     if (!device || !context) return E_FAIL;
@@ -151,11 +152,17 @@ HRESULT UIRenderer::Init(ID3D11Device* device, ID3D11DeviceContext* context) {
         atlasTex->Release();
     }
 
-    // If a real atlas file exists in Assets, notify (automatic WIC loader not available here)
-    std::wstring atlasFile = L"Assets\\Textures\\UI\\atlas_ui.png";
-    DWORD attrs = GetFileAttributesW(atlasFile.c_str());
-    if (attrs != INVALID_FILE_ATTRIBUTES) {
-        OutputDebugStringA("UIRenderer: Found Assets/Textures/UI/atlas_ui.png — loading via AssetManager recommended. Using POC atlas for now.\n");
+    // Try to obtain UIAtlas from AssetManager (registered via YAML)
+    auto assetManager = ManagerLocator::GetManager<AssetManager>();
+    if (assetManager) {
+        ID3D11ShaderResourceView* atlasSrv = assetManager->LoadTexture("UIAtlas");
+        if (atlasSrv) {
+            m_uiAtlasSRV.Attach(atlasSrv);
+            OutputDebugStringA("UIRenderer: Loaded UIAtlas via AssetManager.\n");
+        }
+        else {
+            OutputDebugStringA("UIRenderer: UIAtlas asset not found via AssetManager; using POC atlas.\n");
+        }
     }
 
     // Create simple point sampler for UI
