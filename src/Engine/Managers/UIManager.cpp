@@ -30,19 +30,6 @@ UIText* UIManager::CreateLabel(const std::string& name, const std::string& text)
     return label;
 }
 
-void UIManager::FillCommandBuffer(CommandBuffer& buffer) {
-    // Iterate registered text elements; if they have an associated mesh, add draw commands
-    for (auto& kv : m_textElements) {
-        UIText* t = kv.second;
-        if (!t) continue;
-        auto mesh = t->GetMesh();
-        if (mesh) {
-            int index = mesh->GetReadIndex();
-            UINT indexCount = mesh->GetIndexCount(index);
-            buffer.AddCommand<DrawIndexedCommand>(indexCount, 0, 0);
-        }
-    }
-}
 
 UIManager::~UIManager()
 {
@@ -102,6 +89,19 @@ HRESULT UIManager::Init(EngineContext* context)
     return hr;
 }
 
+bool UIManager::CreatePanel(const std::string& name, const UIPanelDesc& desc) {
+    if (m_panels.find(name) != m_panels.end()) return false;
+    m_panels[name] = desc;
+    return true;
+}
+
+bool UIManager::AddLabelToPanel(const std::string& panelName, const std::string& labelMeshName) {
+    auto it = m_panels.find(panelName);
+    if (it == m_panels.end()) return false;
+    m_panelLabels[panelName].push_back(labelMeshName);
+    return true;
+}
+
 //HRESULT UIManager::InitText(std::vector<std::shared_ptr<VertexDefinition::VertexVariant>> vertexDef)
 //{
 //    std::shared_ptr<UIText> textMesh = m_renderManager->SceneManagerGet()->RegisterTextMesh("UITextMesh");
@@ -128,6 +128,33 @@ void UIManager::Render()
     //}
 
     //m_deviceManager->DisableBlending();
+}
+
+void UIManager::FillCommandBuffer(CommandBuffer& buffer) {
+    // Emit panel quads first
+    for (auto& kv : m_panels) {
+        const UIPanelDesc& d = kv.second;
+        buffer.AddCommand<DrawQuadCommand>(d.x, d.y, d.w, d.h);
+        // Optionally emit attached labels as quads positioned inside panel (simple layout)
+        auto it = m_panelLabels.find(kv.first);
+        if (it != m_panelLabels.end()) {
+            float lx = d.x + 0.02f;
+            float ly = d.y + 0.02f;
+            for (const auto& meshName : it->second) {
+                // Try to find the UIText by meshName and emit a DrawTextCommand if available
+                auto tit = m_textElements.find(meshName);
+                if (tit != m_textElements.end()) {
+                    UIText* txt = tit->second;
+                    std::string s = "";
+                    try { s = txt->GetText(); } catch (...) { s = ""; }
+                    buffer.AddCommand<DrawTextCommand>(s, lx, ly, 16.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+                } else {
+                    buffer.AddCommand<DrawQuadCommand>(lx, ly, 0.1f, 0.03f);
+                }
+                ly += 0.035f;
+            }
+        }
+    }
 }
 
 void UIManager::Shutdown()

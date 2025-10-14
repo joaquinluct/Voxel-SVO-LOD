@@ -62,6 +62,7 @@ public:
     DirectX::XMFLOAT3 GetPosition();
     void SetColor(float r, float g, float b, float a);
     void SetFontSize(float size);
+    const std::string& GetText() const { return m_text; }
 
 	void SetMesh(std::shared_ptr<MeshAsset> mesh) { m_mesh = mesh; }
     void CreateMesh(std::vector<std::shared_ptr<VertexDefinition::VertexVariant>>& pVertexData);

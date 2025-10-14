@@ -11,6 +11,7 @@
 #include <string>
 #include <UI/UIText.h>
 #include <vector>
+#include <unordered_map>
 #include <Windows.h>
 
 class DeviceManager;
@@ -45,6 +46,20 @@ public:
     // Produce UI render commands into a CommandBuffer (called by SceneManager)
     void FillCommandBuffer(CommandBuffer& buffer);
 
+    // Basic panel widget API (minimal retained-mode)
+    struct UIPanelDesc {
+        float x = 0.0f; // normalized 0..1
+        float y = 0.0f; // normalized 0..1
+        float w = 0.2f;
+        float h = 0.1f;
+        float color[4] = {0.2f, 0.2f, 0.2f, 1.0f};
+    };
+
+    // Create a panel (returns false if already exists)
+    bool CreatePanel(const std::string& name, const UIPanelDesc& desc);
+    // Attach an existing label (UIText by mesh name) to a panel for layout
+    bool AddLabelToPanel(const std::string& panelName, const std::string& labelMeshName);
+
     //void SetText(const std::wstring& text);
     /*void AddElement(UIElement* element);
     void RemoveElement(UIElement* element);*/
@@ -61,4 +76,7 @@ private:
     std::shared_ptr<DeviceManager> m_deviceManager;
     // Matriz ortográfica para UI
     XMMATRIX m_orthoMatrix; // Matriz ortográfica para UI
+    // Panels storage
+    std::unordered_map<std::string, UIPanelDesc> m_panels;
+    std::unordered_map<std::string, std::vector<std::string>> m_panelLabels;
 };

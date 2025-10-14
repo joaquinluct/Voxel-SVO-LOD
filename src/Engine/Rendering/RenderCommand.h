@@ -22,6 +22,35 @@ public:
 };
 
 //--------------------------------------------------------------------------------------
+// DrawTextCommand: placeholder for UI text drawing
+//--------------------------------------------------------------------------------------
+class DrawTextCommand : public IRenderCommand {
+private:
+    std::string m_text;
+    float m_x, m_y;
+    float m_fontSize;
+    float m_color[4];
+
+public:
+    DrawTextCommand(const std::string& text, float x, float y, float fontSize, float r, float g, float b, float a)
+        : m_text(text), m_x(x), m_y(y), m_fontSize(fontSize) {
+        m_color[0] = r; m_color[1] = g; m_color[2] = b; m_color[3] = a;
+    }
+
+    void Execute(ID3D11DeviceContext* /*context*/) override {
+        // Placeholder: actual text rendering requires font atlas, shaders and vertex uploads.
+        // UIRenderer will implement the real execution using device resources.
+    }
+
+    uint32_t GetSortKey() const override {
+        // Text should be rendered after most geometry
+        return 0xFFFF0001;
+    }
+
+    size_t GetMemoryFootprint() const override { return sizeof(DrawTextCommand) + m_text.size(); }
+};
+
+//--------------------------------------------------------------------------------------
 // DrawQuadCommand: simple UI quad draw command (placeholder)
 //--------------------------------------------------------------------------------------
 class DrawQuadCommand : public IRenderCommand {
