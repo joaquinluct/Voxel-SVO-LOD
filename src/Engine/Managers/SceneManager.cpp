@@ -1,4 +1,5 @@
 ﻿#include "SceneManager.h"
+#include <Engine/Systems/SceneSystem.h>
 #include <Assets/Base/MeshAssetBase.h>
 #include <Assets/Base/ShaderAsset.h>
 #include <atomic>
@@ -75,6 +76,14 @@ SceneManager::SceneManager() :
     m_engineConfig = EngineConfig();
 
     this->SetFlag(SyncFlagIndex::HasScene, false);
+}
+
+// Implementations used by SceneSystem to avoid recursion during migration.
+void SceneManager::FillCommandBufferImpl(CommandBuffer& buffer) {
+    FillCommandBuffer(buffer);
+}
+void SceneManager::UpdateImpl(float deltaTime) {
+    Update(deltaTime);
 }
 
 void SceneManager::FillCommandBuffer(CommandBuffer& buffer) {
@@ -326,6 +335,13 @@ HRESULT SceneManager::PostInit() {
     m_updateManager = ManagerLocator::GetManager<UpdateManager>();
     if (!m_updateManager) {
         return E_FAIL; // Update manager service not available
+    }
+
+    // Create SceneSystem facade for migration to system-based architecture
+    m_sceneSystem = std::make_unique<SceneSystem>();
+    if (m_sceneSystem) {
+        m_sceneSystem->Init(this);
+        m_sceneSystem->PostInit();
     }
 
     // Crea el contexto de las tareas

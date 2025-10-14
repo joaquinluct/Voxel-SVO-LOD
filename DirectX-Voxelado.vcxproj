@@ -348,6 +348,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <UseStandardPreprocessor Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</UseStandardPreprocessor>
     </ClCompile>
+    <ClCompile Include="src\Engine\Systems\SceneSystem.cpp" />
     <ClCompile Include="src\Engine\Systems\UpdateSystem.cpp" />
     <ClCompile Include="src\Game\GameObjects\Line.cpp" />
     <ClCompile Include="src\Game\GameObjects\TestingFloor.cpp" />
@@ -640,6 +641,7 @@
     <ClInclude Include="src\Engine\Rendering\RenderCommandSystem.h" />
     <ClInclude Include="src\Engine\Rendering\UIRenderer.h" />
     <ClInclude Include="src\Engine\Systems\IUpdateSystem.h" />
+    <ClInclude Include="src\Engine\Systems\SceneSystem.h" />
     <ClInclude Include="src\Engine\Systems\UpdateSystem.h" />
     <ClInclude Include="src\Engine\UI\UIManager.h" />
     <ClInclude Include="src\Game\Systems\Terrain\Buffer\InstancingRingBuffer.h" />

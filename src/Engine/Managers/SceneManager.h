@@ -41,6 +41,7 @@ class FrameStateService;
 class PassFrameState;
 class PipelineState;
 class MeshAsset;
+class SceneSystem;
 
 class SceneManager : public ManagerBase {
 public:
@@ -102,7 +103,16 @@ public:
     FutureUpdateJob AddUpdateJob(const std::string& name, std::function<bool()> task, bool allowDuplicates);
     void ProcessJobs();
 
+    // Migration accessor: obtain SceneSystem facade if created during PostInit
+    class SceneSystem* GetSceneSystem() const { return m_sceneSystem ? m_sceneSystem.get() : nullptr; }
+
 private:
+    friend class SceneSystem;
+    std::unique_ptr<class SceneSystem> m_sceneSystem = nullptr;
+
+    void FillCommandBufferImpl(CommandBuffer& buffer);
+    void UpdateImpl(float deltaTime);
+
     // ---------------------------------------
     // Plantilla de creación de tareas
     // ---------------------------------------
@@ -180,3 +190,5 @@ private:
 
     
 };
+
+// (Removed internal friend accessor — use SceneManager::GetSceneSystem())

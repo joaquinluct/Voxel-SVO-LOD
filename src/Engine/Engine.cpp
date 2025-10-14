@@ -1,6 +1,7 @@
 #include "Engine.h"
 #include "InitManager.h"
 #include "Systems/UpdateSystem.h"
+#include "Systems/SceneSystem.h"
 #include "Locators/ManagerLocator/ManagerLocator.h"
 #include "MainManagers/InputManager.h"
 #include "Managers/DeviceManager.h"
@@ -86,6 +87,13 @@ bool Engine::InitManagers() {
     if (!m_sceneManager) return false;
     m_sceneManager->Init(m_renderManager->Context());
     m_sceneManager->PostInit();
+    // During migration prefer SceneSystem if available
+    if (m_sceneManager) {
+        if (auto sceneSys = m_sceneManager->GetSceneSystem()) {
+            // Engine can later call sceneSys->Update / FillCommandBuffer when converting
+            OutputDebugStringA("[Engine] SceneSystem detected and registered for migration.\n");
+        }
+    }
     m_updateManager->PostInit();
 
     return true;
@@ -302,7 +310,11 @@ void Engine::MainLoop() {
 
         // 3. SCENE UPDATE (Main Thread)
         if (m_sceneManager) {
-            m_sceneManager->Update(deltaTime);
+            if (auto sceneSys = m_sceneManager->GetSceneSystem()) {
+                sceneSys->Update(deltaTime);
+            } else {
+                m_sceneManager->Update(deltaTime);
+            }
         }
 
         // 4. SUBMIT RENDER COMMANDS
@@ -381,7 +393,13 @@ void Engine::Tick(float deltaTime) {
     UpdateGameLogic(deltaTime);
 
     // Scene update
-    if (m_sceneManager) m_sceneManager->Update(deltaTime);
+    if (m_sceneManager) {
+        if (auto sceneSys = m_sceneManager->GetSceneSystem()) {
+            sceneSys->Update(deltaTime);
+        } else {
+            m_sceneManager->Update(deltaTime);
+        }
+    }
 
     // Submit render commands
     SubmitRenderCommands();
@@ -403,8 +421,16 @@ void Engine::SubmitRenderCommands() {
 
     // Use CommandBuffer to collect frame commands, then convert to packet
     CommandBuffer cmdBuffer;
-    // Use RenderCommandSystem to aggregate commands from subsystems
-    // Use RenderCommandSystem singleton to aggregate commands
+    // Prefer SceneSystem's command emission during migration
+    if (m_sceneManager) {
+        if (auto sceneSys = m_sceneManager->GetSceneSystem()) {
+            sceneSys->FillCommandBuffer(cmdBuffer);
+        } else {
+            m_sceneManager->FillCommandBuffer(cmdBuffer);
+        }
+    }
+
+    // Aggregate additional contributors (UI, other systems)
     RenderCommandSystem::Get().Aggregate(cmdBuffer);
 
     RenderCommandPacket framePacket = cmdBuffer.CreatePacket(m_frameCounter);
