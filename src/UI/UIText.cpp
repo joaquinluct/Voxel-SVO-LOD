@@ -47,6 +47,32 @@ HRESULT UIText::Init() {
     m_screenWidth = m_device->GetWidth();
 	m_screenHeight = m_device->GetHeight();
     m_screenOffset = DirectX::XMFLOAT3(-(m_screenWidth / 2.0f) + 20.0f, -(m_screenHeight / 2.0f) + 20.0f, 0.0f);
+
+    // Try to load atlas metadata (optional)
+    std::wstring metaPath = L"Assets\\Textures\\UI\\atlas_ui.meta";
+    DWORD attrs = GetFileAttributesW(metaPath.c_str());
+    if (attrs != INVALID_FILE_ATTRIBUTES) {
+        // Simple key=value parser
+        FILE* f = nullptr;
+        _wfopen_s(&f, metaPath.c_str(), L"r");
+        if (f) {
+            char line[256];
+            while (fgets(line, sizeof(line), f)) {
+                std::string s(line);
+                auto pos = s.find('=');
+                if (pos == std::string::npos) continue;
+                std::string key = s.substr(0, pos);
+                std::string val = s.substr(pos+1);
+                int ival = atoi(val.c_str());
+                if (key == "textureSize") m_atlasTextureSize = ival;
+                if (key == "cellSize") m_atlasCellSize = ival;
+            }
+            fclose(f);
+            m_atlasColumns = m_atlasTextureSize / m_atlasCellSize;
+            m_atlasRows = m_atlasTextureSize / m_atlasCellSize;
+            OutputDebugStringA("UIText: Loaded atlas metadata.\n");
+        }
+    }
     return S_OK;
 }
 

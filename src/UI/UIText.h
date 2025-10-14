@@ -87,6 +87,11 @@ private:
     std::shared_ptr<DeviceManager> m_device;    
 
     ID3D11Buffer* m_vertexBuffer; // Gestionado dinámicamente
+    // Atlas metadata (can be overridden by Assets/Textures/UI/atlas_ui.meta)
+    int m_atlasTextureSize = 256;
+    int m_atlasCellSize = 16;
+    int m_atlasColumns = 16;
+    int m_atlasRows = 16;
 
     UINT CreateVertexBufferZZZ();
     void SetVertexBufferZZZ(ID3D11DeviceContext* context);
