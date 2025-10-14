@@ -44,6 +44,7 @@ Config:
           - OceanShader
           - OceanMesh
           - BlendingWaterPass
+          - UIAtlas
           # - WaterReflectionShader
           # - WaterRefractionShader
         post_init:
