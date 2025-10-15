@@ -349,6 +349,7 @@
       <UseStandardPreprocessor Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</UseStandardPreprocessor>
     </ClCompile>
     <ClCompile Include="src\Engine\Systems\SceneSystem.cpp" />
+    <ClCompile Include="src\Engine\Systems\SceneSystem.partition.cpp" />
     <ClCompile Include="src\Engine\Systems\UpdateSystem.cpp" />
     <ClCompile Include="src\Game\GameObjects\Line.cpp" />
     <ClCompile Include="src\Game\GameObjects\TestingFloor.cpp" />

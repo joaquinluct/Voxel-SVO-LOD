@@ -807,6 +807,9 @@
     <ClCompile Include="src\Engine\Systems\SceneSystem.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="src\Engine\Systems\SceneSystem.partition.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Interfaces\IManager.h">

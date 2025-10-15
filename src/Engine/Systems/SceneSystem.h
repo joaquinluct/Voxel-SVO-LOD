@@ -20,6 +20,9 @@ public:
 
     void Update(float deltaTime);
     void FillCommandBuffer(CommandBuffer& buffer);
+    // Migration helpers: moved from SceneManager
+    void CreatePassOperations();
+    void CreateScene();
 
 private:
     SceneManager* m_owner = nullptr;
