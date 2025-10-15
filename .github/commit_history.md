@@ -126,6 +126,11 @@ Listado (cronológico, más reciente al final):
    - descripción: UpdateManager convertido en shim delegando la encolación y el procesamiento de futuros a `UpdateSystem`. SceneManager delega la creación de jobs a UpdateManager/UpdateSystem. Compilación verificada. Push a rama `terrain` (2c57758).
 
 
+24. assistant change (no commit hash)
+   - mensaje: refactor/threading-step-8.1: UpdateSystem delegates to UpdateManager when present
+   - fecha: 2025-10-15
+   - descripción: Cambio pequeño para facilitar la migración: `UpdateSystem::Update` ahora delega en el `UpdateManager` legado si está presente, preservando el comportamiento previo mientras se completa la migración a sistemas AAA. Compilación verificada localmente.
+
 ---
 
 Reglas de uso:

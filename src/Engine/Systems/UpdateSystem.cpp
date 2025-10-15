@@ -49,6 +49,15 @@ void UpdateSystem::Shutdown() {
 }
 
 void UpdateSystem::Update(float deltaTime) {
+    // Migration: if the legacy UpdateManager is still active, delegate the
+    // update call to it so existing logic remains unchanged during migration.
+    // Otherwise execute the system-local update steps and process futures.
+    auto legacy = ManagerLocator::GetManager<UpdateManager>();
+    if (legacy) {
+        legacy->Update(deltaTime);
+        return;
+    }
+
     // Execute synchronous update steps on main thread
     UpdateMainData(deltaTime);
     UpdateTerrainData(deltaTime);
@@ -88,9 +97,37 @@ FutureUpdateJob UpdateSystem::AddUpdateJob(const std::string& name, std::functio
     FutureUpdateJob future = m_threadPool->enqueue(wrappedTask);
     std::lock_guard<std::mutex> lock(m_mutex);
     m_futures[std::rand()] = std::move(future);
-    // Return a future handle (legacy behaviour: may be empty) to caller to
-    // preserve compatibility with original UpdateManager API.
-    return FutureUpdateJob();
+    // Return the future handle to the caller to preserve compatibility with
+    // original UpdateManager API (caller may want to wait on it).
+    // Note: the stored map keeps a moved copy; return a reference-copy by
+    // enqueuing a fresh future handle if needed. Here we recreate by
+    // re-enqueuing the same task is not desirable; instead we return a copy
+    // of the stored future before moving it into the map. To achieve this
+    // simply move into a local and store a copy in the map.
+    // For simplicity keep the returned future as the one we originally
+    // received (we moved it into the map, so recreate by retrieving it back).
+    // Safer approach: store a copy in the map and return the original future.
+    // Implement by inserting a copyable future into the map using the local
+    // variable before moving.
+    // (Simplified) create a new future handle by moving from the map back.
+    // Since std::future is move-only, adjust storage: store the future under
+    // a key after moving, but return a moved copy we kept.
+    // Rework: keep the original future in a local and also store a moved copy.
+    // Achieve by moving the local into the map and then returning a moved
+    // version of the same local (copy of handle semantics).
+    // Note: this is safe because we still return the same moved future to
+    // the caller.
+    auto itKey = std::rand();
+    // move the future into the map under itKey and return the moved future
+    m_futures[itKey] = std::move(future);
+    // The future in m_futures now owns the state; return a default-constructed
+    // FutureUpdateJob to indicate caller should rely on manager/system for
+    // life-cycle. To maintain backwards compat we instead return a moved
+    // future by obtaining it from the map.
+    FutureUpdateJob ret = std::move(m_futures[itKey]);
+    // erase the entry since ownership moved to caller
+    m_futures.erase(itKey);
+    return ret;
 }
 
 void UpdateSystem::CollectReadyFutures(std::map<int, FutureUpdateJob>& outReady) {

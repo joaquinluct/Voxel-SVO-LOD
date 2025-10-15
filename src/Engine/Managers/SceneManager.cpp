@@ -390,37 +390,23 @@ void SceneManager::ObtainSceneMeshes() {
 // (clear, setRTV, setDSV, etc...)
 // -----------------------------------------------------------------
 void SceneManager::CreateMainOperations() {
-    //m_resources->UpdatePassesResources();
+    if (m_sceneSystem) {
+        m_sceneSystem->CreateMainOperations();
+        return;
+    }
+
+    // Fallback to legacy behavior if SceneSystem not present
     PipelineMainInitialResources* mainResources = m_resources->GetInitialResources();
-
-    //if (mainResources == nullptr || !mainResources->isLoaded) return;
-
-    /*std::unique_ptr<SetViewportOperation> setViewOper = std::make_unique<SetViewportOperation>(mainResources->viewport);
-    m_frameStateService->RenderState(false)->AddInitialOperation(std::move(setViewOper));*/
-
-    /*std::unique_ptr<SetRenderTargetOperation> setRTVOper = std::make_unique<SetRenderTargetOperation>(mainResources->renderTargetView.Get(), mainResources->depthStencilResource->stencilViewData.Get());
-    m_frameStateService->RenderState(false)->AddInitialOperation(std::move(setRTVOper));*/
-
-
-    // ESTA ES LA ÚNICA OPERACIÓN QUE DEBE ESTAR SIEMPRE
     std::unique_ptr<ClearOperation> clearOper = std::make_unique<ClearOperation>(mainResources->renderTargetView.Get(), mainResources->depthStencilResource->stencilViewData.Get(), mainResources->clearColor);
     m_frameStateService->RenderState(false)->AddInitialOperation(std::move(clearOper));
-    // FINAL - ESTA ES LA ÚNICA OPERACIÓN QUE DEBE ESTAR SIEMPRE
-
-    //if (mainResources->isLoaded) return;
-
-    /*D3D11_RASTERIZER_DESC* desc = mainResources->rasterizerDesc;
-    Microsoft::WRL::ComPtr<ID3D11RasterizerState> state = mainResources->rasterizedState;
-    std::unique_ptr<CreateRasterizerStateOperation> rsOper = std::make_unique<CreateRasterizerStateOperation>(m_deviceManager->GetDevice().Get(), *desc, state);
-    m_frameStateService->RenderState(false)->AddOperation(std::move(rsOper));*/
-
-    //mainResources->isLoaded = true;
 }
 
 // -----------------------------------------------------------------
 // Obtiene los mesh que deben renderizarse en un pase concreto
 // -----------------------------------------------------------------
 std::vector<MeshResource*> SceneManager::GetPassMeshes(RenderPassResource* pass) {
+    if (m_sceneSystem) return m_sceneSystem->GetPassMeshes(pass);
+
     const auto& meshes = m_resources->GetMeshes();
     std::vector<MeshResource*> result;
     for (const auto& mesh : meshes) {
@@ -431,7 +417,6 @@ std::vector<MeshResource*> SceneManager::GetPassMeshes(RenderPassResource* pass)
         bool isInPass = pass->id & passes;
         if (!isInPass) continue;
         result.push_back(mesh);
-        //std::vector<std::string> passNames = GetRenderPassNames(passes);
     }
     return result;
 }
@@ -459,7 +444,10 @@ void SceneManager::CreateShaderInitialOperations(ShaderResource* shaderResource)
 // Crea las operaciones necesarias para renderizar un shader
 // -----------------------------------------------------------------
 void SceneManager::CreateShaderOperations(std::string_view shaderName) {
-    //if (config.shaderName == shaderName) return;
+    if (m_sceneSystem) {
+        m_sceneSystem->CreateShaderOperations(shaderName);
+        return;
+    }
 
     ShaderResource* shader = m_resources->GetShader(shaderName.data());
 
@@ -470,9 +458,7 @@ void SceneManager::CreateShaderOperations(std::string_view shaderName) {
 
     if (shader == nullptr || !shader->shader) return;
 
-    //if (!shader->initialOperationsExecuted) {
     CreateShaderInitialOperations(shader);
-    //}
 
     ShaderAsset* currentShader = shader->shader;
     ID3D11VertexShader* vShader = currentShader->GetVertexShader();
@@ -490,24 +476,6 @@ void SceneManager::CreateShaderOperations(std::string_view shaderName) {
 
     std::unique_ptr<SetInputLayoutOperation> ilOper = std::make_unique<SetInputLayoutOperation>(currentShader->GetInputLayout());
     m_frameStateService->RenderState(false)->AddOperation(std::move(ilOper));
-
-    /*ID3D11Buffer* cBuffer = shader->GetConstantBufferByName("MatrixBufferType");
-    MatrixDefinition::MatrixBufferType matrixBuffer{};
-    matrixBuffer.SetViewMatrix(DirectX::XMMatrixTranspose(m_cameraManager->GetCurrentViewMatrix()));
-    matrixBuffer.SetProjectionMatrix(DirectX::XMMatrixTranspose(m_cameraManager->GetCurrentProjectionMatrix()));
-    matrixBuffer.SetWorldMatrix(XMMatrixIdentity());
-    std::unique_ptr<MapUnmapOperation> mapUnmapOper = std::make_unique<MapUnmapOperation>(cBuffer, &matrixBuffer, matrixBuffer.Size());
-    m_frameStateService->RenderState(false)->AddOperation(std::move(mapUnmapOper));
-
-    ID3D11Buffer* camBuffer = shader->GetConstantBufferByName("CameraData");
-    CameraMatrix::CameraData cameraBuffer{};
-    cameraBuffer.SetCameraPosition(m_cameraManager->GetCurrentCameraPosition());
-    std::unique_ptr<MapUnmapOperation> camOper = std::make_unique<MapUnmapOperation>(camBuffer, &cameraBuffer, cameraBuffer.Size());
-    m_frameStateService->RenderState(false)->AddOperation(std::move(camOper));*/
-
-    /*std::unique_ptr<UpdateConstantsBufferOperation> mBuffer = std::make_unique<UpdateConstantsBufferOperation>();
-    m_frameStateService->RenderState(false)->AddOperation(std::move(mBuffer));*/
-
 
     config.shaderName = shaderName.data();
 }

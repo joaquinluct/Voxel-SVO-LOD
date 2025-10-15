@@ -20,6 +20,7 @@
 #include <Locators/ConfigLocator/ConfigLocator.h>
 #include <Locators/ManagerLocator/ManagerLocator.h>
 #include <Locators/ServiceLocator/ServiceLocator.h>
+#include <Systems/SceneSystem.h>
 #include <Managers/ManagerBase.h>
 #include <Managers/RenderManager/BaseRenderManager.h>
 #include <Managers/RenderManager/Pipeline/ConcreteOperations.h>
@@ -502,7 +503,13 @@ void RenderManager::Render() {
 // --------------------------------------------------------------------------
 void RenderManager::Update(float deltaTime) {
     m_baseRenderManager->Update(deltaTime);
-    m_sceneManager->Update(deltaTime);
+    if (m_sceneManager) {
+        if (auto sceneSys = m_sceneManager->GetSceneSystem()) {
+            sceneSys->Update(deltaTime);
+        } else {
+            m_sceneManager->Update(deltaTime);
+        }
+    }
 }
 
 // --------------------------------------------------------------------------
