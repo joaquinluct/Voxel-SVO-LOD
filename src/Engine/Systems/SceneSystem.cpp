@@ -25,7 +25,5 @@ void SceneSystem::FillCommandBuffer(CommandBuffer& buffer) {
     m_owner->FillCommandBufferImpl(buffer);
 }
 
-// The actual implementations are provided in partition file(s). The
-// partition file `SceneSystem.partition.cpp` provides the real
-// implementations; no local forwarders are defined here to avoid
-// duplicate symbol definitions at link time.
+// The implementations for migrated helper operations live in
+// `SceneSystem.partition.cpp` to keep the migration modular.

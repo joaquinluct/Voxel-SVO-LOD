@@ -23,6 +23,12 @@ public:
     // Migration helpers: moved from SceneManager
     void CreatePassOperations();
     void CreateScene();
+    // Migration: additional scene helper functions migrated from SceneManager
+    void CreateMeshOperations(RenderPassResource* pass, MeshResource* meshResource);
+    void CreateShaderOperations(std::string_view shaderName);
+    void CreateShaderInitialOperations(ShaderResource* shaderResource);
+    void CreateMainOperations();
+    std::vector<MeshResource*> GetPassMeshes(RenderPassResource* pass);
 
 private:
     SceneManager* m_owner = nullptr;

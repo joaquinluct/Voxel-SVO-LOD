@@ -11,6 +11,9 @@
 #include <memory>
 #include <vector>
 
+// Forward additional methods that are implemented on SceneManager and now
+// callable via the SceneSystem migration facade.
+
 void SceneSystem::CreatePassOperations() {
     if (!m_owner) return;
 
@@ -37,6 +40,105 @@ void SceneSystem::CreatePassOperations() {
         if (pass->hasShader) {
             m_owner->CreateShaderOperations(pass->shaderName);
         }
+
+void SceneSystem::CreateMeshOperations(RenderPassResource* pass, MeshResource* meshResource) {
+    if (!m_owner || !meshResource) return;
+
+    MeshAssetBase* mesh = meshResource->mesh;
+
+    if (!pass->hasShader) {
+        m_owner->CreateShaderOperations(mesh->GetShaderAssetName());
+    }
+
+    int index = mesh->GetReadIndex();
+
+    ID3D11Buffer* vBuffer = mesh->GetVertexBuffer(index).Get();
+    if (vBuffer == nullptr) return;
+
+    ID3D11Buffer* iBuffer = mesh->GetIndexBuffer(index).Get();
+    UINT stride = mesh->GetVertexTypeSize();
+    UINT indexCount = mesh->GetIndexCount(index);
+
+    if (meshResource->textures.size() > 0) {
+        std::unique_ptr<SetTextureOperation> ssOper = std::make_unique<SetTextureOperation>(meshResource->textures, 6);
+        m_owner->m_frameStateService->RenderState(false)->AddOperation(std::move(ssOper));
+    }
+
+    std::unique_ptr<SetVertexBufferOperation> vbOper = std::make_unique<SetVertexBufferOperation>(vBuffer, stride, 0);
+    m_owner->m_frameStateService->RenderState(false)->AddOperation(std::move(vbOper));
+    std::unique_ptr<SetIndexBufferOperation> ibOper = std::make_unique<SetIndexBufferOperation>(iBuffer, DXGI_FORMAT_R16_UINT, 0);
+    m_owner->m_frameStateService->RenderState(false)->AddOperation(std::move(ibOper));
+
+    std::unique_ptr<SetPrimitiveTopologyOperation > primiOper = std::make_unique<SetPrimitiveTopologyOperation>(mesh->GetPrimitiveTopology());
+    m_owner->m_frameStateService->RenderState(false)->AddOperation(std::move(primiOper));
+
+    std::unique_ptr<DrawIndexedOperation> drawOper = std::make_unique<DrawIndexedOperation>(indexCount, 0, 0);
+    m_owner->m_frameStateService->RenderState(false)->AddOperation(std::move(drawOper));
+}
+
+void SceneSystem::CreateShaderInitialOperations(ShaderResource* shaderResource) {
+    if (!m_owner || !shaderResource) return;
+    std::vector<PipelineConstantBufferResource> buffers = shaderResource->GetConstantsBuffers();
+    std::unique_ptr<BindConstantsBuffersOperation> cbOper = std::make_unique<BindConstantsBuffersOperation>(buffers, 0);
+    m_owner->m_frameStateService->RenderState(false)->AddOperation(std::move(cbOper));
+}
+
+void SceneSystem::CreateShaderOperations(std::string_view shaderName) {
+    if (!m_owner) return;
+    ShaderResource* shader = m_owner->m_resources->GetShader(shaderName.data());
+
+    if (!shader || !shader->shader || (shader && !shader->flags.GetFlag(SyncFlagIndex::HasConstsBufferDefined))) {
+        shader = m_owner->m_resources->CreateShaderResource(shaderName.data());
+        m_owner->m_resources->SetShaderResource(shaderName.data(), shader);
+    }
+
+    if (shader == nullptr || !shader->shader) return;
+
+    CreateShaderInitialOperations(shader);
+
+    ShaderAsset* currentShader = shader->shader;
+    ID3D11VertexShader* vShader = currentShader->GetVertexShader();
+    ID3D11PixelShader* pShader = currentShader->GetPixelShader();
+    const std::vector<ID3D11SamplerState*>& samplers = shader->samplers;
+
+    std::unique_ptr<SetSamplerOperation> samplerOper = std::make_unique<SetSamplerOperation>(samplers, 0);
+    m_owner->m_frameStateService->RenderState(false)->AddOperation(std::move(samplerOper));
+
+    std::unique_ptr<SetVertexShaderOperation> vsOper = std::make_unique<SetVertexShaderOperation>(vShader);
+    m_owner->m_frameStateService->RenderState(false)->AddOperation(std::move(vsOper));
+
+    std::unique_ptr<SetPixelShaderOperation> psOper = std::make_unique<SetPixelShaderOperation>(pShader);
+    m_owner->m_frameStateService->RenderState(false)->AddOperation(std::move(psOper));
+
+    std::unique_ptr<SetInputLayoutOperation> ilOper = std::make_unique<SetInputLayoutOperation>(currentShader->GetInputLayout());
+    m_owner->m_frameStateService->RenderState(false)->AddOperation(std::move(ilOper));
+
+    m_owner->config.shaderName = shaderName.data();
+}
+
+void SceneSystem::CreateMainOperations() {
+    if (!m_owner) return;
+    PipelineMainInitialResources* mainResources = m_owner->m_resources->GetInitialResources();
+    std::unique_ptr<ClearOperation> clearOper = std::make_unique<ClearOperation>(mainResources->renderTargetView.Get(), mainResources->depthStencilResource->stencilViewData.Get(), mainResources->clearColor);
+    m_owner->m_frameStateService->RenderState(false)->AddInitialOperation(std::move(clearOper));
+}
+
+std::vector<MeshResource*> SceneSystem::GetPassMeshes(RenderPassResource* pass) {
+    if (!m_owner) return {};
+    const auto& meshes = m_owner->m_resources->GetMeshes();
+    std::vector<MeshResource*> result;
+    for (const auto& mesh : meshes) {
+        if (mesh == nullptr) continue;
+        int index = mesh->mesh->GetReadIndex();
+        if (mesh->mesh->GetVertexCount(index) <= 0) continue;
+        int passes = mesh->mesh->GetRenderPassesValue();
+        bool isInPass = pass->id & passes;
+        if (!isInPass) continue;
+        result.push_back(mesh);
+    }
+    return result;
+}
+
 
         for (const auto& mesh : meshes) {
             if (mesh == nullptr) continue;
