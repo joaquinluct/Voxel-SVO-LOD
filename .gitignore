@@ -30,6 +30,7 @@
 *.exe
 *.out
 *.app
+*.pdb
 .vs
 debug/*
 Debug/*
