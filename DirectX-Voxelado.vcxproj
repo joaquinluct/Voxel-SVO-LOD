@@ -105,7 +105,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;YAML_CPP_STATIC_DEFINE;_AMD64_;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>$(VcpkgRoot)\include;C:\Users\joaqu\source\repos oficiales\DirectXTK-main\Inc;C:\Users\joaqu\Downloads\yaml-cpp-master-original\yaml-cpp-master\include;$(ProjectDir)Includes;$(ProjectDir)Libs;$(ProjectDir)src;$(ProjectDir)Assets;$(ProjectDir)Interfaces;$(ProjectDir)Interfaces/Pipeline;$(ProjectDir)Interfaces/Config;$(ProjectDir)Interfaces/Assets;$(ProjectDir)src/Engine;$(ProjectDir)src/Engine/Managers;$(ProjectDir)src/Engine/Core;$(ProjectDir)src/Engine/Util;$(Projectdir)src/Engine/Core/Locators/Registers;$(Projectdir)src/Engine/Core/Locators;$(Projectdir)src/Engine/Core/Config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VcpkgRoot)\include;C:\Users\joaqu\source\repos oficiales\DirectXTK-main\Inc;$(ProjectDir)Includes;$(ProjectDir)Libs;$(ProjectDir)src;$(ProjectDir)Assets;$(ProjectDir)Interfaces;$(ProjectDir)Interfaces/Pipeline;$(ProjectDir)Interfaces/Config;$(ProjectDir)Interfaces/Assets;$(ProjectDir)src/Engine;$(ProjectDir)src/Engine/Managers;$(ProjectDir)src/Engine/Core;$(ProjectDir)src/Engine/Util;$(Projectdir)src/Engine/Core/Locators/Registers;$(Projectdir)src/Engine/Core/Locators;$(Projectdir)src/Engine/Core/Config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -115,9 +115,9 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>DirectXTK.lib;yaml-cppd.lib;d3d11.lib;dxguid.lib;d3dcompiler.lib;dxgi.lib;dwrite.lib;d2d1.lib;winmm.lib;comctl32.lib;windowscodecs.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>DirectXTK.lib;d3d11.lib;dxguid.lib;d3dcompiler.lib;dxgi.lib;dwrite.lib;d2d1.lib;winmm.lib;comctl32.lib;windowscodecs.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
-      <AdditionalLibraryDirectories>C:\Users\joaqu\source\repos oficiales\DirectXTK-main\Bin\Desktop_2022_Win10\x64\Debug;C:\Users\joaqu\Downloads\yaml-cpp-master-original\yaml-cpp-master\build\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\joaqu\source\repos oficiales\DirectXTK-main\Bin\Desktop_2022_Win10\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <FxCompile>
       <ShaderModel>5.0</ShaderModel>
@@ -1117,9 +1117,6 @@
     <None Include="Resources\Config\services_config.yaml" />
     <None Include="Resources\Config\UI\ui_item_config.yaml" />
     <None Include="src\Engine\Assets\Base\ObjFormat\MUCHOS OBJETOS.md" />
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="C:\Users\joaqu\Downloads\yaml-cpp-master-original\yaml-cpp-master\build\Debug\yaml-cppd.lib" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Assets\Mesh\floor.obj">

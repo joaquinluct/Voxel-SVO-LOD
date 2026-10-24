@@ -7,7 +7,7 @@
 #include "Assets/Base/TextureAsset.h"
 #include <stdexcept>
 #include <Assets/Base/Commands/CreateMeshGPUCommand.h>
-#include <yaml-cpp/yaml.h>
+// #include <yaml-cpp/yaml.h>
 #include <Assets/Base/Commands/CreateTextureGPUCommand.h>
 #include <AssetLocator/AssetLocator.h>
 #include <ConfigLocator/ConfigLocator.h>
@@ -22,7 +22,7 @@ AssetManager::AssetManager() {
     // Sus miembros (pDevice, pImmediateContext, etc.) se inicializarán a nullptr si son punteros
     // o shared_ptr vacíos si son smart pointers.
     // Los valores correctos se asignan en Init(EngineContext* context).
-	m_config = new MainIndexConfig();    
+    m_config = new MainIndexConfig();
 }
 
 AssetManager::~AssetManager() {
@@ -32,7 +32,7 @@ AssetManager::~AssetManager() {
 HRESULT AssetManager::InitShaders(HWND* hwnd, int width, int height) {
     if (!m_config) {
         OutputDebugStringA("AssetManager InitShaders: m_config is null.\n");
-		return E_FAIL; // Error si m_config no está inicializado
+        return E_FAIL; // Error si m_config no está inicializado
     }
 
     return S_OK;
@@ -61,7 +61,7 @@ HRESULT AssetManager::Init(EngineContext* context) {
     }
     OutputDebugStringA(("Resultado Init " + std::to_string(hr) + " en AssetManager\n").c_str());
     return hr;*/
-	return S_OK; // Retorna S_OK si la inicialización fue exitosa
+    return S_OK; // Retorna S_OK si la inicialización fue exitosa
 }
 
 void AssetManager::Render() {
@@ -157,7 +157,7 @@ ID3D11ShaderResourceView* AssetManager::LoadTexture(std::string assetName) {
     if (!deviceManager) {
         OutputDebugStringA("ERROR: DeviceManager not found.\n");
         return nullptr;
-	}
+    }
     //auto asset = AssetLocator::GetAssetBase(assetName);
 
     //std::shared_ptr<TextureAsset> textureAsset = std::dynamic_pointer_cast<TextureAsset>(asset);

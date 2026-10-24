@@ -5,7 +5,7 @@
 #include <Assets/IAsset.h>
 #include "AssetLoadContext.h"
 #include <Assets/Base/TextureAsset.h>
-#include <yaml-cpp/yaml.h>
+// #include <yaml-cpp/yaml.h>
 #include <string>
 #include <vector>
 #include <map>
@@ -52,8 +52,8 @@ public:
     const std::vector<std::string>& GetAssetList() const {
         if (m_config) {
             return m_config->mainIndex;
-		}
-	}
+        }
+    }
 
     const std::vector<std::string>& GetBaseAssetList() const {
         if (m_configBase) {
