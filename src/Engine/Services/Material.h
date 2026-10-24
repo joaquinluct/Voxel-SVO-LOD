@@ -5,7 +5,7 @@
 #include <Defines/Matrix/MatrixDefinitionBase.h>
 #include <Defines/VertexDefinition.h>
 #include <DeviceManager.h>
-#include <DirectX/DirectXTex/DirectXTex.h>
+// #include <DirectX/DirectXTex/DirectXTex.h>
 #include <DirectXMath.h> // Para XMMATRIX
 #include <Game/Systems/Lighting.h>
 #include <Game/Systems/Shadows.h>
