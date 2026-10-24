@@ -759,9 +759,6 @@
     <ClCompile Include="src\Game\Systems\Terrain\TerrainAssetManager.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engine\Core\Config\Game\GeometryEngines\GeomtryChunkEngineConfig.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
     <ClCompile Include="src\Engine\Core\Config\Game\TerrainEngines\TerrainChunkEngineConfig.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
@@ -805,6 +802,18 @@
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Systems\SceneSystem.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Assets\Shader\ShaderTextSDFConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Assets\Texture\UIAtlasConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Assets\TextureMap\UIAtlasMapConfig.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Core\Config\Game\GeometryEngines\GeometryChunkEngineConfig.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
   </ItemGroup>
@@ -2240,9 +2249,6 @@
     <ClInclude Include="src\Game\Systems\Terrain\TerrainAssetManager.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Core\Config\Game\GeometryEngines\GeomtryChunkEngineConfig.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
     <ClInclude Include="src\Engine\Core\Config\Game\TerrainEngines\TerrainChunkEngineConfig.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
@@ -2325,6 +2331,18 @@
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Systems\SceneSystem.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Assets\Shader\ShaderTextSDFConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Assets\Texture\UIAtlasConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Assets\TextureMap\UIAtlasMapConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Config\Game\GeometryEngines\GeometryChunkEngineConfig.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
   </ItemGroup>

@@ -16,6 +16,7 @@ class Lighting;
 class Water;
 class World;
 class Skybox;
+class FrameStateBase;
 class FrameStateService;
 class ThreadPool;
 
@@ -48,6 +49,18 @@ public:
     // State update helpers (exposed for modularity)
     UpdatedJobs UpdateMainData(float deltaTime);
     UpdatedJobs UpdateTerrainData(float deltaTime);
+
+    // Individual state update helpers (migrated from UpdateManager)
+    FrameStateBase* UpdateTerrainState(float deltaTime);
+    FrameStateBase* UpdateCameraState(float deltaTime);
+    FrameStateBase* UpdateLightState(float deltaTime);
+    FrameStateBase* UpdateWaterState(float deltaTime);
+    FrameStateBase* UpdateCommonState(float deltaTime);
+    FrameStateBase* UpdateMaterialState(float deltaTime);
+    FrameStateBase* UpdateSkyboxState(float deltaTime);
+    FrameStateBase* UpdateTimeState(float deltaTime);
+    FrameStateBase* UpdateDeviceState(float deltaTime);
+    FrameStateBase* UpdatePassState(float deltaTime);
 
 private:
     // Managers & services

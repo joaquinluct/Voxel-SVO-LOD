@@ -7,7 +7,8 @@
             version: "1.0.0"
             description: "Un mundo abierto."
             gameType: 1 # Overworld
-            gameFlags: 15 # Chronos | Terrain | Skybox | Biome
+            gameFlags: 5 # Chronos | Sykbox
+            # # gameFlags: 15 # Chronos | Terrain | Skybox | Biome
             # gameFlags: 3 # Chronos | Terrain
             # gameFlags: 1 # Chronos
             type: "VoxelWorld"

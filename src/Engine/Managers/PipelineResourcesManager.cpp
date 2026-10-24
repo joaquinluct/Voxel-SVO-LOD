@@ -452,10 +452,19 @@ MeshResource* PipelineResourcesManager::CreateMeshResource(MeshAssetBase* mesh) 
     //if (!shaderResource) return nullptr;
 
     //ShaderAsset* shader = shaderResource->shader;
-    std::vector<ID3D11ShaderResourceView*> textures = mesh->GetMaterial()->GetTextures();
-
-    if (textures.size()) {
-        meshResource->textures = textures;
+    
+    // FIX: Verificar que el mesh tenga material antes de acceder a texturas
+    Material* material = mesh->GetMaterial();
+    if (material != nullptr) {
+        std::vector<ID3D11ShaderResourceView*> textures = material->GetTextures();
+        if (textures.size()) {
+            meshResource->textures = textures;
+        }
+    }
+    else {
+        // El mesh no tiene material (por ejemplo, meshes procedurales o el skybox)
+        // No es un error, simplemente no tendrá texturas
+        OutputDebugStringA(("[PipelineResourcesManager] Mesh '" + mesh->GetName() + "' has no material (textures will be empty)\n").c_str());
     }
 
     return meshResource;

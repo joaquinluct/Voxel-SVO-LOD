@@ -94,16 +94,28 @@ public:
 
     MeshAssetBase() : AssetBase(),
         m_material(nullptr), m_shadowMaterial(nullptr),
-        m_vertexBuffer(), m_indexBuffer(),
-        m_meshConfig(nullptr), m_vertexes(), m_indexes(), m_vertexCount(0), m_indexCount(0), m_vertexTypeSize(0), m_meshType(Mesh::Type::None), m_name(""), m_worldMatrix(DirectX::XMMatrixIdentity()), m_shaderName(L""), m_passes(1), m_shaderAssetName(""), m_textureType(""), m_textureAsset(nullptr), m_textureTransforms(), uniqueID(generateUID()), m_readIndex(1), m_writeIndex(0), m_mutex(), m_vertexData(2), m_indexData(2)
+        m_vertexBuffer(2), m_indexBuffer(2),
+        m_meshConfig(nullptr), m_vertexes(), m_indexes(), 
+        m_vertexCount(2, 0), m_indexCount(2, 0), 
+        m_vertexTypeSize(0), m_meshType(Mesh::Type::None), m_name(""), 
+        m_worldMatrix(DirectX::XMMatrixIdentity()), m_shaderName(L""), m_passes(1), 
+        m_shaderAssetName(""), m_textureType(""), m_textureAsset(nullptr), 
+        m_textureTransforms(), uniqueID(generateUID()), m_readIndex(1), m_writeIndex(0), 
+        m_mutex(), m_vertexData(2), m_indexData(2)
     {
     }
 
     MeshAssetBase(const MeshAssetBase* other) :
         m_material(other->m_material), m_shadowMaterial(other->m_shadowMaterial),
-        m_vertexBuffer(other->m_vertexBuffer), m_indexBuffer(other->m_indexBuffer),
+        m_vertexBuffer(2), m_indexBuffer(2),
         m_meshConfig(other->m_meshConfig), m_vertexes(other->m_vertexes), m_indexes(other->m_indexes),
-        m_vertexCount(other->m_vertexCount), m_indexCount(other->m_indexCount), m_vertexTypeSize(other->m_vertexTypeSize), m_meshType(other->m_meshType), m_name(other->m_name), m_worldMatrix(other->m_worldMatrix), m_shaderName(other->m_shaderName), m_passes(other->m_passes), m_shaderAssetName(other->m_shaderAssetName), m_textureType(other->m_textureType), m_textureAsset(other->m_textureAsset), m_textureTransforms(other->m_textureTransforms), uniqueID(generateUID()), m_readIndex(1), m_writeIndex(0), m_mutex(), m_vertexData(2), m_indexData(2)
+        m_vertexCount(2, 0), m_indexCount(2, 0), 
+        m_vertexTypeSize(other->m_vertexTypeSize), m_meshType(other->m_meshType), 
+        m_name(other->m_name), m_worldMatrix(other->m_worldMatrix), m_shaderName(other->m_shaderName), 
+        m_passes(other->m_passes), m_shaderAssetName(other->m_shaderAssetName), 
+        m_textureType(other->m_textureType), m_textureAsset(other->m_textureAsset), 
+        m_textureTransforms(other->m_textureTransforms), uniqueID(generateUID()), 
+        m_readIndex(1), m_writeIndex(0), m_mutex(), m_vertexData(2), m_indexData(2)
     {
     }
     ~MeshAssetBase() = default;

@@ -1,11 +1,13 @@
 #include "MainWindow.h"
+
 #include <../Resources/resource.h>
+#include <Config/Game/System/SkyboxConfig.h>
 #include <Defines/EngineDefinition.h>
+#include <Windows.h>
+#include <chrono>
 #include <memory>
 #include <profileapi.h>
 #include <thread>
-#include <chrono>
-#include <Windows.h>
 
 // -------------------------------------------------------------------------------
 // Límite máximo para el tiempo delta para evitar saltos grandes en la simulación.
@@ -16,13 +18,14 @@ const float MIN_DELTA_TIME = 0.042f;
 //--------------------------------------------------------------------------------------
 // Variable estática para el puntero a la instancia de MainWindow.
 //--------------------------------------------------------------------------------------
-MainWindow* MainWindow::s_pMainWindow = nullptr;
+MainWindow *MainWindow::s_pMainWindow = nullptr;
 
 //--------------------------------------------------------------------------------------
 // Constructor
 //--------------------------------------------------------------------------------------
 MainWindow::MainWindow(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
-    : m_hInstance(hInstance), m_nCmdShow(nCmdShow) {
+    : m_hInstance(hInstance), m_nCmdShow(nCmdShow)
+{
     // Almacena un puntero a esta instancia para que la función de procedimiento de ventana estática
     // pueda acceder a los métodos de la clase.
     s_pMainWindow = this;
@@ -31,10 +34,12 @@ MainWindow::MainWindow(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCm
 //--------------------------------------------------------------------------------------
 // Implementación de la creación de la ventana y el bucle principal.
 //--------------------------------------------------------------------------------------
-int MainWindow::Create(int width, int height) {
+int MainWindow::Create(int width, int height)
+{
 
     OutputDebugStringA("[MainWindow] Creando aplicación...\n");
-    if (!InitializeWindow(width, height)) {
+    if (!InitializeWindow(width, height))
+    {
         return 1;
     }
     OutputDebugStringA("[MainWindow] Inicializando aplicación...\n");
@@ -50,7 +55,7 @@ int MainWindow::Create(int width, int height) {
     QueryPerformanceFrequency(&frequency);
     QueryPerformanceCounter(&previousTime);
     OutputDebugStringA("[MainWindow] Bucle de Aplicación ...\n");
-    MSG msg = { 0 };
+    MSG msg = {0};
 
     // ----------------------------------
     // Iniciar la aplicación.
@@ -64,7 +69,8 @@ int MainWindow::Create(int width, int height) {
 
     m_context->isRunning = m_gameEngine->Init(m_context);
 
-    if (!m_context->isRunning) {
+    if (!m_context->isRunning)
+    {
         return 1;
     }
 
@@ -83,7 +89,7 @@ int MainWindow::Create(int width, int height) {
 //--------------------------------------------------------------------------------------
 // Método privado para la creación de la ventana.
 //--------------------------------------------------------------------------------------
-//bool MainWindow::InitializeWindow(int width, int height) {
+// bool MainWindow::InitializeWindow(int width, int height) {
 //    WNDCLASSEX wcex = { 0 };
 //
 //    wcex.cbSize = sizeof(WNDCLASSEX);
@@ -110,7 +116,8 @@ int MainWindow::Create(int width, int height) {
 //    return true;
 //}
 
-bool MainWindow::InitializeWindow(int width, int height) {
+bool MainWindow::InitializeWindow(int width, int height)
+{
     // Register class
     OutputDebugStringA("[MainWindow] Inicializando ventana...\n");
     WNDCLASSEX wcex{};
@@ -132,21 +139,21 @@ bool MainWindow::InitializeWindow(int width, int height) {
     int screenWidth = GetSystemMetrics(SM_CXSCREEN);
     int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
-    // Create window    
-    RECT rc = { 0, 0, screenWidth, screenHeight };
+    // Create window
+    RECT rc = {0, 0, screenWidth, screenHeight};
     AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
     m_hWnd = CreateWindow(L"MainWindowClass", L"Direct3D 11 Voxelado",
-        /*WS_EX_OVERLAPPEDWINDOW | WS_SYSMENU | WS_MAXIMIZE,*/
-        WS_POPUP,
-        CW_USEDEFAULT, CW_USEDEFAULT, rc.right - rc.left, rc.bottom - rc.top, nullptr, nullptr, m_hInstance,
-        nullptr);
+                          /*WS_EX_OVERLAPPEDWINDOW | WS_SYSMENU | WS_MAXIMIZE,*/
+                          WS_POPUP, CW_USEDEFAULT, CW_USEDEFAULT, rc.right - rc.left, rc.bottom - rc.top, nullptr,
+                          nullptr, m_hInstance, nullptr);
 
-    if (!m_hWnd) {
+    if (!m_hWnd)
+    {
         MessageBox(nullptr, L"Error al crear la ventana", L"Error", MB_OK);
         return false;
     }
 
-    //SetWindowLongPtr(m_hWnd, GWLP_USERDATA, (LONG_PTR)this);
+    // SetWindowLongPtr(m_hWnd, GWLP_USERDATA, (LONG_PTR)this);
 
     ShowWindow(m_hWnd, m_nCmdShow);
     UpdateWindow(m_hWnd);
@@ -157,8 +164,10 @@ bool MainWindow::InitializeWindow(int width, int height) {
 //--------------------------------------------------------------------------------------
 // Procedimiento de ventana estático que reenvía los mensajes a la instancia.
 //--------------------------------------------------------------------------------------
-LRESULT CALLBACK MainWindow::StaticWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
-    if (s_pMainWindow) {
+LRESULT CALLBACK MainWindow::StaticWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    if (s_pMainWindow)
+    {
         return s_pMainWindow->WndProc(hWnd, message, wParam, lParam);
     }
     return DefWindowProc(hWnd, message, wParam, lParam);
@@ -167,8 +176,10 @@ LRESULT CALLBACK MainWindow::StaticWndProc(HWND hWnd, UINT message, WPARAM wPara
 //--------------------------------------------------------------------------------------
 // Procedimiento de ventana de instancia.
 //--------------------------------------------------------------------------------------
-LRESULT CALLBACK MainWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
-    switch (message) {
+LRESULT CALLBACK MainWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    switch (message)
+    {
     case WM_SIZE:
         // Llama al método de redimensionamiento del motor.
         OnResize(LOWORD(lParam), HIWORD(lParam));
@@ -181,7 +192,8 @@ LRESULT CALLBACK MainWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
     case WM_LBUTTONDOWN:
     case WM_LBUTTONUP:
     case WM_MOUSEMOVE:
-        if (wParam == VK_ESCAPE) {
+        if (wParam == VK_ESCAPE)
+        {
             m_gameEngine->Shutdown();
             PostQuitMessage(0);
             return 0;
@@ -198,8 +210,10 @@ LRESULT CALLBACK MainWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 //--------------------------------------------------------------------------------------
 // Maneja la entrada de la ventana.
 //--------------------------------------------------------------------------------------
-void MainWindow::HandleInput(UINT message, WPARAM wParam, LPARAM lParam) {
-    if (m_gameEngine) {
+void MainWindow::HandleInput(UINT message, WPARAM wParam, LPARAM lParam)
+{
+    if (m_gameEngine)
+    {
         m_gameEngine->OnInput(message, wParam, lParam, this->m_deltaTime);
     }
 }
@@ -207,8 +221,10 @@ void MainWindow::HandleInput(UINT message, WPARAM wParam, LPARAM lParam) {
 //--------------------------------------------------------------------------------------
 // Maneja el redimensionamiento de la ventana.
 //--------------------------------------------------------------------------------------
-void MainWindow::OnResize(int width, int height) {
-    if (m_gameEngine) {
+void MainWindow::OnResize(int width, int height)
+{
+    if (m_gameEngine)
+    {
         m_context->width = width;
         m_context->height = height;
         m_gameEngine->OnResize(width, height);

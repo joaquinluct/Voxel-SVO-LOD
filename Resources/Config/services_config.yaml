@@ -11,6 +11,7 @@ Config:
           - UIText
           - FrameStateService
           - ThreadPool
+          - Skybox
           # - UIDebug      
       services_post_init:
           - none
@@ -21,6 +22,7 @@ Config:
           # - ChunkService
           - ProceduralService
           - FrameStateService
+          - Skybox
           # - UIDebug
       services_update_order:
           - Mouse
@@ -30,6 +32,7 @@ Config:
           # - ChunkService
           - FrameStateService
           - ProceduralService
+          - Skybox
           # - UIDebug
 
     KeyBindings:
@@ -89,6 +92,14 @@ Config:
       dependencies:
         - None
 
+    Skybox:
+      enabled: true
+      shadow_pass: false
+      dependencies:
+        - RenderManager
+        - CameraManager
+        - Lighting
+
 Definition:
   Default:
     language: 1 # C++
@@ -107,6 +118,7 @@ Definition:
       - texture
       - shader
       - text
+      - shadow_pass
       - dependencies
     #output_path: 'C:\Users\joaqu\source\repos\DirectX-Voxelado\TestConfig\Services\'
     output_path: 'c:\Users\joaqu\source\repos\DirectX-Voxelado\src\Engine\Core\Config\Services\'

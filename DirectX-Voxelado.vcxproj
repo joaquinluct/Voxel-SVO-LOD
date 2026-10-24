@@ -187,6 +187,7 @@
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\PBRShaderConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\PBRShadowShaderConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\ProceduralSkyboxShaderConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Assets\Shader\ShaderTextSDFConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\ShaderTextUIConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\ShadowMapShaderConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Shader\SkyboxShaderConfig.cpp" />
@@ -203,11 +204,13 @@
     <ClCompile Include="src\Engine\Core\Config\Assets\TextureMap\TextureBricks001MapConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\TextureMap\TextureGrassDiffuseMapConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\TextureMap\TextureTextUIMapConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Assets\TextureMap\UIAtlasMapConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Texture\DefaultSkyboxConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Texture\ProceduralTerrainTextureConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Texture\TextureBricks001Config.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Texture\TextureGrassDiffuseConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Texture\TextureTextUIConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Assets\Texture\UIAtlasConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Vertex\FloorVertexConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Assets\Vertex\SkyboxCubeConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Base\Managers\AssetManagerConfig.cpp" />
@@ -275,7 +278,7 @@
     <ClCompile Include="src\Engine\Core\Config\Game\GameObjectsBase\LineConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Game\GameObjects\TestingBasic2Config.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Game\GameObjects\TestingFloorConfig.cpp" />
-    <ClCompile Include="src\Engine\Core\Config\Game\GeometryEngines\GeomtryChunkEngineConfig.cpp" />
+    <ClCompile Include="src\Engine\Core\Config\Game\GeometryEngines\GeometryChunkEngineConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Game\GeometryEngines\TessellationGeometryEngineConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Game\System\BiomeConfig.cpp" />
     <ClCompile Include="src\Engine\Core\Config\Game\System\ChronosConfig.cpp" />
@@ -509,6 +512,7 @@
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\PBRShaderConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\PBRShadowShaderConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\ProceduralSkyboxShaderConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Assets\Shader\ShaderTextSDFConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\ShaderTextUIConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\ShadowMapShaderConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Shader\SkyboxShaderConfig.h" />
@@ -525,11 +529,13 @@
     <ClInclude Include="src\Engine\Core\Config\Assets\TextureMap\TextureBricks001MapConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\TextureMap\TextureGrassDiffuseMapConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\TextureMap\TextureTextUIMapConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Assets\TextureMap\UIAtlasMapConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Texture\DefaultSkyboxConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Texture\ProceduralTerrainTextureConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Texture\TextureBricks001Config.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Texture\TextureGrassDiffuseConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Texture\TextureTextUIConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Assets\Texture\UIAtlasConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Vertex\FloorVertexConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Assets\Vertex\SkyboxCubeConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Base\Managers\AssetManagerConfig.h" />
@@ -597,7 +603,7 @@
     <ClInclude Include="src\Engine\Core\Config\Game\GameObjectsBase\LineConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Game\GameObjects\TestingBasic2Config.h" />
     <ClInclude Include="src\Engine\Core\Config\Game\GameObjects\TestingFloorConfig.h" />
-    <ClInclude Include="src\Engine\Core\Config\Game\GeometryEngines\GeomtryChunkEngineConfig.h" />
+    <ClInclude Include="src\Engine\Core\Config\Game\GeometryEngines\GeometryChunkEngineConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Game\GeometryEngines\TessellationGeometryEngineConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Game\System\BiomeConfig.h" />
     <ClInclude Include="src\Engine\Core\Config\Game\System\ChronosConfig.h" />

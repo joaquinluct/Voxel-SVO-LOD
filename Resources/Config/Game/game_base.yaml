@@ -16,10 +16,10 @@ Config:
         # - TestingFloor
         - World
         - Cycle
-        - Terrain
-        - Water
+        # #- Terrain
+        # #- Water
         # - Physics
-        - Biome
+        # #- Biome
         # - Wheather
       services_post_init:
           - World
@@ -31,8 +31,8 @@ Config:
         - Skybox
         # - TestingFloor
         # - World
-        - Terrain
-        - Water 
+        # #- Terrain
+        # #- Water 
         # - Physics
         # - Biome
         - Lighting
@@ -40,12 +40,12 @@ Config:
         # - Wheather
       service_update_order:
         - Chronos
-        - Biome
+        # #- Biome
         - Skybox
         - Lighting
         # - TestingFloor
         - World
-        - Water
+        # #- Water
         - Cycle
         # - Terrain
         # - UIDebug

@@ -44,7 +44,7 @@ public:
     }
 
 private:
-    SkyboxConfig m_config = {};
+    std::shared_ptr<SkyboxConfig> m_config;
 
     DirectX::XMFLOAT4 m_sunColor;
     DirectX::XMFLOAT4 m_skyColor;

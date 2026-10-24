@@ -22,58 +22,101 @@ REGISTER_ASSET_TYPE(MeshAsset, "MeshAsset")
 MeshAsset::MeshAsset()
 {
 }
+
 MeshAsset::~MeshAsset()
 {
 }
 
 HRESULT MeshAsset::InitMesh()
 {
+    OutputDebugStringA("[MeshAsset::InitMesh] ? Iniciando carga de geometría\n");
 
-    // Crear el array de vértices e índices
+    // Crear el array de v?rtices e ?ndices
     std::vector<uint16_t> indexes = {};
     HRESULT hr = S_OK;
+    
+    OutputDebugStringA(("[MeshAsset::InitMesh] ? m_vertexDef = '" + m_vertexDef + "'\n").c_str());
+    OutputDebugStringA(("[MeshAsset::InitMesh] ? m_meshType = " + std::to_string(static_cast<int>(m_meshType)) + "\n").c_str());
+    
     auto vertex = DefineLocator::GetVertexDefinitionAsVector(m_vertexDef);
+    OutputDebugStringA(("[MeshAsset::InitMesh] ? DefineLocator returned " + std::to_string(vertex.size()) + " vertices (should be 0 before loading)\n").c_str());
 
     // PROCESASR EL ARCHIVO OBJ O TEXTO
     if (m_meshType == Mesh::Type::File_Obj)
     {
+        if (!m_meshConfig) {
+            OutputDebugStringA("[MeshAsset::InitMesh] ? ERROR: m_meshConfig is NULL\n");
+            return E_FAIL;
+        }
+        
         std::string meshObj = m_meshConfig->mesh_path;
-        hr = ObjUtil::LoadObj(meshObj, vertex, indexes) ? S_OK : E_FAIL;
+        OutputDebugStringA(("[MeshAsset::InitMesh] ? Cargando OBJ desde: " + meshObj + "\n").c_str());
+        
+        bool loadResult = ObjUtil::LoadObj(meshObj, vertex, indexes);
+        OutputDebugStringA(("[MeshAsset::InitMesh] ? ObjUtil::LoadObj() returned: " + std::string(loadResult ? "TRUE" : "FALSE") + "\n").c_str());
+        
+        hr = loadResult ? S_OK : E_FAIL;
+        
         if (vertex.empty())
         {
             OutputDebugStringA(
-                ("MeshAsset::Init - ERROR: No vertex data found in mesh file '" + meshObj + "'.\n").c_str());
+                ("MeshAsset::InitMesh - ? ERROR: No vertex data found in mesh file '" + meshObj + "'.\n").c_str());
             return E_FAIL;
         }
+        OutputDebugStringA(("[MeshAsset::InitMesh] ? OBJ cargado: " + std::to_string(vertex.size()) + 
+                            " vertices, " + std::to_string(indexes.size()) + " indices\n").c_str());
     }
     // PROCESAR TIPO TEXTO
     else if (m_meshType == Mesh::Type::Text)
     {
+        OutputDebugStringA("[MeshAsset::InitMesh] ? Procesando tipo Text\n");
         m_uiText = new UIText(std::make_shared<MeshAsset>(*this));
         m_uiText->CreateMesh(vertex);
         if (vertex.empty())
         {
             OutputDebugStringA(
-                ("MeshAsset::Init - ERROR: No vertex data found in mesh file '" + m_name + "'.\n").c_str());
+                ("MeshAsset::InitMesh - ? ERROR: No vertex data found in mesh file '" + m_name + "'.\n").c_str());
             return E_FAIL;
         }
     }
     // PROCESAR TIPO TERRENO
     else if (m_meshType == Mesh::Type::Terrain)
     {
+        OutputDebugStringA("[MeshAsset::InitMesh] ? Tipo Terrain - skipping geometry load\n");
         return S_OK;
+    }
+    else
+    {
+        OutputDebugStringA(("[MeshAsset::InitMesh] ?? WARNING: Unknown mesh type: " + 
+                            std::to_string(static_cast<int>(m_meshType)) + "\n").c_str());
     }
 
     // Crear el vetex & index buffer
+    OutputDebugStringA("[MeshAsset::InitMesh] ? Creando D3D11 buffers\n");
     hr = InitD3D11ResourcesVertex(m_deviceManager->GetDevice().Get(), vertex, indexes);
 
     if (FAILED(hr))
     {
         OutputDebugStringA(
-            ("MeshAsset::Init - ERROR: Failed to initialize D3D11 resources for mesh '" + m_name + "'.\n").c_str());
+            ("MeshAsset::InitMesh - ? ERROR: Failed to initialize D3D11 resources for mesh '" + m_name + "'.\n").c_str());
         return hr;
     }
 
+    // CRÍTICO: Hacer swap de buffers para que los datos sean visibles en readIndex
+    OutputDebugStringA("[MeshAsset::InitMesh] ? Ejecutando SwapBuffer() para hacer visibles los datos\n");
+    SwapBuffer();
+    
+    // Verificar que el swap funcionó
+    int newReadIndex = GetReadIndex();
+    int newWriteIndex = GetWriteIndex();
+    UINT readVertexCount = GetVertexCount(newReadIndex);
+    UINT readIndexCount = GetIndexCount(newReadIndex);
+    OutputDebugStringA(("[MeshAsset::InitMesh] ? Buffer swap completed: readIndex=" + std::to_string(newReadIndex) + 
+                        ", writeIndex=" + std::to_string(newWriteIndex) + 
+                        ", vertices=" + std::to_string(readVertexCount) + 
+                        ", indices=" + std::to_string(readIndexCount) + "\n").c_str());
+
+    OutputDebugStringA("[MeshAsset::InitMesh] ? D3D11 resources created successfully\n");
     return hr;
 }
 
@@ -98,31 +141,46 @@ void MeshAsset::UpdateTextMesh(UIText *uiText, std::string text)
 
 HRESULT MeshAsset::Init()
 {
+    OutputDebugStringA("[MeshAsset::Init] ? Iniciando inicialización\n");
+    
+    // First, initialize managers even if m_meshConfig is null
+    if (m_deviceManager == nullptr)
+    {
+        OutputDebugStringA("[MeshAsset::Init] ? Obteniendo DeviceManager\n");
+        m_deviceManager = ManagerLocator::GetDeviceManager();
+        if (!m_deviceManager)
+        {
+            OutputDebugStringA("[MeshAsset::Init] ? ERROR: DeviceManager not found.\n");
+            return E_FAIL;
+        }
+    }
 
+    OutputDebugStringA("[MeshAsset::Init] ? Llamando MeshAssetBase::Init()\n");
     HRESULT hr = MeshAssetBase::Init();
     if (FAILED(hr))
     {
-        OutputDebugStringA("MeshAsset::Init - ERROR: MeshAssetBase initialization error.\n");
+        OutputDebugStringA("[MeshAsset::Init] ? ERROR: MeshAssetBase initialization error.\n");
         return E_FAIL;
     }
 
-    if (m_deviceManager == nullptr)
-    {
-        m_deviceManager = ManagerLocator::GetDeviceManager();
-    }
+    OutputDebugStringA(("[MeshAsset::Init] ? m_name = '" + m_name + "'\n").c_str());
+    OutputDebugStringA(("[MeshAsset::Init] ? m_meshConfig = " + std::string(m_meshConfig ? "SET" : "NULL") + "\n").c_str());
 
     if (m_name.empty())
     {
+        OutputDebugStringA("[MeshAsset::Init] ?? WARNING: m_name is empty, skipping InitMesh()\n");
         return S_OK;
     }
 
+    OutputDebugStringA("[MeshAsset::Init] ? Llamando InitMesh() para cargar geometría\n");
     hr = InitMesh();
     if (FAILED(hr))
     {
-        OutputDebugStringA("MeshAsset::Init - ERROR: Mesh init.\n");
+        OutputDebugStringA("[MeshAsset::Init] ? ERROR: Mesh init failed.\n");
         return E_FAIL;
     }
 
+    OutputDebugStringA("[MeshAsset::Init] ? Inicialización completada exitosamente\n");
     return hr;
 }
 

@@ -24,6 +24,7 @@
 #include <vector>
 #include <Windows.h>
 #include <wrl/client.h>
+#include <Engine/Rendering/UIRenderer.h>
 
 // Forward declarations
 class World;
@@ -133,6 +134,11 @@ private:
 
     Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_context;
 
+
+    // ------------------------------------
+    // UI Rendering
+    // ------------------------------------
+    std::unique_ptr<UIRenderer> m_uiRenderer = nullptr;
 
     // ------------------------------------
     // Métodos privados

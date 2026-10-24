@@ -1,18 +1,16 @@
 ﻿#include "SceneManager.h"
-#include <Engine/Systems/SceneSystem.h>
+
 #include <Assets/Base/MeshAssetBase.h>
 #include <Assets/Base/ShaderAsset.h>
-#include <atomic>
 #include <Base/Managers/EngineConfig.h>
 #include <Base/Managers/RenderManagerConfig.h>
-#include <cstdlib>
-#include <d3d11.h>
 #include <Defines/Contants/Flags/SyncFlag.h>
 #include <Defines/Contants/FrameState.h>
 #include <Defines/EngineDefinition.h>
 #include <Defines/Structs/PipelineResources.h>
 #include <Defines/Types/ThreadTypes.h>
-#include <dxgiformat.h>
+#include <Engine/Rendering/RenderCommand.h>
+#include <Engine/Systems/SceneSystem.h>
 #include <Game/GameEngineConfig.h>
 #include <Game/Systems/Chronos.h>
 #include <Game/Systems/Lighting.h>
@@ -35,37 +33,32 @@
 #include <Managers/RenderManager/Pipeline/ConcreteOperations.h>
 #include <Managers/RenderState/FrameStates/RenderFrameState.h>
 #include <Managers/UpdateManager.h>
-#include <map>
-#include <memory>
 #include <PassConfigBase.h>
 #include <Services/FrameStateService.h>
+#include <Windows.h>
+#include <atomic>
+#include <cstdlib>
+#include <d3d11.h>
+#include <dxgiformat.h>
+#include <map>
+#include <memory>
 #include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
-#include <Windows.h>
 #include <wrl/client.h>
-#include <Engine/Rendering/RenderCommand.h>
-
 
 REGISTER_MANAGER_TYPE(SceneManager, "SceneManager")
 
-SceneManager::SceneManager() :
+SceneManager::SceneManager()
+    :
 
-    m_deviceManager{ nullptr },
-    m_updateManager{ nullptr },
-    m_cameraManager{ nullptr },
-    m_frameStateService{ nullptr },
-    u_camera{ nullptr },
-    u_lighting{ nullptr },
-    u_constantBuffer{ nullptr },
-    u_render{ nullptr },
-    u_terrain{ nullptr },
-    u_meshTerrain{ nullptr },
-    u_mesh{ nullptr }
-    //m_initialPassesCollection{},
-    //m_passesTypesCollection{},
-    //m_meshesCollection{}
+      m_deviceManager{nullptr}, m_updateManager{nullptr}, m_cameraManager{nullptr}, m_frameStateService{nullptr},
+      u_camera{nullptr}, u_lighting{nullptr}, u_constantBuffer{nullptr}, u_render{nullptr}, u_terrain{nullptr},
+      u_meshTerrain{nullptr}, u_mesh{nullptr}
+// m_initialPassesCollection{},
+// m_passesTypesCollection{},
+// m_meshesCollection{}
 {
 
     m_jobContext = std::make_shared<JobContext>();
@@ -79,38 +72,64 @@ SceneManager::SceneManager() :
 }
 
 // Implementations used by SceneSystem to avoid recursion during migration.
-void SceneManager::FillCommandBufferImpl(CommandBuffer& buffer) {
+void SceneManager::FillCommandBufferImpl(CommandBuffer &buffer)
+{
     FillCommandBuffer(buffer);
 }
-void SceneManager::UpdateImpl(float deltaTime) {
+void SceneManager::UpdateImpl(float deltaTime)
+{
     Update(deltaTime);
 }
 
-void SceneManager::FillCommandBuffer(CommandBuffer& buffer) {
+void SceneManager::FillCommandBuffer(CommandBuffer &buffer)
+{
+    OutputDebugStringA("[SceneManager] FillCommandBuffer iniciado\n");
+
     // Populate CommandBuffer with draw commands based on pipeline resources.
-    try {
-        std::vector<RenderPassResource*> passes = m_resources->GetPasses();
-        for (const auto& pass : passes) {
-            if (!pass || !pass->enabled) continue;
-            std::vector<MeshResource*> meshes = this->GetPassMeshes(pass);
-            for (const auto& meshRes : meshes) {
-                if (!meshRes || !meshRes->mesh) continue;
+    try
+    {
+        std::vector<RenderPassResource *> passes = m_resources->GetPasses();
+        OutputDebugStringA(("[SceneManager] Pases disponibles: " + std::to_string(passes.size()) + "\n").c_str());
+
+        for (const auto &pass : passes)
+        {
+            if (!pass || !pass->enabled)
+                continue;
+
+            OutputDebugStringA("[SceneManager] Procesando pase habilitado\n");
+
+            std::vector<MeshResource *> meshes = this->GetPassMeshes(pass);
+            OutputDebugStringA(("[SceneManager] Meshes en este pase: " + std::to_string(meshes.size()) + "\n").c_str());
+
+            for (const auto &meshRes : meshes)
+            {
+                if (!meshRes || !meshRes->mesh)
+                    continue;
                 int index = meshRes->mesh->GetReadIndex();
                 UINT indexCount = meshRes->mesh->GetIndexCount(index);
+                
+                OutputDebugStringA(("[SceneManager] Añadiendo DrawIndexedCommand con " + std::to_string(indexCount) + " índices\n").c_str());
+                
                 // Add a DrawIndexedCommand to the buffer. Future: add state-change commands.
                 buffer.AddCommand<DrawIndexedCommand>(indexCount, 0, 0);
             }
         }
     }
-    catch (...) {
+    catch (...)
+    {
+        OutputDebugStringA("[SceneManager] ERROR: Excepción en FillCommandBuffer\n");
         // Avoid throwing in render path during early refactor.
     }
 
     // Append UI meshes via UIManager's command emission path
-    if (m_uiManager) {
+    if (m_uiManager)
+    {
+        OutputDebugStringA("[SceneManager] UIManager: añadiendo comandos UI\n");
         // Allow UIManager to add its commands into the buffer
         m_uiManager->FillCommandBuffer(buffer);
     }
+
+    OutputDebugStringA(("[SceneManager] FillCommandBuffer completado - Total comandos: " + std::to_string(buffer.GetCommandCount()) + "\n").c_str());
 
     // For backwards compatibility, register a transient contributor with
     // the RenderCommandSystem so SceneManager's FillCommandBuffer can also
@@ -118,14 +137,17 @@ void SceneManager::FillCommandBuffer(CommandBuffer& buffer) {
     // (No-op here; registration is done externally by Init sequence if desired)
 }
 
-SceneManager::~SceneManager() {}
+SceneManager::~SceneManager()
+{
+}
 
 // -----------------------------------------------------------------
 // Blucle principal de Actualización de actualización de la escena
 // -----------------------------------------------------------------
 const float MAX_DELTA_TIME = 0.1f;
 const float MIN_DELTA_TIME = 0.0042f;
-void SceneManager::RunLoop() {
+void SceneManager::RunLoop()
+{
     // NOTE: Migrated to AAA threading model. SceneManager no longer runs a
     // dedicated thread. SceneManager::Update() must be invoked from the
     // Engine main loop (Engine::MainLoop) on the main thread.
@@ -136,7 +158,8 @@ void SceneManager::RunLoop() {
 // -----------------------------------------------------------------
 // Crea el contexto compartido para las tareas de actualización
 // -----------------------------------------------------------------
-HRESULT SceneManager::CreateContext() {
+HRESULT SceneManager::CreateContext()
+{
 
     m_jobContext->deviceManager = m_deviceManager;
     m_jobContext->cameraManager = m_cameraManager;
@@ -155,26 +178,26 @@ HRESULT SceneManager::CreateContext() {
 // -----------------------------------------------------------------
 // Inicializa los estados de la escena y crea la escena inicial
 // -----------------------------------------------------------------
-HRESULT SceneManager::InitStates() {
-    //JobContext* context = m_jobContext.get();
+HRESULT SceneManager::InitStates()
+{
+    // JobContext* context = m_jobContext.get();
 
-    //CreateScene();
+    // CreateScene();
 
-    //HRESULT hr = InitOperations();
-    //if (FAILED(hr)) {
-    //    return hr; // Failed to initialize render operations
-    //}
+    // HRESULT hr = InitOperations();
+    // if (FAILED(hr)) {
+    //     return hr; // Failed to initialize render operations
+    // }
 
-    //u_camera->Execute(context);
-    //u_lighting->Execute(context);
-    //u_common->Execute(context);
-    //u_render->Execute(context);
-    //u_terrain->Execute(context);
+    // u_camera->Execute(context);
+    // u_lighting->Execute(context);
+    // u_common->Execute(context);
+    // u_render->Execute(context);
+    // u_terrain->Execute(context);
 
+    // SetFlag(FLAG_HAS_SCENE, true);
 
-    //SetFlag(FLAG_HAS_SCENE, true);
-
-    //CreateJob<UpdateCameraJob>(FRAME_STATE_CAMERA.data(), u_camera);
+    // CreateJob<UpdateCameraJob>(FRAME_STATE_CAMERA.data(), u_camera);
 
     config.hasTerrain = m_jobContext->world->flags.GetFlag(SyncFlagIndex::HasTerrain);
 
@@ -184,7 +207,8 @@ HRESULT SceneManager::InitStates() {
 // -----------------------------------------------------------------
 // Inicializa los pases de renderizado desde la configuración
 // -----------------------------------------------------------------
-HRESULT SceneManager::InitPasses() {
+HRESULT SceneManager::InitPasses()
+{
     /* StringArray passNames = m_renderConfig.passes;
      for (const auto& passName : passNames) {
          std::string configName = passName + "Config";
@@ -199,7 +223,8 @@ HRESULT SceneManager::InitPasses() {
 // -----------------------------------------------------------------
 // Inicializa las tareas de actualización necesarias para la escena
 // -----------------------------------------------------------------
-HRESULT SceneManager::InitUpdateTasks() {
+HRESULT SceneManager::InitUpdateTasks()
+{
     u_camera = std::make_shared<UpdateCameraJob>();
     u_lighting = std::make_shared<UpdateLightJob>();
     u_constantBuffer = std::make_shared<UpdateConstantBuffersJob>();
@@ -214,81 +239,92 @@ HRESULT SceneManager::InitUpdateTasks() {
 // -----------------------------------------------------------------
 // Inicializa los managers necesarios para la escena
 // -----------------------------------------------------------------
-HRESULT SceneManager::InitManagers() {
+HRESULT SceneManager::InitManagers()
+{
     // Inicializa los servicios necesarios
     m_deviceManager = ManagerLocator::GetDeviceManager();
-    if (!m_deviceManager) {
+    if (!m_deviceManager)
+    {
         return E_FAIL; // Device manager service not available
     }
     m_cameraManager = ManagerLocator::GetManager<CameraManager>();
-    if (!m_cameraManager) {
+    if (!m_cameraManager)
+    {
         return E_FAIL; // Camera manager service not available
     }
     m_uiManager = ManagerLocator::GetManager<UIManager>();
-    if (!m_uiManager) {
+    if (!m_uiManager)
+    {
         return E_FAIL; // UI manager service not available
     }
     m_resources = ManagerLocator::GetManager<PipelineResourcesManager>();
-    if (!m_resources) {
+    if (!m_resources)
+    {
         return E_FAIL; // Resources manager service not available
     }
-    //HRESULT hr = m_resources->Init(m_context);
-    //if (FAILED(hr)) {
-    //    return hr; // Failed to initialize resources manager
-    //}
+    // HRESULT hr = m_resources->Init(m_context);
+    // if (FAILED(hr)) {
+    //     return hr; // Failed to initialize resources manager
+    // }
 
     m_frameStateService = ServiceLocator::GetService<FrameStateService>();
-    if (!m_frameStateService) {
+    if (!m_frameStateService)
+    {
         return E_FAIL; // Frame state service not available
     }
 
     return S_OK;
 }
 
-HRESULT SceneManager::InitOperations() {
-    //RenderFrameState* renderState = m_frameStateService->RenderState(false);
+HRESULT SceneManager::InitOperations()
+{
+    // RenderFrameState* renderState = m_frameStateService->RenderState(false);
 
-    //PipelineViewPortData vpData = {};
-    //vpData.desc = *(m_frameStateService->PipelineState(false)->GetCurrentViewport());
-    //renderState->AddInitialOperation(PipelineOperationType::Device_SetViewport, "FirstOperationVP", &vpData);
-    //PipelineSetRenderTargetsData srData = {};
-    //srData.targetView = m_frameStateService->PipelineState(false)->GetCurrentRenderTargetView();
-    //srData.stencilView = m_frameStateService->PipelineState(false)->GetCurrentDepthStencilView();
-    //srData.isColorPass = true;
-    //renderState->AddInitialOperation(PipelineOperationType::Device_Init_SetRenderTargetView, "FirstOperationRTV", &srData);
-    //PipelineRenderTargetViewData rtvData = {};
-    //rtvData.data = m_frameStateService->PipelineState(false)->GetCurrentRenderTargetView();
-    //rtvData.clearColor = XMFLOAT4{ .4f,.0f,.0f,1.0f };
-    //renderState->AddInitialOperation(PipelineOperationType::Device_ClearRenderTargetView, "FirstOperation", &rtvData);
-    ////renderState->AddInitialOperation(PipelineOperationType::Mesh_Render_SetInputLayout, "FirstOperationV");    
-    //renderState->AddInitialOperation(PipelineOperationType::Device_ClearDepthStencilView, "FirstOperationCDSV");
-    //renderState->AddInitialOperation(PipelineOperationType::Device_Init_SetSencilView, "FirstOperationSV");
-    //renderState->AddInitialOperation(PipelineOperationType::Device_Init_SetSencilState, "FirstOperationSS");
-    //renderState->AddInitialOperation(PipelineOperationType::Device_SetDepthStencilState, "FirstOperationSDSS");
-    //renderState->AddInitialOperation(PipelineOperationType::Device_SetRasterizedState, "FirstOperationR");
-    //renderState->AddFinalOperation(PipelineOperationType::Device_PresentSwapChain, "LastOperation");
+    // PipelineViewPortData vpData = {};
+    // vpData.desc = *(m_frameStateService->PipelineState(false)->GetCurrentViewport());
+    // renderState->AddInitialOperation(PipelineOperationType::Device_SetViewport, "FirstOperationVP", &vpData);
+    // PipelineSetRenderTargetsData srData = {};
+    // srData.targetView = m_frameStateService->PipelineState(false)->GetCurrentRenderTargetView();
+    // srData.stencilView = m_frameStateService->PipelineState(false)->GetCurrentDepthStencilView();
+    // srData.isColorPass = true;
+    // renderState->AddInitialOperation(PipelineOperationType::Device_Init_SetRenderTargetView, "FirstOperationRTV",
+    // &srData); PipelineRenderTargetViewData rtvData = {}; rtvData.data =
+    // m_frameStateService->PipelineState(false)->GetCurrentRenderTargetView(); rtvData.clearColor = XMFLOAT4{
+    // .4f,.0f,.0f,1.0f }; renderState->AddInitialOperation(PipelineOperationType::Device_ClearRenderTargetView,
+    // "FirstOperation", &rtvData);
+    ////renderState->AddInitialOperation(PipelineOperationType::Mesh_Render_SetInputLayout, "FirstOperationV");
+    // renderState->AddInitialOperation(PipelineOperationType::Device_ClearDepthStencilView, "FirstOperationCDSV");
+    // renderState->AddInitialOperation(PipelineOperationType::Device_Init_SetSencilView, "FirstOperationSV");
+    // renderState->AddInitialOperation(PipelineOperationType::Device_Init_SetSencilState, "FirstOperationSS");
+    // renderState->AddInitialOperation(PipelineOperationType::Device_SetDepthStencilState, "FirstOperationSDSS");
+    // renderState->AddInitialOperation(PipelineOperationType::Device_SetRasterizedState, "FirstOperationR");
+    // renderState->AddFinalOperation(PipelineOperationType::Device_PresentSwapChain, "LastOperation");
 
     return S_OK;
 }
 
-HRESULT SceneManager::InitServices() {
+HRESULT SceneManager::InitServices()
+{
     // Inicializa el servicio de estados de la escena
     /*m_updatableServices.clear();
     m_updatableGameServices.clear();
     m_updatableManagers.clear();*/
 
     std::vector<std::string> updateOrder = m_serviceConfig.services_update_order;
-    for (const auto& serviceName : updateOrder) {
+    for (const auto &serviceName : updateOrder)
+    {
         m_updatableServices.push_back(ServiceLocator::GetService(serviceName));
     }
     updateOrder.clear();
     updateOrder = m_gameConfig.service_update_order;
-    for (const auto& gameService : updateOrder) {
+    for (const auto &gameService : updateOrder)
+    {
         m_updatableGameServices.push_back(ServiceLocator::GetService(gameService));
     }
     updateOrder.clear();
     updateOrder = m_engineConfig.managers_update_order;
-    for (const auto& managerName : updateOrder) {
+    for (const auto &managerName : updateOrder)
+    {
         m_updatableManagers.push_back(ManagerLocator::GetManager(managerName));
     }
 
@@ -298,25 +334,29 @@ HRESULT SceneManager::InitServices() {
 // -----------------------------------------------------------------
 // Inicialización general
 // -----------------------------------------------------------------
-HRESULT SceneManager::Init(EngineContext* context) {
+HRESULT SceneManager::Init(EngineContext *context)
+{
     ManagerBase::Init(context);
 
     // Inicializa las tareas de actualización
     HRESULT hr = InitUpdateTasks();
-    if (FAILED(hr)) {
+    if (FAILED(hr))
+    {
         return hr; // Failed to initialize update tasks
     }
 
     // Inicializa los managers necesarios
     hr = InitManagers();
-    if (FAILED(hr)) {
+    if (FAILED(hr))
+    {
         return hr; // Failed to initialize required managers
     }
 
     hr = InitServices();
 
     hr = InitPasses();
-    if (FAILED(hr)) {
+    if (FAILED(hr))
+    {
         return hr; // Failed to initialize render passes
     }
 
@@ -325,21 +365,24 @@ HRESULT SceneManager::Init(EngineContext* context) {
 
 // -----------------------------------------------------------------
 // Post-Inicialización
-// 
-// Preparar la escena por primera vez 
+//
+// Preparar la escena por primera vez
 // (Importante: fuera del bucle principal)
 // -----------------------------------------------------------------
-HRESULT SceneManager::PostInit() {
+HRESULT SceneManager::PostInit()
+{
 
     // Inicializa los managers necesarios
     m_updateManager = ManagerLocator::GetManager<UpdateManager>();
-    if (!m_updateManager) {
+    if (!m_updateManager)
+    {
         return E_FAIL; // Update manager service not available
     }
 
     // Create SceneSystem facade for migration to system-based architecture
     m_sceneSystem = std::make_unique<SceneSystem>();
-    if (m_sceneSystem) {
+    if (m_sceneSystem)
+    {
         m_sceneSystem->Init(this);
         m_sceneSystem->PostInit();
     }
@@ -350,7 +393,6 @@ HRESULT SceneManager::PostInit() {
     // Inicializa los estados de la escena
     InitStates();
 
-
     // Inicia con el pintado de la pantalla en las 3 operaciones básicas
     /*m_frameStateService->SwapBuffer(FRAME_STATE_RENDER);
     SetFlag(FLAG_HAS_SCENE, true);*/
@@ -358,64 +400,85 @@ HRESULT SceneManager::PostInit() {
     config.isInitialized = true;
 
     // Create a simple UI panel with a label "Hola Mundo" for visual validation
-    if (m_uiManager) {
+    if (m_uiManager)
+    {
         UIManager::UIPanelDesc pnl{};
-        pnl.x = 0.1f; pnl.y = 0.1f; pnl.w = 0.25f; pnl.h = 0.12f;
-        pnl.color[0] = 0.1f; pnl.color[1] = 0.1f; pnl.color[2] = 0.8f; pnl.color[3] = 0.9f;
+        pnl.x = 0.1f;
+        pnl.y = 0.1f;
+        pnl.w = 0.25f;
+        pnl.h = 0.12f;
+        pnl.color[0] = 0.1f;
+        pnl.color[1] = 0.1f;
+        pnl.color[2] = 0.8f;
+        pnl.color[3] = 0.9f;
         m_uiManager->CreatePanel("helloPanel", pnl);
-        UIText* lbl = m_uiManager->CreateLabel("helloLabel", "Hola Mundo");
-        lbl->SetPosition(20.0f, 20.0f);
+        UIText *lbl = m_uiManager->CreateLabel("helloLabel", "Hola Mundo");
+        if (lbl)
+        {
+            lbl->SetPosition(20.0f, 20.0f);
+        }
         m_uiManager->AddLabelToPanel("helloPanel", "helloLabel");
     }
 
     return S_OK;
 }
 
-// -----------------------------------------------------------------	
+// -----------------------------------------------------------------
 // Crea los pases de renderizado necesarios para la escena actual
 // -----------------------------------------------------------------
-//void SceneManager::AddPassesToScene(PassFrameState* passState, RenderFrameState* renderState) {
+// void SceneManager::AddPassesToScene(PassFrameState* passState, RenderFrameState* renderState) {
 //    while (std::shared_ptr<PipelineState> pass = passState->GetNextPass()) {
 //        //renderState->
 //    }
 //}
 
-void SceneManager::ObtainSceneMeshes() {
-
+void SceneManager::ObtainSceneMeshes()
+{
 }
 
 // -----------------------------------------------------------------
 // Crea las operaciones principales de la escena
-// 
+//
 // (clear, setRTV, setDSV, etc...)
 // -----------------------------------------------------------------
-void SceneManager::CreateMainOperations() {
-    if (m_sceneSystem) {
+void SceneManager::CreateMainOperations()
+{
+    if (m_sceneSystem)
+    {
         m_sceneSystem->CreateMainOperations();
         return;
     }
 
     // Fallback to legacy behavior if SceneSystem not present
-    PipelineMainInitialResources* mainResources = m_resources->GetInitialResources();
-    std::unique_ptr<ClearOperation> clearOper = std::make_unique<ClearOperation>(mainResources->renderTargetView.Get(), mainResources->depthStencilResource->stencilViewData.Get(), mainResources->clearColor);
+    PipelineMainInitialResources *mainResources = m_resources->GetInitialResources();
+    std::unique_ptr<ClearOperation> clearOper = std::make_unique<ClearOperation>(
+        mainResources->renderTargetView.Get(), mainResources->depthStencilResource->stencilViewData.Get(),
+        mainResources->clearColor);
     m_frameStateService->RenderState(false)->AddInitialOperation(std::move(clearOper));
 }
 
 // -----------------------------------------------------------------
 // Obtiene los mesh que deben renderizarse en un pase concreto
 // -----------------------------------------------------------------
-std::vector<MeshResource*> SceneManager::GetPassMeshes(RenderPassResource* pass) {
-    if (m_sceneSystem) return m_sceneSystem->GetPassMeshes(pass);
+std::vector<MeshResource *> SceneManager::GetPassMeshes(RenderPassResource *pass)
+{
+    // ELIMINAR ESTA DELEGACIÓN CIRCULAR:
+    // if (m_sceneSystem)
+    //     return m_sceneSystem->GetPassMeshes(pass);
 
-    const auto& meshes = m_resources->GetMeshes();
-    std::vector<MeshResource*> result;
-    for (const auto& mesh : meshes) {
-        if (mesh == nullptr) continue;
+    const auto &meshes = m_resources->GetMeshes();
+    std::vector<MeshResource *> result;
+    for (const auto &mesh : meshes)
+    {
+        if (mesh == nullptr)
+            continue;
         int index = mesh->mesh->GetReadIndex();
-        if (mesh->mesh->GetVertexCount(index) <= 0) continue;
+        if (mesh->mesh->GetVertexCount(index) <= 0)
+            continue;
         int passes = mesh->mesh->GetRenderPassesValue();
         bool isInPass = pass->id & passes;
-        if (!isInPass) continue;
+        if (!isInPass)
+            continue;
         result.push_back(mesh);
     }
     return result;
@@ -424,9 +487,10 @@ std::vector<MeshResource*> SceneManager::GetPassMeshes(RenderPassResource* pass)
 // -----------------------------------------------------------------
 // Crea las operaciones iniciales necesarias para un shader
 // -----------------------------------------------------------------
-void SceneManager::CreateShaderInitialOperations(ShaderResource* shaderResource) {
-    //ShaderAsset* currentShader = shaderResource->shader;
-    //if (shaderResource->initialOperationsExecuted) return;
+void SceneManager::CreateShaderInitialOperations(ShaderResource *shaderResource)
+{
+    // ShaderAsset* currentShader = shaderResource->shader;
+    // if (shaderResource->initialOperationsExecuted) return;
 
     std::vector<PipelineConstantBufferResource> buffers = shaderResource->GetConstantsBuffers();
     std::unique_ptr<BindConstantsBuffersOperation> cbOper = std::make_unique<BindConstantsBuffersOperation>(buffers, 0);
@@ -436,34 +500,34 @@ void SceneManager::CreateShaderInitialOperations(ShaderResource* shaderResource)
         shaderResource->initialOperationsExecuted = true;
     }*/
 
-    /*std::unique_ptr<CreateRasterizerStateOperation> rsOper = std::make_unique<CreateRasterizerStateOperation>(m_deviceManager->GetDevice().Get(), m_resources->GetInitialResources()->rasterizerDesc, m_resources->GetInitialResources()->rasterizedState);
+    /*std::unique_ptr<CreateRasterizerStateOperation> rsOper =
+    std::make_unique<CreateRasterizerStateOperation>(m_deviceManager->GetDevice().Get(),
+    m_resources->GetInitialResources()->rasterizerDesc, m_resources->GetInitialResources()->rasterizedState);
     m_frameStateService->RenderState(false)->AddOperation(std::move(rsOper));*/
 }
 
 // -----------------------------------------------------------------
 // Crea las operaciones necesarias para renderizar un shader
 // -----------------------------------------------------------------
-void SceneManager::CreateShaderOperations(std::string_view shaderName) {
-    if (m_sceneSystem) {
-        m_sceneSystem->CreateShaderOperations(shaderName);
-        return;
-    }
+void SceneManager::CreateShaderOperations(std::string_view shaderName)
+{
+    ShaderResource *shader = m_resources->GetShader(shaderName.data());
 
-    ShaderResource* shader = m_resources->GetShader(shaderName.data());
-
-    if (!shader || !shader->shader || shader && !shader->flags.GetFlag(SyncFlagIndex::HasConstsBufferDefined)) {
+    if (!shader || !shader->shader || shader && !shader->flags.GetFlag(SyncFlagIndex::HasConstsBufferDefined))
+    {
         shader = m_resources->CreateShaderResource(shaderName.data());
         m_resources->SetShaderResource(shaderName.data(), shader);
     }
 
-    if (shader == nullptr || !shader->shader) return;
+    if (shader == nullptr || !shader->shader)
+        return;
 
     CreateShaderInitialOperations(shader);
 
-    ShaderAsset* currentShader = shader->shader;
-    ID3D11VertexShader* vShader = currentShader->GetVertexShader();
-    ID3D11PixelShader* pShader = currentShader->GetPixelShader();
-    const std::vector<ID3D11SamplerState*>& samplers = shader->samplers;
+    ShaderAsset *currentShader = shader->shader;
+    ID3D11VertexShader *vShader = currentShader->GetVertexShader();
+    ID3D11PixelShader *pShader = currentShader->GetPixelShader();
+    const std::vector<ID3D11SamplerState *> &samplers = shader->samplers;
 
     std::unique_ptr<SetSamplerOperation> samplerOper = std::make_unique<SetSamplerOperation>(samplers, 0);
     m_frameStateService->RenderState(false)->AddOperation(std::move(samplerOper));
@@ -474,7 +538,8 @@ void SceneManager::CreateShaderOperations(std::string_view shaderName) {
     std::unique_ptr<SetPixelShaderOperation> psOper = std::make_unique<SetPixelShaderOperation>(pShader);
     m_frameStateService->RenderState(false)->AddOperation(std::move(psOper));
 
-    std::unique_ptr<SetInputLayoutOperation> ilOper = std::make_unique<SetInputLayoutOperation>(currentShader->GetInputLayout());
+    std::unique_ptr<SetInputLayoutOperation> ilOper =
+        std::make_unique<SetInputLayoutOperation>(currentShader->GetInputLayout());
     m_frameStateService->RenderState(false)->AddOperation(std::move(ilOper));
 
     config.shaderName = shaderName.data();
@@ -483,75 +548,93 @@ void SceneManager::CreateShaderOperations(std::string_view shaderName) {
 // -----------------------------------------------------------------
 // Crea las operaciones necesarias para renderizar un mesh
 // -----------------------------------------------------------------
-void SceneManager::CreateMeshOperations(RenderPassResource* pass, MeshResource* meshResource) {
+void SceneManager::CreateMeshOperations(RenderPassResource *pass, MeshResource *meshResource)
+{
 
-    MeshAssetBase* mesh = meshResource->mesh;
+    MeshAssetBase *mesh = meshResource->mesh;
 
-    if (!pass->hasShader) {
+    if (!pass->hasShader)
+    {
         CreateShaderOperations(mesh->GetShaderAssetName());
     }
 
     int index = mesh->GetReadIndex();
 
-    ID3D11Buffer* vBuffer = mesh->GetVertexBuffer(index).Get();
+    ID3D11Buffer *vBuffer = mesh->GetVertexBuffer(index).Get();
 
-    if (vBuffer == nullptr) return;
+    if (vBuffer == nullptr)
+        return;
 
-    ID3D11Buffer* iBuffer = mesh->GetIndexBuffer(index).Get();
+    ID3D11Buffer *iBuffer = mesh->GetIndexBuffer(index).Get();
     UINT stride = mesh->GetVertexTypeSize();
     UINT indexCount = mesh->GetIndexCount(index);
 
-    if (meshResource->textures.size() > 0) {
+    if (meshResource->textures.size() > 0)
+    {
         std::unique_ptr<SetTextureOperation> ssOper = std::make_unique<SetTextureOperation>(meshResource->textures, 6);
         m_frameStateService->RenderState(false)->AddOperation(std::move(ssOper));
     }
 
     std::unique_ptr<SetVertexBufferOperation> vbOper = std::make_unique<SetVertexBufferOperation>(vBuffer, stride, 0);
     m_frameStateService->RenderState(false)->AddOperation(std::move(vbOper));
-    std::unique_ptr<SetIndexBufferOperation> ibOper = std::make_unique<SetIndexBufferOperation>(iBuffer, DXGI_FORMAT_R16_UINT, 0);
+    std::unique_ptr<SetIndexBufferOperation> ibOper =
+        std::make_unique<SetIndexBufferOperation>(iBuffer, DXGI_FORMAT_R16_UINT, 0);
     m_frameStateService->RenderState(false)->AddOperation(std::move(ibOper));
 
-    std::unique_ptr<SetPrimitiveTopologyOperation > primiOper = std::make_unique<SetPrimitiveTopologyOperation>(mesh->GetPrimitiveTopology());
+    std::unique_ptr<SetPrimitiveTopologyOperation> primiOper =
+        std::make_unique<SetPrimitiveTopologyOperation>(mesh->GetPrimitiveTopology());
     m_frameStateService->RenderState(false)->AddOperation(std::move(primiOper));
 
     std::unique_ptr<DrawIndexedOperation> drawOper = std::make_unique<DrawIndexedOperation>(indexCount, 0, 0);
     m_frameStateService->RenderState(false)->AddOperation(std::move(drawOper));
-
 }
 
 // -----------------------------------------------------------------
 // Crea las operaciones necesarias para cada pase de renderizado
 // -----------------------------------------------------------------
-void SceneManager::CreatePassOperations() {
-    std::vector<RenderPassResource*> passes = m_resources->GetPasses();
-    for (const auto& pass : passes) {
-        if (pass == nullptr || !pass->enabled) continue;
+void SceneManager::CreatePassOperations()
+{
+    std::vector<RenderPassResource *> passes = m_resources->GetPasses();
+    for (const auto &pass : passes)
+    {
+        if (pass == nullptr || !pass->enabled)
+            continue;
 
-        std::vector<MeshResource*> meshes = GetPassMeshes(pass);
-        if (!meshes.size()) continue;
+        std::vector<MeshResource *> meshes = GetPassMeshes(pass);
+        if (!meshes.size())
+            continue;
 
-        /*std::unique_ptr<CreateBlendStateOperation> blendOper = std::make_unique<CreateBlendStateOperation>(m_deviceManager->GetDevice().Get(), pass->blendDesc, pass->blendState);*/
+        /*std::unique_ptr<CreateBlendStateOperation> blendOper =
+         * std::make_unique<CreateBlendStateOperation>(m_deviceManager->GetDevice().Get(), pass->blendDesc,
+         * pass->blendState);*/
 
-        PipelineMainInitialResources* mainResources = m_resources->GetInitialResources();
-        std::unique_ptr<SetViewportOperation> setViewOper = std::make_unique<SetViewportOperation>(mainResources->viewport);
+        PipelineMainInitialResources *mainResources = m_resources->GetInitialResources();
+        std::unique_ptr<SetViewportOperation> setViewOper =
+            std::make_unique<SetViewportOperation>(mainResources->viewport);
         m_frameStateService->RenderState(false)->AddOperation(std::move(setViewOper));
 
-        std::unique_ptr<SetRenderTargetOperation> setRTVOper = std::make_unique<SetRenderTargetOperation>(mainResources->renderTargetView.Get(), mainResources->depthStencilResource->stencilViewData.Get());
+        std::unique_ptr<SetRenderTargetOperation> setRTVOper = std::make_unique<SetRenderTargetOperation>(
+            mainResources->renderTargetView.Get(), mainResources->depthStencilResource->stencilViewData.Get());
         m_frameStateService->RenderState(false)->AddOperation(std::move(setRTVOper));
 
         D3D11_RASTERIZER_DESC desc = pass->rasterizedDesc;
         Microsoft::WRL::ComPtr<ID3D11RasterizerState> state = pass->rasterizerState;
-        std::unique_ptr<CreateRasterizerStateOperation> rsOper = std::make_unique<CreateRasterizerStateOperation>(m_deviceManager->GetDevice().Get(), desc, state);
+        std::unique_ptr<CreateRasterizerStateOperation> rsOper =
+            std::make_unique<CreateRasterizerStateOperation>(m_deviceManager->GetDevice().Get(), desc, state);
         m_frameStateService->RenderState(false)->AddOperation(std::move(rsOper));
 
-        if (pass->hasShader) {
+        if (pass->hasShader)
+        {
             CreateShaderOperations(pass->shaderName);
         }
 
-        for (const auto& mesh : meshes) {
-            if (mesh == nullptr) continue;
+        for (const auto &mesh : meshes)
+        {
+            if (mesh == nullptr)
+                continue;
             int index = mesh->mesh->GetReadIndex();
-            if (mesh->mesh->GetVertexCount(index) <= 0) continue;
+            if (mesh->mesh->GetVertexCount(index) <= 0)
+                continue;
             CreateMeshOperations(pass, mesh);
         }
     }
@@ -567,72 +650,116 @@ void SceneManager::CreatePassOperations() {
 // -----------------------------------------------------------------
 // Crea la escena actual para ser renderizada
 // -----------------------------------------------------------------
-void SceneManager::CreateScene() {
+void SceneManager::CreateScene()
+{
+    OutputDebugStringA("[SCENE_DEBUG] ▶ CreateScene iniciado\n");
 
-    if (isGeneratingScene) return;
+    if (isGeneratingScene) {
+        OutputDebugStringA("[SCENE_DEBUG] ⚠️ WARNING: CreateScene ya está ejecutándose\n");
+        return;
+    }
     isGeneratingScene = true;
 
     m_frameStateService->RenderState(false)->Initialize(m_deviceManager);
+    OutputDebugStringA("[SCENE_DEBUG] ✓ RenderFrameState inicializado\n");
 
     // ------------------------------
     // 1. Obtener los mesh que actuan
     // ------------------------------
     // 1.1 Obtener los mesh del mundo
-    std::vector<MeshAssetBase*> meshes = m_jobContext->world->GetMeshes();
+    std::vector<MeshAssetBase *> meshes = m_jobContext->world->GetMeshes();
+    OutputDebugStringA(("[SCENE_DEBUG] 📦 Meshes del mundo: " + std::to_string(meshes.size()) + "\n").c_str());
+
     // 1.2 Obtener los mesh de la UI
-    if (m_uiManager->IsRunnig()) {
-        const auto& uiMesh = m_uiManager->GetUIMesh();
-        if (uiMesh) {
+    if (m_uiManager->IsRunnig())
+    {
+        const auto &uiMesh = m_uiManager->GetUIMesh();
+        if (uiMesh)
+        {
             meshes.push_back(uiMesh);
+            OutputDebugStringA("[SCENE_DEBUG] ✓ UI mesh añadido\n");
         }
     }
+    
     // 1.3 Actualizar los recursos de los mesh
     m_resources->SetMeshes(meshes);
+    OutputDebugStringA(("[SCENE_DEBUG] 📊 Total meshes: " + std::to_string(meshes.size()) + "\n").c_str());
 
     // --------------------------------------------------------------------
-    // 2. Crear las operaciones principales (clear, setRTV, setDSV, etc...)
+    // 2. Crear operaciones básicas SIEMPRE (aunque no haya meshes)
     // --------------------------------------------------------------------
-    //CreateMainOperations();
+    OutputDebugStringA("[SCENE_DEBUG] → Añadiendo operaciones básicas de viewport y render target\n");
+    
+    PipelineMainInitialResources *mainResources = m_resources->GetInitialResources();
+    
+    // Operación de viewport
+    std::unique_ptr<SetViewportOperation> setViewOper =
+        std::make_unique<SetViewportOperation>(mainResources->viewport);
+    m_frameStateService->RenderState(false)->AddOperation(std::move(setViewOper));
+    
+    // Operación de render target
+    std::unique_ptr<SetRenderTargetOperation> setRTVOper = std::make_unique<SetRenderTargetOperation>(
+        mainResources->renderTargetView.Get(), mainResources->depthStencilResource->stencilViewData.Get());
+    m_frameStateService->RenderState(false)->AddOperation(std::move(setRTVOper));
+    
+    OutputDebugStringA("[SCENE_DEBUG] ✓ Operaciones básicas añadidas\n");
 
     // ----------------------------------
-    // 2.1 Crear las operaciones por pase
+    // 2.1 Crear operaciones de meshes si existen
     // ----------------------------------
-    if (meshes.size() > 0) {
+    if (meshes.size() > 0)
+    {
+        OutputDebugStringA("[SCENE_DEBUG] → Llamando CreatePassOperations\n");
         CreatePassOperations();
     }
-    else {
-        bool a = false;
+    else
+    {
+        OutputDebugStringA("[SCENE_DEBUG] ⚠️ No hay meshes, saltando CreatePassOperations\n");
     }
 
     // --------------------------------------------------
     // 3. Finalizar la lista de operaciones y swap buffer
     // --------------------------------------------------
-    bool hasOperations = false;
-    /*if (m_frameStateService->RenderState(false)->HasInitialOperations()) {
-        m_frameStateService->RenderState(false)->SetInitialCommandList(m_frameStateService->RenderState(false)->FinalizeInitialCommandList());
-        hasOperations = true;
-    }*/
-    if (m_frameStateService->RenderState(false)->HasOperations()) {
-        while (m_frameStateService->IsRendering()) {}
-        m_frameStateService->RenderState(false)->SetCommandList(m_frameStateService->RenderState(false)->FinalizeCommandList());
-        hasOperations = true;
+    bool hasOperations = m_frameStateService->RenderState(false)->HasOperations();
+    
+    OutputDebugStringA(("[SCENE_DEBUG] HasOperations: " + std::string(hasOperations ? "true" : "false") + "\n").c_str());
+    
+    if (hasOperations)
+    {
+        OutputDebugStringA("[SCENE_DEBUG] ✓ RenderFrameState tiene operaciones\n");
+        
+        while (m_frameStateService->IsRendering())
+        {
+            OutputDebugStringA("[SCENE_DEBUG] ⏳ Esperando renderizado previo...\n");
+        }
+        
+        OutputDebugStringA("[SCENE_DEBUG] → Finalizando CommandList\n");
+        m_frameStateService->RenderState(false)->SetCommandList(
+            m_frameStateService->RenderState(false)->FinalizeCommandList());
+        OutputDebugStringA("[SCENE_DEBUG] ✓ CommandList finalizado\n");
     }
-
-    if (!hasOperations) {
+    else
+    {
+        OutputDebugStringA("[SCENE_DEBUG] ❌ ERROR: No hay operaciones\n");
         isGeneratingScene = false;
         return;
     }
 
-    //while (m_frameStateService->IsRendering()) {}
-
-    if (config.isRenderStateInitialized) {
+    // Swap del buffer
+    if (config.isRenderStateInitialized)
+    {
+        OutputDebugStringA("[SCENE_DEBUG] → SwapBuffer\n");
         m_frameStateService->SwapBuffer(FRAME_STATE_RENDER);
     }
-    else {
+    else
+    {
+        OutputDebugStringA("[SCENE_DEBUG] → SwapBufferContent (primera vez)\n");
         m_frameStateService->SwapBufferContent(FRAME_STATE_RENDER);
         config.isRenderStateInitialized = true;
     }
+    
     this->SetFlag(SyncFlagIndex::HasScene, true);
+    OutputDebugStringA("[SCENE_DEBUG] ✅ CreateScene completado\n");
 
     isGeneratingScene = false;
 }
@@ -641,16 +768,19 @@ void SceneManager::CreateScene() {
 // Procesa los trabajos de actualización en segundo plano
 // Se llama una vez por frame desde el bucle de update principal
 // ----------------------------------------------------------------
-void SceneManager::ProcessJobs() {
+void SceneManager::ProcessJobs()
+{
     std::lock_guard<std::mutex> lock(m_mutex);
     // During migration, UpdateSystem centralizes futures. If SceneManager
     // still enqueued futures locally, drain them as before; otherwise
     // delegate to UpdateManager/UpdateSystem if available.
-    if (m_updateManager) {
+    if (m_updateManager)
+    {
         // If UpdateManager is managing futures, forward any ready futures to it.
         std::map<int, FutureUpdateJob> ready;
         m_updateManager->CollectReadyFutures(ready);
-        for (auto &p : ready) {
+        for (auto &p : ready)
+        {
             UpdateJob job = p.second.get();
             (void)job; // legacy placeholder: UpdateManager/UpdateSystem handles swaps
         }
@@ -663,31 +793,39 @@ void SceneManager::ProcessJobs() {
 // Crea los trabajos necesarios para actualizar la escena
 // Se llama una vez por frame desde el bucle de update principal
 // ----------------------------------------------------------------
-void SceneManager::Update(float deltaTime) {
+void SceneManager::Update(float deltaTime)
+{
 
     // Actualiza los servicios necesarios
-    for (const auto& manager : m_updatableManagers) {
-        if (manager) {
+    for (const auto &manager : m_updatableManagers)
+    {
+        if (manager)
+        {
             manager->Update(deltaTime);
         }
     }
-    for (const auto& service : m_updatableServices) {
-        if (service) {
+    for (const auto &service : m_updatableServices)
+    {
+        if (service)
+        {
             service->Update(deltaTime);
         }
     }
-    for (const auto& gameService : m_updatableGameServices) {
-        if (gameService) {
+    for (const auto &gameService : m_updatableGameServices)
+    {
+        if (gameService)
+        {
             gameService->Update(deltaTime);
         }
     }
 
-    if (config.hasTerrain) {
+    if (config.hasTerrain)
+    {
         CreateJob<UpdateTerrainJob>(FRAME_STATE_TERRAIN.data(), u_terrain);
         CreateJob<UpdateMeshTerrainJob>(FRAME_STATE_TERRAIN_MESH.data(), u_meshTerrain);
     }
 
-    //ProcessJobs();
+    // ProcessJobs();
 
     CreateScene();
 
@@ -699,13 +837,14 @@ void SceneManager::Update(float deltaTime) {
     CreateJob<UpdateCameraJob>(FRAME_STATE_CAMERA.data(), u_camera);
     CreateJob<UpdateLightJob>(FRAME_STATE_LIGHTING.data(), u_lighting);
     CreateJob<UpdateCommonJob>(FRAME_STATE_COMMON.data(), u_common);*/
-    //CreateJob<UpdateRenderJob>(FRAME_STATE_RENDER.data(), u_render);
+    // CreateJob<UpdateRenderJob>(FRAME_STATE_RENDER.data(), u_render);
 }
 
-
-FutureUpdateJob SceneManager::AddUpdateJob(const std::string& name, std::function<bool()> task, bool allowDuplicates) {
+FutureUpdateJob SceneManager::AddUpdateJob(const std::string &name, std::function<bool()> task, bool allowDuplicates)
+{
     // Delegate to UpdateManager (which may forward to UpdateSystem).
-    if (m_updateManager) {
+    if (m_updateManager)
+    {
         return m_updateManager->AddUpdateJob(name, task, allowDuplicates);
     }
     // No update manager available: fallback to no-op future.
@@ -715,8 +854,8 @@ FutureUpdateJob SceneManager::AddUpdateJob(const std::string& name, std::functio
 // ----------------------------------------------------------------
 // Libera los recursos y detiene el bucle de actualizacións
 // ----------------------------------------------------------------
-void SceneManager::Shutdown() {
+void SceneManager::Shutdown()
+{
     m_frameStateService->Shutdown();
     ManagerBase::Shutdown();
 }
-

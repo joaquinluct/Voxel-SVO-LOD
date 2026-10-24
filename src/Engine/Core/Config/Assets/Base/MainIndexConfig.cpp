@@ -34,7 +34,8 @@ MainIndexConfig::MainIndexConfig(){
 		"ProceduralTerrainTexture",
 		"OceanShader",
 		"OceanMesh",
-		"BlendingWaterPass"
+		"BlendingWaterPass",
+		"UIAtlas"
 	};
 	post_init = {
 		"none"

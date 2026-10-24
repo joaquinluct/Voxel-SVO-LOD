@@ -14,10 +14,7 @@ GameEngineConfig::GameEngineConfig(){
 		"Shadows",
 		"Skybox",
 		"World",
-		"Cycle",
-		"Terrain",
-		"Water",
-		"Biome"
+		"Cycle"
 	};
 	services_post_init = {
 		"World",
@@ -25,17 +22,13 @@ GameEngineConfig::GameEngineConfig(){
 	};
 	services_render_order = {
 		"Skybox",
-		"Terrain",
-		"Water",
 		"Lighting"
 	};
 	service_update_order = {
 		"Chronos",
-		"Biome",
 		"Skybox",
 		"Lighting",
 		"World",
-		"Water",
 		"Cycle"
 	};
 };

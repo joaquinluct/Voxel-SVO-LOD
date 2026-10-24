@@ -15,6 +15,13 @@
 #include <Managers/SceneManager.h>
 #include <Managers/CameraManager.h>
 #include <Managers/ShaderManager.h>
+// Frame states and mesh asset types
+#include <../Includes/FrameStates.h>
+#include <Assets/Base/MeshAsset.h>
+
+// Forward declare FrameStateBase and related helpers to avoid heavy includes.
+class FrameStateBase;
+
 
 UpdateSystem::UpdateSystem() {
 }
@@ -152,17 +159,133 @@ void UpdateSystem::Unlock() { if (m_frameStateService) m_frameStateService->Unlo
 
 UpdatedJobs UpdateSystem::UpdateMainData(float deltaTime) {
     UpdatedJobs updatedStates{};
+
+    // ACTUALIZAR ESTADOS QUE LO REQUIEREN
     if (!m_frameStateService) return updatedStates;
 
-    FrameStateBase* state = nullptr;
-    state = nullptr; // placeholder to mirror previous logic
+    FrameStateBase* state = UpdatePassState(deltaTime);
+    if (state) {
+        m_frameStateService->SetData(FRAME_STATE_PASS, state);
+    }
+    state = UpdateCameraState(deltaTime);
+    if (state) {
+        m_frameStateService->SetData(FRAME_STATE_CAMERA, state);
+    }
+    state = UpdateLightState(deltaTime);
+    if (state) {
+        m_frameStateService->SetData(FRAME_STATE_LIGHTING, state);
+    }
+    state = UpdateWaterState(deltaTime);
+    if (state) {
+        m_frameStateService->SetData(FRAME_STATE_WATER, state);
+    }
+    state = UpdateCommonState(deltaTime);
+    if (state) {
+        m_frameStateService->SetData(FRAME_STATE_COMMON, state);
+    }
+    state = UpdateTimeState(deltaTime);
+    if (state) {
+        m_frameStateService->SetData(FRAME_STATE_TIME, state);
+    }
+    state = UpdatePassState(deltaTime);
+    if (state) {
+        m_frameStateService->SetData(FRAME_STATE_PASS, state);
+    }
+    state = UpdateMaterialState(deltaTime);
+    if (state) {
+        m_frameStateService->SetData(FRAME_STATE_MATERIAL, state);
+    }
+    state = UpdateSkyboxState(deltaTime);
+    if (state) {
+        m_frameStateService->SetData(FRAME_STATE_SKYBOX, state);
+    }
+    state = UpdateDeviceState(deltaTime);
+    if (state) {
+        // device state currently unused
+    }
+
     return updatedStates;
 }
 
 UpdatedJobs UpdateSystem::UpdateTerrainData(float deltaTime) {
     UpdatedJobs updatedStates{};
     if (!m_frameStateService) return updatedStates;
-    FrameStateBase* state = nullptr;
-    state = nullptr;
+    FrameStateBase* state = UpdateTerrainState(deltaTime);
+    if (state) {
+        m_frameStateService->SetData(FRAME_STATE_TERRAIN, state);
+    }
     return updatedStates;
+}
+
+// ---------------------------------------------------------------------------
+// Individual state update helpers (migrated from UpdateManager)
+// ---------------------------------------------------------------------------
+FrameStateBase* UpdateSystem::UpdateTerrainState(float deltaTime) {
+    TerrainFrameState* terrain = m_frameStateService->TerrainState(false);
+    //terrain->SetChunks(m_world->GetTerrain()->GetChunks(m_cameraManager->GetCurrentCamera()));
+    return terrain;
+}
+
+FrameStateBase* UpdateSystem::UpdateCameraState(float deltaTime) {
+    CameraFrameState* camera = m_frameStateService->CameraState(false);
+    camera->SetCameraPosition(m_cameraManager->GetCurrentCameraPosition());
+    camera->SetViewMatrix(m_cameraManager->GetCurrentViewMatrix(true));
+    camera->SetProjectionMatrix(m_cameraManager->GetCurrentProjectionMatrix(true));
+    return camera;
+}
+
+FrameStateBase* UpdateSystem::UpdateLightState(float deltaTime) {
+    LightFrameState* light = m_frameStateService->LightingState(false);
+    light->SetLightDirection(m_lighting->GetLightDirection());
+    light->SetLightColor(m_lighting->GetLightColor());
+    return light;
+}
+
+FrameStateBase* UpdateSystem::UpdateWaterState(float deltaTime) {
+    WaterFrameState* water = m_frameStateService->WaterState(false);
+    water->SetWaterData(WaterDefinition::GetTemporalWaterData());
+    water->SetWaterTileTransformMatrices(m_water->GetWaterMatrices());
+    return water;
+}
+
+FrameStateBase* UpdateSystem::UpdateCommonState(float deltaTime) {
+    CommonFrameState* common = m_frameStateService->CommonState(false);
+    common->SetWorldMatrix(DirectX::XMMatrixIdentity());
+    return common;
+}
+
+FrameStateBase* UpdateSystem::UpdateMaterialState(float deltaTime) {
+    const MeshAsset* mesh = m_mesh.get();
+    if (!mesh || !mesh->GetMaterial()) {
+        return nullptr;
+    }
+    MaterialFrameState* material = m_frameStateService->MaterialState(false);
+    material->SetConstantBuffers(mesh->GetMaterial()->GetConstantBuffers());
+    material->SetNumTextures(mesh->GetMaterial()->GetNumTextures());
+    material->SetTextureTransform(mesh->GetMaterial()->GetTextureTranforms());
+    return material;
+}
+
+FrameStateBase* UpdateSystem::UpdateSkyboxState(float deltaTime) {
+    SkyboxFrameState* skyBox = m_frameStateService->SkyboxState(false);
+    if (!m_skybox) {
+        return nullptr;
+    }
+    skyBox->SetSkyColor(m_skybox->GetSkyColor());
+    skyBox->SetSunColor(m_skybox->GetSunColor());
+    return skyBox;
+}
+
+FrameStateBase* UpdateSystem::UpdateTimeState(float deltaTime) {
+    TimeFrameState* time = m_frameStateService->TimeState(false);
+    return time;
+}
+
+FrameStateBase* UpdateSystem::UpdateDeviceState(float deltaTime) {
+    return nullptr;
+}
+
+FrameStateBase* UpdateSystem::UpdatePassState(float deltaTime) {
+    PassFrameState* pass = m_frameStateService->PassState(false);
+    return pass;
 }

@@ -12,7 +12,8 @@ ServiceConfig::ServiceConfig(){
 		"ProceduralService",
 		"UIText",
 		"FrameStateService",
-		"ThreadPool"
+		"ThreadPool",
+		"Skybox"
 	};
 	services_post_init = {
 		"none"
@@ -22,7 +23,8 @@ ServiceConfig::ServiceConfig(){
 		"Keyboard",
 		"UIText",
 		"ProceduralService",
-		"FrameStateService"
+		"FrameStateService",
+		"Skybox"
 	};
 	services_update_order = {
 		"Mouse",
@@ -30,6 +32,7 @@ ServiceConfig::ServiceConfig(){
 		"UIText",
 		"Material",
 		"FrameStateService",
-		"ProceduralService"
+		"ProceduralService",
+		"Skybox"
 	};
 };
