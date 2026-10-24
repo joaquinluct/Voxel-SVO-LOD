@@ -1,0 +1,96 @@
+// Simple terrain tessellation HLSL
+
+cbuffer MatrixBuffer : register(b0)
+{
+    float4x4 worldMatrix;
+    float4x4 viewMatrix;
+    float4x4 projectionMatrix;
+};
+
+cbuffer InstanceBuffer : register(b1)
+{
+    float4x4 instanceWorld;
+    float LodFactor;
+    float Padding[3];
+};
+
+struct VSInput {
+    float3 pos : POSITION;
+};
+
+struct HSControlPoint {
+    float3 pos : POSITION;
+};
+
+struct HSConstantOut {
+    float EdgeFactor[4] : SV_TESSFACTOR;
+    float InsideFactor : SV_INSIDE_TESSFACTOR;
+};
+
+HSControlPoint VSMain(VSInput input)
+{
+    HSControlPoint o;
+    o.pos = input.pos;
+    return o;
+}
+
+[domain("quad")]
+[patchconstantfunc("PatchConst")]
+HSControlPoint HSMain(InputPatch<HSControlPoint,4> patch, uint i : SV_OutputControlPointID)
+{
+    // Pass-through control points
+    return patch[i];
+}
+
+HSConstantOut PatchConst(InputPatch<HSControlPoint,4> patch)
+{
+    HSConstantOut output;
+    // Simple factor based on instance LodFactor (will be set from CB)
+    float edge = LodFactor;
+    output.EdgeFactor[0] = edge;
+    output.EdgeFactor[1] = edge;
+    output.EdgeFactor[2] = edge;
+    output.EdgeFactor[3] = edge;
+    output.InsideFactor = edge;
+    return output;
+}
+
+[domain("quad")]
+struct DSOutput {
+    float4 pos : SV_POSITION;
+    float3 worldPos : TEXCOORD0;
+};
+
+DSOutput DSMain(HSConstantOut patchConsts, const OutputPatch<HSControlPoint,4> cp, float2 uv : SV_DomainLocation)
+{
+    // Bilinear interpolate control points on the patch
+    float3 p00 = cp[0].pos;
+    float3 p10 = cp[1].pos;
+    float3 p01 = cp[2].pos;
+    float3 p11 = cp[3].pos;
+
+    // uv.x -> u, uv.y -> v
+    float3 p0 = lerp(p00, p10, uv.x);
+    float3 p1 = lerp(p01, p11, uv.x);
+    float3 p = lerp(p0, p1, uv.y);
+
+    // Apply a simple displacement based on a procedural function and LodFactor
+    float disp = sin((p.x + p.z) * 0.1) * 2.0 * (LodFactor * 0.1);
+    p.y += disp;
+
+    DSOutput o;
+    float4 world = mul(float4(p,1.0f), instanceWorld);
+    o.worldPos = world.xyz;
+    float4 viewPos = mul(world, viewMatrix);
+    o.pos = mul(viewPos, projectionMatrix);
+    // No texture coords in SimpleVertex; generate a basic uv from position if needed
+    // (uv is not used for color here)
+    return o;
+}
+
+float4 PSMain(DSOutput input) : SV_TARGET
+{
+    // Simple color based on height
+    float h = saturate((input.worldPos.y + 10.0) / 40.0);
+    return float4(lerp(float3(0.1,0.5,0.1), float3(0.6,0.6,0.6), h), 1.0);
+}

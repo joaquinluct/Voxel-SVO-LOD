@@ -6,7 +6,7 @@
 #include <memory>
 #include <functional>
 #include <map>
-#include "yaml-cpp/yaml.h"
+// #include "yaml-cpp/yaml.h"
 #include <windows.h> // Para HWND, HRESULT
 #include <AssetManager.h>
 #include <CameraManager.h>
@@ -37,98 +37,98 @@ using UpdateManagerLambda = std::function<void(std::shared_ptr<IManager>, float)
 
 class ManagerLocator {
 public:
-    // Constructor privado para Singleton
-    ManagerLocator() = default;
-    ManagerLocator(const ManagerLocator&) = delete;
-    ManagerLocator& operator=(const ManagerLocator&) = delete;
+	// Constructor privado para Singleton
+	ManagerLocator() = default;
+	ManagerLocator(const ManagerLocator&) = delete;
+	ManagerLocator& operator=(const ManagerLocator&) = delete;
 
-    static ManagerLocator& GetInstance();
+	static ManagerLocator& GetInstance();
 
-    // Registra las lambdas de creación e inicialización para un servicio.
-    // El 'name' debe coincidir con la clave en tu archivo YAML para este manager.
-    static void RegisterManagerCreator(
-        const std::string& name,
-        CreateManagerLambda createFn,
-        InitializeManagerLambda initFn,
+	// Registra las lambdas de creación e inicialización para un servicio.
+	// El 'name' debe coincidir con la clave en tu archivo YAML para este manager.
+	static void RegisterManagerCreator(
+		const std::string& name,
+		CreateManagerLambda createFn,
+		InitializeManagerLambda initFn,
 		RenderManagerLambda renderFn,
 		UpdateManagerLambda updateFn
-    );
-    
-    static HRESULT InitializeManagers(const std::vector<std::string>& orderList, HWND hwnd, int width, int height);
-    static HRESULT RenderManagers(const std::vector<std::string>& orderList);
-    static HRESULT UpdateManagers(const std::vector<std::string>& orderList, float delta);
-    //static HRESULT UpdateManagers(const std::vector<std::string>& orderList, float deltaTime);
-    //static void ShutdownManagers(const std::vector<std::string>& orderList); // Shutdown suele ser void
+	);
 
-    // Función para obtener un servicio ya inicializado por su tipo C++.
-    // Ahora usa dynamic_pointer_cast internamente, ya que s_managers almacena IManager.
-    template<typename T>
-    static std::shared_ptr<T> GetManager() {
-        const std::string name1 = typeid(T).name();
+	static HRESULT InitializeManagers(const std::vector<std::string>& orderList, HWND hwnd, int width, int height);
+	static HRESULT RenderManagers(const std::vector<std::string>& orderList);
+	static HRESULT UpdateManagers(const std::vector<std::string>& orderList, float delta);
+	//static HRESULT UpdateManagers(const std::vector<std::string>& orderList, float deltaTime);
+	//static void ShutdownManagers(const std::vector<std::string>& orderList); // Shutdown suele ser void
+
+	// Función para obtener un servicio ya inicializado por su tipo C++.
+	// Ahora usa dynamic_pointer_cast internamente, ya que s_managers almacena IManager.
+	template<typename T>
+	static std::shared_ptr<T> GetManager() {
+		const std::string name1 = typeid(T).name();
 		const std::string name = T::GetStaticManagerName();
 		auto& s_managerEntries = GetManagerEntries();
-        auto it = s_managerEntries.find(name);
-        if (it != s_managerEntries.end()) {
-            return std::dynamic_pointer_cast<T>(it->second.instance);
-        }
-        return nullptr;
-    }
-    static std::shared_ptr<IManager> GetManager(const std::string& name);
+		auto it = s_managerEntries.find(name);
+		if (it != s_managerEntries.end()) {
+			return std::dynamic_pointer_cast<T>(it->second.instance);
+		}
+		return nullptr;
+	}
+	static std::shared_ptr<IManager> GetManager(const std::string& name);
 
-    // Función para registrar directamente un servicio ya creado (para casos especiales o tests).
-    // También usa T::GetStaticManagerName() como clave para mantener la consistencia.
-    // Ahora acepta std::shared_ptr<IManager> o un tipo que herede de IManager.
-    template<typename T>
-    // T debe ser un IManager o heredar de IManager
-    static void RegisterManager(std::shared_ptr<T> manager) {
-        // Asume que la clase T tiene un método estático 'GetStaticManagerName()'.
-        // La conversión implícita de std::shared_ptr<T> a std::shared_ptr<IManager> es segura.
-        static_assert(std::is_base_of<IManager, T>::value, "T must derive from IManager for ManagerLocator::RegisterManager");
-        auto& s_managerEntries = GetManagerEntries();
-        s_managerEntries[manager->GetStaticManagerName()] = manager;
-        //s_managers[T::GetStaticManagerName()] = manager; 
-    }
+	// Función para registrar directamente un servicio ya creado (para casos especiales o tests).
+	// También usa T::GetStaticManagerName() como clave para mantener la consistencia.
+	// Ahora acepta std::shared_ptr<IManager> o un tipo que herede de IManager.
+	template<typename T>
+	// T debe ser un IManager o heredar de IManager
+	static void RegisterManager(std::shared_ptr<T> manager) {
+		// Asume que la clase T tiene un método estático 'GetStaticManagerName()'.
+		// La conversión implícita de std::shared_ptr<T> a std::shared_ptr<IManager> es segura.
+		static_assert(std::is_base_of<IManager, T>::value, "T must derive from IManager for ManagerLocator::RegisterManager");
+		auto& s_managerEntries = GetManagerEntries();
+		s_managerEntries[manager->GetStaticManagerName()] = manager;
+		//s_managers[T::GetStaticManagerName()] = manager; 
+	}
 
-    // Función para limpiar todos los servicios registrados y sus creadores.
-    // Este método es fundamental para el apagado correcto y la liberación de recursos.
-    static void Shutdown();
+	// Función para limpiar todos los servicios registrados y sus creadores.
+	// Este método es fundamental para el apagado correcto y la liberación de recursos.
+	static void Shutdown();
 
 
 	// Funciones helper para obtener el manager directamente.
-    static const std::shared_ptr<DeviceManager> GetDeviceManager() {
+	static const std::shared_ptr<DeviceManager> GetDeviceManager() {
 		return GetManager<DeviceManager>();
-    };
-    static const std::shared_ptr<RenderTargetManager> GetRenderManager() {
-        return GetManager<RenderTargetManager>();
 	};
-    /*static const std::shared_ptr<AssetManager> GetAssetManager() {
-        return GetManager<AssetManager>();
+	static const std::shared_ptr<RenderTargetManager> GetRenderManager() {
+		return GetManager<RenderTargetManager>();
+	};
+	/*static const std::shared_ptr<AssetManager> GetAssetManager() {
+		return GetManager<AssetManager>();
 	};*/
-    static const std::shared_ptr<CameraManager> GetCameraManager() {
+	static const std::shared_ptr<CameraManager> GetCameraManager() {
 		return GetManager<CameraManager>();
 	};
-    static const std::shared_ptr<GameManager> GetGameManager() {
+	static const std::shared_ptr<GameManager> GetGameManager() {
 		return GetManager<GameManager>();
 	};
-    static const std::shared_ptr<KeyboardManager> GetKeyboardManager() {
+	static const std::shared_ptr<KeyboardManager> GetKeyboardManager() {
 		return GetManager<KeyboardManager>();
-	};    
-    static const std::shared_ptr<WorldMatrixManager> GetWorldMatrixManager() {
+	};
+	static const std::shared_ptr<WorldMatrixManager> GetWorldMatrixManager() {
 		return GetManager<WorldMatrixManager>();
 	};
-    static const std::shared_ptr<ShaderManager> GetShaderManager() {
-        return GetManager<ShaderManager>();
-    };
+	static const std::shared_ptr<ShaderManager> GetShaderManager() {
+		return GetManager<ShaderManager>();
+	};
 
 
-    struct ManagerEntry {
-        std::shared_ptr<IManager> instance; // La instancia real del manager
-        CreateManagerLambda creator;
-        InitializeManagerLambda initializer;
-        RenderManagerLambda renderer; // La lambda de render que definiste en la macro
+	struct ManagerEntry {
+		std::shared_ptr<IManager> instance; // La instancia real del manager
+		CreateManagerLambda creator;
+		InitializeManagerLambda initializer;
+		RenderManagerLambda renderer; // La lambda de render que definiste en la macro
 		UpdateManagerLambda updater; // La lambda de actualización que definiste en la macro
-        // ... otras lambdas (Update, Shutdown)
-    };
+		// ... otras lambdas (Update, Shutdown)
+	};
 private:
-    static std::map<std::string, ManagerEntry>& GetManagerEntries();
+	static std::map<std::string, ManagerEntry>& GetManagerEntries();
 };

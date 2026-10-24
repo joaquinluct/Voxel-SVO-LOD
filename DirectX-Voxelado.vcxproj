@@ -105,7 +105,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;YAML_CPP_STATIC_DEFINE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\Users\joaqu\source\repos oficiales\DirectXTK-main\Inc;C:\Users\joaqu\Downloads\yaml-cpp-master-original\yaml-cpp-master\include;$(ProjectDir)Libs;$(ProjectDir)src;$(ProjectDir)Assets;$(ProjectDir)Interfaces;$(ProjectDir)Interfaces/Pipeline;$(ProjectDir)Interfaces/Config;$(ProjectDir)Interfaces/Assets;$(ProjectDir)src/Engine;$(ProjectDir)src/Engine/Managers;$(ProjectDir)src/Engine/Core;$(ProjectDir)src/Engine/Util;$(Projectdir)src/Engine/Core/Locators/Registers;$(Projectdir)src/Engine/Core/Locators;$(Projectdir)src/Engine/Core/Config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\joaqu\source\repos oficiales\DirectXTK-main\Inc;$(ProjectDir)Libs;$(ProjectDir)src;$(ProjectDir)Assets;$(ProjectDir)Interfaces;$(ProjectDir)Interfaces/Pipeline;$(ProjectDir)Interfaces/Config;$(ProjectDir)Interfaces/Assets;$(ProjectDir)src/Engine;$(ProjectDir)src/Engine/Managers;$(ProjectDir)src/Engine/Core;$(ProjectDir)src/Engine/Util;$(Projectdir)src/Engine/Core/Locators/Registers;$(Projectdir)src/Engine/Core/Locators;$(Projectdir)src/Engine/Core/Config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -113,9 +113,9 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>DirectXTK.lib;yaml-cppd.lib;d3d11.lib;d3dcompiler.lib;dxguid.lib;dxgi.lib;dwrite.lib;d2d1.lib;winmm.lib;comctl32.lib;windowscodecs.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>DirectXTK.lib;d3d11.lib;d3dcompiler.lib;dxguid.lib;dxgi.lib;dwrite.lib;d2d1.lib;winmm.lib;comctl32.lib;windowscodecs.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
-      <AdditionalLibraryDirectories>C:\Users\joaqu\source\repos oficiales\DirectXTK-main\Bin\Desktop_2022_Win10\x64\Debug;C:\Users\joaqu\Downloads\yaml-cpp-master-original\yaml-cpp-master\build\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\joaqu\source\repos oficiales\DirectXTK-main\Bin\Desktop_2022_Win10\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <FxCompile>
       <ShaderModel>5.0</ShaderModel>
@@ -137,7 +137,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\Users\joaqu\Downloads\yaml-cpp-master-original\yaml-cpp-master\include;$(ProjectDir)Libs/DirectX/WICTextureLoader;$(ProjectDir)Libs/DirectX/DirectXTex;$(ProjectDir)Interfaces;$(ProjectDir)Core/Engine;$(ProjectDir)Core/ServiceCreator;$(ProjectDir)Core/ServiceLocator;$(ProjectDir)Managers;$(ProjectDir)Camera;$(ProjectDir)Devices;$(ProjectDir)UI;$(ProjectDir)Util/RayTracing;$(ProjectDir)Util;$(ProjectDir)Material;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Libs/DirectX/WICTextureLoader;$(ProjectDir)Libs/DirectX/DirectXTex;$(ProjectDir)Interfaces;$(ProjectDir)Core/Engine;$(ProjectDir)Core/ServiceCreator;$(ProjectDir)Core/ServiceLocator;$(ProjectDir)Managers;$(ProjectDir)Camera;$(ProjectDir)Devices;$(ProjectDir)UI;$(ProjectDir)Util/RayTracing;$(ProjectDir)Util;$(ProjectDir)Material;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>
     <Link>
@@ -145,7 +145,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\joaqu\Downloads\yaml-cpp-master-original\yaml-cpp-master\build\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>yaml-cpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <FxCompile>
@@ -337,44 +337,6 @@
     <ClCompile Include="src\Engine\Util\DirectXUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\anchor.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\binary.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\contrib\anchordict.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\contrib\graphbuilder.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\depthguard.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\dll.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\emitfromevents.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\emitter.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\emitterdef.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\emittermanip.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\emitterstyle.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\eventhandler.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\exceptions.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\fptostring.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\mark.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\node\convert.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\node\detail\impl.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\node\detail\iterator.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\node\detail\iterator_fwd.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\node\detail\memory.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\node\detail\node.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\node\detail\node_data.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\node\detail\node_iterator.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\node\detail\node_ref.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\node\emit.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\node\impl.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\node\iterator.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\node\node.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\node\parse.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\node\ptr.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\node\type.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\noexcept.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\null.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\ostream_wrapper.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\parser.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\stlemitter.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\traits.h" />
-    <ClInclude Include="..\..\..\Downloads\yaml-cpp-master\yaml-cpp-master\include\yaml-cpp\yaml.h" />
     <ClInclude Include="Assets\VertexDef\FloorVertexDef.h" />
     <ClInclude Include="Assets\VertexDef\SkyboxCube.h" />
     <ClInclude Include="Interfaces\Assets\IAssetVertexConfigBase.h" />
@@ -864,9 +826,6 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="SAVE_FBX.md" />
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="C:\Users\joaqu\Downloads\yaml-cpp-master-original\yaml-cpp-master\build\Debug\yaml-cppd.lib" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Assets\Mesh\floor.obj">
