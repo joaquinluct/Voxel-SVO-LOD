@@ -33,6 +33,7 @@
 .vs
 debug/*
 Debug/*
+bin/*
 DirectX-Voxelado/*
 .vs/*
 x64/*
